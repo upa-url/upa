@@ -262,6 +262,17 @@ inline void do_remove_whitespace(const CharT*& first, const CharT*& last, std::v
 	}
 }
 
+// reverse find
+
+template<class InputIt, class T>
+InputIt find_last(InputIt first, InputIt last, const T& value) {
+	for (auto it = last; it > first;) {
+		--it;
+		if (*it == value) return it;
+	}
+	return last;
+}
+
 // special chars
 
 template <typename CharT>
@@ -555,29 +566,20 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
 			std::find_if(pointer, last,	[](CharT c) { return c == '/' || c == '?' || c == '#' || c == '\\'; }) :
 			std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#'; });
 		
-		auto it_eta = std::find(pointer, end_of_authority, '@');
+		auto it_eta = find_last(pointer, end_of_authority, '@');
 		if (it_eta != end_of_authority)	{
 			//TODO-WARN: syntax violation
-			bool is_password = false;
-			while (true) {
-				if (is_password) {
-					norm_url_.append(pointer, it_eta); // TODO: UTF-8 percent encode codePoint
-				} else {
-					for (auto it = pointer; it < it_eta; it++) {
-						const CharT ch = *it;
-						if (!is_password && ch == ':') {
-							is_password = true;
-							norm_url_.push_back(':');
-						} else {
-							norm_url_.push_back(ch); // TODO: UTF-8 percent encode codePoint
-						}
-					}
-				}
-				pointer = it_eta + 1;
-				it_eta = std::find(pointer, end_of_authority, '@');
-				if (it_eta == end_of_authority) break;
-				norm_url_.append("%40"); // @ percent encoded
+			auto it_colon = std::find(pointer, it_eta, ':');
+			// username
+			norm_url_.append("//"); // TODO: įsiminti, kad nebūtų paskui dar kartą pridėta //
+			norm_url_.append(pointer, it_colon); // TODO: UTF-8 percent encode codePoint, @ -> %40
+			// password
+			if (it_colon != it_eta) {
+				norm_url_.push_back(':');
+				norm_url_.append(it_colon + 1, it_eta); // TODO: UTF-8 percent encode codePoint, @ -> %40
 			}
+			// after '@'
+			pointer = it_eta + 1;
 			norm_url_ += '@';
 		}
 		state = host_state;
