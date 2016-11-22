@@ -3,6 +3,12 @@
 // (See accompanying file LICENSE_1_0.txt or copy at
 // http://www.boost.org/LICENSE_1_0.txt)
 
+// URL Standard
+// https://url.spec.whatwg.org/ [3 November 2016]
+// https://url.spec.whatwg.org/commit-snapshots/ee4b0ba236e957131dd8c6920d8294f884f7d7e6/
+// Infra Standard - fundamental concepts upon which standards are built
+// https://infra.spec.whatwg.org/
+
 #ifndef WHATWG_URL_HPP
 #define WHATWG_URL_HPP
 
