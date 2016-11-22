@@ -851,6 +851,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
         // percent encode: (c < 0x21 || c > 0x7E || c == 0x22 || c == 0x23 || c == 0x3C || c == 0x3E)
         // TODO: dabar palaiko tik encoding = "UTF-8"; kitų palaikymą galima padaryti pagal:
         // https://cs.chromium.org/chromium/src/url/url_canon_query.cc?rcl=1479817139&l=93
+        norm_url_.push_back('?');
         std::size_t norm_len0 = norm_url_.length();
         detail::AppendStringOfType(pointer, end_of_query, detail::CHAR_QUERY, norm_url_); // šis dar koduoja 0x27 '
         set_part(QUERY, norm_len0, norm_url_.length());
