@@ -18,16 +18,16 @@
     <Text Include="url_standard.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="url.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="url.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="url.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

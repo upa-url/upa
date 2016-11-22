@@ -74,7 +74,7 @@
     <Text Include="url_standard.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="url.hpp" />
+    <ClInclude Include="url.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="test.cpp" />
