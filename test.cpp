@@ -12,7 +12,7 @@ int main()
 
     url_parse("mailto:vardenis@example.com", nullptr);
 
-    url_parse("https://username:pažs@word@example.com:123/path/data?abc=ąbč&key=value&key2=value2#fragid1");
+    url_parse("https://username:pažs@word@example.com:123/path/data?abc=ąbč&key=value&key2=value2#fragid1-ą");
 
     url_parse("   wss\r:\n/\t/abc.lt/ \t ", nullptr);
 
