@@ -13,6 +13,7 @@
 #define WHATWG_URL_H
 
 #include "url_canon.h"
+#include "url_util.h"
 #include <algorithm>
 #include <cassert>
 #include <string>
@@ -862,25 +863,40 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
         // *pointer == '#'
         //TODO: set url’s fragment to the empty string
         state = fragment_state;
-        pointer++;
+        pointer++; // skip '#'
     }
 
     if (state == fragment_state) {
-        if (pointer == last) return true; // EOF
         norm_url_ += '#';
-        for (; pointer < last; pointer++) {
+        // pagal: https://cs.chromium.org/chromium/src/url/url_canon_etc.cc : DoCanonicalizeRef(..)
+        std::size_t norm_len0 = norm_url_.length();
+        while (pointer < last) {
             CharT ch = *pointer;
-            if (ch != 0) {
-                // TODO-WARN:
-                // If c is not a URL code point and not "%", syntax violation.
-                // If c is "%" and remaining does not start with two ASCII hex digits, syntax violation.
-                // ~~~
-                norm_url_ += ch;
-            } // else // TODO-WARN: Syntax violation
+            if (ch == 0) {
+                // TODO-WARN: Syntax violation
+                pointer++;
+                continue;
+            } else if (static_cast<UCharT>(ch) < 0x80) {
+                // Normal ASCII (and control) characters are just appended
+                norm_url_.push_back(static_cast<char>(ch));
+                pointer++;
+            } else {
+                // Non-ASCII characters are appended unescaped, but only when they are
+                // valid. Invalid Unicode characters are replaced with the "invalid
+                // character" as IE seems to (ReadUTFChar puts the unicode replacement
+                // character in the output on failure for us).
+                unsigned code_point;
+                url_util::read_utf_char(pointer, last, code_point);
+                detail::AppendUTF8Value(code_point, norm_url_);
+            }
+            // TODO-WARN:
+            // If c is not a URL code point and not "%", syntax violation.
+            // If c is "%" and remaining does not start with two ASCII hex digits, syntax violation.
         }
+        set_part(FRAGMENT, norm_len0, norm_url_.length());
     }
 
-    return false;
+    return true;
 }
 
 template <typename CharT>
