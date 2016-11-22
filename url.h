@@ -846,14 +846,15 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
 
         if (!scheme_inf_->is_special || scheme_inf_->is_ws)
             encoding = "UTF-8";
-        //TODO: Set buffer to the result of encoding buffer using encoding
-        for (auto it = pointer; it < end_of_query; it++) {
-            UCharT c = static_cast<UCharT>(*it);
-            if (c < 0x21 || c > 0x7E || c == 0x22 || c == 0x23 || c == 0x3C || c == 0x3E)
-                norm_url_ += c; // TODO: append byte, percent encoded, to url’s query
-            else
-                norm_url_ += c;
-        }
+
+        // Set buffer to the result of encoding buffer using encoding
+        // percent encode: (c < 0x21 || c > 0x7E || c == 0x22 || c == 0x23 || c == 0x3C || c == 0x3E)
+        // TODO: dabar palaiko tik encoding = "UTF-8"; kitų palaikymą galima padaryti pagal:
+        // https://cs.chromium.org/chromium/src/url/url_canon_query.cc?rcl=1479817139&l=93
+        std::size_t norm_len0 = norm_url_.length();
+        detail::AppendStringOfType(pointer, end_of_query, detail::CHAR_QUERY, norm_url_); // šis dar koduoja 0x27 '
+        set_part(QUERY, norm_len0, norm_url_.length());
+
         pointer = end_of_query;
         if (pointer == last)
             return true; // EOF
