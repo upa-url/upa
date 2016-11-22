@@ -175,12 +175,14 @@ protected:
     template <typename CharT>
     void parse_path(const CharT* first, const CharT* last);
 
-    void add_part(PartType t, const str_view<char> str) {
+    template <class StringT>
+    void add_part(PartType t, const StringT str) {
         part_[t].offset = norm_url_.length();
         part_[t].len = str.length();
         norm_url_.append(str.data(), str.length());
     }
-    void add_part(PartType t, const str_view<char> str, char c) {
+    template <class StringT>
+    void add_part(PartType t, const StringT str, char c) {
         add_part(t, str);
         norm_url_ += c;
     }
@@ -659,10 +661,8 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
         }
         if (port) {
             if (scheme_inf_ == nullptr || scheme_inf_->default_port != port) {
-                // TODO:
                 norm_url_.push_back(':');
-                norm_url_.append(std::to_string(port));
-                //
+                add_part(PORT, std::to_string(port));
             }
         }
         if (state_override)
