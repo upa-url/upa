@@ -9,8 +9,8 @@
 // Infra Standard - fundamental concepts upon which standards are built
 // https://infra.spec.whatwg.org/
 
-#ifndef WHATWG_URL_HPP
-#define WHATWG_URL_HPP
+#ifndef WHATWG_URL_H
+#define WHATWG_URL_H
 
 #include <algorithm>
 #include <cassert>
@@ -899,4 +899,4 @@ inline void url::parse_path(const CharT* first, const CharT* last) {
 
 } // namespace whatwg
 
-#endif // WHATWG_URL_HPP
+#endif // WHATWG_URL_H
