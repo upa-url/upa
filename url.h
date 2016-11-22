@@ -12,6 +12,7 @@
 #ifndef WHATWG_URL_H
 #define WHATWG_URL_H
 
+#include "url_canon.h"
 #include <algorithm>
 #include <cassert>
 #include <string>
@@ -578,11 +579,15 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             auto it_colon = std::find(pointer, it_eta, ':');
             // username
             norm_url_.append("//"); // TODO: įsiminti, kad nebūtų paskui dar kartą pridėta //
-            norm_url_.append(pointer, it_colon); // TODO: UTF-8 percent encode codePoint, @ -> %40
+            std::size_t norm_len0 = norm_url_.length();
+            detail::AppendStringOfType(pointer, it_colon, detail::CHAR_USERINFO, norm_url_); // UTF-8 percent encode, @ -> %40
+            part_[USERNAME] = detail::url_part::from_range(norm_len0, norm_url_.length());
             // password
             if (it_colon != it_eta) {
                 norm_url_.push_back(':');
-                norm_url_.append(it_colon + 1, it_eta); // TODO: UTF-8 percent encode codePoint, @ -> %40
+                norm_len0 = norm_url_.length();
+                detail::AppendStringOfType(it_colon + 1, it_eta, detail::CHAR_USERINFO, norm_url_); // UTF-8 percent encode, @ -> %40
+                part_[PASSWORD] = detail::url_part::from_range(norm_len0, norm_url_.length());
             }
             // after '@'
             pointer = it_eta + 1;
