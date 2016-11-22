@@ -5,8 +5,6 @@ void url_parse(const char* str_url, whatwg::url* base = nullptr);
 
 int main()
 {
-    whatwg::url url;
-
     url_parse("file://d:/tekstas.txt", nullptr);
     url_parse("filesystem:http://www.example/temporary/", nullptr);
 
@@ -20,8 +18,8 @@ int main()
 
     url_parse("file://example.com/bandymas/#123", nullptr);
 
-    std::string str_url("http://example.com/bandymas/#123");
-    url.parse(str_url, nullptr);
+    url_parse("http://example.com:8080/bandymas/#123", nullptr);
+    url_parse("http://example.com:80/bandymas/#123", nullptr);
 }
 
 
