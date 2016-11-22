@@ -1,29 +1,8 @@
 #include <iostream>
 #include "url.h"
 
-void url_parse(const char* str_url, whatwg::url* base = nullptr);
-
-int main()
-{
-    url_parse("file://d:/tekstas.txt", nullptr);
-    url_parse("filesystem:http://www.example/temporary/", nullptr);
-
-    url_parse("invalid^scheme://example.com", nullptr);
-
-    url_parse("mailto:vardenis@example.com", nullptr);
-
-    url_parse("https://username:pažs@word@example.com:123/path/data?abc=ąbč&key=value&key2=value2#fragid1-ą");
-
-    url_parse("   wss\r:\n/\t/abc.lt/ \t ", nullptr);
-
-    url_parse("file://example.com/bandymas/#123", nullptr);
-
-    url_parse("http://example.com:8080/bandymas/#123", nullptr);
-    url_parse("http://example.com:80/bandymas/#123", nullptr);
-}
-
-
-void url_parse(const char* str_url, whatwg::url* base)
+template <typename CharT>
+void url_parse(const CharT* str_url, whatwg::url* base = nullptr)
 {
     static char* part_name[whatwg::url::PART_COUNT] = {
         "SCHEME",
@@ -46,4 +25,24 @@ void url_parse(const char* str_url, whatwg::url* base)
             std::cout << part_name[part] << ": " << strPart << "\n";
         }
     }
+}
+
+int main()
+{
+    url_parse("file://d:/tekstas.txt", nullptr);
+    url_parse("filesystem:http://www.example/temporary/", nullptr);
+
+    url_parse("invalid^scheme://example.com", nullptr);
+
+    url_parse("mailto:vardenis@example.com", nullptr);
+
+    url_parse((const char16_t*)L"http://klausimėlis.lt/?key=ąče#axd");
+    url_parse("https://username:pass@word@example.com:123/path/data?abc=ąbč&key=value&key2=value2#fragid1-ą");
+
+    url_parse("   wss\r:\n/\t/abc.lt/ \t ", nullptr);
+
+    url_parse("file://example.com/bandymas/#123", nullptr);
+
+    url_parse("http://example.com:8080/bandymas/#123", nullptr);
+    url_parse("http://example.com:80/bandymas/#123", nullptr);
 }
