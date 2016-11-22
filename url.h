@@ -187,11 +187,8 @@ protected:
         norm_url_ += c;
     }
 
-    void part_start(PartType t) {
-        part_[t].offset = norm_url_.length();
-    }
-    void part_end(PartType t) {
-        part_[t].len = norm_url_.length() - part_[t].offset;
+    void set_part(PartType t, std::size_t b, std::size_t e) {
+        part_[t] = detail::url_part::from_range(b, e);
     }
 
     void set_scheme(const url& src) {
@@ -203,7 +200,7 @@ protected:
         scheme_inf_ = detail::get_scheme_info(str);
     }
     void set_scheme(std::size_t b, std::size_t e) {
-        part_[SCHEME] = detail::url_part::from_range(b, e);
+        set_part(SCHEME, b, e);
         scheme_inf_ = detail::get_scheme_info(get_part_view(SCHEME));
     }
 
@@ -583,13 +580,13 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             norm_url_.append("//"); // TODO: įsiminti, kad nebūtų paskui dar kartą pridėta //
             std::size_t norm_len0 = norm_url_.length();
             detail::AppendStringOfType(pointer, it_colon, detail::CHAR_USERINFO, norm_url_); // UTF-8 percent encode, @ -> %40
-            part_[USERNAME] = detail::url_part::from_range(norm_len0, norm_url_.length());
+            set_part(USERNAME, norm_len0, norm_url_.length());
             // password
             if (it_colon != it_eta) {
                 norm_url_.push_back(':');
                 norm_len0 = norm_url_.length();
                 detail::AppendStringOfType(it_colon + 1, it_eta, detail::CHAR_USERINFO, norm_url_); // UTF-8 percent encode, @ -> %40
-                part_[PASSWORD] = detail::url_part::from_range(norm_len0, norm_url_.length());
+                set_part(PASSWORD, norm_len0, norm_url_.length());
             }
             // after '@'
             pointer = it_eta + 1;
