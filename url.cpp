@@ -33,7 +33,7 @@ const char kSchemeCanonical[0x80] = {
 
 // MUST by sorted alphabetically by scheme
 const scheme_info kSchemes[] = {
-//    scheme,             port, is_special, is_local, is_http, is_network, is_fetch, is_file, is_ws
+    // scheme,            port, is_special, is_local, is_http, is_network, is_fetch, is_file, is_ws
     { { "about", 5 },        0,          0,        1,       0,          0,        1,       0,     0 },
     { { "blob", 4 },         0,          0,        1,       0,          0,        1,       0,     0 },
     { { "data", 4 },         0,          0,        1,       0,          0,        1,       0,     0 },
@@ -56,5 +56,5 @@ const scheme_info* get_scheme_info(const str_view<char> src) {
 }
 
 
-} // namespace whatwg
 } // namespace detail
+} // namespace whatwg
