@@ -391,6 +391,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     };
     State state = scheme_start_state;
     State state_override = state_not_set;
+    bool is_slash_slash = false;
 
     // has scheme?
     if (state == scheme_start_state) {
@@ -585,7 +586,8 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             //TODO-WARN: syntax violation
             auto it_colon = std::find(pointer, it_eta, ':');
             // username
-            norm_url_.append("//"); // TODO: įsiminti, kad nebūtų paskui dar kartą pridėta //
+            norm_url_.append("//");
+            is_slash_slash = true; // kad nebūtų dar kartą pridėta "//"
             std::size_t norm_len0 = norm_url_.length();
             detail::AppendStringOfType(pointer, it_colon, detail::CHAR_USERINFO, norm_url_); // UTF-8 percent encode, @ -> %40
             set_part(USERNAME, norm_len0, norm_url_.length());
@@ -630,6 +632,10 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             return false;
         }
         // parse and set host:
+        if (!is_slash_slash) {
+            is_slash_slash = true;
+            norm_url_.append("//");
+        }
         if (!parse_host(pointer, it_host_end))
             return false;
 
