@@ -60,8 +60,9 @@ int main()
     setlocale(LC_ALL, "");
 
     url_parse("file://d:/tekstas.txt", nullptr);
-    url_parse("filesystem:http://www.example/temporary/", nullptr);
+    url_parse("filesystem:http://www.example.com/temporary/", nullptr);
 
+    url_parse("blob:550e8400-e29b-41d4-a716-446655440000#aboutABBA");
     url_parse("invalid^scheme://example.com", nullptr);
 
     url_parse("mailto:vardenis@example.com", nullptr);
