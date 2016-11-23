@@ -1,7 +1,7 @@
 #ifndef WHATWG_URL_UTIL_H
 #define WHATWG_URL_UTIL_H
 
-#include <cstdint>
+#include <cstdint> // uint32_t, [char16_t, char32_t]
 // ICU
 #include "unicode/utf.h"
 
