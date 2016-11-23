@@ -889,8 +889,8 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             } else {
                 // Non-ASCII characters are appended unescaped, but only when they are
                 // valid. Invalid Unicode characters are replaced with the "invalid
-                // character" as IE seems to (ReadUTFChar puts the unicode replacement
-                // character in the output on failure for us).
+                // character" as IE seems to (url_util::read_utf_char puts the unicode
+                // replacement character in the output on failure for us).
                 unsigned code_point;
                 url_util::read_utf_char(pointer, last, code_point);
                 detail::AppendUTF8Value(code_point, norm_url_);
