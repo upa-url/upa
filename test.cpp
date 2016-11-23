@@ -41,13 +41,15 @@ void url_parse(const CharT* str_url, whatwg::url* base = nullptr)
     whatwg::url url;
 
     cout_str(str_url);
-    std::cout << "\n";
+    std::wcout << "\n";
 
     url.parse(str_url, base);
+
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convW;
     for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {
         std::string strPart = url.get_part(static_cast<whatwg::url::PartType>(part));
         if (!strPart.empty()) {
-            std::cout << part_name[part] << ": " << strPart << "\n";
+            std::wcout << part_name[part] << ": " << convW.from_bytes(strPart) << "\n";
         }
     }
 }
