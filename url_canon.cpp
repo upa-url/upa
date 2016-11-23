@@ -166,6 +166,10 @@ void AppendStringOfType(const char16_t* first, const char16_t* last, SharedCharT
     DoAppendStringOfType<char16_t, char16_t>(first, last, type, output);
 }
 
+void AppendStringOfType(const char32_t* first, const char32_t* last, SharedCharTypes type, std::string& output) {
+    DoAppendStringOfType<char32_t, char32_t>(first, last, type, output);
+}
+
 
 } // namespace whatwg
 } // namespace detail

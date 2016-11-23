@@ -69,6 +69,8 @@ void AppendStringOfType(const char* first, const char* last,
     SharedCharTypes type, std::string& output);
 void AppendStringOfType(const char16_t* first, const char16_t* last,
     SharedCharTypes type, std::string& output);
+void AppendStringOfType(const char32_t* first, const char32_t* last,
+    SharedCharTypes type, std::string& output);
 
 // Maps the hex numerical values 0x0 to 0xf to the corresponding ASCII digit
 // that will be used to represent it.

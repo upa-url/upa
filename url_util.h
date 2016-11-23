@@ -15,9 +15,11 @@ protected:
     // low level
     static bool read_code_point(const char*& first, const char* last, uint32_t& code_point);
     static bool read_code_point(const char16_t*& first, const char16_t* last, uint32_t& code_point);
+    static bool read_code_point(const char32_t*& first, const char32_t* last, uint32_t& code_point);
 };
 
 // https://cs.chromium.org/chromium/src/base/strings/utf_string_conversion_utils.cc
+// ReadUnicodeCharacter(..) --> url_util::read_code_point(..)
 
 inline bool IsValidCodepoint(uint32_t code_point) {
     // Excludes the surrogate code points ([0xD800, 0xDFFF]) and
@@ -62,6 +64,13 @@ bool url_util::read_code_point(const char16_t*& first, const char16_t* last, uin
         code_point = first[0];
         first++;
     }
+    return IsValidCodepoint(code_point);
+}
+
+inline
+bool url_util::read_code_point(const char32_t*& first, const char32_t*, uint32_t& code_point) {
+    // no conversion
+    code_point = *(first++);
     return IsValidCodepoint(code_point);
 }
 
