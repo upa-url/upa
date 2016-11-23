@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <cassert>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 template<typename CharT, typename Traits = std::char_traits<CharT>>
@@ -140,6 +141,11 @@ public:
 
     template <typename CharT>
     bool parse(const CharT* first, const CharT* last, const url* base);
+    // wchar_t
+    bool parse(const wchar_t* first, const wchar_t* last, const url* base) {
+        typedef std::conditional<sizeof(wchar_t) == sizeof(char16_t), char16_t, char32_t>::type CharT;
+        return parse(reinterpret_cast<const CharT*>(first), reinterpret_cast<const CharT*>(last), base);
+    }
 
     template <class BufferT>
     bool parse(const BufferT& str, const url* base) {
