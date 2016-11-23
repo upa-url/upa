@@ -358,6 +358,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     // reset
     norm_url_.resize(0);
     std::memset(part_, 0, sizeof(part_));
+    scheme_inf_ = nullptr;
     cannot_be_base_ = 0;
 
     const char* encoding = "UTF-8";
