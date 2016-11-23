@@ -1,5 +1,28 @@
-#include <iostream>
 #include "url.h"
+#include <iostream>
+// conversion
+#include <codecvt>
+#include <locale>
+
+
+void cout_str(const wchar_t* str) {
+    std::wcout << str;
+}
+
+void cout_str(const char* str) {
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convW;
+    std::wcout << convW.from_bytes(str);
+}
+
+void cout_str(const char16_t* str) {
+    std::wcout << (const wchar_t*)str;
+}
+
+void cout_str(const char32_t* str) {
+    for (; *str; str++)
+        std::wcout.put(static_cast<wchar_t>(*str));
+}
+
 
 template <typename CharT>
 void url_parse(const CharT* str_url, whatwg::url* base = nullptr)
@@ -17,11 +40,9 @@ void url_parse(const CharT* str_url, whatwg::url* base = nullptr)
     
     whatwg::url url;
 
-    if (sizeof(CharT) == 1)
-        std::cout << str_url;
-    else
-        std::wcout << str_url;
+    cout_str(str_url);
     std::cout << "\n";
+
     url.parse(str_url, base);
     for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {
         std::string strPart = url.get_part(static_cast<whatwg::url::PartType>(part));
@@ -33,6 +54,9 @@ void url_parse(const CharT* str_url, whatwg::url* base = nullptr)
 
 int main()
 {
+    // set user-preferred locale
+    setlocale(LC_ALL, "");
+
     url_parse("file://d:/tekstas.txt", nullptr);
     url_parse("filesystem:http://www.example/temporary/", nullptr);
 
@@ -40,7 +64,19 @@ int main()
 
     url_parse("mailto:vardenis@example.com", nullptr);
 
-    url_parse(L"http://klausimėlis.lt/?key=ąče#axd");
+    const char* szUrl = "http://user:pass@klausimėlis.lt/?key=ąče#frag";
+    url_parse(szUrl);
+    // char16_t
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv16;
+    url_parse(conv16.from_bytes(szUrl).c_str());
+    // char32_t
+    std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv32;
+    url_parse(conv32.from_bytes(szUrl).c_str());
+    // wchar_t
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convW;
+    url_parse(convW.from_bytes(szUrl).c_str());
+    // --
+
     url_parse("https://username:pass@word@example.com:123/path/data?abc=ąbč&key=value&key2=value2#fragid1-ą");
 
     url_parse("   wss\r:\n/\t/abc.lt/ \t ", nullptr);
