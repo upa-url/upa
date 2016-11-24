@@ -104,6 +104,22 @@ bool part_equal(const CharT* begin, const url_part& part, const char* strz) {
     return str_equal(begin + part.offset, begin + part.offset + part.len, strz);
 }
 
+// Lowercase the ASCII character
+template <typename CharT>
+inline CharT AsciiToLower(CharT c) {
+    return (c <= 'Z' && c >= 'A') ? (c | 0x20) : c;
+}
+
+// strz must be in lower case
+template <typename CharT>
+inline bool AsciiEqualNoCase(const CharT* first, const CharT* last, const char* strz) {
+    for (const CharT* it = first; it < last; it++) {
+        if (*strz == 0 || AsciiToLower(*it) != *strz) return false;
+        strz++;
+    }
+    return *strz == 0;
+}
+
 extern const char kSchemeCanonical[0x80];
 
 extern const scheme_info* get_scheme_info(const str_view<char> src);
@@ -181,6 +197,9 @@ protected:
 
     template <typename CharT>
     void parse_path(const CharT* first, const CharT* last);
+
+    void shorten_path();
+    void append_to_path();
 
     template <class StringT>
     void add_part(PartType t, const StringT str) {
@@ -920,15 +939,111 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
 
 template <typename CharT>
 inline void url::parse_path(const CharT* first, const CharT* last) {
-    //TODO: parse and set path
+    // path state; includes:
+    // 1. [ (/,\) - 1, 2, 3, 4 - [ 1 (if first segment), 2 ] ]
+    // 2. [ 1 ... 4 ]
+    auto double_dot = [](const CharT* const pointer, const int len) -> bool {
+        if (len == 2) {
+            return (pointer[0] == '.' && pointer[1] == '.');
+        } else if (len == 4) {
+            return detail::AsciiEqualNoCase(pointer, pointer + 4, ".%2e") ||
+                   detail::AsciiEqualNoCase(pointer, pointer + 4, "%2e.");
+        } else if (len == 6) {
+            return detail::AsciiEqualNoCase(pointer, pointer + 6, "%2e%2e");
+        } else
+            return false;
+    };
+    auto single_dot = [](const CharT* const pointer, const int len) -> bool {
+        if (len == 1) {
+            return pointer[0] == '.';
+        } else if (len == 3) {
+            return detail::AsciiEqualNoCase(pointer, pointer + 3, "%2e");
+        } else
+            return false;
+    };
 
-    auto end_of_segment = is_special_scheme()
-        ? std::find_if(first, last, is_slash<CharT>)
-        : std::find(first, last, '/');
+    // start of path
+    part_[PATH].offset = norm_url_.length();
 
+    auto pointer = first;
+    while (true) {
+        auto end_of_segment = is_special_scheme()
+            ? std::find_if(pointer, last, is_slash<CharT>)
+            : std::find(pointer, last, '/');
+
+        int len = end_of_segment - pointer;
+        bool is_last = end_of_segment == last;
+        // TODO-WARN: 1. If url is special and c is "\", syntax violation.
+
+        if (double_dot(pointer, len)) {
+            shorten_path();
+            if (is_last) append_to_path();
+        } else if (single_dot(pointer, len)) {
+            if (is_last) append_to_path();
+        } else {
+            if (len == 2 &&
+                is_file_scheme() &&
+                part_[PATH].empty() &&
+                is_Windows_drive(pointer[0], pointer[1]))
+            {
+                // TODO: 1. If url’s host is non-null, syntax violation.
+                // TODO: 2. Set url’s host to null
+                // and replace the second code point in buffer with ":"
+                norm_url_ += '/';
+                norm_url_ += static_cast<char>(pointer[0]);
+                norm_url_ += ':';
+                //Note: This is a (platform-independent) Windows drive letter quirk.
+            } else {
+                norm_url_ += '/';
+                // TODO: 2. [ 1 ... 4 ]
+                while (pointer < end_of_segment) {
+                    CharT c = *pointer;
+                    if (c == '%' && pointer + 2 < end_of_segment &&
+                        pointer[1] == '2' && (pointer[2] == 'e' || pointer[2] == 'E'))
+                    {
+                        norm_url_ += '.';
+                        pointer += 3; // skip "%2e"
+                    } else {
+                        // TODO: UTF-8 percent encode c using the default encode set
+                        norm_url_ += static_cast<char>(c); //TODO-TODO-TODO
+                        pointer++; // TODO
+                    }
+                }
+            }
+            // sutvarkom kelio ilgį
+            part_[PATH].len = norm_url_.length() - part_[PATH].offset;
+        }
+        // next segment
+        if (is_last) break;
+        pointer = end_of_segment + 1; // skip '/' or '\'
+    }
 }
 
+inline void url::shorten_path() {
+    if (!part_[PATH].empty()) {
+        if (!is_file_scheme() ||
+            part_[PATH].len != 3 ||
+            !is_normalized_Windows_drive(norm_url_[part_[PATH].offset + 1], norm_url_[part_[PATH].offset + 2]))
+        {
+            const char* first = norm_url_.data() + part_[PATH].offset;
+            const char* last = first + part_[PATH].len;
+            const char* it = find_last(first, last, '/');
+            if (it == last) it = first; // jei nebuvo '/' išmesim visą kelią
+            // shorten
+            part_[PATH].len = it - first;
+            norm_url_.resize(it - norm_url_.data());
+        }
+    }
+}
 
+inline void url::append_to_path() {
+    if (part_[PATH].len <= 0) {
+        part_[PATH].offset = norm_url_.length();
+        part_[PATH].len = 0;
+    }
+    norm_url_.push_back('/');
+    part_[PATH].len++;
+}
 
 } // namespace whatwg
 
