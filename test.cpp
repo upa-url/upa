@@ -59,7 +59,7 @@ int main()
     // set user-preferred locale
     setlocale(LC_ALL, "");
 
-    url_parse("file://d:/laikina/%2e./tekstas.txt", nullptr);
+    url_parse("file://d:/laikina/%2e./tek%stas.txt", nullptr);
     url_parse("filesystem:http://www.example.com/temporary/", nullptr);
 
     url_parse("blob:550e8400-e29b-41d4-a716-446655440000#aboutABBA");
