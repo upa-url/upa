@@ -198,6 +198,9 @@ protected:
     template <typename CharT>
     void parse_path(const CharT* first, const CharT* last);
 
+    template <typename CharT>
+    bool do_path_segment(const CharT* pointer, const CharT* last, std::string& output);
+
     void shorten_path();
     void append_to_path();
 
@@ -995,20 +998,8 @@ inline void url::parse_path(const CharT* first, const CharT* last) {
                 //Note: This is a (platform-independent) Windows drive letter quirk.
             } else {
                 norm_url_ += '/';
-                // TODO: 2. [ 1 ... 4 ]
-                while (pointer < end_of_segment) {
-                    CharT c = *pointer;
-                    if (c == '%' && pointer + 2 < end_of_segment &&
-                        pointer[1] == '2' && (pointer[2] == 'e' || pointer[2] == 'E'))
-                    {
-                        norm_url_ += '.';
-                        pointer += 3; // skip "%2e"
-                    } else {
-                        // TODO: UTF-8 percent encode c using the default encode set
-                        norm_url_ += static_cast<char>(c); //TODO-TODO-TODO
-                        pointer++; // TODO
-                    }
-                }
+                do_path_segment(pointer, end_of_segment, norm_url_);
+                pointer = end_of_segment;
             }
             // sutvarkom kelio ilgį
             part_[PATH].len = norm_url_.length() - part_[PATH].offset;
@@ -1018,6 +1009,36 @@ inline void url::parse_path(const CharT* first, const CharT* last) {
         pointer = end_of_segment + 1; // skip '/' or '\'
     }
 }
+
+template <typename CharT>
+inline bool url::do_path_segment(const CharT* pointer, const CharT* last, std::string& output) {
+    typedef std::make_unsigned<CharT>::type UCharT;
+
+    // TODO-WARN: 2. [ 1 ... 2 ] syntax violation.
+    bool success = true;
+    while (pointer < last) {
+        // UTF-8 percent encode c using the default encode set
+        UCharT uch = static_cast<UCharT>(*pointer);
+        if (uch >= 0x80) {
+            // invalid utf-8/16/32 sequences will be replaced with 0xfffd
+            success &= detail::AppendUTF8EscapedChar(pointer, last, output);
+        } else if (uch == '%' && pointer + 2 < last &&
+            pointer[1] == '2' && (pointer[2] == 'e' || pointer[2] == 'E'))
+        {
+            norm_url_ += '.';
+            pointer += 3; // skip "%2e"
+        } else {
+            // Just append the 7-bit character, possibly escaping it.
+            if (!IsCharOfType(uch, detail::CHAR_DEFAULT))
+                detail::AppendEscapedChar(uch, output);
+            else
+                output.push_back(uch);
+            pointer++;
+        }
+    }
+    return success;
+}
+
 
 inline void url::shorten_path() {
     if (!part_[PATH].empty()) {
