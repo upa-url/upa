@@ -186,7 +186,7 @@ inline void AppendUTF8EscapedValue(unsigned char_value, std::string& output) {
 }
 
 
-} // namespace whatwg
 } // namespace detail
+} // namespace whatwg
 
 #endif // WHATWG_URLCANON_H

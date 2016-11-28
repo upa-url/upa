@@ -171,5 +171,5 @@ void AppendStringOfType(const char32_t* first, const char32_t* last, SharedCharT
 }
 
 
-} // namespace whatwg
 } // namespace detail
+} // namespace whatwg
