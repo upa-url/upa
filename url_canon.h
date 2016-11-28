@@ -1,6 +1,7 @@
 #ifndef WHATWG_URLCANON_H
 #define WHATWG_URLCANON_H
 
+#include "url_util.h"
 #include <string>
 
 namespace whatwg {
@@ -35,6 +36,9 @@ enum SharedCharTypes {
   // Characters that do not require escaping in encodeURIComponent. Characters
   // that do not have this flag will be escaped; see url_util.cc.
   CHAR_COMPONENT = 64,
+
+  // Characters that do not require escaping in path (not default encode set)
+  CHAR_DEFAULT = 128,
 };
 
 // This table contains the flags in SharedCharTypes for each 8-bit character.
@@ -183,6 +187,39 @@ inline void AppendUTF8Value(unsigned char_value, std::string& output) {
 // it is appending is valid to append.
 inline void AppendUTF8EscapedValue(unsigned char_value, std::string& output) {
     DoAppendUTF8<std::string, AppendEscapedChar>(char_value, output);
+}
+
+#if 0
+// UTF-16 functions -----------------------------------------------------------
+
+// Equivalent to U16_APPEND_UNSAFE in ICU but uses our output method.
+inline void AppendUTF16Value(unsigned code_point, std::basic_string<char16_t>& output) {
+    if (code_point > 0xffff) {
+        output.push_back(static_cast<char16_t>((code_point >> 10) + 0xd7c0));
+        output.push_back(static_cast<char16_t>((code_point & 0x3ff) | 0xdc00));
+    } else {
+        output.push_back(static_cast<char16_t>(code_point));
+    }
+}
+#endif
+
+// Escaping functions ---------------------------------------------------------
+
+// Writes the given character to the output as UTF-8, escaped. Call this
+// function only when the input is wide. Returns true on success. Failure
+// means there was some problem with the encoding, we'll still try to
+// update the |*begin| pointer and add a placeholder character to the
+// output so processing can continue.
+
+template <typename CharT>
+inline bool AppendUTF8EscapedChar(const CharT*& first, const CharT* last, std::string& output) {
+    // url_util::read_utf_char(..) will handle invalid characters for us and give
+    // us the kUnicodeReplacementCharacter, so we don't have to do special
+    // checking after failure, just pass through the failure to the caller.
+    uint32_t code_point;
+    bool success = url_util::read_utf_char(first, last, code_point);
+    AppendUTF8EscapedValue(code_point, output);
+    return success;
 }
 
 
