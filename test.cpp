@@ -65,6 +65,9 @@ int main()
     url_parse("blob:550e8400-e29b-41d4-a716-446655440000#aboutABBA");
     url_parse("invalid^scheme://example.com", nullptr);
 
+    // iš; https://github.com/whatwg/url/issues/162
+    url_parse("http://example.com/%61%62%63a%2e%64%65%7e%7f%80%81");
+
     url_parse("mailto:vardenis@example.com", nullptr);
 
     const char* szUrl = "http://user:pass@klausimėlis.lt/?key=ąče#frag";
