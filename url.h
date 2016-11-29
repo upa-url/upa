@@ -4,8 +4,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 // URL Standard
-// https://url.spec.whatwg.org/ [3 November 2016]
-// https://url.spec.whatwg.org/commit-snapshots/ee4b0ba236e957131dd8c6920d8294f884f7d7e6/
+// https://url.spec.whatwg.org/ [21 November 2016]
+// https://url.spec.whatwg.org/commit-snapshots/56b74ce7cca8883eab62e9a12666e2fac665d03d/
 // Infra Standard - fundamental concepts upon which standards are built
 // https://infra.spec.whatwg.org/
 
@@ -249,13 +249,13 @@ auto to_unsigned(CharT ch) -> UCharT {
     return static_cast<std::make_unsigned<CharT>::type>(ch);
 }
 
-// chars to trim are C0 controls and space (U+0000 to U+001F and U+0020)
+// chars to trim (C0 control or space: U+0000 to U+001F or U+0020)
 template <typename CharT>
 inline bool is_trim_char(CharT ch) {
     return to_unsigned(ch) <= ' ';
 }
 
-// chars what should be removed from the URL (tab and newline: U+0009, U+000A, U+000D)
+// chars what should be removed from the URL (ASCII tab or newline: U+0009, U+000A, U+000D)
 template <typename CharT>
 inline bool is_removable_char(CharT ch) {
     return ch == '\r' || ch == '\n' || ch == '\t';
@@ -358,11 +358,11 @@ template <typename CharT>
 inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     typedef std::make_unsigned<CharT>::type UCharT;
 
-    // remove any leading and trailing C0 controls and space:
+    // remove any leading and trailing C0 control or space:
     do_trim(first, last);
     //TODO-WARN: syntax violation if trimmed
 
-    // remove all tab and newline from URL
+    // remove all ASCII tab or newline from URL
     std::vector<CharT> buff_no_ws;
     do_remove_whitespace(first, last, buff_no_ws);
     //TODO-WARN: syntax violation if removed
