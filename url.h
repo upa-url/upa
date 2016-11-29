@@ -1029,10 +1029,11 @@ inline bool url::do_path_segment(const CharT* pointer, const CharT* last, std::s
             pointer += 3; // skip "%2e"
         } else {
             // Just append the 7-bit character, possibly escaping it.
-            if (!IsCharOfType(uch, detail::CHAR_DEFAULT))
-                detail::AppendEscapedChar(uch, output);
+            unsigned char uc = static_cast<unsigned char>(uch);
+            if (!IsCharOfType(uc, detail::CHAR_DEFAULT))
+                detail::AppendEscapedChar(uc, output);
             else
-                output.push_back(uch);
+                output.push_back(uc);
             pointer++;
         }
     }
