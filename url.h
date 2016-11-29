@@ -201,6 +201,9 @@ protected:
     template <typename CharT>
     bool do_path_segment(const CharT* pointer, const CharT* last, std::string& output);
 
+    template <typename CharT>
+    bool do_simple_path(const CharT* pointer, const CharT* last, std::string& output);
+
     void shorten_path();
     void append_to_path();
 
@@ -842,17 +845,11 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
         auto end_of_path = state_override ? last :
             std::find_if(pointer, last, [](CharT c) { return c == '?' || c == '#'; });
 
-        // TODO-WARN:
-        //for (auto it = pointer; it < end_of_path; it++) {
-        //  UCharT c = static_cast<UCharT>(*it);
-        //  // 1. If c is not EOF code point, not a URL code point, and not "%", syntax violation.
-        //  // 2. If c is "%" and remaining does not start with two ASCII hex digits, syntax violation.
-        //}
-        
-        //TODO: encode path
-        for (auto it = pointer; it < end_of_path; it++)
-            norm_url_ += *it;
-        // ~~~
+        // UTF-8 percent encode using the simple encode set, and append the result
+        // to the first string in url’s path
+        part_[PATH].offset = norm_url_.length();
+        do_simple_path(pointer, end_of_path, norm_url_);
+        part_[PATH].len = norm_url_.length() - part_[PATH].offset;
         pointer = end_of_path;
 
         if (pointer == last) {
@@ -1040,6 +1037,33 @@ inline bool url::do_path_segment(const CharT* pointer, const CharT* last, std::s
     return success;
 }
 
+template <typename CharT>
+inline bool url::do_simple_path(const CharT* pointer, const CharT* last, std::string& output) {
+    typedef std::make_unsigned<CharT>::type UCharT;
+
+    // 3. of "cannot-be-a-base-URL path state"
+    // TODO-WARN: 3. [ 1 ... 2 ] syntax violation.
+    //  1. If c is not EOF code point, not a URL code point, and not "%", syntax violation.
+    //  2. If c is "%" and remaining does not start with two ASCII hex digits, syntax violation.
+
+    bool success = true;
+    while (pointer < last) {
+        // UTF-8 percent encode c using the simple encode set
+        UCharT uch = static_cast<UCharT>(*pointer);
+        if (uch >= 0x80) {
+            // invalid utf-8/16/32 sequences will be replaced with 0xfffd
+            success &= detail::AppendUTF8EscapedChar(pointer, last, output);
+        } else {
+            // Just append the 7-bit character, escaping C0 control chars:
+            if (uch <= 0x1f)
+                detail::AppendEscapedChar(uch, output);
+            else
+                output.push_back(static_cast<unsigned char>(uch));
+            pointer++;
+        }
+    }
+    return success;
+}
 
 inline void url::shorten_path() {
     if (!part_[PATH].empty()) {
