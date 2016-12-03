@@ -76,7 +76,7 @@ struct url_part {
 
 struct scheme_info {
     str_view<char> scheme;
-    int default_port;
+    int default_port;           // -1 if none
     unsigned is_special: 1;     // "ftp", "file", "gopher", "http", "https", "ws", "wss"
     unsigned is_local : 1;      // "about", "blob", "data", "filesystem"
     unsigned is_http : 1;       // "http", "https"
@@ -682,29 +682,30 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#' || c == '\\'; }) :
             std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#'; });
 
-        int port = 0;
-        for (auto it = pointer; it < end_of_authority; it++) {
-            const CharT ch = *it;
-            if (is_ascii_digit(ch)) {
-                port = port * 10 + (ch - '0');
-                if (port > 0xFFFF) return false; // TODO-ERR: syntax violation, failure
-            } else if (state_override) {
-                break;
-            } else {
-                // TODO-ERR: syntax violation, failure
-                return false;
+        auto end_of_digits = std::find_if_not(pointer, end_of_authority, is_ascii_digit<CharT>);
+
+        if (end_of_digits == end_of_authority || state_override) {
+            if (pointer < end_of_digits) {
+                // is port
+                int port = 0;
+                for (auto it = pointer; it < end_of_digits; it++) {
+                    port = port * 10 + (*it - '0');
+                    if (port > 0xFFFF) return false; // TODO-ERR: (2-1-2) syntax violation, failure
+                }
+                // set port if not default
+                if (scheme_inf_ == nullptr || scheme_inf_->default_port != port) {
+                    norm_url_.push_back(':');
+                    add_part(PORT, std::to_string(port));
+                }
             }
+            if (state_override)
+                return true; // (2-2)
+            state = path_start_state;
+            pointer = end_of_authority;
+        } else {
+            // TODO-ERR: (3) syntax violation, failure
+            return false;
         }
-        if (port) {
-            if (scheme_inf_ == nullptr || scheme_inf_->default_port != port) {
-                norm_url_.push_back(':');
-                add_part(PORT, std::to_string(port));
-            }
-        }
-        if (state_override)
-            return true;
-        state = path_start_state;
-        pointer = end_of_authority;
     }
 
     if (state == file_state) {
