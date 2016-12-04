@@ -192,7 +192,7 @@ public:
     }
 
 protected:
-    enum UrlFlags : unsigned {
+    enum UrlFlag : unsigned {
         // not null flags
         SCHEME_FLAG = (1u << SCHEME),
         USERNAME_FLAG = (1u << USERNAME),
@@ -251,6 +251,9 @@ protected:
     }
 
     // flags
+    void set_flag(const UrlFlag flag) {
+        flags_ |= flag;
+    }
     bool cannot_be_base() const {
         return !!(flags_ & CANNOT_BE_BASE_FLAG);
     }
@@ -644,6 +647,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
                 norm_len0 = norm_url_.length();
                 detail::AppendStringOfType(it_colon + 1, it_eta, detail::CHAR_USERINFO, norm_url_); // UTF-8 percent encode, @ -> %40
                 set_part(PASSWORD, norm_len0, norm_url_.length());
+                set_flag(PASSWORD_FLAG);
             }
             // after '@'
             pointer = it_eta + 1;
@@ -718,7 +722,8 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
                 if (scheme_inf_ == nullptr || scheme_inf_->default_port != port) {
                     norm_url_.push_back(':');
                     add_part(PORT, std::to_string(port));
-                }
+                    set_flag(PORT_FLAG);
+                } //TODO: (2-1-3) Set url’s port to null
             }
             if (state_override)
                 return true; // (2-2)
@@ -912,6 +917,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
         std::size_t norm_len0 = norm_url_.length();
         detail::AppendStringOfType(pointer, end_of_query, detail::CHAR_QUERY, norm_url_); // šis dar koduoja 0x27 '
         set_part(QUERY, norm_len0, norm_url_.length());
+        set_flag(QUERY_FLAG);
 
         pointer = end_of_query;
         if (pointer == last)
@@ -950,6 +956,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             // If c is "%" and remaining does not start with two ASCII hex digits, syntax violation.
         }
         set_part(FRAGMENT, norm_len0, norm_url_.length());
+        set_flag(FRAGMENT_FLAG);
     }
 
     return true;
@@ -958,6 +965,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
 template <typename CharT>
 inline bool url::parse_host(const CharT* first, const CharT* last) {
     //TODO: parse and set host
+    //TODO: set_flag(HOST_FLAG);
     return true;
 }
 
