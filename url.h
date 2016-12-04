@@ -152,7 +152,7 @@ public:
     */
     url()
         : scheme_inf_(nullptr)
-        , cannot_be_base_(0)
+        , flags_(0)
     {}
 
     template <typename CharT>
@@ -192,6 +192,10 @@ public:
     }
 
 protected:
+    enum UrlFlags : unsigned {
+        CANNOT_BE_BASE_FLAG = (1u << (PART_COUNT + 0)),
+    };
+
     template <typename CharT>
     bool parse_host(const CharT* first, const CharT* last);
 
@@ -236,12 +240,20 @@ protected:
         scheme_inf_ = detail::get_scheme_info(get_part_view(SCHEME));
     }
 
+    // flags
+    bool cannot_be_base() const {
+        return !!(flags_ & CANNOT_BE_BASE_FLAG);
+    }
+    void cannot_be_base(const bool yes) {
+        if (yes) flags_ |= CANNOT_BE_BASE_FLAG;
+        else flags_ &= ~CANNOT_BE_BASE_FLAG;
+    }
 
 private:
     std::string norm_url_;
     detail::url_part part_[PART_COUNT];
     const detail::scheme_info* scheme_inf_;
-    unsigned cannot_be_base_ : 1;
+    unsigned flags_;
 };
 
 
@@ -384,7 +396,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     norm_url_.resize(0);
     std::memset(part_, 0, sizeof(part_));
     scheme_inf_ = nullptr;
-    cannot_be_base_ = 0;
+    flags_ = 0;
 
     const char* encoding = "UTF-8";
     // TODO: If encoding override is given, set encoding to the result of getting an output encoding from encoding override. 
@@ -469,7 +481,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
                             state = path_or_authority_state;
                             pointer++;
                         } else {
-                            cannot_be_base_ = 1;
+                            cannot_be_base(true);
                             //TODO: append an empty string to url’s path
                             state = cannot_be_base_URL_path_state;
                         }
@@ -488,13 +500,13 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
 
     if (state == no_scheme_state) {
         if (base) {
-            if (base->cannot_be_base_) {
+            if (base->cannot_be_base()) {
                 if (pointer < last && *pointer == '#') {
                     set_scheme(*base);
                     add_part(PATH, base->get_part_view(PATH));
                     add_part(QUERY, base->get_part_view(QUERY));
                     //TODO: url’s fragment to the empty string
-                    cannot_be_base_ = 1;
+                    cannot_be_base(true);
                     state = fragment_state;
                     pointer++;
                 } else {
