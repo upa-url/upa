@@ -193,6 +193,16 @@ public:
 
 protected:
     enum UrlFlags : unsigned {
+        // not null flags
+        SCHEME_FLAG = (1u << SCHEME),
+        USERNAME_FLAG = (1u << USERNAME),
+        PASSWORD_FLAG = (1u << PASSWORD),
+        HOST_FLAG = (1u << HOST),
+        PORT_FLAG = (1u << PORT),
+        PATH_FLAG = (1u << PATH),
+        QUERY_FLAG = (1u << QUERY),
+        FRAGMENT_FLAG = (1u << FRAGMENT),
+        // other flags
         CANNOT_BE_BASE_FLAG = (1u << (PART_COUNT + 0)),
     };
 
@@ -396,7 +406,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     norm_url_.resize(0);
     std::memset(part_, 0, sizeof(part_));
     scheme_inf_ = nullptr;
-    flags_ = 0;
+    flags_ = SCHEME_FLAG | USERNAME_FLAG | PATH_FLAG; // initially empty (but not null)
 
     const char* encoding = "UTF-8";
     // TODO: If encoding override is given, set encoding to the result of getting an output encoding from encoding override. 
