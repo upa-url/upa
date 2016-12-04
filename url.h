@@ -731,7 +731,8 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     }
 
     if (state == file_state) {
-        set_scheme({ "file", 4 });
+        if (!is_file_scheme())
+            set_scheme({ "file", 4 });
         if (pointer == last) {
             // EOF code point
             if (base && base->is_file_scheme()) {
