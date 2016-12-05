@@ -90,5 +90,12 @@ int main()
     url_parse("file://example.com/bandymas/#123", nullptr);
 
     url_parse("http://example.com:8080/bandymas/#123", nullptr);
-    url_parse("http://example.com:80/bandymas/#123", nullptr);
+    url_parse("http://example.com:80/bandymas/?#", nullptr);
+
+    // https://webkit.org/blog/7086/url-parsing-in-webkit/
+    // http://w3c-test.org/url/url-constructor.html
+    url_parse("http://f:0/c");
+    url_parse("file:afc");
+    url_parse("file:..");
+    url_parse("http://@@@example.com");
 }
