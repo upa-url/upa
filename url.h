@@ -183,6 +183,14 @@ public:
         return str_view<char>(norm_url_.data() + part_[t].offset, part_[t].len);
     }
 
+    bool is_empty(const PartType t) const {
+        return part_[t].empty();
+    }
+
+    bool is_null(const PartType t) const {
+        return !(flags_ & (1u << t));
+    }
+
     bool is_special_scheme() const {
         return scheme_inf_ && scheme_inf_->is_special;
     }
@@ -206,6 +214,10 @@ protected:
         CANNOT_BE_BASE_FLAG = (1u << (PART_COUNT + 0)),
     };
 
+    bool is_null(const UrlFlag flag) const {
+        return !(flags_ & flag);
+    }
+
     template <typename CharT>
     bool parse_host(const CharT* first, const CharT* last);
 
@@ -218,6 +230,8 @@ protected:
     template <typename CharT>
     bool do_simple_path(const CharT* pointer, const CharT* last, std::string& output);
 
+    detail::url_part get_path_rem_last() const;
+    detail::url_part get_shorten_path() const;
     void shorten_path();
     void append_to_path();
 
@@ -249,6 +263,11 @@ protected:
         set_part(SCHEME, b, e);
         scheme_inf_ = detail::get_scheme_info(get_part_view(SCHEME));
     }
+
+    void append_parts(const url& src, PartType t1, PartType t2) {
+        append_parts(src, t1, t2, detail::url_part(0,0));
+    }
+    void append_parts(const url& src, PartType t1, PartType t2, detail::url_part lastp);
 
     // flags
     void set_flag(const UrlFlag flag) {
@@ -516,8 +535,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             if (base->cannot_be_base()) {
                 if (pointer < last && *pointer == '#') {
                     set_scheme(*base);
-                    add_part(PATH, base->get_part_view(PATH));
-                    add_part(QUERY, base->get_part_view(QUERY));
+                    append_parts(*base, PATH, QUERY);
                     //TODO: url’s fragment to the empty string
                     cannot_be_base(true);
                     state = fragment_state;
@@ -559,9 +577,9 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
         set_scheme(*base);
         if (pointer == last) {
             // EOF code point
-            // TODO: Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
+            // Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
             // url’s port to base’s port, url’s path to base’s path, and url’s query to base’s query
-
+            append_parts(*base, USERNAME, QUERY);
             return true; // EOF
         } else {
             const CharT ch = *(pointer++);
@@ -570,14 +588,16 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
                 state = relative_slash_state;
                 break;
             case '?':
-                // TODO: Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
+                // Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
                 // url’s port to base’s port, url’s path to base’s path, url’s query to the empty string, and state to query state.
-                state = query_state;
+                append_parts(*base, USERNAME, PATH);
+                state = query_state;    // sets query to the empty string
                 break;
             case '#':
-                // TODO: Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
+                // Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
                 // url’s port to base’s port, url’s path to base’s path, url’s query to base’s query, url’s fragment to the empty string
-                state = fragment_state;
+                append_parts(*base, USERNAME, QUERY);
+                state = fragment_state; // sets fragment to the empty string
                 break;
             case '\\':
                 if (is_special_scheme()) {
@@ -586,8 +606,9 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
                     break;
                 }
             default:
-                // TODO: Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
+                // Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
                 // url’s port to base’s port, url’s path to base’s path, and then remove url’s path’s last entry, if any
+                append_parts(*base, USERNAME, PATH, base->get_path_rem_last());
                 state = path_state;
                 pointer--;
             }
@@ -601,8 +622,9 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             state = special_authority_ignore_slashes_state;
             pointer++;
         } else {
-            // TODO: set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
+            // set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
             // url’s port to base’s port
+            append_parts(*base, USERNAME, PORT);
             state = path_state;
         }
     }
@@ -741,7 +763,8 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
         if (pointer == last) {
             // EOF code point
             if (base && base->is_file_scheme()) {
-                // TODO: set url’s host to base’s host, url’s path to base’s path, and url’s query to base’s query
+                // set url’s host to base’s host, url’s path to base’s path, and url’s query to base’s query
+                append_parts(*base, HOST, QUERY);
             }
             return true; // EOF
         } else {
@@ -754,8 +777,9 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
                 break;
             case '?':
                 if (base && base->is_file_scheme()) {
-                    // TODO: set url’s host to base’s host, url’s path to base’s path, url’s query to the empty string
-                    state = query_state;
+                    // set url’s host to base’s host, url’s path to base’s path, url’s query to the empty string
+                    append_parts(*base, HOST, PATH);
+                    state = query_state; // sets query to the empty string
                 } else {
                     //TODO: čia neaišku ar ignoruoti ch ir cikle imti kitą ar:
                     state = path_state;
@@ -764,8 +788,9 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
                 break;
             case '#':
                 if (base && base->is_file_scheme()) {
-                    // TODO: set url’s host to base’s host, url’s path to base’s path, url’s query to base’s query, url’s fragment to the empty string
-                    state = fragment_state;
+                    // set url’s host to base’s host, url’s path to base’s path, url’s query to base’s query, url’s fragment to the empty string
+                    append_parts(*base, HOST, QUERY);
+                    state = fragment_state; // sets fragment to the empty string
                 } else {
                     //TODO: čia neaišku ar ignoruoti ch ir cikle imti kitą ar:
                     state = path_state;
@@ -778,8 +803,9 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
                         || (pointer + 1 > last && !is_Windows_drive(ch, pointer[0]))
                         || (pointer + 2 > last && !is_special_authority_end_char(pointer[1]))
                         ) {
+                        // set url’s host to base’s host, url’s path to base’s path, and then shorten url’s path
+                        append_parts(*base, HOST, PATH, base->get_shorten_path());
                         // Note: This is a (platform-independent) Windows drive letter quirk.
-                        // TODO: set url’s host to base’s host, url’s path to base’s path, and then shorten url’s path
                     }
                     // else // TODO-WARN: syntax violation
                 }
@@ -803,11 +829,15 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
         default:
             if (base && base->is_file_scheme()) {
                 str_view<char> base_path = base->get_part_view(url::PATH);
-                //TODO: patikrinti ar gerai (ar yra base_path[0] == '/') :
-                if (base_path.length() >= 3 && is_normalized_Windows_drive(base_path[1], base_path[2])) {
-                    // Note: This is a (platform - independent) Windows drive letter quirk. Both url’s and base’s host
-                    // are null under these conditions and therefore not copied.
-                    // TODO: append base’s path first string to url’s path
+                // TODO?: patikrinti ar gerai (ar yra base_path[0] == '/'):
+                // if base’s path first string is a normalized Windows drive letter
+                if ((base_path.length() == 3 || (base_path.length() > 3 && base_path[3] == '/'))
+                    && is_normalized_Windows_drive(base_path[1], base_path[2])
+                    ) {
+                    // append base’s path first string to url’s path
+                    append_parts(*base, PATH, PATH, detail::url_part(base->part_[PATH].offset, 3)); //TODO: gal galima apseiti be šios f-jos?
+                    // Note: This is a (platform - independent) Windows drive letter quirk.
+                    // Both url’s and base’s host are null under these conditions and therefore not copied.
                 }
             }
             state = path_state;
@@ -1097,6 +1127,35 @@ inline bool url::do_simple_path(const CharT* pointer, const CharT* last, std::st
     return success;
 }
 
+inline detail::url_part url::get_path_rem_last() const {
+    if (!part_[PATH].empty()) {
+        const char* first = norm_url_.data() + part_[PATH].offset;
+        const char* last = first + part_[PATH].len;
+        const char* it = find_last(first, last, '/');
+        if (it == last) it = first; // jei nebuvo '/' išmesim visą kelią
+        // return shorten
+        return detail::url_part(part_[PATH].offset, it - first);
+    }
+    return part_[PATH];
+}
+
+inline detail::url_part url::get_shorten_path() const {
+    if (!part_[PATH].empty()) {
+        if (!is_file_scheme() ||
+            part_[PATH].len != 3 ||
+            !is_normalized_Windows_drive(norm_url_[part_[PATH].offset + 1], norm_url_[part_[PATH].offset + 2]))
+        {
+            const char* first = norm_url_.data() + part_[PATH].offset;
+            const char* last = first + part_[PATH].len;
+            const char* it = find_last(first, last, '/');
+            if (it == last) it = first; // jei nebuvo '/' išmesim visą kelią
+            // return shorten
+            return detail::url_part(part_[PATH].offset, it - first);
+        }
+    }
+    return part_[PATH];
+}
+
 inline void url::shorten_path() {
     if (!part_[PATH].empty()) {
         if (!is_file_scheme() ||
@@ -1122,6 +1181,61 @@ inline void url::append_to_path() {
     norm_url_.push_back('/');
     part_[PATH].len++;
 }
+
+// append parts from other url
+
+inline void url::append_parts(const url& src, PartType t1, PartType t2, detail::url_part lastp) {
+    // See URL serializing
+    PartType ifirst;
+    if (t1 <= HOST) {
+        // authority, host
+        if (!src.is_null(HOST)) {
+            norm_url_ += "//";
+            if (t1 == USERNAME && (!src.is_empty(USERNAME) || !src.is_null(PASSWORD)))
+                ifirst = USERNAME;
+            else
+                ifirst = HOST;
+        } else {
+            if (is_file_scheme()) // url’s host is null and url’s scheme is "file"
+                norm_url_ += "//";
+            ifirst = PATH;
+        }
+    } else {
+        // t1 == PATH
+        ifirst = t1;
+    }
+
+    // copy parts & str
+    if (ifirst <= t2) {
+        int ilast = t2;
+        if (lastp.offset == 0) {
+            for (; ilast >= t1; ilast--) {
+                if (src.part_[ilast].offset) {
+                    lastp = src.part_[ilast];
+                    break;
+                }
+            }
+        }
+        if (lastp.offset) {
+            const char* first = src.norm_url_.data() + src.part_[ifirst].offset;
+            const char* last = src.norm_url_.data() + lastp.offset + lastp.len;
+            int delta = static_cast<int>(norm_url_.length()) - src.part_[ifirst].offset;
+            norm_url_.append(first, last);
+            for (int ind = ifirst; ind <= ilast; ind++) {
+                if (src.part_[ind].offset)
+                    part_[ind] = detail::url_part(src.part_[ind].offset + delta, src.part_[ind].len);
+            }
+        }
+    }
+
+    // copy not null flags
+    unsigned mask = 0;
+    for (int ind = t1; ind <= t2; ind++) {
+        mask |= (1u << ind);
+    }
+    flags_ = (flags_ & ~mask) | (src.flags_ & mask);
+}
+
 
 } // namespace whatwg
 
