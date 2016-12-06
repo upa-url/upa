@@ -92,10 +92,16 @@ int main()
     url_parse("http://example.com:8080/bandymas/#123", nullptr);
     url_parse("http://example.com:80/bandymas/?#", nullptr);
 
+    // base url
+    whatwg::url url_base[2];
+    url_base[0].parse("http://example.org/foo/bar", nullptr);
+    url_base[1].parse("http://example.org/test", nullptr);
+
     // https://webkit.org/blog/7086/url-parsing-in-webkit/
     // http://w3c-test.org/url/url-constructor.html
-    url_parse("http://f:0/c");
-    url_parse("file:afc");
-    url_parse("file:..");
-    url_parse("http://@@@example.com");
+    url_parse("http://f:0/c", &url_base[0]);
+    url_parse("file:a", &url_base[1]);
+    url_parse("file:..", &url_base[1]);
+    url_parse("https://@@@example");
+    url_parse("example", &url_base[1]);
 }
