@@ -4,8 +4,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 // URL Standard
-// https://url.spec.whatwg.org/ [21 November 2016]
-// https://url.spec.whatwg.org/commit-snapshots/56b74ce7cca8883eab62e9a12666e2fac665d03d/
+// https://url.spec.whatwg.org/ [ 9 December 2016]
+// https://url.spec.whatwg.org/commit-snapshots/373dbedbbf0596f723ce8a195923da98b698aeb0/
 // Infra Standard - fundamental concepts upon which standards are built
 // https://infra.spec.whatwg.org/
 
@@ -963,23 +963,22 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
         // pagal: https://cs.chromium.org/chromium/src/url/url_canon_etc.cc : DoCanonicalizeRef(..)
         std::size_t norm_len0 = norm_url_.length();
         while (pointer < last) {
-            CharT ch = *pointer;
-            if (ch == 0) {
-                // TODO-WARN: Syntax violation
-                pointer++;
-                continue;
-            } else if (static_cast<UCharT>(ch) < 0x80) {
-                // Normal ASCII (and control) characters are just appended
-                norm_url_.push_back(static_cast<char>(ch));
-                pointer++;
+            // UTF-8 percent encode c using the simple encode set & ignore '\0'
+            UCharT uch = static_cast<UCharT>(*pointer);
+            if (uch >= 0x80) {
+                // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
+                detail::AppendUTF8EscapedChar(pointer, last, norm_url_);
             } else {
-                // Non-ASCII characters are appended unescaped, but only when they are
-                // valid. Invalid Unicode characters are replaced with the "invalid
-                // character" as IE seems to (url_util::read_utf_char puts the unicode
-                // replacement character in the output on failure for us).
-                unsigned code_point;
-                url_util::read_utf_char(pointer, last, code_point);
-                detail::AppendUTF8Value(code_point, norm_url_);
+                if (uch >= 0x20) {
+                    // Normal ASCII characters are just appended
+                    norm_url_.push_back(static_cast<unsigned char>(uch));
+                } else if (uch) {
+                    // C0 control characters (except '\0') are escaped
+                    detail::AppendEscapedChar(uch, norm_url_);
+                } else { // uch == 0
+                    // TODO-WARN: Syntax violation
+                }
+                pointer++;
             }
             // TODO-WARN:
             // If c is not a URL code point and not "%", syntax violation.
