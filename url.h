@@ -6,8 +6,10 @@
 // URL Standard
 // https://url.spec.whatwg.org/ [ 9 December 2016]
 // https://url.spec.whatwg.org/commit-snapshots/373dbedbbf0596f723ce8a195923da98b698aeb0/
+//
 // Infra Standard - fundamental concepts upon which standards are built
-// https://infra.spec.whatwg.org/
+// https://infra.spec.whatwg.org/ [16 December 2016]
+// https://infra.spec.whatwg.org/commit-snapshots/369b6177907e3d3a85f8625716123a9aa6e9d988/
 
 #ifndef WHATWG_URL_H
 #define WHATWG_URL_H
