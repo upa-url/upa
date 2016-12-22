@@ -224,6 +224,12 @@ protected:
     bool parse_host(const CharT* first, const CharT* last);
 
     template <typename CharT>
+    bool parse_ipv4(const CharT* first, const CharT* last);
+
+    template <typename CharT>
+    bool parse_ipv6(const CharT* first, const CharT* last);
+
+    template <typename CharT>
     void parse_path(const CharT* first, const CharT* last);
 
     template <typename CharT>
@@ -995,9 +1001,60 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
 
 template <typename CharT>
 inline bool url::parse_host(const CharT* first, const CharT* last) {
+    typedef std::make_unsigned<CharT>::type UCharT;
+
+    // ši sąlyga turi būti patikrinta prieš kreipiantis
+    // (todo angl?: this condition must by verified before calling)
+    assert(first < last);
+
     //TODO: parse and set host
     //TODO: set_flag(HOST_FLAG);
+    if (*first == '[') {
+        if (*(last - 1) == ']') {
+            return parse_ipv6(first + 1, last - 1);
+        } else {
+            // TODO-ERR: syntax violation
+            return false;
+        }
+    }
+
+    // check if host has non ascii characters or percent sign
+    bool has_no_ascii = false;
+    bool has_escaped = false;
+    for (auto it = first; it < last; it++) {
+        UCharT uch = static_cast<UCharT>(*it);
+        if (uch >= 0x80)
+            has_no_ascii = true;
+        else if (uch == '%')
+            has_escaped = true;
+    }
+    
+    //TODO:
+    if (!has_no_ascii && !has_escaped) {
+        // TODO: check for bad characters
+        std::size_t norm_len0 = norm_url_.length();
+        norm_url_.append(first, last);
+        set_part(HOST, norm_len0, norm_url_.length());
+        set_flag(HOST_FLAG);
+    } else {
+        //TODO
+        //std::vector<char16_t> buff_uc;
+        return false;
+    }
+
     return true;
+}
+
+template <typename CharT>
+inline bool url::parse_ipv4(const CharT* first, const CharT* last) {
+    //TODO
+    return false;
+}
+
+template <typename CharT>
+inline bool url::parse_ipv6(const CharT* first, const CharT* last) {
+    //TODO
+    return false;
 }
 
 template <typename CharT>
