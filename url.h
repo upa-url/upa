@@ -15,6 +15,7 @@
 #define WHATWG_URL_H
 
 #include "url_canon.h"
+#include "url_idna.h"
 #include "url_util.h"
 #include <algorithm>
 #include <cassert>
@@ -1000,6 +1001,13 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
 }
 
 template <typename CharT>
+static inline bool is_valid_host_chars(const CharT* first, const CharT* last) {
+    //TODO:
+    // If asciiDomain contains U+0000, U+0009, U+000A, U+000D, U+0020, "#", "%", "/", ":", "?", "@", "[", "\", or "]", syntax violation, return failure
+    return true;
+}
+
+template <typename CharT>
 inline bool url::parse_host(const CharT* first, const CharT* last) {
     typedef std::make_unsigned<CharT>::type UCharT;
 
@@ -1023,23 +1031,95 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
     bool has_escaped = false;
     for (auto it = first; it < last; it++) {
         UCharT uch = static_cast<UCharT>(*it);
-        if (uch >= 0x80)
+        if (uch >= 0x80) {
             has_no_ascii = true;
-        else if (uch == '%')
-            has_escaped = true;
+        } else {
+            unsigned char uc8;
+            if (uch == '%' && detail::DecodeEscaped(it, last, uc8)) {
+                has_no_ascii = has_no_ascii || (uc8 >= 0x80);
+                has_escaped = true;
+            }
+        }
     }
-    
-    //TODO:
-    if (!has_no_ascii && !has_escaped) {
-        // TODO: check for bad characters
+
+    //TODO: IPv4
+    //TODO: klaidų nustatymas pagal standartą
+
+    if (has_no_ascii) {
+        std::basic_string<char16_t> buff_uc;
+        if (has_escaped) {
+            std::vector<unsigned char> buff_utf8;
+
+            uint32_t code_point;
+            auto it = first;
+            while (it < last) {
+                url_util::read_utf_char(it, last, code_point);
+                if (code_point == '%') {
+                    // unescape until escaped
+                    unsigned char uc8; it--;
+                    if (detail::DecodeEscaped(it, last, uc8)) {
+                        do {
+                            buff_utf8.push_back(uc8);
+                            it++;
+                        } while (it < last && *it == '%' && detail::DecodeEscaped(it, last, uc8));
+                        detail::ConvertUTF8ToUTF16(buff_utf8.data(), buff_utf8.data() + buff_utf8.size(), buff_uc);
+                        buff_utf8.clear();
+                    }
+                    else {
+                        detail::AppendUTF16Value(code_point, buff_uc);
+                    }
+                }
+                else {
+                    detail::AppendUTF16Value(code_point, buff_uc);
+                }
+            }
+        } else {
+            detail::ConvertToUTF16(first, last, buff_uc);
+        }
+
+        // domain to ASCII
+        std::vector<char16_t> buff_ascii;
+
+        if (!IDNToASCII(buff_uc.data(), buff_uc.length(), buff_ascii))
+            return false;
+        if (!is_valid_host_chars(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
+            //TODO-ERR: syntax violation
+            return false;
+        }
+        //TODO:
         std::size_t norm_len0 = norm_url_.length();
-        norm_url_.append(first, last);
+        norm_url_.append(buff_ascii.begin(), buff_ascii.end());
         set_part(HOST, norm_len0, norm_url_.length());
         set_flag(HOST_FLAG);
+
+        return true;
     } else {
-        //TODO
-        //std::vector<char16_t> buff_uc;
-        return false;
+        // (first,last) has only ASCII characters
+        if (has_escaped) {
+            std::size_t norm_len0 = norm_url_.length();
+            for (auto it = first; it < last; it++) {
+                unsigned char uc8 = static_cast<unsigned char>(*it);
+                if (uc8 == '%')
+                    detail::DecodeEscaped(it, last, uc8);
+                norm_url_.push_back(uc8);
+            }
+            if (!is_valid_host_chars(norm_url_.data() + norm_len0, norm_url_.data() + norm_url_.length())) {
+                norm_url_.resize(norm_len0); // remove invalid host
+                //TODO-ERR: syntax violation
+                return false;
+            }
+            set_part(HOST, norm_len0, norm_url_.length());
+            set_flag(HOST_FLAG);
+        } else {
+            if (!is_valid_host_chars(first, last)) {
+                //TODO-ERR: syntax violation
+                return false;
+            }
+            std::size_t norm_len0 = norm_url_.length();
+            norm_url_.append(first, last);
+            set_part(HOST, norm_len0, norm_url_.length());
+            set_flag(HOST_FLAG);
+        }
     }
 
     return true;
