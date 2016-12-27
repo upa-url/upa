@@ -78,12 +78,14 @@
   <ItemGroup>
     <ClInclude Include="url.h" />
     <ClInclude Include="url_canon.h" />
+    <ClInclude Include="url_idna.h" />
     <ClInclude Include="url_util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="test.cpp" />
     <ClCompile Include="url.cpp" />
     <ClCompile Include="url_canon.cpp" />
+    <ClCompile Include="url_idna.cpp" />
     <ClCompile Include="url_util.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

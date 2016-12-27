@@ -30,6 +30,9 @@
     <ClCompile Include="url_canon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="url_idna.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="url.h">
@@ -39,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="url_canon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="url_idna.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
