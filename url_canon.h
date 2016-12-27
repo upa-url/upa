@@ -189,7 +189,6 @@ inline void AppendUTF8EscapedValue(unsigned char_value, std::string& output) {
     DoAppendUTF8<std::string, AppendEscapedChar>(char_value, output);
 }
 
-#if 0
 // UTF-16 functions -----------------------------------------------------------
 
 // Equivalent to U16_APPEND_UNSAFE in ICU but uses our output method.
@@ -201,7 +200,6 @@ inline void AppendUTF16Value(unsigned code_point, std::basic_string<char16_t>& o
         output.push_back(static_cast<char16_t>(code_point));
     }
 }
-#endif
 
 // Escaping functions ---------------------------------------------------------
 
@@ -220,6 +218,79 @@ inline bool AppendUTF8EscapedChar(const CharT*& first, const CharT* last, std::s
     bool success = url_util::read_utf_char(first, last, code_point);
     AppendUTF8EscapedValue(code_point, output);
     return success;
+}
+
+// Given a '%' character at |*begin| in the string |spec|, this will decode
+// the escaped value and put it into |*unescaped_value| on success (returns
+// true). On failure, this will return false, and will not write into
+// |*unescaped_value|.
+//
+// |*begin| will be updated to point to the last character of the escape
+// sequence so that when called with the index of a for loop, the next time
+// through it will point to the next character to be considered. On failure,
+// |*begin| will be unchanged.
+inline bool Is8BitChar(char c) {
+    return true;  // this case is specialized to avoid a warning
+}
+inline bool Is8BitChar(unsigned char c) {
+    return true;  // this case is specialized to avoid a warning
+}
+template <typename CharT>
+inline bool Is8BitChar(CharT c) {
+    return c <= 255;
+}
+
+template <typename CharT>
+inline bool DecodeEscaped(const CharT*& first, const CharT* last, unsigned char& unescaped_value) {
+    if (first + 3 > last ||
+        !Is8BitChar(first[1]) || !Is8BitChar(first[2])) {
+        // Invalid escape sequence because there's not enough room, or the
+        // digits are not ASCII.
+        return false;
+    }
+
+    unsigned char uc1 = static_cast<unsigned char>(first[1]);
+    unsigned char uc2 = static_cast<unsigned char>(first[2]);
+    if (!IsHexChar(uc1) || !IsHexChar(uc2)) {
+        // Invalid hex digits, fail.
+        return false;
+    }
+
+    // Valid escape sequence.
+    unescaped_value = (HexCharToValue(uc1) << 4) + HexCharToValue(uc2);
+    first += 2;
+    return true;
+}
+
+// Misc canonicalization helpers ----------------------------------------------
+
+// Converts between UTF-8 and UTF-16, returning true on successful conversion.
+// The output will be appended to the given canonicalizer output (so make sure
+// it's empty if you want to replace).
+//
+// On invalid input, this will still write as much output as possible,
+// replacing the invalid characters with the "invalid character". It will
+// return false in the failure case, and the caller should not continue as
+// normal.
+
+bool ConvertUTF8ToUTF16(const char* first, const char* last, std::basic_string<char16_t>& output);
+inline bool ConvertUTF8ToUTF16(const unsigned char* first, const unsigned char* last, std::basic_string<char16_t>& output) {
+    return ConvertUTF8ToUTF16(reinterpret_cast<const char*>(first), reinterpret_cast<const char*>(last), output);
+}
+
+inline bool ConvertToUTF16(const char* first, const char* last, std::basic_string<char16_t>& output) {
+    return ConvertUTF8ToUTF16(first, last, output);
+}
+
+inline bool ConvertToUTF16(const char16_t* first, const char16_t* last, std::basic_string<char16_t>& output) {
+    output.append(first, last);
+    return true;
+}
+
+inline bool ConvertToUTF16(const char32_t* first, const char32_t* last, std::basic_string<char16_t>& output) {
+    for (auto it = first; it < last; it++)
+        AppendUTF16Value(*it, output);
+    return true;
 }
 
 

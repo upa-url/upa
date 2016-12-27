@@ -171,5 +171,15 @@ void AppendStringOfType(const char32_t* first, const char32_t* last, SharedCharT
 }
 
 
+bool ConvertUTF8ToUTF16(const char* first, const char* last, std::basic_string<char16_t>& output) {
+    bool success = true;
+    for (auto it = first; it < last;) {
+        uint32_t code_point;
+        success &= url_util::read_utf_char(it, last, code_point);
+        AppendUTF16Value(code_point, output);
+    }
+    return success;
+}
+
 } // namespace detail
 } // namespace whatwg
