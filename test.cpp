@@ -83,6 +83,9 @@ int main()
     url_parse(convW.from_bytes(szUrl).c_str());
     // --
 
+    url_parse("http://user:pass@klausim%c4%97lis.lt/?key=ąče#frag");
+    url_parse("http://user:pass@klausim%25lis.lt/?key=ąče#frag");
+
     url_parse("https://username:pass@word@example.com:123/path/data?abc=ąbč&key=value&key2=value2#fragid1-ą");
 
     url_parse("   wss\r:\n/\t/abc.lt/ \t ", nullptr);
