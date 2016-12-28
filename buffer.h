@@ -5,7 +5,7 @@
 #include <type_traits>
 
 
-template <class T, class Allocator = std::allocator<T>>
+template <class T, std::size_t fixed_capacity = 1024, class Allocator = std::allocator<T>>
 class simple_buffer {
     static_assert(std::is_trivially_copyable<T>::value,
         "simple_buffer supports only trivially copyable elements");
@@ -20,36 +20,27 @@ public:
     simple_buffer() : simple_buffer(Allocator()) {}
     explicit simple_buffer(const Allocator& alloc)
         : allocator_(alloc)
-        , data_(nullptr)
+        , data_(fixed_buffer_)
         , size_(0)
-        , capacity_(0)
+        , capacity_(fixed_capacity)
     {}
     // with count
     explicit simple_buffer(size_type count, const Allocator& alloc = Allocator())
         : allocator_(alloc)
-        , data_(nullptr)
+        , data_(fixed_buffer_)
         , size_(0)
-        , capacity_(0)
+        , capacity_(fixed_capacity)
     {
-        init_capacity(count);
+        if (count > fixed_capacity)
+            init_capacity(count);
     }
-    // copy / move
+    // copy
 //todo: simple_buffer(const simple_buffer& other);
 //todo: simple_buffer(const simple_buffer& other, const Allocator& alloc);
-    simple_buffer(simple_buffer&& other)
-        : allocator_(std::move(other.allocator_))
-        , data_(other.data_)
-        , size_(other.size_)
-        , capacity_(other.capacity_)
-    {
-        other.data_ = nullptr;
-        other.size_ = 0;
-        other.capacity_ = 0;
-    }
-//todo: simple_buffer(simple_buffer&& other, const Allocator& alloc) {}
 
     ~simple_buffer() {
-        allocator_traits::deallocate(allocator_, data_, capacity_);
+        if (data_ != fixed_buffer_)
+            allocator_traits::deallocate(allocator_, data_, capacity_);
     }
 
     allocator_type get_allocator() const {
@@ -78,20 +69,8 @@ public:
     }
 
     void reserve(size_type new_cap) {
-        if (new_cap > capacity_) {
-            if (capacity_ > 0)
-                change_capacity(new_cap);
-            else
-                init_capacity(new_cap);
-        }
-    }
-    void shrink_to_fit() {
-        if (size_ < capacity_) {
-            if (size_ > 0)
-                change_capacity(size_);
-            else
-                zero_capacity();
-        }
+        if (new_cap > capacity_)
+            grow_capacity(new_cap);
     }
 
     // Modifiers
@@ -134,20 +113,15 @@ protected:
         data_ = allocator_traits::allocate(allocator_, new_cap);
         capacity_ = new_cap;
     }
-    void change_capacity(size_type new_cap) {
+    void grow_capacity(size_type new_cap) {
         value_type* new_data = allocator_traits::allocate(allocator_, new_cap);
         // copy data
         std::uninitialized_copy(data(), data() + size(), new_data);
         // deallocate old data & assign new
-        allocator_traits::deallocate(allocator_, data_, capacity_);
+        if (data_ != fixed_buffer_)
+            allocator_traits::deallocate(allocator_, data_, capacity_);
         data_ = new_data;
         capacity_ = new_cap;
-    }
-    void zero_capacity() {
-        // deallocate data
-        allocator_traits::deallocate(allocator_, data_, capacity_);
-        data_ = nullptr;
-        capacity_ = 0;
     }
 
 private:
@@ -155,6 +129,9 @@ private:
     value_type* data_;
     size_type size_;
     size_type capacity_;
+
+    // fixed size buffer
+    value_type fixed_buffer_[fixed_capacity];
 };
 
 
