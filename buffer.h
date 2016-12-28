@@ -24,19 +24,17 @@ public:
         , size_(0)
         , capacity_(fixed_capacity)
     {}
-    // with count
-    explicit simple_buffer(size_type count, const Allocator& alloc = Allocator())
+
+    // with initial capacity
+    explicit simple_buffer(size_type new_cap, const Allocator& alloc = Allocator())
         : allocator_(alloc)
         , data_(fixed_buffer_)
         , size_(0)
         , capacity_(fixed_capacity)
     {
-        if (count > fixed_capacity)
-            init_capacity(count);
+        if (new_cap > fixed_capacity)
+            init_capacity(new_cap);
     }
-    // copy
-//todo: simple_buffer(const simple_buffer& other);
-//todo: simple_buffer(const simple_buffer& other, const Allocator& alloc);
 
     ~simple_buffer() {
         if (data_ != fixed_buffer_)
