@@ -1037,8 +1037,8 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
         } else {
             unsigned char uc8;
             if (uch == '%' && detail::DecodeEscaped(it, last, uc8)) {
-                has_no_ascii = has_no_ascii || (uc8 >= 0x80);
                 has_escaped = true;
+                if ((has_no_ascii = has_no_ascii || (uc8 >= 0x80))) break;
             }
         }
     }
