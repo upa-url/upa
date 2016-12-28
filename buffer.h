@@ -4,6 +4,7 @@
 #include <memory>
 #include <type_traits>
 
+namespace whatwg {
 
 template <class T, std::size_t fixed_capacity = 1024, class Allocator = std::allocator<T>>
 class simple_buffer {
@@ -146,5 +147,6 @@ private:
     value_type fixed_buffer_[fixed_capacity];
 };
 
+} // namespace whatwg
 
 #endif // WHATWG_BUFFER_H

@@ -115,7 +115,7 @@ int main()
 #include "buffer.h"
 
 void test_buffer() {
-    simple_buffer<char, 16> buff;
+    whatwg::simple_buffer<char, 16> buff;
 
     std::string aaa("aaabbbccc");
     std::string bbb("-ddeXeff=");
