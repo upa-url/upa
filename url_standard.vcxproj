@@ -76,6 +76,7 @@
     <Text Include="url_standard.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="buffer.h" />
     <ClInclude Include="url.h" />
     <ClInclude Include="url_canon.h" />
     <ClInclude Include="url_idna.h" />
