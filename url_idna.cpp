@@ -67,7 +67,7 @@ struct UIDNAWrapper {
 
 static_assert(sizeof(char16_t) == sizeof(UChar), "");
 
-bool IDNToASCII(const char16_t* src, int src_len, std::vector<char16_t>& output) {
+bool IDNToASCII(const char16_t* src, int src_len, simple_buffer<char16_t>& output) {
     // TODO: inicializavimas
     static UIDNAWrapper g_uidna;
 
@@ -76,7 +76,7 @@ bool IDNToASCII(const char16_t* src, int src_len, std::vector<char16_t>& output)
     while (true) {
         UErrorCode err = U_ZERO_ERROR;
         UIDNAInfo info = UIDNA_INFO_INITIALIZER;
-        int output_length = uidna_nameToASCII(uidna, (const UChar*)src, src_len, (UChar*)output.data(), output.size(), &info, &err);
+        int output_length = uidna_nameToASCII(uidna, (const UChar*)src, src_len, (UChar*)output.data(), output.capacity(), &info, &err);
         if (U_SUCCESS(err) && info.errors == 0) {
             output.resize(output_length);
             return true;
@@ -88,7 +88,7 @@ bool IDNToASCII(const char16_t* src, int src_len, std::vector<char16_t>& output)
             return false;  // Unknown error, give up.
 
         // Not enough room in our buffer, expand.
-        output.resize(output_length);
+        output.reserve(output_length);
     }
 }
 

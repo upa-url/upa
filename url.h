@@ -14,6 +14,7 @@
 #ifndef WHATWG_URL_H
 #define WHATWG_URL_H
 
+#include "buffer.h"
 #include "url_canon.h"
 #include "url_idna.h"
 #include "url_util.h"
@@ -1078,7 +1079,7 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
         }
 
         // domain to ASCII
-        std::vector<char16_t> buff_ascii;
+        simple_buffer<char16_t> buff_ascii;
 
         if (!IDNToASCII(buff_uc.data(), buff_uc.length(), buff_ascii))
             return false;
