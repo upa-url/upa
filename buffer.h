@@ -124,12 +124,12 @@ protected:
 
     // https://cs.chromium.org/chromium/src/url/url_canon.h
     // Grows the given buffer so that it can fit at least |min_additional|
-    // characters. Returns true if the buffer could be resized, false on OOM.
+    // characters. Throws std::bad_alloc() on OOM.
     void grow(size_type min_cap) {
         static const size_type kMinBufferLen = 16;
         size_type new_cap = (capacity_ == 0) ? kMinBufferLen : capacity_;
         do {
-            if (new_cap >= (1 << 30))  // Prevent overflow below.
+            if (new_cap > (max_size() >> 1))  // Prevent overflow below.
                 throw std::bad_alloc();
             new_cap *= 2;
         } while (new_cap < min_cap);
