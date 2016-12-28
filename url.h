@@ -22,7 +22,7 @@
 #include <cassert>
 #include <string>
 #include <type_traits>
-#include <vector>
+
 
 template<typename CharT, typename Traits = std::char_traits<CharT>>
 class str_view {
@@ -1049,7 +1049,7 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
     if (has_no_ascii) {
         std::basic_string<char16_t> buff_uc;
         if (has_escaped) {
-            std::vector<unsigned char> buff_utf8;
+            simple_buffer<unsigned char> buff_utf8;
 
             uint32_t code_point;
             auto it = first;
