@@ -107,4 +107,25 @@ int main()
     url_parse("file:..", &url_base[1]);
     url_parse("https://@@@example");
     url_parse("example", &url_base[1]);
+
+    // simple_buffer testai
+    void test_buffer(); test_buffer();
+}
+
+#include "buffer.h"
+
+void test_buffer() {
+    simple_buffer<char> buff;
+
+    std::string aaa("aaabbbccc");
+
+    buff.reserve(100);
+    buff.resize(3);
+    std::strcpy(buff.data(), "ABC");
+    buff.shrink_to_fit();
+    buff.push_back('Z');
+    buff.append(aaa.cbegin(), aaa.cend());
+    buff.push_back('\0');
+
+    std::cout << buff.data();
 }
