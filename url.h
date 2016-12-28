@@ -1065,12 +1065,10 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
                         } while (it < last && *it == '%' && detail::DecodeEscaped(it, last, uc8));
                         detail::ConvertUTF8ToUTF16(buff_utf8.data(), buff_utf8.data() + buff_utf8.size(), buff_uc);
                         buff_utf8.clear();
-                    }
-                    else {
+                    } else {
                         detail::AppendUTF16Value(code_point, buff_uc);
                     }
-                }
-                else {
+                } else {
                     detail::AppendUTF16Value(code_point, buff_uc);
                 }
             }
