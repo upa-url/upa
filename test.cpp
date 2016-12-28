@@ -115,16 +115,19 @@ int main()
 #include "buffer.h"
 
 void test_buffer() {
-    simple_buffer<char> buff;
+    simple_buffer<char, 16> buff;
 
     std::string aaa("aaabbbccc");
+    std::string bbb("-ddeXeff=");
 
-    buff.reserve(100);
+    buff.reserve(10);
     buff.resize(3);
     std::strcpy(buff.data(), "ABC");
-    buff.shrink_to_fit();
+    //buff.shrink_to_fit();
     buff.push_back('Z');
     buff.append(aaa.cbegin(), aaa.cend());
+    buff.append(bbb.cbegin(), bbb.cend());
+    buff.append(bbb.cbegin(), bbb.cend());
     buff.push_back('\0');
 
     std::cout << buff.data();
