@@ -108,6 +108,10 @@ int main()
     url_parse("https://@@@example");
     url_parse("example", &url_base[1]);
 
+    // IDNA testai
+    // http://www.unicode.org/reports/tr46/#Implementation_Notes
+    url_parse("http://%E5%8D%81%zz.com/", nullptr);
+
     // simple_buffer testai
     void test_buffer(); test_buffer();
 }
