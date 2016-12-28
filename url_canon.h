@@ -220,15 +220,13 @@ inline bool AppendUTF8EscapedChar(const CharT*& first, const CharT* last, std::s
     return success;
 }
 
-// Given a '%' character at |*begin| in the string |spec|, this will decode
+// Given a character after '%' at |*first| in the string, this will decode
 // the escaped value and put it into |*unescaped_value| on success (returns
 // true). On failure, this will return false, and will not write into
 // |*unescaped_value|.
 //
-// |*begin| will be updated to point to the last character of the escape
-// sequence so that when called with the index of a for loop, the next time
-// through it will point to the next character to be considered. On failure,
-// |*begin| will be unchanged.
+// |*first| will be updated to point after the last character of the escape
+// sequence. On failure, |*first| will be unchanged.
 inline bool Is8BitChar(char c) {
     return true;  // this case is specialized to avoid a warning
 }
@@ -242,15 +240,15 @@ inline bool Is8BitChar(CharT c) {
 
 template <typename CharT>
 inline bool DecodeEscaped(const CharT*& first, const CharT* last, unsigned char& unescaped_value) {
-    if (first + 3 > last ||
-        !Is8BitChar(first[1]) || !Is8BitChar(first[2])) {
+    if (first + 2 > last ||
+        !Is8BitChar(first[0]) || !Is8BitChar(first[1])) {
         // Invalid escape sequence because there's not enough room, or the
         // digits are not ASCII.
         return false;
     }
 
-    unsigned char uc1 = static_cast<unsigned char>(first[1]);
-    unsigned char uc2 = static_cast<unsigned char>(first[2]);
+    unsigned char uc1 = static_cast<unsigned char>(first[0]);
+    unsigned char uc2 = static_cast<unsigned char>(first[1]);
     if (!IsHexChar(uc1) || !IsHexChar(uc2)) {
         // Invalid hex digits, fail.
         return false;

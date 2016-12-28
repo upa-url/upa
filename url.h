@@ -1030,8 +1030,8 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
     // check if host has non ascii characters or percent sign
     bool has_no_ascii = false;
     bool has_escaped = false;
-    for (auto it = first; it < last; it++) {
-        UCharT uch = static_cast<UCharT>(*it);
+    for (auto it = first; it < last;) {
+        UCharT uch = static_cast<UCharT>(*it++);
         if (uch >= 0x80) {
             has_no_ascii = true;
         } else {
@@ -1052,17 +1052,19 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
             simple_buffer<unsigned char> buff_utf8;
 
             uint32_t code_point;
-            auto it = first;
-            while (it < last) {
+            for (auto it = first; it < last;) {
                 url_util::read_utf_char(it, last, code_point);
                 if (code_point == '%') {
                     // unescape until escaped
-                    unsigned char uc8; it--;
+                    unsigned char uc8;
                     if (detail::DecodeEscaped(it, last, uc8)) {
-                        do {
+                        buff_utf8.push_back(uc8);
+                        while (it < last && *it == '%') {
+                            it++; // skip '%'
+                            if (!detail::DecodeEscaped(it, last, uc8))
+                                uc8 = '%';
                             buff_utf8.push_back(uc8);
-                            it++;
-                        } while (it < last && *it == '%' && detail::DecodeEscaped(it, last, uc8));
+                        }
                         detail::ConvertUTF8ToUTF16(buff_utf8.data(), buff_utf8.data() + buff_utf8.size(), buff_uc);
                         buff_utf8.clear();
                     } else {
@@ -1096,8 +1098,8 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
         // (first,last) has only ASCII characters
         if (has_escaped) {
             std::size_t norm_len0 = norm_url_.length();
-            for (auto it = first; it < last; it++) {
-                unsigned char uc8 = static_cast<unsigned char>(*it);
+            for (auto it = first; it < last;) {
+                unsigned char uc8 = static_cast<unsigned char>(*it++);
                 if (uc8 == '%')
                     detail::DecodeEscaped(it, last, uc8);
                 norm_url_.push_back(uc8);
