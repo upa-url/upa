@@ -334,7 +334,7 @@ inline void do_trim(InputIt& first, InputIt& last) {
 // DoRemoveURLWhitespace
 // https://cs.chromium.org/chromium/src/url/url_canon_etc.cc
 template <typename CharT>
-inline void do_remove_whitespace(const CharT*& first, const CharT*& last, std::vector<CharT>& buff) {
+inline void do_remove_whitespace(const CharT*& first, const CharT*& last, simple_buffer<CharT>& buff) {
     // Fast verification that there’s nothing that needs removal. This is the 99%
     // case, so we want it to be fast and don't care about impacting the speed
     // when we do find whitespace.
@@ -343,7 +343,7 @@ inline void do_remove_whitespace(const CharT*& first, const CharT*& last, std::v
             continue;
         // copy non whitespace chars into the new buffer and return it
         buff.reserve(last - first);
-        buff.insert(buff.begin(), first, it);
+        buff.append(first, it);
         for (; it < last; it++) {
             if (!is_removable_char(*it))
                 buff.push_back(*it);
@@ -420,7 +420,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     //TODO-WARN: syntax violation if trimmed
 
     // remove all ASCII tab or newline from URL
-    std::vector<CharT> buff_no_ws;
+    simple_buffer<CharT> buff_no_ws;
     do_remove_whitespace(first, last, buff_no_ws);
     //TODO-WARN: syntax violation if removed
 
