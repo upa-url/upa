@@ -16,6 +16,8 @@ public:
     typedef Allocator allocator_type;
     typedef std::allocator_traits<allocator_type> allocator_traits;
     typedef std::size_t size_type;
+    // iterator
+    typedef const value_type* const_iterator;
 
     // default
     simple_buffer() : simple_buffer(Allocator()) {}
@@ -51,6 +53,13 @@ public:
     }
     const value_type* data() const {
         return data_;
+    }
+
+    const_iterator begin() const {
+        return data_;
+    }
+    const_iterator end() const {
+        return data_ + size_;
     }
 
     // Capacity
