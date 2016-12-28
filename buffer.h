@@ -79,8 +79,8 @@ public:
     template<class InputIt>
     void append(InputIt first, InputIt last) {
         auto ncopy = std::distance(first, last);
-        // grow
-        reserve(size_ + ncopy);
+        if (size_ + ncopy > capacity_)
+            grow(size_ + ncopy);
         // copy
         std::uninitialized_copy(first, last, data_ + size_);
         // add size
@@ -93,8 +93,8 @@ public:
             size_++;
             return;
         }
-        // grow
-        reserve(size_ + 1);
+        // grow buffer capacity
+        grow(size_ + 1);
         data_[size_] = value;
         size_++;
     }
@@ -120,6 +120,20 @@ protected:
             allocator_traits::deallocate(allocator_, data_, capacity_);
         data_ = new_data;
         capacity_ = new_cap;
+    }
+
+    // https://cs.chromium.org/chromium/src/url/url_canon.h
+    // Grows the given buffer so that it can fit at least |min_additional|
+    // characters. Returns true if the buffer could be resized, false on OOM.
+    void grow(size_type min_cap) {
+        static const size_type kMinBufferLen = 16;
+        size_type new_cap = (capacity_ == 0) ? kMinBufferLen : capacity_;
+        do {
+            if (new_cap >= (1 << 30))  // Prevent overflow below.
+                throw std::bad_alloc();
+            new_cap *= 2;
+        } while (new_cap < min_cap);
+        reserve(new_cap);
     }
 
 private:
