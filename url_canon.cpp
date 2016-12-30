@@ -32,14 +32,20 @@ void DoAppendStringOfType(const CharT* first, const CharT* last, SharedCharTypes
 
 // See the header file for this array's declaration.
 const unsigned char kSharedCharTypeTable[0x100] = {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0x00 - 0x0f
+    CHAR_HOST_INV,           // 0x00
+    0, 0, 0, 0, 0, 0, 0, 0,  // 0x01 - 0x08
+    CHAR_HOST_INV,           // 0x09
+    CHAR_HOST_INV,           // 0x0a
+    0, 0,                    // 0x0b, 0x0c
+    CHAR_HOST_INV,           // 0x0d
+    0, 0,                    // 0x0e, 0x0f
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  // 0x10 - 0x1f
-    0,                           // 0x20  ' ' (escape spaces in queries)
+    CHAR_HOST_INV,           // 0x20  ' ' (escape spaces in queries)
     CHAR_QUERY | CHAR_USERINFO | CHAR_DEFAULT,  // 0x21  !
-    0,                           // 0x22  "
-    0,                           // 0x23  #  (invalid in query since it marks the ref)
+    0,                       // 0x22  "
+    CHAR_HOST_INV,           // 0x23  #  (invalid in query since it marks the ref)
     CHAR_QUERY | CHAR_USERINFO | CHAR_DEFAULT,  // 0x24  $
-    CHAR_QUERY | CHAR_USERINFO | CHAR_DEFAULT,  // 0x25  %
+    CHAR_QUERY | CHAR_USERINFO | CHAR_DEFAULT | CHAR_HOST_INV,  // 0x25  %
     CHAR_QUERY | CHAR_USERINFO | CHAR_DEFAULT,  // 0x26  &
     CHAR_QUERY | CHAR_USERINFO | CHAR_DEFAULT,  // 0x27  '  (Try to prevent XSS.)
     CHAR_QUERY | CHAR_USERINFO | CHAR_DEFAULT,  // 0x28  (
@@ -49,7 +55,7 @@ const unsigned char kSharedCharTypeTable[0x100] = {
     CHAR_QUERY | CHAR_USERINFO | CHAR_DEFAULT,  // 0x2c  ,
     CHAR_QUERY | CHAR_USERINFO | CHAR_DEFAULT,  // 0x2d  -
     CHAR_QUERY | CHAR_USERINFO | CHAR_IPV4 | CHAR_DEFAULT,  // 0x2e  .
-    CHAR_QUERY | CHAR_DEFAULT,                  // 0x2f  /
+    CHAR_QUERY | CHAR_DEFAULT  | CHAR_HOST_INV,             // 0x2f  /
     CHAR_QUERY | CHAR_USERINFO | CHAR_IPV4 | CHAR_HEX | CHAR_DEC | CHAR_OCT | CHAR_DEFAULT,  // 0x30  0
     CHAR_QUERY | CHAR_USERINFO | CHAR_IPV4 | CHAR_HEX | CHAR_DEC | CHAR_OCT | CHAR_DEFAULT,  // 0x31  1
     CHAR_QUERY | CHAR_USERINFO | CHAR_IPV4 | CHAR_HEX | CHAR_DEC | CHAR_OCT | CHAR_DEFAULT,  // 0x32  2
@@ -60,13 +66,13 @@ const unsigned char kSharedCharTypeTable[0x100] = {
     CHAR_QUERY | CHAR_USERINFO | CHAR_IPV4 | CHAR_HEX | CHAR_DEC | CHAR_OCT | CHAR_DEFAULT,  // 0x37  7
     CHAR_QUERY | CHAR_USERINFO | CHAR_IPV4 | CHAR_HEX | CHAR_DEC | CHAR_DEFAULT,             // 0x38  8
     CHAR_QUERY | CHAR_USERINFO | CHAR_IPV4 | CHAR_HEX | CHAR_DEC | CHAR_DEFAULT,             // 0x39  9
-    CHAR_QUERY | CHAR_DEFAULT,  // 0x3a  :
+    CHAR_QUERY | CHAR_DEFAULT  | CHAR_HOST_INV,  // 0x3a  :
     CHAR_QUERY | CHAR_DEFAULT,  // 0x3b  ;
     0,           // 0x3c  <  (Try to prevent certain types of XSS.)
     CHAR_QUERY | CHAR_DEFAULT,  // 0x3d  =
     0,           // 0x3e  >  (Try to prevent certain types of XSS.)
-    CHAR_QUERY,  // 0x3f  ?
-    CHAR_QUERY | CHAR_DEFAULT,  // 0x40  @
+    CHAR_QUERY                 | CHAR_HOST_INV,  // 0x3f  ?
+    CHAR_QUERY | CHAR_DEFAULT  | CHAR_HOST_INV,  // 0x40  @
     CHAR_QUERY | CHAR_USERINFO | CHAR_IPV4 | CHAR_HEX | CHAR_DEFAULT,  // 0x41  A
     CHAR_QUERY | CHAR_USERINFO | CHAR_IPV4 | CHAR_HEX | CHAR_DEFAULT,  // 0x42  B
     CHAR_QUERY | CHAR_USERINFO | CHAR_IPV4 | CHAR_HEX | CHAR_DEFAULT,  // 0x43  C
@@ -93,9 +99,9 @@ const unsigned char kSharedCharTypeTable[0x100] = {
     CHAR_QUERY | CHAR_USERINFO | CHAR_IPV4 | CHAR_DEFAULT, // 0x58  X
     CHAR_QUERY | CHAR_USERINFO | CHAR_DEFAULT,  // 0x59  Y
     CHAR_QUERY | CHAR_USERINFO | CHAR_DEFAULT,  // 0x5a  Z
-    CHAR_QUERY | CHAR_DEFAULT,  // 0x5b  [
-    CHAR_QUERY | CHAR_DEFAULT,  // 0x5c  '\'
-    CHAR_QUERY | CHAR_DEFAULT,  // 0x5d  ]
+    CHAR_QUERY | CHAR_DEFAULT | CHAR_HOST_INV,  // 0x5b  [
+    CHAR_QUERY | CHAR_DEFAULT | CHAR_HOST_INV,  // 0x5c  '\'
+    CHAR_QUERY | CHAR_DEFAULT | CHAR_HOST_INV,  // 0x5d  ]
     CHAR_QUERY | CHAR_DEFAULT,  // 0x5e  ^
     CHAR_QUERY | CHAR_USERINFO | CHAR_DEFAULT,  // 0x5f  _
     CHAR_QUERY,  // 0x60  `

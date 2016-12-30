@@ -34,7 +34,11 @@ enum SharedCharTypes {
   CHAR_OCT = 32,
 
   // Characters that do not require escaping in path (not default encode set)
-  CHAR_DEFAULT = 128,
+  CHAR_DEFAULT = 64,
+
+  // Characters invalid in host name:
+  // U+0000, U+0009, U+000A, U+000D, U+0020, "#", "%", "/", ":", "?", "@", "[", "\", "]"
+  CHAR_HOST_INV = 128,
 };
 
 // This table contains the flags in SharedCharTypes for each 8-bit character.
@@ -57,7 +61,10 @@ inline bool IsIPv4Char(unsigned char c) {
   return IsCharOfType(c, CHAR_IPV4);
 }
 inline bool IsHexChar(unsigned char c) {
-  return IsCharOfType(c, CHAR_HEX);
+    return IsCharOfType(c, CHAR_HEX);
+}
+inline bool IsInvalidHostChar(unsigned char c) {
+    return IsCharOfType(c, CHAR_HOST_INV);
 }
 
 // Appends the given string to the output, escaping characters that do not
