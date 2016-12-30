@@ -33,10 +33,6 @@ enum SharedCharTypes {
   // Valid in an ASCII-representation of an octal digit.
   CHAR_OCT = 32,
 
-  // Characters that do not require escaping in encodeURIComponent. Characters
-  // that do not have this flag will be escaped; see url_util.cc.
-  CHAR_COMPONENT = 64,
-
   // Characters that do not require escaping in path (not default encode set)
   CHAR_DEFAULT = 128,
 };
@@ -62,9 +58,6 @@ inline bool IsIPv4Char(unsigned char c) {
 }
 inline bool IsHexChar(unsigned char c) {
   return IsCharOfType(c, CHAR_HEX);
-}
-inline bool IsComponentChar(unsigned char c) {
-  return IsCharOfType(c, CHAR_COMPONENT);
 }
 
 // Appends the given string to the output, escaping characters that do not
