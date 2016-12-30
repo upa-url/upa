@@ -1003,9 +1003,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
 
 template <typename CharT>
 static inline bool is_valid_host_chars(const CharT* first, const CharT* last) {
-    //TODO:
-    // If asciiDomain contains U+0000, U+0009, U+000A, U+000D, U+0020, "#", "%", "/", ":", "?", "@", "[", "\", or "]", syntax violation, return failure
-    return true;
+    return std::none_of(first, last, detail::IsInvalidHostChar);
 }
 
 template <typename CharT>
