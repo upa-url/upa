@@ -108,6 +108,12 @@ int main()
     url_parse("https://@@@example");
     url_parse("example", &url_base[1]);
 
+    // IPv4 testai
+    url_parse("http://127.1/kelias/", nullptr);
+    url_parse("http://127.0.0.1/kelias/", nullptr);
+    url_parse("http://12%37.0.0.1/kelias/", nullptr);
+    url_parse("http://0x7f.0.0.1/kelias/", nullptr);
+
     // IDNA testai
     // http://www.unicode.org/reports/tr46/#Implementation_Notes
     url_parse("http://%E5%8D%81%zz.com/", nullptr);
