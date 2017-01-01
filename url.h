@@ -17,6 +17,7 @@
 #include "buffer.h"
 #include "url_canon.h"
 #include "url_idna.h"
+#include "url_ip.h"
 #include "url_util.h"
 #include <algorithm>
 #include <cassert>
@@ -226,7 +227,7 @@ protected:
     bool parse_host(const CharT* first, const CharT* last);
 
     template <typename CharT>
-    bool parse_ipv4(const CharT* first, const CharT* last);
+    ParseResult parse_ipv4(const CharT* first, const CharT* last);
 
     template <typename CharT>
     bool parse_ipv6(const CharT* first, const CharT* last);
@@ -1001,6 +1002,8 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     return true;
 }
 
+// internal functions
+
 template <typename CharT>
 static inline bool is_valid_host_chars(const CharT* first, const CharT* last) {
     return std::none_of(first, last, detail::IsInvalidHostChar);
@@ -1041,7 +1044,6 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
         }
     }
 
-    //TODO: IPv4
     //TODO: klaidų nustatymas pagal standartą
 
     if (has_no_ascii) {
@@ -1085,13 +1087,15 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
             //TODO-ERR: syntax violation
             return false;
         }
-        //TODO:
-        std::size_t norm_len0 = norm_url_.length();
-        norm_url_.append(buff_ascii.begin(), buff_ascii.end());
-        set_part(HOST, norm_len0, norm_url_.length());
-        set_flag(HOST_FLAG);
-
-        return true;
+        // IPv4
+        const ParseResult res = parse_ipv4(buff_ascii.begin(), buff_ascii.end());
+        if (res == RES_FALSE) {
+            std::size_t norm_len0 = norm_url_.length();
+            norm_url_.append(buff_ascii.begin(), buff_ascii.end());
+            set_part(HOST, norm_len0, norm_url_.length());
+            set_flag(HOST_FLAG);
+        }
+        return res != RES_ERROR;
     } else {
         // (first,last) has only ASCII characters
         if (has_escaped) {
@@ -1107,27 +1111,48 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
                 //TODO-ERR: syntax violation
                 return false;
             }
-            set_part(HOST, norm_len0, norm_url_.length());
-            set_flag(HOST_FLAG);
+            // IPv4
+            uint32_t ipv4;
+            const ParseResult res = ipv4_parse(norm_url_.data() + norm_len0, norm_url_.data() + norm_url_.length(), ipv4);
+            if (res != RES_ERROR) {
+                if (res == RES_OK) {
+                    norm_url_.resize(norm_len0); // remove host
+                    ipv4_serialize(ipv4, norm_url_);
+                }
+                set_part(HOST, norm_len0, norm_url_.length());
+                set_flag(HOST_FLAG);
+            }
+            return res != RES_ERROR;
         } else {
             if (!is_valid_host_chars(first, last)) {
                 //TODO-ERR: syntax violation
                 return false;
             }
-            std::size_t norm_len0 = norm_url_.length();
-            norm_url_.append(first, last);
-            set_part(HOST, norm_len0, norm_url_.length());
-            set_flag(HOST_FLAG);
+            // IPv4
+            const ParseResult res = parse_ipv4(first, last);
+            if (res == RES_FALSE) {
+                std::size_t norm_len0 = norm_url_.length();
+                norm_url_.append(first, last);
+                set_part(HOST, norm_len0, norm_url_.length());
+                set_flag(HOST_FLAG);
+            }
+            return res != RES_ERROR;
         }
     }
-
-    return true;
 }
 
 template <typename CharT>
-inline bool url::parse_ipv4(const CharT* first, const CharT* last) {
-    //TODO
-    return false;
+inline ParseResult url::parse_ipv4(const CharT* first, const CharT* last) {
+    uint32_t ipv4;
+
+    const ParseResult res = ipv4_parse(first, last, ipv4);
+    if (res == RES_OK) {
+        std::size_t norm_len0 = norm_url_.length();
+        ipv4_serialize(ipv4, norm_url_);
+        set_part(HOST, norm_len0, norm_url_.length());
+        set_flag(HOST_FLAG);
+    }
+    return res;
 }
 
 template <typename CharT>
