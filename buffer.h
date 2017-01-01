@@ -133,7 +133,7 @@ protected:
     }
 
     // https://cs.chromium.org/chromium/src/url/url_canon.h
-    // Grows the given buffer so that it can fit at least |min_additional|
+    // Grows the given buffer so that it can fit at least |min_cap|
     // characters. Throws std::bad_alloc() on OOM.
     void grow(size_type min_cap) {
         static const size_type kMinBufferLen = 16;
