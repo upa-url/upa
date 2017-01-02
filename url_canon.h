@@ -240,7 +240,7 @@ inline bool Is8BitChar(CharT c) {
 
 template <typename CharT>
 inline bool DecodeEscaped(const CharT*& first, const CharT* last, unsigned char& unescaped_value) {
-    if (first + 2 > last ||
+    if (last - first < 2 ||
         !Is8BitChar(first[0]) || !Is8BitChar(first[1])) {
         // Invalid escape sequence because there's not enough room, or the
         // digits are not ASCII.
