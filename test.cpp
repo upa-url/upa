@@ -117,6 +117,20 @@ int main()
     url_parse("http://12%37.0.0.1/kelias/", nullptr);
     url_parse("http://0x7f.0.0.1/kelias/", nullptr);
 
+    // IPv6 testai
+    url_parse("http://[1:2:3:4::6:7:8]/kelias/");   // rust-url bug
+    url_parse("http://[1:2:3:4:5:6:7:8]/kelias/");
+    url_parse("http://[1:2::7:8]/kelias/");
+    url_parse("http://[1:2:3::]/kelias/");
+    url_parse("http://[::6:7:8]/kelias/");
+    url_parse("http://[::1.2.3.4]/");
+    // URL standart bug (see: "IPv6 parser" "10.7. If c is not the EOF code point, increase pointer by one.")
+    // - praleis 'X' (ar jo vietoje bet kokį ne skaitmenį) be klaidų
+    url_parse("http://[::1.2.3.4X]/");
+    // must be failure:
+    url_parse("http://[::1.2.3.]/");
+    url_parse("http://[::1.]/");
+
     // IDNA testai
     // http://www.unicode.org/reports/tr46/#Implementation_Notes
     url_parse("http://%E5%8D%81%zz.com/", nullptr);
