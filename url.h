@@ -1157,7 +1157,17 @@ inline ParseResult url::parse_ipv4(const CharT* first, const CharT* last) {
 
 template <typename CharT>
 inline bool url::parse_ipv6(const CharT* first, const CharT* last) {
-    //TODO
+    uint16_t ipv6addr[8];
+
+    if (ipv6_parse(first, last, ipv6addr)) {
+        std::size_t norm_len0 = norm_url_.length();
+        norm_url_.push_back('[');
+        ipv6_serialize(ipv6addr, norm_url_);
+        norm_url_.push_back(']');
+        set_part(HOST, norm_len0, norm_url_.length());
+        set_flag(HOST_FLAG);
+        return true;
+    }
     return false;
 }
 

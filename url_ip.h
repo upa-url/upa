@@ -158,6 +158,157 @@ inline ParseResult ipv4_parse(const CharT* first, const CharT* last, uint32_t& i
 void ipv4_serialize(uint32_t ipv4, std::string& output);
 
 
+// IPv6 parser
+
+template <typename CharT, typename IntT>
+inline void get_hex_number(const CharT*& pointer, const CharT* last, IntT& value) {
+    value = 0;
+    while (pointer != last && detail::Is8BitChar(*pointer)) {
+        unsigned char uc = static_cast<unsigned char>(*pointer);
+        if (!detail::IsHexChar(uc)) break;
+        // HEX
+        value = value * 0x10 + detail::HexCharToValue(uc);
+        pointer++;
+    }
+}
+
+template <typename CharT>
+inline bool IsAsciiDigit(CharT ch) {
+    return ch <= '9' && ch >= '0';
+}
+
+template <typename CharT>
+inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&pieces)[8]) {
+    std::fill(std::begin(pieces), std::end(pieces), 0);
+    int piece_pointer = 0;      // zero
+    int compress_pointer = 0;   // null
+    bool is_ipv4 = false;
+
+    const size_t len = last - first;
+    // minimalus yra "::"
+    if (len < 2) return false;
+
+    const CharT* pointer = first;
+    // 5. If c is ":", run these substeps:
+    if (pointer[0] == ':') {
+        if (pointer[1] != ':') {
+            // TODO-ERR: syntax violation
+            return false;
+        }
+        pointer += 2;
+        compress_pointer = ++piece_pointer;
+    }
+
+    // Main
+    while (pointer < last) {
+        if (piece_pointer == 8) {
+            // TODO-ERR: syntax violation
+            return false;
+        }
+        if (pointer[0] == ':') {
+            if (compress_pointer) {
+                // TODO-ERR: syntax violation
+                return false;
+            }
+            pointer++;
+            compress_pointer = ++piece_pointer;
+            continue;
+        }
+
+        // HEX
+        uint16_t value;
+        auto pointer0 = pointer;
+        get_hex_number(pointer, pointer + std::min(last - pointer, 4), value);
+        if (pointer != last) {
+            const CharT ch = *pointer;
+            if (ch == '.') {
+                if (pointer == pointer0) {
+                    // TODO-ERR: syntax violation
+                    return false;
+                }
+                pointer = pointer0;
+                is_ipv4 = true;
+                break;
+            } if (ch == ':') {
+                if (++pointer == last) {
+                    // TODO-ERR: syntax violation
+                    return false;
+                }
+            } else {
+                // TODO-ERR: syntax violation
+                return false;
+            }
+        }
+        pieces[piece_pointer++] = value;
+    }
+
+    if (is_ipv4) {
+        if (piece_pointer > 6) {
+            // TODO-ERR: syntax violation
+            return false;
+        }
+        int dots_seen = 0;
+        while (pointer < last) {
+            CharT c = *pointer;
+            if (!IsAsciiDigit(c)) {
+                // TODO-ERR: syntax violation
+                return false;
+            }
+            // While c is an ASCII digit, run these subsubsteps
+            unsigned value = c - '0'; pointer++;
+            while (pointer != last) {
+                c = *pointer;
+                if (IsAsciiDigit(c)) {
+                    if (value == 0) // leading zero
+                        return false; // TODO-ERR: syntax violation
+                    value = value * 10 + (c - '0'); pointer++;
+                    if (value > 255)
+                        return false; // TODO-ERR: syntax violation
+                } else {
+                    // 10.4. If dots seen is less than 3 and c is not a "."
+                    // and URL standart BUG workaround (10.7.) ==> 10.8 check
+                    if (dots_seen == 3 || c != '.') {
+                        //TODO-ERR: syntax violation
+                        return false;
+                    }
+                    pointer++; // skip '.' (Fix of 10.7.)
+                    break;
+                }
+            }
+            // *(pointer-1) == '.' || EOF
+            pieces[piece_pointer] = pieces[piece_pointer] * 0x100 + value;
+            if (dots_seen & 1) // is 1 or 3
+                piece_pointer++;
+            // 9. Increase dots seen by one
+            dots_seen++;
+        }
+        // 10.4. tikrinimas kai EOF ir dots_seen padidintas vienetu
+        if (dots_seen < 4)  {
+            //TODO-ERR: syntax violation
+            return false;
+        }
+    }
+
+    // Finale
+    if (compress_pointer) {
+        if (int diff = 8 - piece_pointer) {
+            for (int ind = piece_pointer - 1; ind >= compress_pointer; ind--) {
+                pieces[ind + diff] = pieces[ind];
+                pieces[ind] = 0;
+            }
+        }
+    } else if (piece_pointer != 8) {
+        // TODO-ERR: syntax violation
+        return false;
+    }
+    return true;
+}
+
+// IPv6 serializer
+
+void ipv6_serialize(const uint16_t(&pieces)[8], std::string& output);
+
+
 } // namespace whatwg
 
 #endif // WHATWG_URL_IP_H
