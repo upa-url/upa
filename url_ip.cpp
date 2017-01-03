@@ -57,19 +57,15 @@ void ipv6_serialize(const uint16_t(&pieces)[8], std::string& output) {
     const uint16_t *zero_end;
     if (longest_zero_sequence(first, last, zero_start, zero_end) <= 1)
         zero_start = zero_end = nullptr;
-    
-    bool need_colon = false;
-    for (auto it = first; it != last; ) {
+
+    for (auto it = first; true;) {
         if (it == zero_start) {
-            need_colon = false;
-            output.append("::");
-            it = zero_end;
-        } else {
-            if (need_colon) output.push_back(':');
-            else need_colon = true;
-            unsigned_to_str<uint32_t>(*it, output, 16);
-            it++;
+            output.append("::", it == first ? 2 : 1);
+            if ((it = zero_end) == last) break;
         }
+        unsigned_to_str<uint32_t>(*it, output, 16);
+        if (++it == last) break;
+        output.push_back(':');
     }
 }
 
