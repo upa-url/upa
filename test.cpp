@@ -44,8 +44,12 @@ void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
     std::wcout << "\n";
 
     if (url.parse(str_url, base)) {
-        // print parts
         std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convW;
+
+        // serialized
+        std::wcout << "HREF: " << convW.from_bytes(url.get_href()) << "\n";
+
+        // print parts
         for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {
             std::string strPart = url.get_part(static_cast<whatwg::url::PartType>(part));
             if (!strPart.empty()) {
@@ -98,6 +102,12 @@ int main()
 
     url_testas("http://example.com:8080/bandymas/#123", nullptr);
     url_testas("http://example.com:80/bandymas/?#", nullptr);
+
+    // No need for null passwords
+    // https://github.com/whatwg/url/issues/181
+    url_testas("http://:@domain.lt/");
+    // https://github.com/whatwg/url/pull/186
+    url_testas("https://test:@test.lt/");
 
     // base url
     whatwg::url url_base[2];
