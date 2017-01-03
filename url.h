@@ -180,6 +180,11 @@ public:
         return parse(strz, last, base);
     }
 
+    // get serialized URL
+    const std::string& get_href() const {
+        return norm_url_;
+    }
+
     std::string get_part(PartType t) const {
         return std::string(norm_url_.data() + part_[t].offset, part_[t].len);
     }
