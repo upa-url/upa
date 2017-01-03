@@ -1263,11 +1263,6 @@ inline bool url::do_path_segment(const CharT* pointer, const CharT* last, std::s
         if (uch >= 0x80) {
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
             success &= detail::AppendUTF8EscapedChar(pointer, last, output);
-        } else if (uch == '%' && pointer + 2 < last &&
-            pointer[1] == '2' && (pointer[2] == 'e' || pointer[2] == 'E'))
-        {
-            norm_url_ += '.';
-            pointer += 3; // skip "%2e"
         } else {
             // Just append the 7-bit character, possibly escaping it.
             unsigned char uc = static_cast<unsigned char>(uch);
