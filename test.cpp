@@ -55,6 +55,7 @@ void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
     } else {
         std::wcout << " ^--FAILURE\n";
     }
+    std::wcout << std::endl;
 }
 
 int main()
