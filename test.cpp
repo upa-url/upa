@@ -123,15 +123,16 @@ int main()
     url_testas("http://[1:2::7:8]/kelias/");
     url_testas("http://[1:2:3::]/kelias/");
     url_testas("http://[::6:7:8]/kelias/");
-    url_testas("http://[::1.2.3.4]/");
     url_testas("http://[0::0]/");
     url_testas("http://[::]/");
     url_testas("http://[0:f:0:0:f:f:0:0]");
-    // URL standard bug (see: "IPv6 parser" "10.7. If c is not the EOF code point, increase pointer by one.")
+    url_testas("http://[::1.2.3.4]/");
+    // URL standard bugs (see: "IPv6 parser" "10.7. If c is not the EOF code point, increase pointer by one.")
     // - praleis 'X' (ar jo vietoje bet kokį ne skaitmenį) be klaidų
     url_testas("http://[::1.2.3.4X]/");
     // must be failure:
     url_testas("http://[::1.2.3.]/");
+    url_testas("http://[::1.2.]/");
     url_testas("http://[::1.]/");
     
     // https://quuz.org/url/ IPv6 serializer bug (no compressing trailing zeros):
