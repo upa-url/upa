@@ -124,12 +124,16 @@ int main()
     url_parse("http://[1:2:3::]/kelias/");
     url_parse("http://[::6:7:8]/kelias/");
     url_parse("http://[::1.2.3.4]/");
-    // URL standart bug (see: "IPv6 parser" "10.7. If c is not the EOF code point, increase pointer by one.")
+    // URL standard bug (see: "IPv6 parser" "10.7. If c is not the EOF code point, increase pointer by one.")
     // - praleis 'X' (ar jo vietoje bet kokį ne skaitmenį) be klaidų
     url_parse("http://[::1.2.3.4X]/");
     // must be failure:
     url_parse("http://[::1.2.3.]/");
     url_parse("http://[::1.]/");
+    
+    // https://quuz.org/url/ IPv6 serializer bug (no compressing trailing zeros):
+    url_parse("http://[2::0]/");
+    url_parse("http://[2::]/");
 
     // IDNA testai
     // http://www.unicode.org/reports/tr46/#Implementation_Notes
