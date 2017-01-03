@@ -126,6 +126,7 @@ int main()
     url_parse("http://[::1.2.3.4]/");
     url_parse("http://[0::0]/");
     url_parse("http://[::]/");
+    url_parse("http://[0:f:0:0:f:f:0:0]");
     // URL standard bug (see: "IPv6 parser" "10.7. If c is not the EOF code point, increase pointer by one.")
     // - praleis 'X' (ar jo vietoje bet kokį ne skaitmenį) be klaidų
     url_parse("http://[::1.2.3.4X]/");
