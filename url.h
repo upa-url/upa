@@ -204,6 +204,11 @@ public:
         return scheme_inf_ && scheme_inf_->is_file;
     }
 
+    // URL includes credentials?
+    bool has_credentials() const {
+        return !is_empty(USERNAME) || !is_empty(PASSWORD);
+    }
+
 protected:
     enum UrlFlag : unsigned {
         // not null flags
@@ -439,7 +444,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     norm_url_.resize(0);
     std::memset(part_, 0, sizeof(part_));
     scheme_inf_ = nullptr;
-    flags_ = SCHEME_FLAG | USERNAME_FLAG | PATH_FLAG; // initially empty (but not null)
+    flags_ = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG; // initially empty (but not null)
 
     const char* encoding = "UTF-8";
     // TODO: If encoding override is given, set encoding to the result of getting an output encoding from encoding override. 
@@ -658,6 +663,8 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
         state = authority_state;
     }
 
+    // TODO?: credentials serialization do after host parsing,
+    //       because if host null ==> then no credentials serialization
     if (state == authority_state) {
         // TODO: saugoti end_of_authority ir naudoti kituose state
         auto end_of_authority = is_special_scheme() ?
@@ -668,23 +675,26 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
         if (it_eta != end_of_authority) {
             //TODO-WARN: syntax violation
             auto it_colon = std::find(pointer, it_eta, ':');
-            // username
-            norm_url_.append("//");
-            is_slash_slash = true; // kad nebūtų dar kartą pridėta "//"
-            std::size_t norm_len0 = norm_url_.length();
-            detail::AppendStringOfType(pointer, it_colon, detail::CHAR_USERINFO, norm_url_); // UTF-8 percent encode, @ -> %40
-            set_part(USERNAME, norm_len0, norm_url_.length());
-            // password
-            if (it_colon != it_eta) {
-                norm_url_.push_back(':');
-                norm_len0 = norm_url_.length();
-                detail::AppendStringOfType(it_colon + 1, it_eta, detail::CHAR_USERINFO, norm_url_); // UTF-8 percent encode, @ -> %40
-                set_part(PASSWORD, norm_len0, norm_url_.length());
-                set_flag(PASSWORD_FLAG);
+            // url includes credentials?
+            const bool not_empty_password = std::distance(it_colon, it_eta) > 1;
+            if (not_empty_password || std::distance(pointer, it_colon) > 0 /*not empty username*/) {
+                // username
+                norm_url_.append("//");
+                is_slash_slash = true; // kad nebūtų dar kartą pridėta "//"
+                std::size_t norm_len0 = norm_url_.length();
+                detail::AppendStringOfType(pointer, it_colon, detail::CHAR_USERINFO, norm_url_); // UTF-8 percent encode, @ -> %40
+                set_part(USERNAME, norm_len0, norm_url_.length());
+                // password
+                if (not_empty_password) {
+                    norm_url_.push_back(':');
+                    norm_len0 = norm_url_.length();
+                    detail::AppendStringOfType(it_colon + 1, it_eta, detail::CHAR_USERINFO, norm_url_); // UTF-8 percent encode, @ -> %40
+                    set_part(PASSWORD, norm_len0, norm_url_.length());
+                }
+                norm_url_ += '@';
             }
             // after '@'
             pointer = it_eta + 1;
-            norm_url_ += '@';
         }
         state = host_state;
     }
