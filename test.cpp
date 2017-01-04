@@ -38,14 +38,17 @@ void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
         "FRAGMENT"
     };
     
+    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convW;
+
+    // source data
+    cout_str(str_url);  std::wcout << "\n";
+    if (base) {
+        std::wcout << "BASE: " << convW.from_bytes(base->get_href()) << "\n";
+    }
+
+    // url parse result
     whatwg::url url;
-
-    cout_str(str_url);
-    std::wcout << "\n";
-
     if (url.parse(str_url, base)) {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convW;
-
         // serialized
         std::wcout << "HREF: " << convW.from_bytes(url.get_href()) << "\n";
 
