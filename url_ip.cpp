@@ -56,7 +56,7 @@ void ipv6_serialize(const uint16_t(&pieces)[8], std::string& output) {
     const uint16_t *zero_start;
     const uint16_t *zero_end;
     if (longest_zero_sequence(first, last, zero_start, zero_end) <= 1)
-        zero_start = zero_end = nullptr;
+        zero_start = zero_end = last;
 
     for (auto it = first; true;) {
         if (it == zero_start) {
