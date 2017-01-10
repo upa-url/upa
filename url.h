@@ -8,8 +8,8 @@
 // https://url.spec.whatwg.org/commit-snapshots/4617e33b27d386bbf1db8c04316961d46aaa1397/
 //
 // Infra Standard - fundamental concepts upon which standards are built
-// https://infra.spec.whatwg.org/ [16 December 2016]
-// https://infra.spec.whatwg.org/commit-snapshots/369b6177907e3d3a85f8625716123a9aa6e9d988/
+// https://infra.spec.whatwg.org/ [10 January 2017]
+// https://infra.spec.whatwg.org/commit-snapshots/18bddb5fc16f0c43fc0d351d0ce9e23327d59d4d/
 
 #ifndef WHATWG_URL_H
 #define WHATWG_URL_H
