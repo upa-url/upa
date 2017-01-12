@@ -247,43 +247,37 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&pieces)[
             // TODO-ERR: syntax violation
             return false;
         }
-        int dots_seen = 0;
+        int numbers_seen = 0;
         while (pointer < last) {
-            CharT c = *pointer;
-            if (!IsAsciiDigit(c)) {
+            if (numbers_seen > 0) {
+                if (*pointer == '.' && numbers_seen < 4) {
+                    ++pointer;
+                } else {
+                    // TODO-ERR: syntax violation
+                    return false;
+                }
+            }
+            if (pointer == last || !IsAsciiDigit(*pointer)) {
                 // TODO-ERR: syntax violation
                 return false;
             }
             // While c is an ASCII digit, run these subsubsteps
-            unsigned value = c - '0'; pointer++;
-            while (pointer != last) {
-                c = *pointer;
-                if (IsAsciiDigit(c)) {
-                    if (value == 0) // leading zero
-                        return false; // TODO-ERR: syntax violation
-                    value = value * 10 + (c - '0'); pointer++;
-                    if (value > 255)
-                        return false; // TODO-ERR: syntax violation
-                } else {
-                    // 10.4. If dots seen is less than 3 and c is not a "."
-                    // and URL standart BUG workaround (10.7.) ==> 10.8 check
-                    if (dots_seen == 3 || c != '.') {
-                        //TODO-ERR: syntax violation
-                        return false;
-                    }
-                    pointer++; // skip '.' (Fix of 10.7.)
-                    break;
-                }
+            unsigned value = *(pointer++) - '0';
+            while (pointer != last && IsAsciiDigit(*pointer)) {
+                if (value == 0) // leading zero
+                    return false; // TODO-ERR: syntax violation
+                value = value * 10 + (*pointer - '0');
+                pointer++;
+                if (value > 255)
+                    return false; // TODO-ERR: syntax violation
             }
-            // *(pointer-1) == '.' || EOF
             pieces[piece_pointer] = pieces[piece_pointer] * 0x100 + value;
-            if (dots_seen & 1) // is 1 or 3
+            numbers_seen++;
+            if (!(numbers_seen & 1)) // 2 or 4
                 piece_pointer++;
-            // 9. Increase dots seen by one
-            dots_seen++;
         }
-        // 10.4. tikrinimas kai EOF ir dots_seen padidintas vienetu
-        if (dots_seen < 4)  {
+        // If c is the EOF code point and numbersSeen is not 4
+        if (numbers_seen != 4)  {
             //TODO-ERR: syntax violation
             return false;
         }
