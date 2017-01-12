@@ -159,7 +159,11 @@ int main()
 
     // IDNA testai
     // http://www.unicode.org/reports/tr46/#Implementation_Notes
-    url_testas("http://%E5%8D%81%zz.com/", nullptr);
+    url_testas("http://%E5%8D%81%zz.com/");
+    url_testas("http://%C3%BF-abc.com/");
+
+    // https://github.com/jsdom/whatwg-url/issues/50
+    url_testas("https://r3---sn-p5qlsnz6.googlevideo.com/");
 
     // simple_buffer testai
     void test_buffer(); test_buffer();
