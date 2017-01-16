@@ -1031,6 +1031,15 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
 
     // ši sąlyga turi būti patikrinta prieš kreipiantis
     // (todo angl?: this condition must by verified before calling)
+    if (first == last) {
+        // https://github.com/whatwg/url/issues/79
+        // https://github.com/whatwg/url/pull/189
+        // set empty host
+        const std::size_t norm_len0 = norm_url_.length();
+        set_part(HOST, norm_len0, norm_len0);
+        set_flag(HOST_FLAG);
+        return true;
+    }
     assert(first < last);
 
 
