@@ -1075,6 +1075,11 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
         }
     }
 
+    // FIX: net ir ASCII turi praeiti IDNToASCII patikrinimą
+    // Tačiau žr.: https://github.com/jsdom/whatwg-url/issues/50
+    //  ^-- kad korektiškai veiktų reikia Unicode 9 palaikymo
+    has_no_ascii = true;
+
     //TODO: klaidų nustatymas pagal standartą
 
     if (has_no_ascii) {
