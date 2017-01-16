@@ -962,7 +962,8 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
         //  // 2. If c is "%" and remaining does not start with two ASCII hex digits, syntax violation.
         //}
 
-        if (!scheme_inf_->is_special || scheme_inf_->is_ws)
+        // scheme_inf_ == nullptr, if unknown scheme
+        if (!scheme_inf_ || !scheme_inf_->is_special || scheme_inf_->is_ws)
             encoding = "UTF-8";
 
         // Set buffer to the result of encoding buffer using encoding
@@ -1031,6 +1032,7 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
     // ši sąlyga turi būti patikrinta prieš kreipiantis
     // (todo angl?: this condition must by verified before calling)
     assert(first < last);
+
 
     //TODO: parse and set host
     //TODO: set_flag(HOST_FLAG);
