@@ -435,13 +435,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     do_remove_whitespace(first, last, buff_no_ws);
     //TODO-WARN: syntax violation if removed
 
-    // input is empty ar whitespace:
-    // - must return empty URL
-    // - TODO: return true or false?
-    if (first == last)
-        return true;
-
-    // reserve size
+    // reserve size (TODO: bet jei bus naudojama base?)
     auto length = std::distance(first, last);
     norm_url_.reserve(length + 32); // žr.: GURL::InitCanonical(..)
 
@@ -485,64 +479,73 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
 
     // has scheme?
     if (state == scheme_start_state) {
+        if (pointer != last && is_first_scheme_char(*pointer)) {
+            state = scheme_state; // this appends first char to buffer
+        } else if (!state_override) {
+            state = no_scheme_state;
+        } else {
+            //TODO-ERR: syntax violation
+            return false;
+        }
+    }
+
+    if (state == scheme_state) {
         bool is_scheme = false;
         state = no_scheme_state;
-        if (is_first_scheme_char(*pointer)) {
-            auto it_colon = std::find(pointer, last, ':');
-            if (it_colon < last) {
-                is_scheme = true;
-                // start of scheme
-                std::size_t norm_len0 = norm_url_.length();
-                // first char
-                norm_url_.push_back(detail::kSchemeCanonical[*pointer]);
-                // other chars
-                for (auto it = pointer + 1; it < it_colon; it++) {
-                    UCharT ch = static_cast<UCharT>(*it);
-                    char c = (ch < 0x80) ? detail::kSchemeCanonical[ch] : 0;
-                    if (c) {
-                        norm_url_.push_back(c);
-                    } else {
-                        is_scheme = false;
-                        break;
-                    }
-                }
-                if (is_scheme) {
-                    pointer = it_colon + 1; // skip ':'
-                    set_scheme(norm_len0, norm_url_.length());
-                    norm_url_.push_back(':');
-                    // kas toliau
-                    //if (state_override) {
-                    //TODO:
-                    // 1. If state override is given, run these subsubsteps:
-                    //    1. If url’s scheme is a special scheme and buffer is not, terminate this algorithm.
-                    //    2. If url’s scheme is not a special scheme and buffer is, terminate this algorithm.
-                    // 2. Set url’s scheme to buffer.
-                    // 4. If state override is given, terminate this algorithm.
-                    //}
-                    if (is_file_scheme()) {
-                        // TODO-WARN: if remaining does not start with "//", syntax violation.
-                        state = file_state;
-                    } else {
-                        if (is_special_scheme()) {
-                            if (base && get_part_view(SCHEME).equal(base->get_part_view(SCHEME))) {
-                                // NOTE: This means that base’s cannot-be-a-base-URL flag is unset
-                                state = special_relative_or_authority_state;
-                            } else {
-                                state = special_authority_slashes_state;
-                            }
-                        } else if (pointer < last && *pointer == '/') {
-                            state = path_or_authority_state;
-                            pointer++;
-                        } else {
-                            cannot_be_base(true);
-                            //TODO: append an empty string to url’s path
-                            state = cannot_be_base_URL_path_state;
-                        }
-                    }
+        auto it_colon = std::find(pointer, last, ':');
+        if (it_colon < last) {
+            is_scheme = true;
+            // start of scheme
+            std::size_t norm_len0 = norm_url_.length();
+            // first char
+            norm_url_.push_back(detail::kSchemeCanonical[*pointer]);
+            // other chars
+            for (auto it = pointer + 1; it < it_colon; it++) {
+                UCharT ch = static_cast<UCharT>(*it);
+                char c = (ch < 0x80) ? detail::kSchemeCanonical[ch] : 0;
+                if (c) {
+                    norm_url_.push_back(c);
                 } else {
-                    // remove invalid scheme
-                    norm_url_.resize(norm_len0);
+                    is_scheme = false;
+                    break;
                 }
+            }
+            if (is_scheme) {
+                pointer = it_colon + 1; // skip ':'
+                set_scheme(norm_len0, norm_url_.length());
+                norm_url_.push_back(':');
+                // kas toliau
+                //if (state_override) {
+                //TODO:
+                // 1. If state override is given, run these subsubsteps:
+                //    1. If url’s scheme is a special scheme and buffer is not, terminate this algorithm.
+                //    2. If url’s scheme is not a special scheme and buffer is, terminate this algorithm.
+                // 2. Set url’s scheme to buffer.
+                // 4. If state override is given, terminate this algorithm.
+                //}
+                if (is_file_scheme()) {
+                    // TODO-WARN: if remaining does not start with "//", syntax violation.
+                    state = file_state;
+                } else {
+                    if (is_special_scheme()) {
+                        if (base && get_part_view(SCHEME).equal(base->get_part_view(SCHEME))) {
+                            // NOTE: This means that base’s cannot-be-a-base-URL flag is unset
+                            state = special_relative_or_authority_state;
+                        } else {
+                            state = special_authority_slashes_state;
+                        }
+                    } else if (pointer < last && *pointer == '/') {
+                        state = path_or_authority_state;
+                        pointer++;
+                    } else {
+                        cannot_be_base(true);
+                        //TODO: append an empty string to url’s path
+                        state = cannot_be_base_URL_path_state;
+                    }
+                }
+            } else {
+                // remove invalid scheme
+                norm_url_.resize(norm_len0);
             }
         }
         if (state_override && !is_scheme) {
