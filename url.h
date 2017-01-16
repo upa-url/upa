@@ -185,6 +185,17 @@ public:
         return norm_url_;
     }
 
+    std::string get_host() const {
+        if (is_null(HOST))
+            return std::string("");
+        if (is_null(PORT))
+            return get_part(HOST);
+        // "host:port"
+        const size_t offset = is_empty(HOST) ? part_[PORT].offset - 1 : part_[HOST].offset;
+        const size_t iend = part_[PORT].offset + part_[PORT].len;
+        return std::string(norm_url_.data() + offset, iend - offset);
+    }
+
     std::string get_search() const {
         if (is_empty(QUERY))
             return std::string("");
