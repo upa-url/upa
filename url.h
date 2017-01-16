@@ -895,13 +895,13 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     }
 
     if (state == path_start_state) {
-        if (pointer == last) return true; // EOF
-
-        const CharT ch = *pointer;
-        if (ch == '/') pointer++;
-        else if (is_special_scheme() && ch == '\\') {
-            // TODO-WARN: syntax violation
-            pointer++;
+        if (pointer != last) {
+            const CharT ch = *pointer;
+            if (ch == '/') pointer++;
+            else if (is_special_scheme() && ch == '\\') {
+                // TODO-WARN: syntax violation
+                pointer++;
+            }
         }
         state = path_state;
     }
