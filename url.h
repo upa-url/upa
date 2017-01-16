@@ -185,6 +185,12 @@ public:
         return norm_url_;
     }
 
+    std::string get_search() const {
+        if (is_empty(QUERY))
+            return std::string("");
+        return std::string(norm_url_.data() + part_[QUERY].offset - 1, part_[QUERY].len + 1);
+    }
+
     std::string get_hash() const {
         if (is_empty(FRAGMENT))
             return std::string("");
