@@ -273,10 +273,12 @@ protected:
     }
 
     void set_scheme(const url& src) {
+        norm_url_.resize(0); // clear all
         add_part(SCHEME, src.get_part_view(SCHEME), ':');
         scheme_inf_ = src.scheme_inf_;
     }
     void set_scheme(const str_view<char> str) {
+        norm_url_.resize(0); // clear all
         add_part(SCHEME, str, ':');
         scheme_inf_ = detail::get_scheme_info(str);
     }
