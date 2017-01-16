@@ -185,6 +185,12 @@ public:
         return norm_url_;
     }
 
+    std::string get_hash() const {
+        if (is_empty(FRAGMENT))
+            return std::string("");
+        return std::string(norm_url_.data() + part_[FRAGMENT].offset - 1, part_[FRAGMENT].len + 1);
+    }
+
     std::string get_part(PartType t) const {
         return std::string(norm_url_.data() + part_[t].offset, part_[t].len);
     }
