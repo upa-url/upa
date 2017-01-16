@@ -185,6 +185,10 @@ public:
         return norm_url_;
     }
 
+    std::string get_protocol() const {
+        return std::string(norm_url_.data() + part_[SCHEME].offset, part_[SCHEME].len ? part_[SCHEME].len + 1 : 0);
+    }
+
     std::string get_host() const {
         if (is_null(HOST))
             return std::string("");
