@@ -1287,7 +1287,8 @@ inline void url::parse_path(const CharT* first, const CharT* last) {
     };
 
     // start of path
-    part_[PATH].offset = norm_url_.length();
+    if (is_empty(PATH))
+        part_[PATH].offset = norm_url_.length();
 
     auto pointer = first;
     while (true) {
@@ -1489,10 +1490,12 @@ inline void url::append_parts(const url& src, PartType t1, PartType t2, detail::
             const char* last = src.norm_url_.data() + lastp.offset + lastp.len;
             int delta = static_cast<int>(norm_url_.length()) - src.part_[ifirst].offset;
             norm_url_.append(first, last);
-            for (int ind = ifirst; ind <= ilast; ind++) {
+            for (int ind = ifirst; ind < ilast; ind++) {
                 if (src.part_[ind].offset)
                     part_[ind] = detail::url_part(src.part_[ind].offset + delta, src.part_[ind].len);
             }
+            // ilast - lastp
+            part_[ilast] = detail::url_part(lastp.offset + delta, lastp.len);
         }
     }
 
