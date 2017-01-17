@@ -132,7 +132,7 @@ int main()
     url_testas("http://0x7f.0.0.1/kelias/", nullptr);
 
     // IPv6 testai
-    url_testas("http://[1:2:3:4::6:7:8]/kelias/");  // rust-url bug
+    url_testas("http://[1:2:3:4::6:7:8]/kelias/");  // rust-url bug (fixed)
     url_testas("http://[1:2:3:4:5:6:7:8]/kelias/");
     url_testas("http://[1:2::7:8]/kelias/");
     url_testas("http://[1:2:3::]/kelias/");
@@ -153,6 +153,7 @@ int main()
     url_testas("http://[::1.2.]");
     url_testas("http://[::1.]");
     
+    // jsdom/whatwg-url parser BUG (fixed: https://github.com/jsdom/whatwg-url/pull/66)
     // https://quuz.org/url/ IPv6 serializer bug (no compressing trailing zeros):
     url_testas("http://[2::0]");
     url_testas("http://[2::]");
@@ -173,6 +174,11 @@ int main()
     url_testas("file:///example.net/C:/");
     url_testas("file:/example.net/C:/");
     url_testas("file:example.net/C:/");
+
+    // file and ? or #
+    // jsdom/whatwg-url parser BUG
+    url_testas("file:#hs");
+    url_testas("file:#/pa/pa");
 
     // simple_buffer testai
     void test_buffer(); test_buffer();
