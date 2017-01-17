@@ -880,8 +880,8 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             default:
                 if (base && base->is_file_scheme()) {
                     if (pointer + 1 == last // remaining consists of one code point
-                        || (pointer + 1 > last && !is_Windows_drive(ch, pointer[0]))
-                        || (pointer + 2 > last && !is_special_authority_end_char(pointer[1]))
+                        || (pointer + 1 < last && !is_Windows_drive(ch, pointer[0]))
+                        || (pointer + 2 < last && !is_special_authority_end_char(pointer[1]))
                         ) {
                         // set url’s host to base’s host, url’s path to base’s path, and then shorten url’s path
                         append_parts(*base, HOST, PATH, base->get_shorten_path());
