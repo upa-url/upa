@@ -334,6 +334,9 @@ protected:
         if (part_[SCHEME].len && part_[SCHEME].len + 1 == norm_url_.length())
             norm_url_.append("//");
     }
+    void if_file_add_slash_slash() {
+        if (is_file_scheme()) add_slash_slash();
+    }
 
     void append_parts(const url& src, PartType t1, PartType t2) {
         append_parts(src, t1, t2, detail::url_part(0,0));
@@ -608,6 +611,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             if (base->cannot_be_base()) {
                 if (pointer < last && *pointer == '#') {
                     set_scheme(*base);
+                    if_file_add_slash_slash();
                     append_parts(*base, PATH, QUERY);
                     //TODO: url’s fragment to the empty string
                     cannot_be_base(true);
@@ -648,6 +652,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     if (state == relative_state) {
         // std::assert(base != nullptr);
         set_scheme(*base);
+        if_file_add_slash_slash();
         if (pointer == last) {
             // EOF code point
             // Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
@@ -834,6 +839,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     if (state == file_state) {
         if (!is_file_scheme())
             set_scheme({ "file", 4 });
+        add_slash_slash(); // nes file:
         if (pointer == last) {
             // EOF code point
             if (base && base->is_file_scheme()) {
@@ -932,7 +938,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             // TODO: buffer is not reset here and instead used in the path state
         } else {
             // parse and set host:
-            add_slash_slash();
+            add_slash_slash(); // TODO: gal nebereikia?
             if (!parse_host(pointer, end_of_authority))
                 return false; // failure
             // If host is not "localhost", set url’s host to host
@@ -1443,18 +1449,23 @@ inline void url::append_to_path() {
 
 inline void url::append_parts(const url& src, PartType t1, PartType t2, detail::url_part lastp) {
     // See URL serializing
+    // https://url.spec.whatwg.org/#concept-url-serializer
     PartType ifirst;
     if (t1 <= HOST) {
         // authority, host
         if (!src.is_null(HOST)) {
+            // If url’s host is non - null, append "//" to output
             add_slash_slash();
             if (t1 == USERNAME && src.has_credentials())
                 ifirst = USERNAME;
             else
                 ifirst = HOST;
         } else {
-            if (is_file_scheme()) // url’s host is null and url’s scheme is "file"
-                norm_url_ += "//";
+            // if url’s host is null and url’s scheme is "file", append "//" to output
+            // TODO: gal nebereikia, nes iškviečiamas prieš append_parts(..) bei netiesiogiai
+            //       kai relative_slash_state, file_slash_state
+            if_file_add_slash_slash();
+
             ifirst = PATH;
         }
     } else {
