@@ -169,6 +169,11 @@ int main()
     // 1.4.1. scheme is "file", url’s path is empty, and buffer is a Windows drive letter
     url_testas("file://example.net/C:/");
 
+    // https://url.spec.whatwg.org/#concept-url-serializer
+    url_testas("file:///example.net/C:/");
+    url_testas("file:/example.net/C:/");
+    url_testas("file:example.net/C:/");
+
     // simple_buffer testai
     void test_buffer(); test_buffer();
 }
