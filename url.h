@@ -896,9 +896,8 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     }
 
     if (state == file_slash_state) {
-        if (pointer == last) return true; // EOF
-
-        switch (*pointer) {
+        // EOF ==> 0 ==> default:
+        switch (pointer != last ? *pointer : 0) {
         case '\\':
             // TODO-WARN: syntax violation
         case '/':
