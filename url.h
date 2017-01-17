@@ -329,6 +329,12 @@ protected:
         scheme_inf_ = detail::get_scheme_info(get_part_view(SCHEME));
     }
 
+    void add_slash_slash() {
+        // if norm_url_ is "scheme:" (without "//")
+        if (part_[SCHEME].len && part_[SCHEME].len + 1 == norm_url_.length())
+            norm_url_.append("//");
+    }
+
     void append_parts(const url& src, PartType t1, PartType t2) {
         append_parts(src, t1, t2, detail::url_part(0,0));
     }
@@ -519,7 +525,6 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     };
     State state = scheme_start_state;
     State state_override = state_not_set;
-    bool is_slash_slash = false;
 
     // has scheme?
     if (state == scheme_start_state) {
@@ -731,8 +736,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             const bool not_empty_password = std::distance(it_colon, it_eta) > 1;
             if (not_empty_password || std::distance(pointer, it_colon) > 0 /*not empty username*/) {
                 // username
-                norm_url_.append("//");
-                is_slash_slash = true; // kad nebūtų dar kartą pridėta "//"
+                add_slash_slash();
                 std::size_t norm_len0 = norm_url_.length();
                 detail::AppendStringOfType(pointer, it_colon, detail::CHAR_USERINFO, norm_url_); // UTF-8 percent encode, @ -> %40
                 set_part(USERNAME, norm_len0, norm_url_.length());
@@ -778,10 +782,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             return false;
         }
         // parse and set host:
-        if (!is_slash_slash) {
-            is_slash_slash = true;
-            norm_url_.append("//");
-        }
+        add_slash_slash();
         if (!parse_host(pointer, it_host_end))
             return false;
 
@@ -931,10 +932,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             // TODO: buffer is not reset here and instead used in the path state
         } else {
             // parse and set host:
-            if (!is_slash_slash) {
-                is_slash_slash = true;
-                norm_url_.append("//");
-            }
+            add_slash_slash();
             if (!parse_host(pointer, end_of_authority))
                 return false; // failure
             // If host is not "localhost", set url’s host to host
