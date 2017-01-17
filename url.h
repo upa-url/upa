@@ -931,6 +931,10 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             // TODO: buffer is not reset here and instead used in the path state
         } else {
             // parse and set host:
+            if (!is_slash_slash) {
+                is_slash_slash = true;
+                norm_url_.append("//");
+            }
             if (!parse_host(pointer, end_of_authority))
                 return false; // failure
             // If host is not "localhost", set url’s host to host
