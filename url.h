@@ -1447,7 +1447,7 @@ inline void url::append_parts(const url& src, PartType t1, PartType t2, detail::
     if (t1 <= HOST) {
         // authority, host
         if (!src.is_null(HOST)) {
-            norm_url_ += "//";
+            add_slash_slash();
             if (t1 == USERNAME && src.has_credentials())
                 ifirst = USERNAME;
             else
