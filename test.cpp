@@ -165,6 +165,10 @@ int main()
     // https://github.com/jsdom/whatwg-url/issues/50
     url_testas("https://r3---sn-p5qlsnz6.googlevideo.com/");
 
+    // test https://url.spec.whatwg.org/#path-state
+    // 1.4.1. scheme is "file", url’s path is empty, and buffer is a Windows drive letter
+    url_testas("file://example.net/C:/");
+
     // simple_buffer testai
     void test_buffer(); test_buffer();
 }
