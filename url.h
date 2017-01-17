@@ -200,6 +200,12 @@ public:
         return std::string(norm_url_.data() + offset, iend - offset);
     }
 
+    std::string get_pathname() const {
+        // https://url.spec.whatwg.org/#dom-url-pathname
+        // already serialized as needed
+        return get_part(PATH);
+    }
+
     std::string get_search() const {
         if (is_empty(QUERY))
             return std::string("");
