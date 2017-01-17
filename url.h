@@ -305,6 +305,15 @@ protected:
         part_[t] = detail::url_part::from_range(b, e);
     }
 
+    void clear_host() {
+        if (part_[HOST].len) {
+            norm_url_.resize(part_[HOST].offset);
+            part_[HOST].offset = 0;
+            part_[HOST].len = 0;
+        }
+        flags_ &= ~HOST_FLAG; // set to null
+    }
+
     void set_scheme(const url& src) {
         norm_url_.resize(0); // clear all
         add_part(SCHEME, src.get_part_view(SCHEME), ':');
@@ -922,9 +931,13 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             // TODO: buffer is not reset here and instead used in the path state
         } else {
             // parse and set host:
-            // TODO: If host is not "localhost", set url’s host to host
             if (!parse_host(pointer, end_of_authority))
                 return false; // failure
+            // If host is not "localhost", set url’s host to host
+            if (get_part_view(HOST).equal({ "localhost", 9 })) {
+                clear_host();
+            }
+            pointer = end_of_authority;
             state = path_start_state;
         }
     }
@@ -1289,8 +1302,14 @@ inline void url::parse_path(const CharT* first, const CharT* last) {
                 part_[PATH].empty() &&
                 is_Windows_drive(pointer[0], pointer[1]))
             {
-                // TODO: 1. If url’s host is non-null, syntax violation.
-                // TODO: 2. Set url’s host to null
+                if (!is_null(HOST)) {
+                    // 1. If url’s host is non-null, syntax violation
+                    // TODO-WARN: syntax violation
+                    // 2. Set url’s host to null
+                    clear_host();
+                    // fix offset
+                    part_[PATH].offset = norm_url_.length();
+                }
                 // and replace the second code point in buffer with ":"
                 norm_url_ += '/';
                 norm_url_ += static_cast<char>(pointer[0]);
