@@ -845,8 +845,10 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
             if (base && base->is_file_scheme()) {
                 // set url’s host to base’s host, url’s path to base’s path, and url’s query to base’s query
                 append_parts(*base, HOST, QUERY);
+                return true; // EOF
             }
-            return true; // EOF
+            //TODO: čia neaišku ar "return true; // EOF" ar:
+            state = path_state;
         } else {
             const CharT ch = *(pointer++);
             switch (ch) {
