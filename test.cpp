@@ -89,6 +89,7 @@ int main()
     // char32_t
     std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> conv32;
     url_testas(conv32.from_bytes(szUrl).c_str());
+    url_testas(conv32.from_bytes("http://example.net").c_str());
     // wchar_t
     std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convW;
     url_testas(convW.from_bytes(szUrl).c_str());
