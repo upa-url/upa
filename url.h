@@ -1102,9 +1102,6 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
     }
     assert(first < last);
 
-
-    //TODO: parse and set host
-    //TODO: set_flag(HOST_FLAG);
     if (*first == '[') {
         if (*(last - 1) == ']') {
             return parse_ipv6(first + 1, last - 1);
@@ -1130,15 +1127,10 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
         }
     }
 
-    // FIX: net ir ASCII turi praeiti IDNToASCII patikrinimą
-    // Tačiau žr.: https://github.com/jsdom/whatwg-url/issues/50
-    //  ^-- kad korektiškai veiktų reikia Unicode 9 palaikymo
-    has_no_ascii = true;
-
     //TODO: klaidų nustatymas pagal standartą
 
+    std::basic_string<char16_t> buff_uc;
     if (has_no_ascii) {
-        std::basic_string<char16_t> buff_uc;
         if (has_escaped) {
             simple_buffer<unsigned char> buff_utf8;
 
@@ -1168,68 +1160,41 @@ inline bool url::parse_host(const CharT* first, const CharT* last) {
         } else {
             detail::ConvertToUTF16(first, last, buff_uc);
         }
-
-        // domain to ASCII
-        simple_buffer<char16_t> buff_ascii;
-
-        if (!IDNToASCII(buff_uc.data(), buff_uc.length(), buff_ascii))
-            return false;
-        if (!is_valid_host_chars(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
-            //TODO-ERR: syntax violation
-            return false;
-        }
-        // IPv4
-        const ParseResult res = parse_ipv4(buff_ascii.begin(), buff_ascii.end());
-        if (res == RES_FALSE) {
-            std::size_t norm_len0 = norm_url_.length();
-            norm_url_.append(buff_ascii.begin(), buff_ascii.end());
-            set_part(HOST, norm_len0, norm_url_.length());
-            set_flag(HOST_FLAG);
-        }
-        return res != RES_ERROR;
     } else {
         // (first,last) has only ASCII characters
+        // Net ir ASCII turi praeiti IDNToASCII patikrinimą;
+        // tačiau žr.: https://github.com/jsdom/whatwg-url/issues/50
+        //  ^-- kad korektiškai veiktų reikia Unicode 9 palaikymo
         if (has_escaped) {
-            std::size_t norm_len0 = norm_url_.length();
             for (auto it = first; it < last;) {
                 unsigned char uc8 = static_cast<unsigned char>(*it++);
                 if (uc8 == '%')
                     detail::DecodeEscaped(it, last, uc8);
-                norm_url_.push_back(uc8);
+                buff_uc.push_back(uc8);
             }
-            if (!is_valid_host_chars(norm_url_.data() + norm_len0, norm_url_.data() + norm_url_.length())) {
-                norm_url_.resize(norm_len0); // remove invalid host
-                //TODO-ERR: syntax violation
-                return false;
-            }
-            // IPv4
-            uint32_t ipv4;
-            const ParseResult res = ipv4_parse(norm_url_.data() + norm_len0, norm_url_.data() + norm_url_.length(), ipv4);
-            if (res != RES_ERROR) {
-                if (res == RES_OK) {
-                    norm_url_.resize(norm_len0); // remove host
-                    ipv4_serialize(ipv4, norm_url_);
-                }
-                set_part(HOST, norm_len0, norm_url_.length());
-                set_flag(HOST_FLAG);
-            }
-            return res != RES_ERROR;
         } else {
-            if (!is_valid_host_chars(first, last)) {
-                //TODO-ERR: syntax violation
-                return false;
-            }
-            // IPv4
-            const ParseResult res = parse_ipv4(first, last);
-            if (res == RES_FALSE) {
-                std::size_t norm_len0 = norm_url_.length();
-                norm_url_.append(first, last);
-                set_part(HOST, norm_len0, norm_url_.length());
-                set_flag(HOST_FLAG);
-            }
-            return res != RES_ERROR;
+            buff_uc.append(first, last);
         }
     }
+
+    // domain to ASCII
+    simple_buffer<char16_t> buff_ascii;
+
+    if (!IDNToASCII(buff_uc.data(), buff_uc.length(), buff_ascii))
+        return false;
+    if (!is_valid_host_chars(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
+        //TODO-ERR: syntax violation
+        return false;
+    }
+    // IPv4
+    const ParseResult res = parse_ipv4(buff_ascii.begin(), buff_ascii.end());
+    if (res == RES_FALSE) {
+        std::size_t norm_len0 = norm_url_.length();
+        norm_url_.append(buff_ascii.begin(), buff_ascii.end());
+        set_part(HOST, norm_len0, norm_url_.length());
+        set_flag(HOST_FLAG);
+    }
+    return res != RES_ERROR;
 }
 
 template <typename CharT>
