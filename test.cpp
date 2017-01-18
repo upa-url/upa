@@ -177,15 +177,15 @@ int main()
 
     // file and ? or #
     // jsdom/whatwg-url parser BUG
-    url_testas("file:#hs");
-    url_testas("file:##hs");
+    url_testas("file:#frag");
     url_testas("file:?q=v");
+    // papildomai
+    url_testas("file:##frag");
     url_testas("file:??q=v");
     url_testas("file:#/pa/pa");
     url_testas("file:##/pa/pa");
     // only "file" scheme
     url_testas("file:");
-
     // kiti "file" atvejai
     url_testas("file:/");
     url_testas("file://");
@@ -193,6 +193,16 @@ int main()
 
     // failure: empty host
     url_testas("http:#abc");
+
+    // iš: https://github.com/whatwg/url/issues/97
+    url_testas("file://y/.hostname = \"x:123\"");
+    // https://github.com/whatwg/url/issues/210
+    url_testas("file:///C%3A/a/b/c");
+    url_testas("file:///C%7C/a/b/c");
+    // mano išvesti
+    url_testas("file:///c%3a/../b");
+    url_testas("file:///c:/../b");
+
 
     // simple_buffer testai
     void test_buffer(); test_buffer();
