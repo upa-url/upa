@@ -178,7 +178,14 @@ int main()
     // file and ? or #
     // jsdom/whatwg-url parser BUG
     url_testas("file:#hs");
+    url_testas("file:##hs");
+    url_testas("file:?q=v");
+    url_testas("file:??q=v");
     url_testas("file:#/pa/pa");
+    url_testas("file:##/pa/pa");
+
+    // failure: empty host
+    url_testas("http:#abc");
 
     // simple_buffer testai
     void test_buffer(); test_buffer();
