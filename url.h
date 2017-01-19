@@ -360,6 +360,54 @@ private:
     detail::url_part part_[PART_COUNT];
     const detail::scheme_info* scheme_inf_;
     unsigned flags_;
+
+    friend class url_serializer;
+};
+
+
+class url_serializer {
+public:
+    url_serializer(url& dest_url)
+        : url_(dest_url)
+        , last_pt_(url::SCHEME)
+    {}
+
+    ~url_serializer();
+
+    void set_scheme(const url& src) { url_.set_scheme(src); }
+    void set_scheme(const str_view<char> str) { url_.set_scheme(str); }
+    void set_scheme(std::size_t b, std::size_t e) { url_.set_scheme(b, e); }
+
+    std::string& start_part(url::PartType t);
+    void save_part();
+
+    std::string& start_path_segment();
+    void save_path_segment();
+
+    void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
+
+
+#if 0
+    std::string& start_username();
+    std::string& start_password();
+    std::string& start_host();
+    std::string& start_port();
+    std::string& start_path();
+    std::string& start_query();
+    std::string& start_fragment();
+
+    void save_username();
+    void save_password();
+    void save_host();
+    void save_port();
+    void save_path();
+    void save_query();
+    void save_fragment();
+#endif
+
+protected:
+    url& url_;
+    url::PartType last_pt_;
 };
 
 
@@ -1471,6 +1519,90 @@ inline void url::append_parts(const url& src, PartType t1, PartType t2, detail::
         mask |= (1u << ind);
     }
     flags_ = (flags_ & ~mask) | (src.flags_ & mask);
+}
+
+
+
+// class url_serializer
+
+inline url_serializer::~url_serializer() {
+    switch (last_pt_) {
+    case url::SCHEME:
+        // if url’s host is null and url’s scheme is "file"
+        if (url_.is_file_scheme())
+            url_.norm_url_.append("//");
+    case url::HOST:
+    case url::PORT:
+        // append '/' if not cannot-be-a-base-URL flag
+        if (!url_.cannot_be_base())
+            url_.norm_url_ += '/';
+        break;
+    }
+}
+
+inline std::string& url_serializer::start_part(url::PartType t) {
+    switch (last_pt_) {
+    case url::SCHEME:
+        // if host is non-null or scheme is "file"
+        if (t <= url::HOST || url_.is_file_scheme())
+            url_.norm_url_.append("//");
+        // append '/' if not cannot-be-a-base-URL flag
+        if (t >= url::PATH && !url_.cannot_be_base())
+            url_.norm_url_ += '/';
+        break;
+    case url::USERNAME:
+        if (t == url::PASSWORD) {
+            url_.norm_url_ += ':';
+            break;
+        }
+    case url::PASSWORD:
+        if (t == url::HOST) {
+            url_.norm_url_ += '@';
+            break;
+        }
+        // NOT REACHABLE (TODO: throw?)
+        break;
+    case url::HOST:
+        if (t == url::PORT) {
+            url_.norm_url_ += ':';
+            break;
+        }
+    case url::PORT:
+        // append '/' if not cannot-be-a-base-URL flag
+        if (t >= url::PATH && !url_.cannot_be_base())
+            url_.norm_url_ += '/';
+        break;
+    case url::PATH:
+        if (t == url::PATH) // continue on path
+            return url_.norm_url_;
+        break;
+    }
+
+    switch (t) {
+    case url::QUERY:
+        url_.norm_url_ += '?';
+        break;
+    case url::FRAGMENT:
+        url_.norm_url_ += '#';
+        break;
+    }
+
+    assert(last_pt_ < t);
+    url_.part_[last_pt_ = t].offset = url_.norm_url_.length();
+    return url_.norm_url_;
+}
+
+inline void url_serializer::save_part() {
+    url_.part_[last_pt_].len = url_.norm_url_.length() - url_.part_[last_pt_].offset;
+}
+
+inline std::string& url_serializer::start_path_segment() {
+    //todo
+    return url_.norm_url_;
+}
+
+
+inline void url_serializer::save_path_segment() {
 }
 
 
