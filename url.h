@@ -370,6 +370,7 @@ public:
     url_serializer(url& dest_url)
         : url_(dest_url)
         , last_pt_(url::SCHEME)
+        , path_segment_cout_(0)
     {}
 
     ~url_serializer();
@@ -382,15 +383,20 @@ public:
     std::string& start_part(url::PartType t);
     void save_part();
 
+    void clear_host();
+
+    // path
+    // TODO: append_to_path() --> append_empty_to_path()
+    void append_to_path();
     std::string& start_path_segment();
     void save_path_segment();
 
-    void clear_host();
 
     void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
 
     // get info
     bool is_empty(const url::PartType t) const { return url_.is_empty(t); }
+    bool is_empty_path() const { return path_segment_cout_ == 0; }
     bool is_null(const url::PartType t) const  { return url_.is_null(t); }
     bool is_special_scheme() const { return url_.is_special_scheme(); }
     bool is_file_scheme() const { return url_.is_file_scheme(); }
@@ -416,6 +422,8 @@ public:
 protected:
     url& url_;
     url::PartType last_pt_;
+    // TODO?: gal perkelti į url:
+    size_t path_segment_cout_;
 };
 
 
@@ -1604,13 +1612,26 @@ inline void url_serializer::save_part() {
     url_.part_[last_pt_].len = url_.norm_url_.length() - url_.part_[last_pt_].offset;
 }
 
+// append_empty_to_path() kviečiamas trijose vietose:
+// 1) scheme_state -> [2.9.] -> cannot_be_base_URL_path_state
+// 2) path_state -> [1.2. ".." ]
+// 3) path_state -> [1.3. "." ]
+inline void url_serializer::append_to_path() { // append_empty_to_path();
+    start_path_segment();
+    save_path_segment();
+}
+
 inline std::string& url_serializer::start_path_segment() {
-    //todo
+    if (last_pt_ != url::PATH)
+        return start_part(url::PATH);
+    // lipdom prie esamo kelio
+    url_.norm_url_ += '/';
     return url_.norm_url_;
 }
 
-
 inline void url_serializer::save_path_segment() {
+    save_part();
+    path_segment_cout_++;
 }
 
 inline void url_serializer::clear_host() {
