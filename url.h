@@ -1728,15 +1728,17 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
         if (ifirst <= ilast) {
             detail::url_part lastp(src.part_[ilast]);
             if (pathOp != NO_PATH_OP && ilast == url::PATH) {
-                unsigned path_segment_count_ = src.path_segment_count_;
+                unsigned segment_count = src.path_segment_count_;
                 switch (pathOp) {
                 case PATH_REM_LAST:
-                    ;//TODO
+                    src.get_path_rem_last(lastp, segment_count);
+                    break;
                 case SHORTEN_PATH:
-                    ;//TODO
+                    src.get_shorten_path(lastp, segment_count);
+                    break;
                 }
                 // path segments count
-                url_.path_segment_count_ = path_segment_count_;
+                url_.path_segment_count_ = segment_count;
             }
             // src
             const char* first = src.norm_url_.data() + src.part_[ifirst].offset;
