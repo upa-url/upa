@@ -390,7 +390,8 @@ public:
     void append_to_path();
     std::string& start_path_segment();
     void save_path_segment();
-
+    
+    void shorten_path();
 
     void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
 
@@ -1465,6 +1466,25 @@ inline void url::shorten_path() {
             norm_url_.resize(it - norm_url_.data());
         }
     }
+}
+
+inline void url_serializer::shorten_path() {
+    if (path_segment_cout_ == 0 || (
+        is_file_scheme() &&
+        path_segment_cout_ == 1 &&
+        url_.part_[url::PATH].len == 2 &&
+        is_normalized_Windows_drive(url_.norm_url_[url_.part_[url::PATH].offset], url_.norm_url_[url_.part_[url::PATH].offset + 1])
+        ))
+        return;
+    // Remove path’s last item
+    const char* first = url_.norm_url_.data() + url_.part_[url::PATH].offset;
+    const char* last = first + url_.part_[url::PATH].len;
+    const char* it = find_last(first, last, '/');
+    if (it == last) it = first; // jei nebuvo '/' išmesim visą kelią
+    // shorten
+    url_.part_[url::PATH].len = it - first;
+    url_.norm_url_.resize(it - url_.norm_url_.data());
+    path_segment_cout_--;
 }
 
 inline void url::append_to_path() {
