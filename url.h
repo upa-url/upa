@@ -400,12 +400,8 @@ public:
     
     void shorten_path();
 
-    enum PathOp {
-        NO_PATH_OP = 0,
-        PATH_REM_LAST,
-        SHORTEN_PATH,
-    };
-    void append_parts(const url& src, url::PartType t1, url::PartType t2, PathOp pathOp = NO_PATH_OP);
+    typedef bool (url::*PathOpFn)(detail::url_part& part, unsigned& segment_count) const;
+    void append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn = nullptr);
 
     // flags
     void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
@@ -1699,7 +1695,7 @@ inline void url_serializer::clear_host() {
     last_pt_ = url::SCHEME;
 }
 
-inline void url_serializer::append_parts(const url& src, url::PartType t1, url::PartType t2, PathOp pathOp) {
+inline void url_serializer::append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn) {
     // See URL serializing
     // https://url.spec.whatwg.org/#concept-url-serializer
     url::PartType ifirst;
@@ -1727,18 +1723,14 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
         }
         if (ifirst <= ilast) {
             detail::url_part lastp(src.part_[ilast]);
-            if (pathOp != NO_PATH_OP && ilast == url::PATH) {
+            if (pathOpFn && ilast == url::PATH) {
                 unsigned segment_count = src.path_segment_count_;
-                switch (pathOp) {
-                case PATH_REM_LAST:
-                    src.get_path_rem_last(lastp, segment_count);
-                    break;
-                case SHORTEN_PATH:
-                    src.get_shorten_path(lastp, segment_count);
-                    break;
-                }
-                // path segments count
+                // https://isocpp.org/wiki/faq/pointers-to-members
+                // todo: use std::invoke (c++17)
+                (src.*pathOpFn)(lastp, segment_count);
                 url_.path_segment_count_ = segment_count;
+            } else if (ifirst <= url::PATH && url::PATH <= ilast) {
+                url_.path_segment_count_ = src.path_segment_count_;
             }
             // src
             const char* first = src.norm_url_.data() + src.part_[ifirst].offset;
