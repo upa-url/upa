@@ -393,7 +393,9 @@ public:
     
     void shorten_path();
 
+    // flags
     void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
+    void cannot_be_base(const bool yes) { url_.cannot_be_base(yes); }
 
     // get info
     bool is_empty(const url::PartType t) const { return url_.is_empty(t); }
