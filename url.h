@@ -291,8 +291,8 @@ protected:
 
     detail::url_part get_path_rem_last() const;
     detail::url_part get_shorten_path() const;
-    bool get_path_rem_last(detail::url_part& part, unsigned& path_segment_count);
-    bool get_shorten_path(detail::url_part& part, unsigned& path_segment_count);
+    bool get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) const;
+    bool get_shorten_path(detail::url_part& part, unsigned& path_segment_count) const;
     void shorten_path();
     void append_to_path();
 
@@ -1487,7 +1487,7 @@ inline void url::shorten_path() {
 }
 
 
-inline bool url::get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) {
+inline bool url::get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) const {
     if (path_segment_count_ > 0) {
         // Remove path’s last item
         const char* first = norm_url_.data() + part_[url::PATH].offset;
@@ -1503,7 +1503,7 @@ inline bool url::get_path_rem_last(detail::url_part& part, unsigned& path_segmen
     return false;
 }
 
-inline bool url::get_shorten_path(detail::url_part& part, unsigned& path_segment_count) {
+inline bool url::get_shorten_path(detail::url_part& part, unsigned& path_segment_count) const {
     if (path_segment_count_ == 0 || (
         is_file_scheme() &&
         path_segment_count_ == 1 &&
