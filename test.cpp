@@ -54,7 +54,15 @@ void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
 
         // print parts
         for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {
-            std::string strPart = url.get_part(static_cast<whatwg::url::PartType>(part));
+            std::string strPart;
+            switch (part) {
+            case whatwg::url::PATH:
+                strPart = url.get_pathname();
+                break;
+            default:
+                strPart = url.get_part(static_cast<whatwg::url::PartType>(part));
+                break;
+            }
             if (!strPart.empty()) {
                 std::wcout << part_name[part] << ": " << convW.from_bytes(strPart) << "\n";
             }
