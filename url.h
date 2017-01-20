@@ -158,6 +158,7 @@ public:
     url()
         : scheme_inf_(nullptr)
         , flags_(0)
+        , path_segment_count_(0)
     {}
 
     template <typename CharT>
@@ -360,6 +361,7 @@ private:
     detail::url_part part_[PART_COUNT];
     const detail::scheme_info* scheme_inf_;
     unsigned flags_;
+    unsigned path_segment_count_;
 
     friend class url_serializer;
 };
@@ -370,7 +372,6 @@ public:
     url_serializer(url& dest_url)
         : url_(dest_url)
         , last_pt_(url::SCHEME)
-        , path_segment_count_(0)
     {}
 
     ~url_serializer();
@@ -404,7 +405,7 @@ public:
 
     // get info
     bool is_empty(const url::PartType t) const { return url_.is_empty(t); }
-    bool is_empty_path() const { return path_segment_count_ == 0; }
+    bool is_empty_path() const { return url_.path_segment_count_ == 0; }
     bool is_null(const url::PartType t) const  { return url_.is_null(t); }
     bool is_special_scheme() const { return url_.is_special_scheme(); }
     bool is_file_scheme() const { return url_.is_file_scheme(); }
@@ -430,8 +431,6 @@ public:
 protected:
     url& url_;
     url::PartType last_pt_;
-    // TODO?: gal perkelti į url:
-    size_t path_segment_count_;
 };
 
 
@@ -569,6 +568,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     std::memset(part_, 0, sizeof(part_));
     scheme_inf_ = nullptr;
     flags_ = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG; // initially empty (but not null)
+    path_segment_count_ = 0;
 
     const char* encoding = "UTF-8";
     // TODO: If encoding override is given, set encoding to the result of getting an output encoding from encoding override. 
@@ -1476,9 +1476,9 @@ inline void url::shorten_path() {
 }
 
 inline void url_serializer::shorten_path() {
-    if (path_segment_count_ == 0 || (
+    if (url_.path_segment_count_ == 0 || (
         is_file_scheme() &&
-        path_segment_count_ == 1 &&
+        url_.path_segment_count_ == 1 &&
         url_.part_[url::PATH].len == 2 &&
         is_normalized_Windows_drive(url_.norm_url_[url_.part_[url::PATH].offset], url_.norm_url_[url_.part_[url::PATH].offset + 1])
         ))
@@ -1491,7 +1491,7 @@ inline void url_serializer::shorten_path() {
     // shorten
     url_.part_[url::PATH].len = it - first;
     url_.norm_url_.resize(it - url_.norm_url_.data());
-    path_segment_count_--;
+    url_.path_segment_count_--;
 }
 
 inline void url::append_to_path() {
@@ -1658,7 +1658,7 @@ inline std::string& url_serializer::start_path_segment() {
 
 inline void url_serializer::save_path_segment() {
     save_part();
-    path_segment_count_++;
+    url_.path_segment_count_++;
 }
 
 inline void url_serializer::clear_host() {
@@ -1719,7 +1719,7 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             // ilast part from lastp
             url_.part_[ilast] = detail::url_part(lastp.offset + delta, lastp.len);
             // path segments count
-            //TODO: url_.path_segment_count_ = src_.path_segment_count_;
+            url_.path_segment_count_ = src.path_segment_count_;
         }
     }
 
