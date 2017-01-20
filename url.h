@@ -400,10 +400,12 @@ public:
     bool get_shorten_path(detail::url_part& part, unsigned& path_segment_count);
     void shorten_path();
 
-    void append_parts(const url& src, url::PartType t1, url::PartType t2) {
-        append_parts(src, t1, t2, detail::url_part(0, 0));
-    }
-    void append_parts(const url& src, url::PartType t1, url::PartType t2, detail::url_part lastp);
+    enum PathOp {
+        NO_PATH_OP = 0,
+        PATH_REM_LAST,
+        SHORTEN_PATH,
+    };
+    void append_parts(const url& src, url::PartType t1, url::PartType t2, PathOp pathOp = NO_PATH_OP);
 
     // flags
     void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
@@ -1697,7 +1699,7 @@ inline void url_serializer::clear_host() {
     last_pt_ = url::SCHEME;
 }
 
-inline void url_serializer::append_parts(const url& src, url::PartType t1, url::PartType t2, detail::url_part lastp) {
+inline void url_serializer::append_parts(const url& src, url::PartType t1, url::PartType t2, PathOp pathOp) {
     // See URL serializing
     // https://url.spec.whatwg.org/#concept-url-serializer
     url::PartType ifirst;
@@ -1719,15 +1721,23 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
     // copy parts & str
     if (ifirst <= t2) {
         int ilast = t2;
-        if (lastp.offset == 0) {
-            for (; ilast >= t1; ilast--) {
-                if (src.part_[ilast].offset) {
-                    lastp = src.part_[ilast];
-                    break;
-                }
-            }
+        for (; ilast >= ifirst; ilast--) {
+            if (src.part_[ilast].offset)
+                break;
         }
-        if (lastp.offset) {
+        if (ifirst <= ilast) {
+            detail::url_part lastp(src.part_[ilast]);
+            if (pathOp != NO_PATH_OP && ilast == url::PATH) {
+                unsigned path_segment_count_ = src.path_segment_count_;
+                switch (pathOp) {
+                case PATH_REM_LAST:
+                    ;//TODO
+                case SHORTEN_PATH:
+                    ;//TODO
+                }
+                // path segments count
+                url_.path_segment_count_ = path_segment_count_;
+            }
             // src
             const char* first = src.norm_url_.data() + src.part_[ifirst].offset;
             const char* last = src.norm_url_.data() + lastp.offset + lastp.len;
@@ -1743,8 +1753,6 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             }
             // ilast part from lastp
             url_.part_[ilast] = detail::url_part(lastp.offset + delta, lastp.len);
-            // path segments count
-            url_.path_segment_count_ = src.path_segment_count_;
         }
     }
 
