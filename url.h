@@ -374,6 +374,7 @@ public:
 
     ~url_serializer();
 
+    // set data
     void set_scheme(const url& src) { url_.set_scheme(src); }
     void set_scheme(const str_view<char> str) { url_.set_scheme(str); }
     void set_scheme(std::size_t b, std::size_t e) { url_.set_scheme(b, e); }
@@ -384,8 +385,15 @@ public:
     std::string& start_path_segment();
     void save_path_segment();
 
+    void clear_host();
+
     void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
 
+    // get info
+    bool is_empty(const url::PartType t) const { return url_.is_empty(t); }
+    bool is_null(const url::PartType t) const  { return url_.is_null(t); }
+    bool is_special_scheme() const { return url_.is_special_scheme(); }
+    bool is_file_scheme() const { return url_.is_file_scheme(); }
 
 #if 0
     std::string& start_username();
@@ -1603,6 +1611,17 @@ inline std::string& url_serializer::start_path_segment() {
 
 
 inline void url_serializer::save_path_segment() {
+}
+
+inline void url_serializer::clear_host() {
+    assert(!is_empty(url::SCHEME));
+    assert(last_pt_ == url::HOST);
+    // paliekam tik "scheme:"   
+    url_.norm_url_.resize(url_.part_[url::SCHEME].len + 1);
+    url_.part_[url::HOST].offset = 0;
+    url_.part_[url::HOST].len = 0;
+    url_.flags_ &= ~url::HOST_FLAG; // set to null
+    last_pt_ = url::SCHEME;
 }
 
 
