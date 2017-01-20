@@ -157,9 +157,11 @@ public:
     */
     url()
         : scheme_inf_(nullptr)
-        , flags_(0)
+        , flags_(INITIAL_FLAGS)
         , path_segment_count_(0)
     {}
+
+    void clear();
 
     template <typename CharT>
     bool parse(const CharT* first, const CharT* last, const url* base);
@@ -261,6 +263,8 @@ protected:
         FRAGMENT_FLAG = (1u << FRAGMENT),
         // other flags
         CANNOT_BE_BASE_FLAG = (1u << (PART_COUNT + 0)),
+        // initial flags (empty (but not null) parts)
+        INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
 
     bool is_null(const UrlFlag flag) const {
@@ -544,6 +548,13 @@ inline bool is_special_authority_end_char(CharT c) {
     return c == '/' || c == '?' || c == '#' || c == '\\';
 }
 
+inline void url::clear() {
+    norm_url_.resize(0);
+    std::memset(part_, 0, sizeof(part_));
+    scheme_inf_ = nullptr;
+    flags_ = INITIAL_FLAGS;
+    path_segment_count_ = 0;
+}
 
 // https://url.spec.whatwg.org/#concept-basic-url-parser
 template <typename CharT>
@@ -559,16 +570,12 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     do_remove_whitespace(first, last, buff_no_ws);
     //TODO-WARN: syntax violation if removed
 
+    // reset
+    clear();
+
     // reserve size (TODO: bet jei bus naudojama base?)
     auto length = std::distance(first, last);
     norm_url_.reserve(length + 32); // žr.: GURL::InitCanonical(..)
-
-    // reset
-    norm_url_.resize(0);
-    std::memset(part_, 0, sizeof(part_));
-    scheme_inf_ = nullptr;
-    flags_ = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG; // initially empty (but not null)
-    path_segment_count_ = 0;
 
     const char* encoding = "UTF-8";
     // TODO: If encoding override is given, set encoding to the result of getting an output encoding from encoding override. 
