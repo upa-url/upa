@@ -393,6 +393,11 @@ public:
     
     void shorten_path();
 
+    void append_parts(const url& src, url::PartType t1, url::PartType t2) {
+        append_parts(src, t1, t2, detail::url_part(0, 0));
+    }
+    void append_parts(const url& src, url::PartType t1, url::PartType t2, detail::url_part lastp);
+
     // flags
     void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
     void cannot_be_base(const bool yes) { url_.cannot_be_base(yes); }
@@ -1665,6 +1670,65 @@ inline void url_serializer::clear_host() {
     url_.part_[url::HOST].len = 0;
     url_.flags_ &= ~url::HOST_FLAG; // set to null
     last_pt_ = url::SCHEME;
+}
+
+inline void url_serializer::append_parts(const url& src, url::PartType t1, url::PartType t2, detail::url_part lastp) {
+    // See URL serializing
+    // https://url.spec.whatwg.org/#concept-url-serializer
+    url::PartType ifirst;
+    if (t1 <= url::HOST) {
+        // authority, host
+        if (!src.is_null(url::HOST)) {
+            if (t1 == url::USERNAME && src.has_credentials())
+                ifirst = url::USERNAME;
+            else
+                ifirst = url::HOST;
+        } else {
+            ifirst = url::PATH;
+        }
+    } else {
+        // t1 == PATH
+        ifirst = t1;
+    }
+
+    // copy parts & str
+    if (ifirst <= t2) {
+        int ilast = t2;
+        if (lastp.offset == 0) {
+            for (; ilast >= t1; ilast--) {
+                if (src.part_[ilast].offset) {
+                    lastp = src.part_[ilast];
+                    break;
+                }
+            }
+        }
+        if (lastp.offset) {
+            // src
+            const char* first = src.norm_url_.data() + src.part_[ifirst].offset;
+            const char* last = src.norm_url_.data() + lastp.offset + lastp.len;
+            // dest                     
+            std::string& norm_url = start_part(ifirst);
+            int delta = static_cast<int>(norm_url.length()) - src.part_[ifirst].offset;
+            // copy normalized url string from src
+            norm_url.append(first, last);
+            // adjust url_.part_
+            for (int ind = ifirst; ind < ilast; ind++) {
+                if (src.part_[ind].offset)
+                    url_.part_[ind] = detail::url_part(src.part_[ind].offset + delta, src.part_[ind].len);
+            }
+            // ilast part from lastp
+            url_.part_[ilast] = detail::url_part(lastp.offset + delta, lastp.len);
+            // path segments count
+            //TODO: url_.path_segment_cout_ = src_.path_segment_cout_;
+        }
+    }
+
+    // copy not null flags
+    unsigned mask = 0;
+    for (int ind = t1; ind <= t2; ind++) {
+        mask |= (1u << ind);
+    }
+    url_.flags_ = (url_.flags_ & ~mask) | (src.flags_ & mask);
 }
 
 
