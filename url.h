@@ -291,6 +291,8 @@ protected:
 
     detail::url_part get_path_rem_last() const;
     detail::url_part get_shorten_path() const;
+    bool get_path_rem_last(detail::url_part& part, unsigned& path_segment_count);
+    bool get_shorten_path(detail::url_part& part, unsigned& path_segment_count);
     void shorten_path();
     void append_to_path();
 
@@ -396,8 +398,6 @@ public:
     std::string& start_path_segment();
     void save_path_segment();
     
-    bool get_path_rem_last(detail::url_part& part, unsigned& path_segment_count);
-    bool get_shorten_path(detail::url_part& part, unsigned& path_segment_count);
     void shorten_path();
 
     enum PathOp {
@@ -1487,28 +1487,28 @@ inline void url::shorten_path() {
 }
 
 
-inline bool url_serializer::get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) {
-    if (url_.path_segment_count_ > 0) {
+inline bool url::get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) {
+    if (path_segment_count_ > 0) {
         // Remove path’s last item
-        const char* first = url_.norm_url_.data() + url_.part_[url::PATH].offset;
-        const char* last = first + url_.part_[url::PATH].len;
+        const char* first = norm_url_.data() + part_[url::PATH].offset;
+        const char* last = first + part_[url::PATH].len;
         const char* it = find_last(first, last, '/');
         if (it == last) it = first; // jei nebuvo '/' išmesim visą kelią
         // shorten
-        part.offset = url_.part_[url::PATH].offset;
+        part.offset = part_[url::PATH].offset;
         part.len = it - first;
-        path_segment_count = url_.path_segment_count_ - 1;
+        path_segment_count = path_segment_count_ - 1;
         return true;
     }
     return false;
 }
 
-inline bool url_serializer::get_shorten_path(detail::url_part& part, unsigned& path_segment_count) {
-    if (url_.path_segment_count_ == 0 || (
+inline bool url::get_shorten_path(detail::url_part& part, unsigned& path_segment_count) {
+    if (path_segment_count_ == 0 || (
         is_file_scheme() &&
-        url_.path_segment_count_ == 1 &&
-        url_.part_[url::PATH].len == 2 &&
-        is_normalized_Windows_drive(url_.norm_url_[url_.part_[url::PATH].offset], url_.norm_url_[url_.part_[url::PATH].offset + 1])
+        path_segment_count_ == 1 &&
+        part_[url::PATH].len == 2 &&
+        is_normalized_Windows_drive(norm_url_[part_[url::PATH].offset], norm_url_[part_[url::PATH].offset + 1])
         ))
         return false;
     // Remove path’s last item
@@ -1517,7 +1517,7 @@ inline bool url_serializer::get_shorten_path(detail::url_part& part, unsigned& p
 
 inline void url_serializer::shorten_path() {
     assert(last_pt_ <= url::PATH);
-    if (get_shorten_path(url_.part_[url::PATH], url_.path_segment_count_))
+    if (url_.get_shorten_path(url_.part_[url::PATH], url_.path_segment_count_))
         url_.norm_url_.resize(url_.part_[url::PATH].offset + url_.part_[url::PATH].len);
 }
 
