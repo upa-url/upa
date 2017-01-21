@@ -716,7 +716,8 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                         pointer++;
                     } else {
                         urls.cannot_be_base(true);
-                        //TODO: append an empty string to url’s path
+                        // append an empty string to url’s path
+                        urls.append_to_path();
                         state = cannot_be_base_URL_path_state;
                     }
                 }
@@ -735,10 +736,12 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         if (base) {
             if (base->cannot_be_base()) {
                 if (pointer < last && *pointer == '#') {
+                    // SVARBU: cannot_be_base(true) turi būti prieš append_parts(..),
+                    // kad pastarasis teisingai vykdytų serializavimą
+                    urls.cannot_be_base(true);
                     urls.set_scheme(*base);
                     urls.append_parts(*base, url::PATH, url::QUERY);
                     //TODO: url’s fragment to the empty string
-                    urls.cannot_be_base(true);
                     state = fragment_state;
                     pointer++;
                 } else {
@@ -1111,7 +1114,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
 
         // UTF-8 percent encode using the simple encode set, and append the result
         // to the first string in url’s path
-        std::string& str_path = urls.start_part(url::PATH); // TODO: ar start_path_segment
+        std::string& str_path = urls.start_part(url::PATH); // ne start_path_segment()
         do_simple_path(pointer, end_of_path, str_path);
         urls.save_part();
         pointer = end_of_path;
@@ -1388,7 +1391,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
         } else {
             if (len == 2 &&
                 urls.is_file_scheme() &&
-                urls.is_empty(url::PATH) &&
+                urls.is_empty_path() &&
                 is_Windows_drive(pointer[0], pointer[1]))
             {
                 if (!urls.is_null(url::HOST)) {
@@ -1708,8 +1711,9 @@ inline void url_serializer::append_to_path() { // append_empty_to_path();
 inline std::string& url_serializer::start_path_segment() {
     if (last_pt_ != url::PATH)
         return start_part(url::PATH);
-    // lipdom prie esamo kelio
-    url_.norm_url_ += '/';
+    // lipdom prie esamo kelio: seg1 / seg2 / ... / segN
+    if (url_.path_segment_count_ > 0)
+        url_.norm_url_ += '/';
     return url_.norm_url_;
 }
 
@@ -1720,7 +1724,10 @@ inline void url_serializer::save_path_segment() {
 
 inline void url_serializer::clear_host() {
     assert(!is_empty(url::SCHEME));
-    assert(last_pt_ == url::HOST); //TODO: || PATH, bet empty
+    assert(last_pt_ == url::HOST || (last_pt_ == url::PATH && is_empty_path()));
+    // if last_pt_ == url::PATH
+    url_.part_[url::PATH].offset = 0;
+    //url_.part_[url::PATH].len = 0;
     // paliekam tik "scheme:"   
     url_.norm_url_.resize(url_.part_[url::SCHEME].len + 1);
     url_.part_[url::HOST].offset = 0;
@@ -1756,6 +1763,11 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
                 break;
         }
         if (ifirst <= ilast) {
+            // prepare buffer to append data
+            // IMPORTANT: do before any url_ members modifications!
+            std::string& norm_url = start_part(ifirst);
+            
+            // last part and url_.path_segment_count_
             detail::url_part lastp(src.part_[ilast]);
             if (pathOpFn && ilast == url::PATH) {
                 unsigned segment_count = src.path_segment_count_;
@@ -1770,7 +1782,6 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             const char* first = src.norm_url_.data() + src.part_[ifirst].offset;
             const char* last = src.norm_url_.data() + lastp.offset + lastp.len;
             // dest                     
-            std::string& norm_url = start_part(ifirst);
             int delta = static_cast<int>(norm_url.length()) - src.part_[ifirst].offset;
             // copy normalized url string from src
             norm_url.append(first, last);
