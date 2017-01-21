@@ -276,43 +276,25 @@ protected:
         return !(flags_ & flag);
     }
 
-    // path shortening
-    bool get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) const;
-    bool get_shorten_path(detail::url_part& part, unsigned& path_segment_count) const;
-
-    template <class StringT>
-    void add_part(PartType t, const StringT str) {
-        part_[t].offset = norm_url_.length();
-        part_[t].len = str.length();
-        norm_url_.append(str.data(), str.length());
-    }
-    template <class StringT>
-    void add_part(PartType t, const StringT str, char c) {
-        add_part(t, str);
-        norm_url_ += c;
-    }
-
+    // set part range
     void set_part(PartType t, std::size_t b, std::size_t e) {
         part_[t] = detail::url_part::from_range(b, e);
     }
 
-    void clear_host() {
-        if (part_[HOST].len) {
-            norm_url_.resize(part_[HOST].offset);
-            part_[HOST].offset = 0;
-            part_[HOST].len = 0;
-        }
-        flags_ &= ~HOST_FLAG; // set to null
-    }
-
-    void set_scheme(const url& src) {
+    // scheme
+    template <class StringT>
+    void set_scheme_str(const StringT str) {
         norm_url_.resize(0); // clear all
-        add_part(SCHEME, src.get_part_view(SCHEME), ':');
+        part_[SCHEME] = detail::url_part(0, str.length());
+        norm_url_.append(str.data(), str.length());
+        norm_url_ += ':';
+    }
+    void set_scheme(const url& src) {
+        set_scheme_str(src.get_part_view(SCHEME));
         scheme_inf_ = src.scheme_inf_;
     }
     void set_scheme(const str_view<char> str) {
-        norm_url_.resize(0); // clear all
-        add_part(SCHEME, str, ':');
+        set_scheme_str(str);
         scheme_inf_ = detail::get_scheme_info(str);
     }
     void set_scheme(std::size_t b, std::size_t e) {
@@ -325,14 +307,19 @@ protected:
         scheme_inf_ = nullptr;
     }
 
-    void add_slash_slash() {
-        // if norm_url_ is "scheme:" (without "//")
-        if (part_[SCHEME].len && part_[SCHEME].len + 1 == norm_url_.length())
-            norm_url_.append("//");
+    // host
+    void clear_host() {
+        if (part_[HOST].len) {
+            norm_url_.resize(part_[HOST].offset);
+            part_[HOST].offset = 0;
+            part_[HOST].len = 0;
+        }
+        flags_ &= ~HOST_FLAG; // set to null
     }
-    void if_file_add_slash_slash() {
-        if (is_file_scheme()) add_slash_slash();
-    }
+
+    // path shortening
+    bool get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) const;
+    bool get_shorten_path(detail::url_part& part, unsigned& path_segment_count) const;
 
     // flags
     void set_flag(const UrlFlag flag) {
