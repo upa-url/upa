@@ -966,10 +966,8 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             if (base && base->is_file_scheme()) {
                 // set url’s host to base’s host, url’s path to base’s path, and url’s query to base’s query
                 urls.append_parts(*base, url::HOST, url::QUERY);
-                return true; // EOF
             }
-            //TODO: čia neaišku ar "return true; // EOF" ar:
-            state = path_state;
+            return true; // EOF
         } else {
             const CharT ch = *(pointer++);
             switch (ch) {
@@ -985,8 +983,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     state = query_state; // sets query to the empty string
                 } else {
                     //TODO: čia neaišku ar ignoruoti ch ir cikle imti kitą ar:
-                    state = path_state;
-                    pointer--;
+                    state = query_state; // sets query to the empty string
                 }
                 break;
             case '#':
@@ -996,8 +993,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     state = fragment_state; // sets fragment to the empty string
                 } else {
                     //TODO: čia neaišku ar ignoruoti ch ir cikle imti kitą ar:
-                    state = path_state;
-                    pointer--;
+                    state = fragment_state; // sets fragment to the empty string
                 }
                 break;
             default:
