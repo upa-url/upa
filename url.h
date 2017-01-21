@@ -403,7 +403,7 @@ public:
     bool is_null(const url::PartType t) const  { return url_.is_null(t); }
     bool is_special_scheme() const { return url_.is_special_scheme(); }
     bool is_file_scheme() const { return url_.is_file_scheme(); }
-    const detail::scheme_info* scheme_inf() { return url_.scheme_inf_; }
+    const detail::scheme_info* scheme_inf() const { return url_.scheme_inf_; }
 
 #if 0
     std::string& start_username();
