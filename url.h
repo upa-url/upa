@@ -323,6 +323,11 @@ protected:
         set_part(SCHEME, b, e);
         scheme_inf_ = detail::get_scheme_info(get_part_view(SCHEME));
     }
+    void clear_scheme() {
+        norm_url_.resize(0); // clear all
+        set_part(SCHEME, 0, 0);
+        scheme_inf_ = nullptr;
+    }
 
     void add_slash_slash() {
         // if norm_url_ is "scheme:" (without "//")
@@ -389,7 +394,8 @@ public:
         url_.norm_url_.push_back(':');
     }
     void clear_scheme() {
-        url_.norm_url_.resize(0);
+        assert(last_pt_ == url::SCHEME);
+        url_.clear_scheme();
     }
 
     std::string& start_part(url::PartType t);
@@ -1714,7 +1720,7 @@ inline void url_serializer::save_path_segment() {
 
 inline void url_serializer::clear_host() {
     assert(!is_empty(url::SCHEME));
-    assert(last_pt_ == url::HOST);
+    assert(last_pt_ == url::HOST); //TODO: || PATH, bet empty
     // paliekam tik "scheme:"   
     url_.norm_url_.resize(url_.part_[url::SCHEME].len + 1);
     url_.part_[url::HOST].offset = 0;
