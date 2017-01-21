@@ -394,7 +394,12 @@ public:
 
     // flags
     void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
-    void cannot_be_base(const bool yes) { url_.cannot_be_base(yes); }
+    // IMPORTANT: cannot-be-a-base-URL flag must be set before or just after
+    // SCHEME set; because other part's serialization depends on this flag
+    void cannot_be_base(const bool yes) {
+        assert(last_pt_ == url::SCHEME);
+        url_.cannot_be_base(yes);
+    }
 
     // get info
     str_view<char> get_part_view(url::PartType t) const { return url_.get_part_view(t); }
