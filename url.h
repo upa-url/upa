@@ -279,8 +279,6 @@ protected:
     // path shortening
     bool get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) const;
     bool get_shorten_path(detail::url_part& part, unsigned& path_segment_count) const;
-    void shorten_path();
-    void append_to_path();
 
     template <class StringT>
     void add_part(PartType t, const StringT str) {
@@ -1462,24 +1460,6 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
     return success;
 }
 
-inline void url::shorten_path() {
-    if (!part_[PATH].empty()) {
-        if (!is_file_scheme() ||
-            part_[PATH].len != 3 ||
-            !is_normalized_Windows_drive(norm_url_[part_[PATH].offset + 1], norm_url_[part_[PATH].offset + 2]))
-        {
-            const char* first = norm_url_.data() + part_[PATH].offset;
-            const char* last = first + part_[PATH].len;
-            const char* it = find_last(first, last, '/');
-            if (it == last) it = first; // jei nebuvo '/' išmesim visą kelią
-            // shorten
-            part_[PATH].len = it - first;
-            norm_url_.resize(it - norm_url_.data());
-        }
-    }
-}
-
-
 inline bool url::get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) const {
     if (path_segment_count_ > 0) {
         // Remove path’s last item
@@ -1508,23 +1488,13 @@ inline bool url::get_shorten_path(detail::url_part& part, unsigned& path_segment
     return get_path_rem_last(part, path_segment_count);
 }
 
+// class url_serializer
+
 inline void url_serializer::shorten_path() {
     assert(last_pt_ <= url::PATH);
     if (url_.get_shorten_path(url_.part_[url::PATH], url_.path_segment_count_))
         url_.norm_url_.resize(url_.part_[url::PATH].offset + url_.part_[url::PATH].len);
 }
-
-inline void url::append_to_path() {
-    if (part_[PATH].len <= 0) {
-        part_[PATH].offset = norm_url_.length();
-        part_[PATH].len = 0;
-    }
-    norm_url_.push_back('/');
-    part_[PATH].len++;
-}
-
-
-// class url_serializer
 
 inline url_serializer::~url_serializer() {
     switch (last_pt_) {
