@@ -276,9 +276,7 @@ protected:
         return !(flags_ & flag);
     }
 
-
-    detail::url_part get_path_rem_last() const;
-    detail::url_part get_shorten_path() const;
+    // path shortening
     bool get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) const;
     bool get_shorten_path(detail::url_part& part, unsigned& path_segment_count) const;
     void shorten_path();
@@ -1462,35 +1460,6 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
         }
     }
     return success;
-}
-
-inline detail::url_part url::get_path_rem_last() const {
-    if (!part_[PATH].empty()) {
-        const char* first = norm_url_.data() + part_[PATH].offset;
-        const char* last = first + part_[PATH].len;
-        const char* it = find_last(first, last, '/');
-        if (it == last) it = first; // jei nebuvo '/' išmesim visą kelią
-        // return shorten
-        return detail::url_part(part_[PATH].offset, it - first);
-    }
-    return part_[PATH];
-}
-
-inline detail::url_part url::get_shorten_path() const {
-    if (!part_[PATH].empty()) {
-        if (!is_file_scheme() ||
-            part_[PATH].len != 3 ||
-            !is_normalized_Windows_drive(norm_url_[part_[PATH].offset + 1], norm_url_[part_[PATH].offset + 2]))
-        {
-            const char* first = norm_url_.data() + part_[PATH].offset;
-            const char* last = first + part_[PATH].len;
-            const char* it = find_last(first, last, '/');
-            if (it == last) it = first; // jei nebuvo '/' išmesim visą kelią
-            // return shorten
-            return detail::url_part(part_[PATH].offset, it - first);
-        }
-    }
-    return part_[PATH];
 }
 
 inline void url::shorten_path() {
