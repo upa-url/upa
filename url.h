@@ -338,11 +338,6 @@ protected:
         if (is_file_scheme()) add_slash_slash();
     }
 
-    void append_parts(const url& src, PartType t1, PartType t2) {
-        append_parts(src, t1, t2, detail::url_part(0,0));
-    }
-    void append_parts(const url& src, PartType t1, PartType t2, detail::url_part lastp);
-
     // flags
     void set_flag(const UrlFlag flag) {
         flags_ |= flag;
@@ -1559,68 +1554,6 @@ inline void url::append_to_path() {
     part_[PATH].len++;
 }
 
-// append parts from other url
-
-inline void url::append_parts(const url& src, PartType t1, PartType t2, detail::url_part lastp) {
-    // See URL serializing
-    // https://url.spec.whatwg.org/#concept-url-serializer
-    PartType ifirst;
-    if (t1 <= HOST) {
-        // authority, host
-        if (!src.is_null(HOST)) {
-            // If url’s host is non - null, append "//" to output
-            add_slash_slash();
-            if (t1 == USERNAME && src.has_credentials())
-                ifirst = USERNAME;
-            else
-                ifirst = HOST;
-        } else {
-            // if url’s host is null and url’s scheme is "file", append "//" to output
-            // TODO: gal nebereikia, nes iškviečiamas prieš append_parts(..) bei netiesiogiai
-            //       kai relative_slash_state, file_slash_state
-            if_file_add_slash_slash();
-
-            ifirst = PATH;
-        }
-    } else {
-        // t1 == PATH
-        ifirst = t1;
-    }
-
-    // copy parts & str
-    if (ifirst <= t2) {
-        int ilast = t2;
-        if (lastp.offset == 0) {
-            for (; ilast >= t1; ilast--) {
-                if (src.part_[ilast].offset) {
-                    lastp = src.part_[ilast];
-                    break;
-                }
-            }
-        }
-        if (lastp.offset) {
-            const char* first = src.norm_url_.data() + src.part_[ifirst].offset;
-            const char* last = src.norm_url_.data() + lastp.offset + lastp.len;
-            int delta = static_cast<int>(norm_url_.length()) - src.part_[ifirst].offset;
-            norm_url_.append(first, last);
-            for (int ind = ifirst; ind < ilast; ind++) {
-                if (src.part_[ind].offset)
-                    part_[ind] = detail::url_part(src.part_[ind].offset + delta, src.part_[ind].len);
-            }
-            // ilast - lastp
-            part_[ilast] = detail::url_part(lastp.offset + delta, lastp.len);
-        }
-    }
-
-    // copy not null flags
-    unsigned mask = 0;
-    for (int ind = t1; ind <= t2; ind++) {
-        mask |= (1u << ind);
-    }
-    flags_ = (flags_ & ~mask) | (src.flags_ & mask);
-}
-
-
 
 // class url_serializer
 
@@ -1731,6 +1664,8 @@ inline void url_serializer::clear_host() {
     url_.flags_ &= ~url::HOST_FLAG; // set to null
     last_pt_ = url::SCHEME;
 }
+
+// append parts from other url
 
 inline void url_serializer::append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn) {
     // See URL serializing
