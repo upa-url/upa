@@ -161,6 +161,14 @@ public:
         , flags_(INITIAL_FLAGS)
         , path_segment_count_(0)
     {}
+    // copy constructor
+    url(const url& src)
+        : norm_url_(src.norm_url_)
+        , part_(src.part_)
+        , scheme_inf_(src.scheme_inf_)
+        , flags_(src.flags_)
+        , path_segment_count_(src.path_segment_count_)
+    {}
 
     void clear();
 
