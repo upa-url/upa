@@ -20,6 +20,7 @@
 #include "url_ip.h"
 #include "url_util.h"
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <string>
 #include <type_traits>
@@ -335,7 +336,7 @@ protected:
 
 private:
     std::string norm_url_;
-    detail::url_part part_[PART_COUNT];
+    std::array<detail::url_part, PART_COUNT> part_;
     const detail::scheme_info* scheme_inf_;
     unsigned flags_;
     unsigned path_segment_count_;
@@ -572,7 +573,7 @@ inline bool is_special_authority_end_char(CharT c) {
 
 inline void url::clear() {
     norm_url_.resize(0);
-    std::memset(part_, 0, sizeof(part_));
+    part_.fill(detail::url_part{});
     scheme_inf_ = nullptr;
     flags_ = INITIAL_FLAGS;
     path_segment_count_ = 0;
