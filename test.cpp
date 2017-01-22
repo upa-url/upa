@@ -211,7 +211,11 @@ int main()
     // mano išvesti
     url_testas("file:///c%3a/../b");
     url_testas("file:///c:/../b");
-
+    // žr.: url_parser::parse_path(..): "d:" ne kelio pradžioje
+    // turi persikelti į pradžią
+    url_testas("file:///abc/../d:/../some.txt");
+    // ar naršyklėse veiks (t.y. rodys failą):
+    url_testas("file:///abc/../d:/some.txt");
 
     // simple_buffer testai
     void test_buffer(); test_buffer();
