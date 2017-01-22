@@ -24,6 +24,7 @@
 #include <cassert>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 
 template<typename CharT, typename Traits = std::char_traits<CharT>>
@@ -164,6 +165,14 @@ public:
     // copy constructor
     url(const url& src)
         : norm_url_(src.norm_url_)
+        , part_(src.part_)
+        , scheme_inf_(src.scheme_inf_)
+        , flags_(src.flags_)
+        , path_segment_count_(src.path_segment_count_)
+    {}
+    // move constructor
+    url(url&& src)
+        : norm_url_(std::move(src.norm_url_))
         , part_(src.part_)
         , scheme_inf_(src.scheme_inf_)
         , flags_(src.flags_)
