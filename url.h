@@ -336,9 +336,8 @@ protected:
     bool cannot_be_base() const {
         return !!(flags_ & CANNOT_BE_BASE_FLAG);
     }
-    void cannot_be_base(const bool yes) {
-        if (yes) flags_ |= CANNOT_BE_BASE_FLAG;
-        else flags_ &= ~CANNOT_BE_BASE_FLAG;
+    void set_cannot_be_base() {
+        set_flag(CANNOT_BE_BASE_FLAG);
     }
 
 private:
@@ -404,9 +403,9 @@ public:
     void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
     // IMPORTANT: cannot-be-a-base-URL flag must be set before or just after
     // SCHEME set; because other part's serialization depends on this flag
-    void cannot_be_base(const bool yes) {
+    void set_cannot_be_base() {
         assert(last_pt_ == url::SCHEME);
-        url_.cannot_be_base(yes);
+        url_.set_cannot_be_base();
     }
 
     // get info
@@ -706,7 +705,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                         state = path_or_authority_state;
                         pointer++;
                     } else {
-                        urls.cannot_be_base(true);
+                        urls.set_cannot_be_base();
                         // append an empty string to url’s path
                         urls.append_to_path();
                         state = cannot_be_base_URL_path_state;
@@ -727,9 +726,9 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         if (base) {
             if (base->cannot_be_base()) {
                 if (pointer < last && *pointer == '#') {
-                    // SVARBU: cannot_be_base(true) turi būti prieš append_parts(..),
+                    // SVARBU: set_cannot_be_base() turi būti prieš append_parts(..),
                     // kad pastarasis teisingai vykdytų serializavimą
-                    urls.cannot_be_base(true);
+                    urls.set_cannot_be_base();
                     urls.set_scheme(*base);
                     urls.append_parts(*base, url::PATH, url::QUERY);
                     //TODO: url’s fragment to the empty string
