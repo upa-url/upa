@@ -383,7 +383,7 @@ public:
         url_.clear_scheme();
     }
 
-    std::string& start_part(url::PartType t);
+    std::string& start_part(url::PartType new_pt);
     void save_part();
 
     void clear_host();
@@ -1510,45 +1510,45 @@ inline url_serializer::~url_serializer() {
     }
 }
 
-inline std::string& url_serializer::start_part(url::PartType t) {
+inline std::string& url_serializer::start_part(url::PartType new_pt) {
     switch (last_pt_) {
     case url::SCHEME:
         // if host is non-null or scheme is "file"
-        if (t <= url::HOST || url_.is_file_scheme())
+        if (new_pt <= url::HOST || url_.is_file_scheme())
             url_.norm_url_.append("//");
         // append '/' if not cannot-be-a-base-URL flag
-        if (t >= url::PATH && !url_.cannot_be_base())
+        if (new_pt >= url::PATH && !url_.cannot_be_base())
             url_.norm_url_ += '/';
         break;
     case url::USERNAME:
-        if (t == url::PASSWORD) {
+        if (new_pt == url::PASSWORD) {
             url_.norm_url_ += ':';
             break;
         }
     case url::PASSWORD:
-        if (t == url::HOST) {
+        if (new_pt == url::HOST) {
             url_.norm_url_ += '@';
             break;
         }
         // NOT REACHABLE (TODO: throw?)
         break;
     case url::HOST:
-        if (t == url::PORT) {
+        if (new_pt == url::PORT) {
             url_.norm_url_ += ':';
             break;
         }
     case url::PORT:
         // append '/' if not cannot-be-a-base-URL flag
-        if (t >= url::PATH && !url_.cannot_be_base())
+        if (new_pt >= url::PATH && !url_.cannot_be_base())
             url_.norm_url_ += '/';
         break;
     case url::PATH:
-        if (t == url::PATH) // continue on path
+        if (new_pt == url::PATH) // continue on path
             return url_.norm_url_;
         break;
     }
 
-    switch (t) {
+    switch (new_pt) {
     case url::QUERY:
         url_.norm_url_ += '?';
         break;
@@ -1557,8 +1557,8 @@ inline std::string& url_serializer::start_part(url::PartType t) {
         break;
     }
 
-    assert(last_pt_ < t);
-    url_.part_[last_pt_ = t].offset = url_.norm_url_.length();
+    assert(last_pt_ < new_pt);
+    url_.part_[last_pt_ = new_pt].offset = url_.norm_url_.length();
     return url_.norm_url_;
 }
 
