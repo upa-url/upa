@@ -325,16 +325,6 @@ protected:
         scheme_inf_ = nullptr;
     }
 
-    // host
-    void clear_host() {
-        if (part_[HOST].len) {
-            norm_url_.resize(part_[HOST].offset);
-            part_[HOST].offset = 0;
-            part_[HOST].len = 0;
-        }
-        flags_ &= ~HOST_FLAG; // set to null
-    }
-
     // path shortening
     bool get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) const;
     bool get_shorten_path(detail::url_part& part, unsigned& path_segment_count) const;
