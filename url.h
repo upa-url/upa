@@ -383,6 +383,7 @@ public:
         url_.clear_scheme();
     }
 
+    void fill_parts_offset(url::PartType t1, url::PartType t2, size_t offset);
     std::string& start_part(url::PartType new_pt);
     void save_part();
 
@@ -1510,20 +1511,32 @@ inline url_serializer::~url_serializer() {
     }
 }
 
+inline void url_serializer::fill_parts_offset(url::PartType t1, url::PartType t2, size_t offset) {
+    for (int ind = t1; ind < t2; ind++)
+        url_.part_[ind].offset = offset;
+}
+
 inline std::string& url_serializer::start_part(url::PartType new_pt) {
+    url::PartType fill_start_pt = static_cast<url::PartType>(static_cast<int>(last_pt_)+1);
     switch (last_pt_) {
     case url::SCHEME:
         // if host is non-null or scheme is "file"
         if (new_pt <= url::HOST || url_.is_file_scheme())
             url_.norm_url_.append("//");
         // append '/' if not cannot-be-a-base-URL flag
-        if (new_pt >= url::PATH && !url_.cannot_be_base())
+        if (new_pt >= url::PATH && !url_.cannot_be_base()) {
+            fill_parts_offset(fill_start_pt, url::PATH, url_.norm_url_.length());
+            fill_start_pt = url::PATH;
             url_.norm_url_ += '/';
+        }
         break;
     case url::USERNAME:
         if (new_pt == url::PASSWORD) {
             url_.norm_url_ += ':';
             break;
+        } else {
+            url_.part_[url::PASSWORD].offset = url_.norm_url_.length();
+            fill_start_pt = url::HOST;
         }
     case url::PASSWORD:
         if (new_pt == url::HOST) {
@@ -1536,6 +1549,9 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
         if (new_pt == url::PORT) {
             url_.norm_url_ += ':';
             break;
+        } else {
+            url_.part_[url::PORT].offset = url_.norm_url_.length();
+            fill_start_pt = url::PATH;
         }
     case url::PORT:
         // append '/' if not cannot-be-a-base-URL flag
@@ -1547,6 +1563,8 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
             return url_.norm_url_;
         break;
     }
+
+    fill_parts_offset(fill_start_pt, new_pt, url_.norm_url_.length());
 
     switch (new_pt) {
     case url::QUERY:
