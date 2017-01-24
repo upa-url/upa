@@ -217,6 +217,16 @@ int main()
     // ar naršyklėse veiks (t.y. rodys failą):
     url_testas("file:///abc/../d:/some.txt");
 
+    // UTF-8 percent encoded test
+    url_testas("http://Ā©.com");
+    url_testas("http://%C2%A9.com");
+    url_testas("http://%C2©.com");
+    url_testas("http://Ā%A9.com");
+    url_testas("http://%C2%39.com");
+    // https://github.com/whatwg/url/issues/215
+    url_testas("http://example.com%A0");
+    url_testas("http://%E2%98%83");
+
     // simple_buffer testai
     void test_buffer(); test_buffer();
 }
