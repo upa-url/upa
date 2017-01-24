@@ -1517,6 +1517,7 @@ inline void url_serializer::fill_parts_offset(url::PartType t1, url::PartType t2
 }
 
 inline std::string& url_serializer::start_part(url::PartType new_pt) {
+    // užpido ir tuščių dalių (iki new_pt) offset-ą
     url::PartType fill_start_pt = static_cast<url::PartType>(static_cast<int>(last_pt_)+1);
     switch (last_pt_) {
     case url::SCHEME:
@@ -1674,8 +1675,8 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             norm_url.append(first, last);
             // adjust url_.part_
             for (int ind = ifirst; ind < ilast; ind++) {
-                if (src.part_[ind].offset)
-                    url_.part_[ind] = detail::url_part(src.part_[ind].offset + delta, src.part_[ind].len);
+                // if (src.part_[ind].offset) // nebereikia tikrinti, nes užpildyta
+                url_.part_[ind] = detail::url_part(src.part_[ind].offset + delta, src.part_[ind].len);
             }
             // ilast part from lastp
             url_.part_[ilast] = detail::url_part(lastp.offset + delta, lastp.len);
