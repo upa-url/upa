@@ -20,12 +20,10 @@ enum ParseResult {
 // TODO-WARN: syntaxViolationFlag
 template <typename CharT>
 static inline ParseResult ipv4_parse_number(const CharT* first, const CharT* last, uint32_t& number) {
-    assert(first < last);
-
     // Figure out the base
     detail::SharedCharTypes base;
     uint32_t radix;
-    if (first[0] == '0') {
+    if (first < last && first[0] == '0') {
         const size_t len = last - first;
         if (len == 1) {
             number = 0;
@@ -42,17 +40,18 @@ static inline ParseResult ipv4_parse_number(const CharT* first, const CharT* las
                 first += 1;
             }
         }
-        // Skip leading zeros
+        // Skip leading zeros (*)
         while (first < last && first[0] == '0')
             first++;
-        // if input is the empty string, then return zero
-        if (first == last) {
-            number = 0;
-            return RES_OK;
-        }
     } else {
         base = detail::CHAR_DEC;
         radix = 10;
+    }
+    // if all characters '0' (*) OR
+    // if input is the empty string, then return zero
+    if (first == last) {
+        number = 0;
+        return RES_OK;
     }
 
     // check if valid digits (we known all chars are ASCII)
@@ -113,7 +112,9 @@ inline ParseResult ipv4_parse(const CharT* first, const CharT* last, uint32_t& i
         }
     }
 
-    // 3. If the last item in parts is the empty string, set syntaxViolationFlag and remove the last item from parts
+    // 3. If the last item in parts is the empty string, then:
+    //    1. set syntaxViolationFlag.
+    //    2. If parts has more than one item, then remove the last item from parts.
     int part_count;
     if (dot_count > 0 && part[dot_count] == last) {
         part_count = dot_count;
