@@ -1189,7 +1189,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
 
 template <typename CharT>
 static inline bool is_valid_host_chars(const CharT* first, const CharT* last) {
-    return std::none_of(first, last, detail::IsInvalidHostChar);
+    return std::none_of(first, last, detail::IsInvalidHostChar<CharT>);
 }
 
 template <typename CharT>

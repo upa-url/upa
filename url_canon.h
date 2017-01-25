@@ -51,6 +51,18 @@ enum SharedCharTypes {
 // over using a 32-bit number.
 extern const unsigned char kSharedCharTypeTable[0x100];
 
+// char size
+inline bool Is8BitChar(char) {
+    return true;  // this case is specialized to avoid a warning
+}
+inline bool Is8BitChar(unsigned char) {
+    return true;  // this case is specialized to avoid a warning
+}
+template <typename CharT>
+inline bool Is8BitChar(CharT c) {
+    return c <= 255;
+}
+
 // More readable wrappers around the character type lookup table.
 inline bool IsCharOfType(unsigned char c, SharedCharTypes type) {
   return !!(kSharedCharTypeTable[c] & type);
@@ -64,8 +76,10 @@ inline bool IsIPv4Char(unsigned char c) {
 inline bool IsHexChar(unsigned char c) {
     return IsCharOfType(c, CHAR_HEX);
 }
-inline bool IsInvalidHostChar(unsigned char c) {
-    return IsCharOfType(c, CHAR_HOST_INV);
+// IsInvalidHostChar supports >8bit charcters
+template <typename CharT>
+inline bool IsInvalidHostChar(CharT c) {
+    return Is8BitChar(c) && IsCharOfType(static_cast<unsigned char>(c), CHAR_HOST_INV);
 }
 
 // Appends the given string to the output, escaping characters that do not
@@ -228,16 +242,6 @@ inline bool AppendUTF8EscapedChar(const CharT*& first, const CharT* last, std::s
 //
 // |*first| will be updated to point after the last character of the escape
 // sequence. On failure, |*first| will be unchanged.
-inline bool Is8BitChar(char c) {
-    return true;  // this case is specialized to avoid a warning
-}
-inline bool Is8BitChar(unsigned char c) {
-    return true;  // this case is specialized to avoid a warning
-}
-template <typename CharT>
-inline bool Is8BitChar(CharT c) {
-    return c <= 255;
-}
 
 template <typename CharT>
 inline bool DecodeEscaped(const CharT*& first, const CharT* last, unsigned char& unescaped_value) {
