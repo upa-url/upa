@@ -250,4 +250,12 @@ void test_buffer() {
     buff.push_back('\0');
 
     std::cout << buff.data();
+
+
+    // IPv4 parser test
+    const char* szEmpty = "";
+    uint32_t ipv4 = 1;
+    assert(whatwg::ipv4_parse_number(szEmpty, szEmpty, ipv4) == whatwg::RES_OK && ipv4 == 0);
+    ipv4 = 1;
+    assert(whatwg::ipv4_parse(szEmpty, szEmpty, ipv4) == whatwg::RES_OK && ipv4 == 0);
 }
