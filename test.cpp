@@ -227,13 +227,14 @@ int main()
     url_testas("http://example.com%A0");
     url_testas("http://%E2%98%83");
 
-    // simple_buffer testai
-    void test_buffer(); test_buffer();
+    // unit testai
+    void run_unit_tests();
+    run_unit_tests();
 }
 
 #include "buffer.h"
 
-void test_buffer() {
+void run_unit_tests() {
     whatwg::simple_buffer<char, 16> buff;
 
     std::string aaa("aaabbbccc");
