@@ -855,6 +855,10 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         
         auto it_eta = find_last(pointer, end_of_authority, '@');
         if (it_eta != end_of_authority) {
+            if (std::distance(it_eta, end_of_authority) == 1) {
+                // disallow empty host, example: "http://u:p@/"
+                return false; // TODO-ERR: 2.1. syntax violation, failure
+            }
             //TODO-WARN: syntax violation
             auto it_colon = std::find(pointer, it_eta, ':');
             // url includes credentials?
