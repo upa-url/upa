@@ -227,6 +227,11 @@ int main()
     url_testas("http://example.com%A0");
     url_testas("http://%E2%98%83");
 
+    // https://github.com/whatwg/url/issues/148
+    url_testas("unknown://†/");
+    url_testas("notspecial://H%4fSt/path");
+
+
     // unit testai
     void run_unit_tests();
     run_unit_tests();
