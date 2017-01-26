@@ -903,10 +903,12 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             }
         }
 
-        if (urls.is_special_scheme() && pointer == it_host_end) {
-            // TODE-ERR: host failure
+        // make sure that if port is present or scheme is special, host is non-empty
+        if ((is_port || urls.is_special_scheme()) && pointer == it_host_end) {
+            // TODE-ERR: syntax violation, host failure
             return false;
         }
+
         // parse and set host:
         if (!parse_host(urls, pointer, it_host_end))
             return false;
