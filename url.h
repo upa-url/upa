@@ -910,7 +910,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         }
 
         // parse and set host:
-        if (!parse_host(urls, pointer, it_host_end))
+        if (!parse_url_host(urls, pointer, it_host_end))
             return false;
 
         if (is_port) {
