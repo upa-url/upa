@@ -461,7 +461,7 @@ protected:
 class url_parser {
 public:
     enum State {
-        state_not_set = 0,
+        not_set_state = 0,
         scheme_start_state,
         scheme_state,
         no_scheme_state,
@@ -486,7 +486,7 @@ public:
     };
 
     template <typename CharT>
-    static bool url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override = state_not_set);
+    static bool url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override = not_set_state);
 
     template <typename CharT>
     static bool parse_url_host(url_serializer& urls, const CharT* first, const CharT* last);
