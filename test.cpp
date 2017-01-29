@@ -43,21 +43,21 @@ void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
     // source data
     cout_str(str_url);  std::wcout << "\n";
     if (base) {
-        std::wcout << "BASE: " << convW.from_bytes(base->get_href()) << "\n";
+        std::wcout << "BASE: " << convW.from_bytes(base->href()) << "\n";
     }
 
     // url parse result
     whatwg::url url;
     if (url.parse(str_url, base)) {
         // serialized
-        std::wcout << "HREF: " << convW.from_bytes(url.get_href()) << "\n";
+        std::wcout << "HREF: " << convW.from_bytes(url.href()) << "\n";
 
         // print parts
         for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {
             std::string strPart;
             switch (part) {
             case whatwg::url::PATH:
-                strPart = url.get_pathname();
+                strPart = url.pathname();
                 break;
             default:
                 strPart = url.get_part(static_cast<whatwg::url::PartType>(part));
