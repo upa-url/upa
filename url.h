@@ -460,6 +460,31 @@ protected:
 
 class url_parser {
 public:
+    enum State {
+        state_not_set = 0,
+        scheme_start_state,
+        scheme_state,
+        no_scheme_state,
+        special_relative_or_authority_state,
+        path_or_authority_state,
+        relative_state,
+        relative_slash_state,
+        special_authority_slashes_state,
+        special_authority_ignore_slashes_state,
+        authority_state,
+        host_state,
+        hostname_state,
+        port_state,
+        file_state,
+        file_slash_state,
+        file_host_state,
+        path_start_state,
+        path_state,
+        cannot_be_base_URL_path_state,
+        query_state,
+        fragment_state
+    };
+
     template <typename CharT>
     static bool url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base);
 
@@ -638,30 +663,6 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
     // TODO: If encoding override is given, set encoding to the result of getting an output encoding from encoding override. 
 
     auto pointer = first;
-    enum State {
-        state_not_set = 0,
-        scheme_start_state,
-        scheme_state,
-        no_scheme_state,
-        special_relative_or_authority_state,
-        path_or_authority_state,
-        relative_state,
-        relative_slash_state,
-        special_authority_slashes_state,
-        special_authority_ignore_slashes_state,
-        authority_state,
-        host_state,
-        hostname_state,
-        port_state,
-        file_state,
-        file_slash_state,
-        file_host_state,
-        path_start_state,
-        path_state,
-        cannot_be_base_URL_path_state,
-        query_state,
-        fragment_state
-    };
     State state = scheme_start_state;
     State state_override = state_not_set;
 
