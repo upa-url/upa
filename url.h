@@ -486,7 +486,7 @@ public:
     };
 
     template <typename CharT>
-    static bool url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base);
+    static bool url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override = state_not_set);
 
     template <typename CharT>
     static bool parse_url_host(url_serializer& urls, const CharT* first, const CharT* last);
@@ -646,7 +646,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
 
 // https://url.spec.whatwg.org/#concept-basic-url-parser
 template <typename CharT>
-inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base)
+inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override)
 {
     typedef std::make_unsigned<CharT>::type UCharT;
 
@@ -663,8 +663,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
     // TODO: If encoding override is given, set encoding to the result of getting an output encoding from encoding override. 
 
     auto pointer = first;
-    State state = scheme_start_state;
-    State state_override = state_not_set;
+    State state = state_override ? state_override : scheme_start_state;
 
     // has scheme?
     if (state == scheme_start_state) {
