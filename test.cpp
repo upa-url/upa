@@ -5,13 +5,18 @@
 #include <locale>
 
 
+template <class ...Args>
+std::wstring to_wstr(Args ...args) {
+    static std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convW;
+    return convW.from_bytes(std::forward<Args>(args)...);
+}
+
 void cout_str(const wchar_t* str) {
     std::wcout << str;
 }
 
 void cout_str(const char* str) {
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convW;
-    std::wcout << convW.from_bytes(str);
+    std::wcout << to_wstr(str);
 }
 
 void cout_str(const char16_t* str) {
@@ -38,19 +43,17 @@ void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
         "FRAGMENT"
     };
     
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convW;
-
     // source data
     cout_str(str_url);  std::wcout << "\n";
     if (base) {
-        std::wcout << "BASE: " << convW.from_bytes(base->href()) << "\n";
+        std::wcout << "BASE: " << to_wstr(base->href()) << "\n";
     }
 
     // url parse result
     whatwg::url url;
     if (url.parse(str_url, base)) {
         // serialized
-        std::wcout << "HREF: " << convW.from_bytes(url.href()) << "\n";
+        std::wcout << "HREF: " << to_wstr(url.href()) << "\n";
 
         // print parts
         for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {
@@ -64,7 +67,7 @@ void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
                 break;
             }
             if (!strPart.empty()) {
-                std::wcout << part_name[part] << ": " << convW.from_bytes(strPart) << "\n";
+                std::wcout << part_name[part] << ": " << to_wstr(strPart) << "\n";
             }
         }
     } else {
@@ -99,8 +102,7 @@ int main()
     url_testas(conv32.from_bytes(szUrl).c_str());
     url_testas(conv32.from_bytes("http://example.net").c_str());
     // wchar_t
-    std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convW;
-    url_testas(convW.from_bytes(szUrl).c_str());
+    url_testas(to_wstr(szUrl).c_str());
     // --
 
     url_testas("http://user:pass@klausim%c4%97lis.lt/?key=ąče#frag");
