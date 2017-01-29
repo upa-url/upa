@@ -100,6 +100,7 @@ void url_testas(const CharT* str_url, const CharT* str_base)
 // Main
 
 void test_parser();
+void test_setters();
 void run_unit_tests();
 
 int main()
@@ -107,8 +108,9 @@ int main()
     // set user-preferred locale
     setlocale(LC_ALL, "");
 
-    test_parser();
-    run_unit_tests();
+//  test_parser();
+    test_setters();
+//  run_unit_tests();
 
     return 0;
 }
@@ -268,6 +270,17 @@ void test_parser()
     // https://github.com/whatwg/url/issues/148
     url_testas("unknown://†/");
     url_testas("notspecial://H%4fSt/path");
+}
+
+void test_setters()
+{
+    whatwg::url url;
+    url.parse("http://example.org/foo/bar", nullptr);
+    cout_url(url);
+
+    const char szProtocol[] = "ws:";
+    url.protocol(szProtocol, szProtocol + std::strlen(szProtocol));
+    cout_url(url);
 }
 
 #include "buffer.h"
