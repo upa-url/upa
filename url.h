@@ -761,7 +761,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         bool is_scheme = false;
         state = no_scheme_state;
         auto it_colon = std::find(pointer, last, ':');
-        if (it_colon < last) {
+        if (it_colon < last || state_override /* kad protocol(s) nereiktų s + ':' */) {
             is_scheme = true;
             // start of scheme
             std::string& str_scheme = urls.start_scheme();
@@ -779,7 +779,6 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                 }
             }
             if (is_scheme) {
-                pointer = it_colon + 1; // skip ':'
                 // kas toliau
                 if (state_override) {
                     const detail::scheme_info* scheme_inf = detail::get_scheme_info(str_scheme.data(), str_scheme.length());
@@ -791,6 +790,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     return true;
                 }
                 urls.save_scheme();
+                pointer = it_colon + 1; // skip ':'
                 if (urls.is_file_scheme()) {
                     // TODO-WARN: if remaining does not start with "//", validation error.
                     state = file_state;
