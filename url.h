@@ -457,6 +457,11 @@ public:
         : url_serializer(dest_url)
     {}
 
+    ~url_setter() {
+        //todo: kad ~url_serializer() nieko nedarytų:
+        last_pt_ = url::FRAGMENT;
+    }
+
     //???
     void reserve(size_t new_cap) { strp_.reserve(new_cap); }
 
