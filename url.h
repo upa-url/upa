@@ -342,6 +342,7 @@ private:
     unsigned path_segment_count_;
 
     friend class url_serializer;
+    friend class url_setter;
     friend class url_parser;
 };
 
@@ -438,6 +439,42 @@ public:
 protected:
     url& url_;
     url::PartType last_pt_;
+};
+
+// TODO
+class url_setter : public url_serializer {
+public:
+    url_setter(url& dest_url)
+        : url_serializer(dest_url)
+    {}
+
+    //???
+    void reserve(size_t new_cap) { strp_.reserve(new_cap); }
+
+    std::string& start_scheme() {
+        return strp_;
+    }
+    void save_scheme() {
+        replace_part(url::SCHEME, strp_.data(), strp_.length());
+        set_scheme(0, strp_.length());
+    }
+    void clear_scheme() {
+        //?? assert(last_pt_ == url::SCHEME);
+        strp_.clear();
+    }
+
+protected:
+    void replace_part(url::PartType new_pt, const char* str, size_t len) {
+        //TODO: start_part, jei new_pt > last_pt_
+        int diff = static_cast<int>(len)-static_cast<int>(url_.part_[new_pt].len);
+        url_.norm_url_.replace(url_.part_[new_pt].offset, url_.part_[new_pt].len, str, len);
+        for (auto it = std::begin(url_.part_) + new_pt + 1; it < std::end(url_.part_); it++) {
+            if (!it->offset) break;
+            it->offset += diff;
+        }
+    }
+protected:
+    std::string strp_;
 };
 
 
