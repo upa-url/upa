@@ -202,15 +202,23 @@ public:
     }
 
     // get serialized URL
-    const std::string& get_href() const {
+    const std::string& href() const {
         return norm_url_;
     }
 
-    std::string get_protocol() const {
+    std::string protocol() const {
         return std::string(norm_url_.data() + part_[SCHEME].offset, part_[SCHEME].len ? part_[SCHEME].len + 1 : 0);
     }
 
-    std::string get_host() const {
+    std::string username() const {
+        return get_part(USERNAME);
+    }
+
+    std::string password() const {
+        return get_part(PASSWORD);
+    }
+
+    std::string host() const {
         if (is_null(HOST))
             return std::string("");
         if (is_null(PORT))
@@ -221,7 +229,15 @@ public:
         return std::string(norm_url_.data() + offset, iend - offset);
     }
 
-    std::string get_pathname() const {
+    std::string hostname() const {
+        return get_part(HOST);
+    }
+
+    std::string port() const {
+        return get_part(PORT);
+    }
+
+    std::string pathname() const {
         // https://url.spec.whatwg.org/#dom-url-pathname
         // already serialized as needed
         if (cannot_be_base())
@@ -232,13 +248,13 @@ public:
         return std::string("/");
     }
 
-    std::string get_search() const {
+    std::string search() const {
         if (is_empty(QUERY))
             return std::string("");
         return std::string(norm_url_.data() + part_[QUERY].offset - 1, part_[QUERY].len + 1);
     }
 
-    std::string get_hash() const {
+    std::string hash() const {
         if (is_empty(FRAGMENT))
             return std::string("");
         return std::string(norm_url_.data() + part_[FRAGMENT].offset - 1, part_[FRAGMENT].len + 1);
