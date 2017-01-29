@@ -167,6 +167,8 @@ public:
 
     void clear();
 
+    // parser
+    
     template <typename CharT>
     bool parse(const CharT* first, const CharT* last, const url* base);
     // wchar_t
@@ -186,6 +188,13 @@ public:
         while (*last) last++;
         return parse(strz, last, base);
     }
+
+    // setters
+
+    template <typename CharT>
+    bool protocol(const CharT* first, const CharT* last);
+
+    // getters
 
     // get serialized URL
     const std::string& href() const {
@@ -357,7 +366,7 @@ public:
     ~url_serializer();
 
     void new_url() { url_.clear(); }
-    void reserve(size_t new_cap) { url_.norm_url_.reserve(new_cap); }
+    virtual void reserve(size_t new_cap) { url_.norm_url_.reserve(new_cap); }
 
     // set data
     void set_scheme(const url& src) { url_.set_scheme(src); }
@@ -365,15 +374,15 @@ public:
     void set_scheme(std::size_t b, std::size_t e) { url_.set_scheme(b, e); }
 
     //TODO atskirti inline
-    std::string& start_scheme() {
+    virtual std::string& start_scheme() {
         url_.norm_url_.resize(0);
         return url_.norm_url_;
     }
-    void save_scheme() {
+    virtual void save_scheme() {
         set_scheme(0, url_.norm_url_.length());
         url_.norm_url_.push_back(':');
     }
-    void clear_scheme() {
+    virtual void clear_scheme() {
         assert(last_pt_ == url::SCHEME);
         url_.clear_scheme();
     }
@@ -702,6 +711,14 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     return url_parser::url_parse(urls, first, last, base);
 }
 
+template <typename CharT>
+inline bool url::protocol(const CharT* first, const CharT* last) {
+    url_setter urls(*this); // new URL
+
+    return url_parser::url_parse(urls, first, last, nullptr, url_parser::scheme_start_state);
+}
+
+
 // https://url.spec.whatwg.org/#concept-basic-url-parser
 template <typename CharT>
 inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override)
@@ -758,16 +775,17 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             }
             if (is_scheme) {
                 pointer = it_colon + 1; // skip ':'
-                urls.save_scheme();
                 // kas toliau
-                //if (state_override) {
-                //TODO:
-                // 1. If state override is given, run these subsubsteps:
-                //    1. If url’s scheme is a special scheme and buffer is not, then return.
-                //    2. If url’s scheme is not a special scheme and buffer is, then return.
-                // 2. Set url’s scheme to buffer.
-                // 4. If state override is given, then return.
-                //}
+                if (state_override) {
+                    const detail::scheme_info* scheme_inf = detail::get_scheme_info(str_scheme.data(), str_scheme.length());
+                    const bool is_special_old = urls.is_special_scheme();
+                    const bool is_special_new = scheme_inf && scheme_inf->is_special;
+                    if (is_special_old == is_special_new)
+                        urls.save_scheme();
+                    // terminate this algorithm
+                    return true;
+                }
+                urls.save_scheme();
                 if (urls.is_file_scheme()) {
                     // TODO-WARN: if remaining does not start with "//", validation error.
                     state = file_state;
