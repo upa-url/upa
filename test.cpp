@@ -28,10 +28,7 @@ void cout_str(const char32_t* str) {
         std::wcout.put(static_cast<wchar_t>(*str));
 }
 
-
-template <typename CharT>
-void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
-{
+void cout_url(const whatwg::url& url) {
     static char* part_name[whatwg::url::PART_COUNT] = {
         "SCHEME",
         "USERNAME",
@@ -42,7 +39,30 @@ void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
         "QUERY",
         "FRAGMENT"
     };
-    
+
+    std::wcout << "HREF: " << to_wstr(url.href()) << "\n";
+
+    // print parts
+    for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {
+        std::string strPart;
+        switch (part) {
+        case whatwg::url::PATH:
+            strPart = url.pathname();
+            break;
+        default:
+            strPart = url.get_part(static_cast<whatwg::url::PartType>(part));
+            break;
+        }
+        if (!strPart.empty()) {
+            std::wcout << part_name[part] << ": " << to_wstr(strPart) << "\n";
+        }
+    }
+}
+
+
+template <typename CharT>
+void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
+{
     // source data
     cout_str(str_url);  std::wcout << "\n";
     if (base) {
@@ -53,23 +73,7 @@ void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
     whatwg::url url;
     if (url.parse(str_url, base)) {
         // serialized
-        std::wcout << "HREF: " << to_wstr(url.href()) << "\n";
-
-        // print parts
-        for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {
-            std::string strPart;
-            switch (part) {
-            case whatwg::url::PATH:
-                strPart = url.pathname();
-                break;
-            default:
-                strPart = url.get_part(static_cast<whatwg::url::PartType>(part));
-                break;
-            }
-            if (!strPart.empty()) {
-                std::wcout << part_name[part] << ": " << to_wstr(strPart) << "\n";
-            }
-        }
+        cout_url(url);
     } else {
         std::wcout << " ^--FAILURE\n";
     }
