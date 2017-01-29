@@ -6,7 +6,7 @@
 
 
 template <class ...Args>
-std::wstring to_wstr(Args ...args) {
+std::wstring to_wstr(Args&& ...args) {
     static std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convW;
     return convW.from_bytes(std::forward<Args>(args)...);
 }
