@@ -278,7 +278,7 @@ void test_setters()
     url.parse("http://example.org/foo/bar", nullptr);
     cout_url(url);
 
-    const char szProtocol[] = "ws:";
+    const char szProtocol[] = "ws";
     url.protocol(szProtocol, szProtocol + std::strlen(szProtocol));
     cout_url(url);
 }
