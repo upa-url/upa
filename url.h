@@ -684,15 +684,15 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         if (it_colon < last) {
             is_scheme = true;
             // start of scheme
-            std::string& norm_url = urls.start_scheme();
+            std::string& str_scheme = urls.start_scheme();
             // first char
-            norm_url.push_back(detail::kSchemeCanonical[*pointer]);
+            str_scheme.push_back(detail::kSchemeCanonical[*pointer]);
             // other chars
             for (auto it = pointer + 1; it < it_colon; it++) {
                 UCharT ch = static_cast<UCharT>(*it);
                 char c = (ch < 0x80) ? detail::kSchemeCanonical[ch] : 0;
                 if (c) {
-                    norm_url.push_back(c);
+                    str_scheme.push_back(c);
                 } else {
                     is_scheme = false;
                     break;
