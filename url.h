@@ -830,12 +830,23 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
     }
 
     if (state == relative_slash_state) {
-        const CharT ch = pointer < last ? pointer[0] : 0;
-        if (ch == '/' || (ch == '\\' && urls.is_special_scheme())) {
-            // if (ch == '\\') // TODO-WARN: syntax violation;
-            state = special_authority_ignore_slashes_state;
+        // EOF ==> 0 ==> default:
+        switch (pointer != last ? *pointer : 0) {
+        case '/':
+            if (urls.is_special_scheme())
+                state = special_authority_ignore_slashes_state;
+            else
+                state = authority_state;
             pointer++;
-        } else {
+            break;
+        case '\\':
+            if (urls.is_special_scheme()) {
+                // TODO-WARN: syntax violation
+                state = special_authority_ignore_slashes_state;
+                pointer++;
+                break;
+            }
+        default:
             // set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
             // url’s port to base’s port
             urls.append_parts(*base, url::USERNAME, url::PORT);
@@ -1086,15 +1097,43 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
     }
 
     if (state == path_start_state) {
-        if (pointer != last) {
-            const CharT ch = *pointer;
-            if (ch == '/') pointer++;
-            else if (urls.is_special_scheme() && ch == '\\') {
-                // TODO-WARN: syntax violation
-                pointer++;
+        if (urls.is_special_scheme()) {
+            if (pointer != last) {
+                const CharT ch = *pointer;
+                if (ch == '/') pointer++;
+                else if (ch == '\\') {
+                    // TODO-WARN: syntax violation
+                    pointer++;
+                }
             }
+            state = path_state;
+        } else if (pointer != last) {
+            if (!state_override) {
+                switch (pointer[0]) {
+                case '?':
+                    // TODO: set url’s query to the empty string
+                    state = query_state;
+                    pointer++;
+                    break;
+                case '#':
+                    // TODO: set url’s fragment to the empty string
+                    state = fragment_state;
+                    pointer++;
+                    break;
+                case '/':
+                    pointer++;
+                default:
+                    state = path_state;
+                    break;
+                }
+            } else {
+                if (pointer[0] == '/') pointer++;
+                state = path_state;
+            }
+        } else {
+            // EOF
+            return true;
         }
-        state = path_state;
     }
 
     if (state == path_state) {
