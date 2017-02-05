@@ -242,10 +242,12 @@ public:
         // already serialized as needed
         if (cannot_be_base())
             return get_part(PATH);
-        str_view<char> vpath = get_part_view(PATH);
-        if (vpath.length())
+        if (path_segment_count_) {
+            // path not empty
+            str_view<char> vpath = get_part_view(PATH);
             return std::string(vpath.data() - 1, vpath.length() + 1); // paimam '/'
-        return std::string("/");
+        }
+        return std::string("");
     }
 
     std::string search() const {
