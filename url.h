@@ -412,7 +412,10 @@ public:
     void append_to_path();
     std::string& start_path_segment();
     void save_path_segment();
-    
+    // if '/' not required:
+    std::string& start_path_string();
+    void save_path_string();
+
     void shorten_path();
 
     typedef bool (url::*PathOpFn)(detail::url_part& part, unsigned& segment_count) const;
@@ -729,7 +732,9 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     } else {
                         urls.set_cannot_be_base();
                         // append an empty string to url’s path
-                        urls.append_to_path();
+                        // urls.append_to_path();
+                        urls.start_path_string(); // ne start_path_segment()
+                        urls.save_path_string();
                         state = cannot_be_base_URL_path_state;
                     }
                 }
@@ -1167,9 +1172,9 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
 
         // UTF-8 percent encode using the simple encode set, and append the result
         // to the first string in url’s path
-        std::string& str_path = urls.start_part(url::PATH); // ne start_path_segment()
+        std::string& str_path = urls.start_path_string(); // ne start_path_segment()
         do_simple_path(pointer, end_of_path, str_path);
-        urls.save_part();
+        urls.save_path_string();
         pointer = end_of_path;
 
         if (pointer == last) {
@@ -1695,6 +1700,20 @@ inline void url_serializer::save_path_segment() {
     save_part();
     url_.path_segment_count_++;
 }
+
+inline std::string& url_serializer::start_path_string() {
+    //return start_part(url::PATH);
+    if (last_pt_ != url::PATH)
+        return start_part(url::PATH);
+    return url_.norm_url_;
+}
+
+inline void url_serializer::save_path_string() {
+    assert(url_.path_segment_count_ <= 1);
+    save_part();
+    url_.path_segment_count_ = 1;
+}
+
 
 inline void url_serializer::clear_host() {
     assert(!is_empty(url::SCHEME));
