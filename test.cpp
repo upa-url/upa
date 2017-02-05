@@ -88,6 +88,8 @@ int main()
     url_testas("file://d:/laikina/%2e./tek%stas.txt", nullptr);
     url_testas("filesystem:http://www.example.com/temporary/", nullptr);
 
+    url_testas("ssh://example.net");
+
     url_testas("blob:550e8400-e29b-41d4-a716-446655440000#aboutABBA");
     url_testas("invalid^scheme://example.com", nullptr);
 
