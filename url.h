@@ -249,16 +249,6 @@ public:
         // https://url.spec.whatwg.org/#dom-url-pathname
         // already serialized as needed
         return get_part(PATH);
-#if 0
-        if (cannot_be_base())
-            return get_part(PATH);
-        if (path_segment_count_) {
-            // path not empty
-            str_view<char> vpath = get_part_view(PATH);
-            return std::string(vpath.data() - 1, vpath.length() + 1); // paimam '/'
-        }
-        return std::string("");
-#endif
     }
 
     std::string search() const {
@@ -1622,11 +1612,6 @@ inline url_serializer::~url_serializer() {
         // if url’s host is null and url’s scheme is "file"
         if (url_.is_file_scheme())
             url_.norm_url_.append("//");
-    case url::HOST:
-    case url::PORT:
-        // append '/' if not cannot-be-a-base-URL flag
-//      if (!url_.cannot_be_base())
-//          url_.norm_url_ += '/';
         break;
     }
 }
@@ -1648,7 +1633,6 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
         if (new_pt >= url::PATH && !url_.cannot_be_base()) {
             fill_parts_offset(fill_start_pt, url::PATH, url_.norm_url_.length());
             fill_start_pt = url::PATH;
-//          url_.norm_url_ += '/';
         }
         break;
     case url::USERNAME:
@@ -1675,9 +1659,6 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
             fill_start_pt = url::PATH;
         }
     case url::PORT:
-        // append '/' if not cannot-be-a-base-URL flag
-//      if (new_pt >= url::PATH && !url_.cannot_be_base())
-//          url_.norm_url_ += '/';
         break;
     case url::PATH:
         if (new_pt == url::PATH) // continue on path
