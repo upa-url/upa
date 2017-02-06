@@ -240,6 +240,8 @@ public:
     std::string pathname() const {
         // https://url.spec.whatwg.org/#dom-url-pathname
         // already serialized as needed
+        return get_part(PATH);
+#if 0
         if (cannot_be_base())
             return get_part(PATH);
         if (path_segment_count_) {
@@ -248,6 +250,7 @@ public:
             return std::string(vpath.data() - 1, vpath.length() + 1); // paimam '/'
         }
         return std::string("");
+#endif
     }
 
     std::string search() const {
@@ -1598,8 +1601,8 @@ inline url_serializer::~url_serializer() {
     case url::HOST:
     case url::PORT:
         // append '/' if not cannot-be-a-base-URL flag
-        if (!url_.cannot_be_base())
-            url_.norm_url_ += '/';
+//      if (!url_.cannot_be_base())
+//          url_.norm_url_ += '/';
         break;
     }
 }
@@ -1621,7 +1624,7 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
         if (new_pt >= url::PATH && !url_.cannot_be_base()) {
             fill_parts_offset(fill_start_pt, url::PATH, url_.norm_url_.length());
             fill_start_pt = url::PATH;
-            url_.norm_url_ += '/';
+//          url_.norm_url_ += '/';
         }
         break;
     case url::USERNAME:
@@ -1649,8 +1652,8 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
         }
     case url::PORT:
         // append '/' if not cannot-be-a-base-URL flag
-        if (new_pt >= url::PATH && !url_.cannot_be_base())
-            url_.norm_url_ += '/';
+//      if (new_pt >= url::PATH && !url_.cannot_be_base())
+//          url_.norm_url_ += '/';
         break;
     case url::PATH:
         if (new_pt == url::PATH) // continue on path
@@ -1688,12 +1691,10 @@ inline void url_serializer::append_to_path() { // append_empty_to_path();
 }
 
 inline std::string& url_serializer::start_path_segment() {
-    if (last_pt_ != url::PATH)
-        return start_part(url::PATH);
-    // lipdom prie esamo kelio: seg1 / seg2 / ... / segN
-    if (url_.path_segment_count_ > 0)
-        url_.norm_url_ += '/';
-    return url_.norm_url_;
+    // lipdom prie esamo kelio: / seg1 / seg2 / ... / segN
+    std::string& str_path = start_part(url::PATH);
+    str_path += '/';
+    return str_path;
 }
 
 inline void url_serializer::save_path_segment() {
