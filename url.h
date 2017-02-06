@@ -1629,11 +1629,6 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
         // if host is non-null or scheme is "file"
         if (new_pt <= url::HOST || url_.is_file_scheme())
             url_.norm_url_.append("//");
-        // append '/' if not cannot-be-a-base-URL flag
-        if (new_pt >= url::PATH && !url_.cannot_be_base()) {
-            fill_parts_offset(fill_start_pt, url::PATH, url_.norm_url_.length());
-            fill_start_pt = url::PATH;
-        }
         break;
     case url::USERNAME:
         if (new_pt == url::PASSWORD) {
@@ -1654,9 +1649,6 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
         if (new_pt == url::PORT) {
             url_.norm_url_ += ':';
             break;
-        } else {
-            url_.part_[url::PORT].offset = url_.norm_url_.length();
-            fill_start_pt = url::PATH;
         }
     case url::PORT:
         break;
