@@ -479,7 +479,6 @@ public:
 
 protected:
     void replace_part(url::PartType new_pt, const char* str, size_t len) {
-        //TODO: start_part, jei new_pt > last_pt_
         int diff = static_cast<int>(len)-static_cast<int>(url_.part_[new_pt].len);
         url_.norm_url_.replace(url_.part_[new_pt].offset, url_.part_[new_pt].len, str, len);
         for (auto it = std::begin(url_.part_) + new_pt + 1; it < std::end(url_.part_); it++) {
@@ -487,6 +486,23 @@ protected:
             it->offset += diff;
         }
     }
+    url::PartType find_last_part(url::PartType pt) const {
+        for (int ind = pt; ind > 0; ind--)
+            if (url_.part_[ind].offset)
+                return static_cast<url::PartType>(ind);
+        return url::SCHEME;
+    }
+    void insert_part(url::PartType new_pt, const char* str, size_t len) {
+        assert(new_pt > url::SCHEME);
+        if (url_.part_[new_pt].offset) {
+            replace_part(new_pt, str, len);
+        } else {
+            last_pt_ = find_last_part(new_pt);
+            url_serializer::start_part(new_pt).append(str, len);
+            url_serializer::save_part();
+        }
+    }
+
 protected:
     std::string strp_;
 };
