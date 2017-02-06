@@ -53,6 +53,14 @@ public:
         str.append(ptr_, len_);
     }
 
+    void remove_prefix(size_t n) {
+        ptr_ += n;
+        len_ -= n;
+    }
+    void remove_suffix(size_t n) {
+        len_ -= n;
+    }
+
 private:
     const CharT* ptr_;
     std::size_t len_;
@@ -346,10 +354,12 @@ protected:
         scheme_inf_ = nullptr;
     }
 
+    // path util
+    str_view<char> get_path_first_string(size_t len) const;
     // path shortening
     bool get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) const;
     bool get_shorten_path(detail::url_part& part, unsigned& path_segment_count) const;
-
+    
     // flags
     void set_flag(const UrlFlag flag) {
         flags_ |= flag;
@@ -1063,12 +1073,10 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
 
         default:
             if (base && base->is_file_scheme()) {
-                str_view<char> base_path = base->get_part_view(url::PATH);
-                // TODO?: patikrinti ar gerai (ar yra base_path[0] == '/'):
+                str_view<char> base_path = base->get_path_first_string(2);
                 // if base’s path first string is a normalized Windows drive letter
-                if ((base_path.length() == 2 || (base_path.length() > 2 && base_path[2] == '/'))
-                    && is_normalized_Windows_drive(base_path[0], base_path[1])
-                    ) {
+                if (base_path.length() == 2 &&
+                    is_normalized_Windows_drive(base_path[0], base_path[1])) {
                     // append base’s path first string to url’s path
                     std::string& str_path = urls.start_path_segment();
                     str_path.append(base_path.data(), 2); // "C:"
@@ -1556,6 +1564,22 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
     return success;
 }
 
+// path util
+
+inline str_view<char> url::get_path_first_string(size_t len) const {
+    str_view<char> pathv = get_part_view(PATH);
+    if (pathv.length() == 0 || cannot_be_base())
+        return pathv;
+    // skip '/'
+    pathv.remove_prefix(1);
+    if (pathv.length() == len || (pathv.length() > len && pathv[len] == '/')) {
+        return str_view<char>(pathv.data(), len);
+    }
+    return str_view<char>(pathv.data(), 0);
+}
+
+// path shortening
+
 inline bool url::get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) const {
     if (path_segment_count_ > 0) {
         // Remove path’s last item
@@ -1573,14 +1597,14 @@ inline bool url::get_path_rem_last(detail::url_part& part, unsigned& path_segmen
 }
 
 inline bool url::get_shorten_path(detail::url_part& part, unsigned& path_segment_count) const {
-    if (path_segment_count_ == 0 || (
-        is_file_scheme() &&
-        path_segment_count_ == 1 &&
-        part_[url::PATH].len == 2 &&
-        is_normalized_Windows_drive(norm_url_[part_[url::PATH].offset], norm_url_[part_[url::PATH].offset + 1])
-        ))
+    if (path_segment_count_ == 0)
         return false;
-    // Remove path’s last item
+    if (is_file_scheme() && path_segment_count_ == 1) {
+        str_view<char> path1 = get_path_first_string(2);
+        if (path1.length() == 2 && is_normalized_Windows_drive(path1[0], path1[1]))
+            return false;
+    }
+    // Remove path's last item
     return get_path_rem_last(part, path_segment_count);
 }
 
