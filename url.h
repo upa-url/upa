@@ -4,8 +4,8 @@
 // http://www.boost.org/LICENSE_1_0.txt)
 
 // URL Standard
-// https://url.spec.whatwg.org/ [7 February 2017]
-// https://url.spec.whatwg.org/commit-snapshots/ac6489f9b0cf55b27fd1401ab77bc452c97d1457/
+// https://url.spec.whatwg.org/ [8 February 2017]
+// https://url.spec.whatwg.org/commit-snapshots/c88d303d53cbb1128e397027c45dce4e15a3d011/
 //
 // Infra Standard - fundamental concepts upon which standards are built
 // https://infra.spec.whatwg.org/ [6 February 2017]
