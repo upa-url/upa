@@ -1261,6 +1261,13 @@ static inline bool is_valid_host_chars(const CharT* first, const CharT* last) {
 }
 
 template <typename CharT>
+static inline bool is_valid_opaque_host_chars(const CharT* first, const CharT* last) {
+    return std::none_of(first, last, [](CharT c) {
+        return detail::IsInvalidHostChar(c) && c != '%';
+    });
+}
+
+template <typename CharT>
 inline bool url_parser::parse_url_host(url_serializer& urls, const CharT* first, const CharT* last) {
     if (urls.is_special_scheme())
         return parse_host(urls, first, last);
