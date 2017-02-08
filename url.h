@@ -497,10 +497,10 @@ public:
     static bool url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override = not_set_state);
 
     template <typename CharT>
-    static bool parse_opaque_host(url_serializer& urls, const CharT* first, const CharT* last);
+    static bool parse_host(url_serializer& urls, const CharT* first, const CharT* last);
 
     template <typename CharT>
-    static bool parse_host(url_serializer& urls, const CharT* first, const CharT* last);
+    static bool parse_opaque_host(url_serializer& urls, const CharT* first, const CharT* last);
 
     template <typename CharT>
     static ParseResult parse_ipv4(url_serializer& urls, const CharT* first, const CharT* last);
@@ -1268,22 +1268,6 @@ static inline bool is_valid_opaque_host_chars(const CharT* first, const CharT* l
 }
 
 template <typename CharT>
-inline bool url_parser::parse_opaque_host(url_serializer& urls, const CharT* first, const CharT* last) {
-    if (!is_valid_opaque_host_chars(first, last))
-        return false; //TODO-ERR: failure
-
-    std::string& str_host = urls.start_part(url::HOST);
-    //TODO: UTF-8 percent encode it using the simple encode set
-    //detail::AppendStringOfType(first, last, detail::CHAR_SIMPLE, str_host);
-    // do_simple_path(..) tą daro, tačiau galimi warning(), o jų čia nereikia,
-    // todėl reikalinga kita kodavimo f-ja:
-    do_simple_path(first, last, str_host);
-    urls.save_part();
-    urls.set_flag(url::HOST_FLAG);
-    return true;
-}
-
-template <typename CharT>
 inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, const CharT* last) {
     typedef std::make_unsigned<CharT>::type UCharT;
 
@@ -1396,6 +1380,22 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
         urls.set_flag(url::HOST_FLAG);
     }
     return res != RES_ERROR;
+}
+
+template <typename CharT>
+inline bool url_parser::parse_opaque_host(url_serializer& urls, const CharT* first, const CharT* last) {
+    if (!is_valid_opaque_host_chars(first, last))
+        return false; //TODO-ERR: failure
+
+    std::string& str_host = urls.start_part(url::HOST);
+    //TODO: UTF-8 percent encode it using the simple encode set
+    //detail::AppendStringOfType(first, last, detail::CHAR_SIMPLE, str_host);
+    // do_simple_path(..) tą daro, tačiau galimi warning(), o jų čia nereikia,
+    // todėl reikalinga kita kodavimo f-ja:
+    do_simple_path(first, last, str_host);
+    urls.save_part();
+    urls.set_flag(url::HOST_FLAG);
+    return true;
 }
 
 template <typename CharT>
