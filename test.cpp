@@ -80,6 +80,19 @@ void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
     std::wcout << std::endl;
 }
 
+template <typename CharT>
+void url_testas(const CharT* str_url, const CharT* str_base)
+{
+    whatwg::url url_base;
+    if (url_base.parse(str_base, nullptr)) {
+        url_testas(str_url, &url_base);
+    } else {
+        cout_str(str_base);  std::wcout << "\n";
+        std::wcout << " ^-BASE-PARSE-FAILURE\n";
+    }
+}
+
+
 int main()
 {
     // set user-preferred locale
