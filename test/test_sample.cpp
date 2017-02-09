@@ -319,7 +319,14 @@ void test_parser()
     url_testas("unknown://†/");
     url_testas("notspecial://H%4fSt/path");
 
-    // file slashes
+    // Ignore repeated file slashes
+    // https://github.com/whatwg/url/issues/232
+    // https://github.com/whatwg/url/issues/232#issuecomment-278461743
+    url_testas("file://localhost///foo/bar");
+    url_testas("file://///foo/bar");
+    // https://github.com/whatwg/url/issues/232#issuecomment-278717694
+    url_testas("////////server/file", "file:///tmp/mock/path");
+    url_testas("server/file", "file:///tmp/mock/path");
     // https://github.com/whatwg/url/issues/232#issuecomment-281263060
     url_testas("file://localhost///a//../..//");
     // https://github.com/whatwg/url/pull/278
