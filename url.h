@@ -948,7 +948,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             if (pointer == it_host_end) {
                 // make sure that if port is present or scheme is special, host is non-empty
                 if (is_port || urls.is_special_scheme()) {
-                    // TODE-ERR: syntax violation, host failure
+                    // TODO-ERR: syntax violation, host failure
                     return false;
                 } else if (state_override && (urls.has_credentials() || !urls.is_null(url::PORT))) {
                     // TODO-WARN: syntax violation
@@ -1090,8 +1090,20 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         auto end_of_authority = std::find_if(pointer, last, is_special_authority_end_char<CharT>);
 
         if (pointer == end_of_authority) {
+            // buffer is the empty string
+            if (state_override && urls.has_credentials()) {
+                // TODO-WARN: syntax violation
+                return true;
+            }
+            // set empty host
+            urls.start_part(url::HOST);
+            urls.save_part();
+            urls.set_flag(url::HOST_FLAG);
+            // if state override is given, then return
+            if (state_override)
+                return true;
             state = path_start_state;
-        } else if (pointer + 2 == end_of_authority && is_Windows_drive(pointer[0], pointer[1])) {
+        } else if (!state_override && pointer + 2 == end_of_authority && is_Windows_drive(pointer[0], pointer[1])) {
             // buffer is a Windows drive letter
             // TODO-WARN: syntax violation
             state = path_state;
@@ -1101,11 +1113,19 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         } else {
             // parse and set host:
             if (!parse_host(urls, pointer, end_of_authority))
-                return false; // failure
-            // If host is not "localhost", set url’s host to host
+                return false; // TODO-ERR: failure
+            // if host is "localhost", then set host to the empty string
             if (urls.get_part_view(url::HOST).equal({ "localhost", 9 })) {
+                // TODO: galiam sukurti pvz.: urls.empty_host()
                 urls.clear_host();
+                // set empty host
+                urls.start_part(url::HOST);
+                urls.save_part();
+                urls.set_flag(url::HOST_FLAG);
             }
+            // if state override is given, then return
+            if (state_override)
+                return true;
             pointer = end_of_authority;
             state = path_start_state;
         }
