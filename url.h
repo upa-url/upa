@@ -440,6 +440,7 @@ public:
     bool is_null(const url::PartType t) const  { return url_.is_null(t); }
     bool is_special_scheme() const { return url_.is_special_scheme(); }
     bool is_file_scheme() const { return url_.is_file_scheme(); }
+    bool has_credentials() const { return url_.has_credentials(); }
     const detail::scheme_info* scheme_inf() const { return url_.scheme_inf_; }
 
 #if 0
@@ -919,47 +920,57 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
     }
 
     if (state == host_state || state == hostname_state) {
-        auto end_of_authority = urls.is_special_scheme() ?
-            std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#' || c == '\\'; }) :
-            std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#'; });
-
-        bool in_square_brackets = false; // [] flag
-        bool is_port = false;
-        auto it_host_end = pointer;
-        for (; it_host_end < end_of_authority; it_host_end++) {
-            const CharT ch = *it_host_end;
-            if (ch == ':') {
-                if (!in_square_brackets) {
-                    is_port = true;
-                    break;
-                }
-            } else if (ch == '[') {
-                in_square_brackets = true;
-            } else if (ch == ']') {
-                in_square_brackets = false;
-            }
-        }
-
-        // make sure that if port is present or scheme is special, host is non-empty
-        if ((is_port || urls.is_special_scheme()) && pointer == it_host_end) {
-            // TODE-ERR: syntax violation, host failure
-            return false;
-        }
-
-        // parse and set host:
-        if (!parse_host(urls, pointer, it_host_end))
-            return false;
-
-        if (is_port) {
-            pointer = it_host_end + 1; // skip ':'
-            state = port_state;
-            if (state_override == hostname_state)
-                return true;
+        if (state_override && urls.is_file_scheme()) {
+            state = file_host_state;
         } else {
-            pointer = it_host_end;
-            state = path_start_state;
-            if (state_override)
-                return true;
+            auto end_of_authority = urls.is_special_scheme() ?
+                std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#' || c == '\\'; }) :
+                std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#'; });
+
+            bool in_square_brackets = false; // [] flag
+            bool is_port = false;
+            auto it_host_end = pointer;
+            for (; it_host_end < end_of_authority; it_host_end++) {
+                const CharT ch = *it_host_end;
+                if (ch == ':') {
+                    if (!in_square_brackets) {
+                        is_port = true;
+                        break;
+                    }
+                } else if (ch == '[') {
+                    in_square_brackets = true;
+                } else if (ch == ']') {
+                    in_square_brackets = false;
+                }
+            }
+
+            // if buffer is the empty string
+            if (pointer == it_host_end) {
+                // make sure that if port is present or scheme is special, host is non-empty
+                if (is_port || urls.is_special_scheme()) {
+                    // TODE-ERR: syntax violation, host failure
+                    return false;
+                } else if (state_override && (urls.has_credentials() || !urls.is_null(url::PORT))) {
+                    // TODO-WARN: syntax violation
+                    return true;
+                }
+            }
+
+            // parse and set host:
+            if (!parse_host(urls, pointer, it_host_end))
+                return false;
+
+            if (is_port) {
+                pointer = it_host_end + 1; // skip ':'
+                state = port_state;
+                if (state_override == hostname_state)
+                    return true;
+            } else {
+                pointer = it_host_end;
+                state = path_start_state;
+                if (state_override)
+                    return true;
+            }
         }
     }
 
