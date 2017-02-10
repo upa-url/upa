@@ -93,11 +93,24 @@ void url_testas(const CharT* str_url, const CharT* str_base)
 }
 
 
+// Main
+
+void test_parser();
+void run_unit_tests();
+
 int main()
 {
     // set user-preferred locale
     setlocale(LC_ALL, "");
 
+    test_parser();
+    run_unit_tests();
+
+    return 0;
+}
+
+void test_parser()
+{
     url_testas("file://d:/laikina/%2e./tek%stas.txt", nullptr);
     url_testas("filesystem:http://www.example.com/temporary/", nullptr);
 
@@ -251,11 +264,6 @@ int main()
     // https://github.com/whatwg/url/issues/148
     url_testas("unknown://†/");
     url_testas("notspecial://H%4fSt/path");
-
-
-    // unit testai
-    void run_unit_tests();
-    run_unit_tests();
 }
 
 #include "buffer.h"
