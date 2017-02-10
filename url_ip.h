@@ -17,7 +17,7 @@ enum ParseResult {
 
 // IPv4 parser
 
-// TODO-WARN: syntaxViolationFlag
+// TODO-WARN: validationErrorFlag
 template <typename CharT>
 static inline ParseResult ipv4_parse_number(const CharT* first, const CharT* last, uint32_t& number) {
     // Figure out the base
@@ -113,7 +113,7 @@ inline ParseResult ipv4_parse(const CharT* first, const CharT* last, uint32_t& i
     }
 
     // 3. If the last item in parts is the empty string, then:
-    //    1. set syntaxViolationFlag.
+    //    1. set validationErrorFlag.
     //    2. If parts has more than one item, then remove the last item from parts.
     int part_count;
     if (dot_count > 0 && part[dot_count] == last) {
@@ -133,7 +133,7 @@ inline ParseResult ipv4_parse(const CharT* first, const CharT* last, uint32_t& i
         if (res != RES_OK) return res;
     }
     // TODO-WARN:
-    // 7. If syntaxViolationFlag is set, validation error
+    // 7. If validationErrorFlag is set, validation error
     // 8. If any item in numbers is greater than 255, validation error
 
     // 9. If any but the last item in numbers is greater than 255, return failure
