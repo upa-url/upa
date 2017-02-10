@@ -802,7 +802,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     const bool is_special_new = scheme_inf && scheme_inf->is_special;
                     if (is_special_old == is_special_new)
                         urls.save_scheme();
-                    // terminate this algorithm
+                    // if state override is given, then return
                     return true;
                 }
                 urls.save_scheme();
