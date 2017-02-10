@@ -5,7 +5,7 @@
 
 // URL Standard
 // https://url.spec.whatwg.org/ [9 February 2017]
-// https://url.spec.whatwg.org/commit-snapshots/2b3c864e059f9c8318c7d53b4f06aa0418af9cf2/
+// https://url.spec.whatwg.org/commit-snapshots/2f99502dc12b781f5bf6a062257ba031c7129c1e/
 //
 // Infra Standard - fundamental concepts upon which standards are built
 // https://infra.spec.whatwg.org/ [6 February 2017]
