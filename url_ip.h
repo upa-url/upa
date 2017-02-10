@@ -133,15 +133,15 @@ inline ParseResult ipv4_parse(const CharT* first, const CharT* last, uint32_t& i
         if (res != RES_OK) return res;
     }
     // TODO-WARN:
-    // 7. If syntaxViolationFlag is set, syntax violation
-    // 8. If any item in numbers is greater than 255, syntax violation
+    // 7. If syntaxViolationFlag is set, validation error
+    // 8. If any item in numbers is greater than 255, validation error
 
     // 9. If any but the last item in numbers is greater than 255, return failure
     for (int ind = 0; ind < part_count - 1; ind++) {
         if (number[ind] > 255) return RES_ERROR;
     }
     // 10. If the last item in numbers is greater than or equal to 256**(5 - the number of items in numbers),
-    // syntax violation, return failure
+    // validation error, return failure
     ipv4 = number[part_count - 1];
     if (ipv4 > (std::numeric_limits<uint32_t>::max() >> (8 * (part_count - 1))))
         return RES_ERROR;
@@ -193,7 +193,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&pieces)[
     // 5. If c is ":", run these substeps:
     if (pointer[0] == ':') {
         if (pointer[1] != ':') {
-            // TODO-ERR: syntax violation
+            // TODO-ERR: validation error
             return false;
         }
         pointer += 2;
@@ -203,12 +203,12 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&pieces)[
     // Main
     while (pointer < last) {
         if (piece_pointer == 8) {
-            // TODO-ERR: syntax violation
+            // TODO-ERR: validation error
             return false;
         }
         if (pointer[0] == ':') {
             if (compress_pointer) {
-                // TODO-ERR: syntax violation
+                // TODO-ERR: validation error
                 return false;
             }
             pointer++;
@@ -224,7 +224,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&pieces)[
             const CharT ch = *pointer;
             if (ch == '.') {
                 if (pointer == pointer0) {
-                    // TODO-ERR: syntax violation
+                    // TODO-ERR: validation error
                     return false;
                 }
                 pointer = pointer0;
@@ -232,11 +232,11 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&pieces)[
                 break;
             } if (ch == ':') {
                 if (++pointer == last) {
-                    // TODO-ERR: syntax violation
+                    // TODO-ERR: validation error
                     return false;
                 }
             } else {
-                // TODO-ERR: syntax violation
+                // TODO-ERR: validation error
                 return false;
             }
         }
@@ -245,7 +245,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&pieces)[
 
     if (is_ipv4) {
         if (piece_pointer > 6) {
-            // TODO-ERR: syntax violation
+            // TODO-ERR: validation error
             return false;
         }
         int numbers_seen = 0;
@@ -254,23 +254,23 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&pieces)[
                 if (*pointer == '.' && numbers_seen < 4) {
                     ++pointer;
                 } else {
-                    // TODO-ERR: syntax violation
+                    // TODO-ERR: validation error
                     return false;
                 }
             }
             if (pointer == last || !IsAsciiDigit(*pointer)) {
-                // TODO-ERR: syntax violation
+                // TODO-ERR: validation error
                 return false;
             }
             // While c is an ASCII digit, run these subsubsteps
             unsigned value = *(pointer++) - '0';
             while (pointer != last && IsAsciiDigit(*pointer)) {
                 if (value == 0) // leading zero
-                    return false; // TODO-ERR: syntax violation
+                    return false; // TODO-ERR: validation error
                 value = value * 10 + (*pointer - '0');
                 pointer++;
                 if (value > 255)
-                    return false; // TODO-ERR: syntax violation
+                    return false; // TODO-ERR: validation error
             }
             pieces[piece_pointer] = pieces[piece_pointer] * 0x100 + value;
             numbers_seen++;
@@ -279,7 +279,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&pieces)[
         }
         // If c is the EOF code point and numbersSeen is not 4
         if (numbers_seen != 4)  {
-            //TODO-ERR: syntax violation
+            //TODO-ERR: validation error
             return false;
         }
     }
@@ -293,7 +293,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&pieces)[
             }
         }
     } else if (piece_pointer != 8) {
-        // TODO-ERR: syntax violation
+        // TODO-ERR: validation error
         return false;
     }
     return true;

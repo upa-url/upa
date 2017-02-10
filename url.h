@@ -648,7 +648,7 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
 
     // remove any leading and trailing C0 control or space:
     do_trim(first, last);
-    //TODO-WARN: syntax violation if trimmed
+    //TODO-WARN: validation error if trimmed
 
     return url_parser::url_parse(urls, first, last, base);
 }
@@ -662,7 +662,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
     // remove all ASCII tab or newline from URL
     simple_buffer<CharT> buff_no_ws;
     do_remove_whitespace(first, last, buff_no_ws);
-    //TODO-WARN: syntax violation if removed
+    //TODO-WARN: validation error if removed
 
     // reserve size (TODO: bet jei bus naudojama base?)
     auto length = std::distance(first, last);
@@ -681,7 +681,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         } else if (!state_override) {
             state = no_scheme_state;
         } else {
-            //TODO-ERR: syntax violation
+            //TODO-ERR: validation error
             return false;
         }
     }
@@ -720,7 +720,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                 // 4. If state override is given, terminate this algorithm.
                 //}
                 if (urls.is_file_scheme()) {
-                    // TODO-WARN: if remaining does not start with "//", syntax violation.
+                    // TODO-WARN: if remaining does not start with "//", validation error.
                     state = file_state;
                 } else {
                     if (urls.is_special_scheme()) {
@@ -748,7 +748,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             }
         }
         if (state_override && !is_scheme) {
-            //TODO-ERR: syntax violation
+            //TODO-ERR: validation error
             return false;
         }
     }
@@ -766,14 +766,14 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     state = fragment_state;
                     pointer++;
                 } else {
-                    // TODO-ERR: 1. syntax violation
+                    // TODO-ERR: 1. validation error
                     return false;
                 }
             } else {
                 state = base->is_file_scheme() ? file_state : relative_state;
             }
         } else {
-            //TODO-ERR: 1. syntax violation
+            //TODO-ERR: 1. validation error
             return false;
         }
     }
@@ -783,7 +783,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             state = special_authority_ignore_slashes_state;
             pointer += 2; // skip "//"
         } else {
-            //TODO-WARN: syntax violation
+            //TODO-WARN: validation error
             state = relative_state;
         }
     }
@@ -826,7 +826,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                 break;
             case '\\':
                 if (urls.is_special_scheme()) {
-                    //TODO-WARN: syntax violation
+                    //TODO-WARN: validation error
                     state = relative_slash_state;
                     break;
                 }
@@ -852,7 +852,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             break;
         case '\\':
             if (urls.is_special_scheme()) {
-                // TODO-WARN: syntax violation
+                // TODO-WARN: validation error
                 state = special_authority_ignore_slashes_state;
                 pointer++;
                 break;
@@ -870,7 +870,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             state = special_authority_ignore_slashes_state;
             pointer += 2; // skip "//"
         } else {
-            //TODO-WARN: syntax violation
+            //TODO-WARN: validation error
             state = special_authority_ignore_slashes_state;
         }
     }
@@ -878,7 +878,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
     if (state == special_authority_ignore_slashes_state) {
         auto it = pointer;
         while (it < last && is_slash(*it)) it++;
-        // if (it != pointer) // TODO-WARN: syntax violation
+        // if (it != pointer) // TODO-WARN: validation error
         pointer = it;
         state = authority_state;
     }
@@ -895,9 +895,9 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         if (it_eta != end_of_authority) {
             if (std::distance(it_eta, end_of_authority) == 1) {
                 // disallow empty host, example: "http://u:p@/"
-                return false; // TODO-ERR: 2.1. syntax violation, failure
+                return false; // TODO-ERR: 2.1. validation error, failure
             }
-            //TODO-WARN: syntax violation
+            //TODO-WARN: validation error
             auto it_colon = std::find(pointer, it_eta, ':');
             // url includes credentials?
             const bool not_empty_password = std::distance(it_colon, it_eta) > 1;
@@ -948,10 +948,10 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             if (pointer == it_host_end) {
                 // make sure that if port is present or scheme is special, host is non-empty
                 if (is_port || urls.is_special_scheme()) {
-                    // TODO-ERR: syntax violation, host failure
+                    // TODO-ERR: validation error, host failure
                     return false;
                 } else if (state_override && (urls.has_credentials() || !urls.is_null(url::PORT))) {
-                    // TODO-WARN: syntax violation
+                    // TODO-WARN: validation error
                     return true;
                 }
             }
@@ -987,7 +987,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                 int port = 0;
                 for (auto it = pointer; it < end_of_digits; it++) {
                     port = port * 10 + (*it - '0');
-                    if (port > 0xFFFF) return false; // TODO-ERR: (2-1-2) syntax violation, failure
+                    if (port > 0xFFFF) return false; // TODO-ERR: (2-1-2) validation error, failure
                 }
                 // set port if not default
                 if (urls.scheme_inf() == nullptr || urls.scheme_inf()->default_port != port) {
@@ -1001,7 +1001,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             state = path_start_state;
             pointer = end_of_authority;
         } else {
-            // TODO-ERR: (3) syntax violation, failure
+            // TODO-ERR: (3) validation error, failure
             return false;
         }
     }
@@ -1012,7 +1012,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         // EOF ==> 0 ==> default:
         switch (pointer != last ? *pointer : 0) {
         case '\\':
-            // TODO-WARN: syntax violation
+            // TODO-WARN: validation error
         case '/':
             state = file_slash_state;
             pointer++;
@@ -1047,7 +1047,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                             urls.append_parts(*base, url::HOST, url::PATH, &url::get_shorten_path);
                             // Note: This is a (platform-independent) Windows drive letter quirk.
                         }
-                        //else // TODO-WARN: syntax violation
+                        //else // TODO-WARN: validation error
                         state = path_state;
                         pointer--;
                     }
@@ -1062,7 +1062,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         // EOF ==> 0 ==> default:
         switch (pointer != last ? *pointer : 0) {
         case '\\':
-            // TODO-WARN: syntax violation
+            // TODO-WARN: validation error
         case '/':
             state = file_host_state;
             pointer++;
@@ -1092,7 +1092,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         if (pointer == end_of_authority) {
             // buffer is the empty string
             if (state_override && urls.has_credentials()) {
-                // TODO-WARN: syntax violation
+                // TODO-WARN: validation error
                 return true;
             }
             // set empty host
@@ -1105,7 +1105,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             state = path_start_state;
         } else if (!state_override && pointer + 2 == end_of_authority && is_Windows_drive(pointer[0], pointer[1])) {
             // buffer is a Windows drive letter
-            // TODO-WARN: syntax violation
+            // TODO-WARN: validation error
             state = path_state;
             // Note: This is a (platform - independent) Windows drive letter quirk.
             // buffer is not reset here and instead used in the path state.
@@ -1137,7 +1137,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                 const CharT ch = *pointer;
                 if (ch == '/') pointer++;
                 else if (ch == '\\') {
-                    // TODO-WARN: syntax violation
+                    // TODO-WARN: validation error
                     pointer++;
                 }
             }
@@ -1226,8 +1226,8 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         // TODO-WARN:
         //for (auto it = pointer; it < end_of_query; it++) {
         //  UCharT c = static_cast<UCharT>(*it);
-        //  // 1. If c is not a URL code point and not "%", syntax violation.
-        //  // 2. If c is "%" and remaining does not start with two ASCII hex digits, syntax violation.
+        //  // 1. If c is not a URL code point and not "%", validation error.
+        //  // 2. If c is "%" and remaining does not start with two ASCII hex digits, validation error.
         //}
 
         // scheme_inf_ == nullptr, if unknown scheme
@@ -1269,13 +1269,13 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     // C0 control characters (except '\0') are escaped
                     detail::AppendEscapedChar(uch, str_frag);
                 } else { // uch == 0
-                    // TODO-WARN: Syntax violation
+                    // TODO-WARN: validation error
                 }
                 pointer++;
             }
             // TODO-WARN:
-            // If c is not a URL code point and not "%", syntax violation.
-            // If c is "%" and remaining does not start with two ASCII hex digits, syntax violation.
+            // If c is not a URL code point and not "%", validation error.
+            // If c is "%" and remaining does not start with two ASCII hex digits, validation error.
         }
         urls.save_part();
         urls.set_flag(url::FRAGMENT_FLAG);
@@ -1319,7 +1319,7 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
         if (*(last - 1) == ']') {
             return parse_ipv6(urls, first + 1, last - 1);
         } else {
-            // TODO-ERR: syntax violation
+            // TODO-ERR: validation error
             return false;
         }
     }
@@ -1399,7 +1399,7 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
     if (!IDNToASCII(buff_uc.data(), buff_uc.length(), buff_ascii))
         return false;
     if (!is_valid_host_chars(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
-        //TODO-ERR: syntax violation
+        //TODO-ERR: validation error
         return false;
     }
     // IPv4
@@ -1493,7 +1493,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
 
         int len = end_of_segment - pointer;
         bool is_last = end_of_segment == last;
-        // TODO-WARN: 1. If url is special and c is "\", syntax violation.
+        // TODO-WARN: 1. If url is special and c is "\", validation error.
 
         if (double_dot(pointer, len)) {
             urls.shorten_path();
@@ -1507,8 +1507,8 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
                 is_Windows_drive(pointer[0], pointer[1]))
             {
                 if (!urls.is_null(url::HOST)) {
-                    // 1. If url’s host is non-null, syntax violation
-                    // TODO-WARN: syntax violation
+                    // 1. If url’s host is non-null, validation error
+                    // TODO-WARN: validation error
                     // 2. Set url’s host to null
                     urls.clear_host();
                 }
@@ -1536,7 +1536,7 @@ template <typename CharT>
 inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last, std::string& output) {
     typedef std::make_unsigned<CharT>::type UCharT;
 
-    // TODO-WARN: 2. [ 1 ... 2 ] syntax violation.
+    // TODO-WARN: 2. [ 1 ... 2 ] validation error.
     bool success = true;
     while (pointer < last) {
         // UTF-8 percent encode c using the default encode set
@@ -1562,9 +1562,9 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
     typedef std::make_unsigned<CharT>::type UCharT;
 
     // 3. of "cannot-be-a-base-URL path state"
-    // TODO-WARN: 3. [ 1 ... 2 ] syntax violation.
-    //  1. If c is not EOF code point, not a URL code point, and not "%", syntax violation.
-    //  2. If c is "%" and remaining does not start with two ASCII hex digits, syntax violation.
+    // TODO-WARN: 3. [ 1 ... 2 ] validation error.
+    //  1. If c is not EOF code point, not a URL code point, and not "%", validation error.
+    //  2. If c is "%" and remaining does not start with two ASCII hex digits, validation error.
 
     bool success = true;
     while (pointer < last) {
