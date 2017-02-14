@@ -1197,8 +1197,8 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         auto end_of_path = state_override ? last :
             std::find_if(pointer, last, [](CharT c) { return c == '?' || c == '#'; });
 
-        // UTF-8 percent encode using the simple encode set, and append the result
-        // to the first string in url’s path
+        // UTF-8 percent encode using the C0 control percent-encode set,
+        // and append the result to url’s path[0]
         std::string& str_path = urls.start_path_string(); // ne start_path_segment()
         do_simple_path(pointer, end_of_path, str_path);
         urls.save_path_string();
@@ -1255,7 +1255,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         // pagal: https://cs.chromium.org/chromium/src/url/url_canon_etc.cc : DoCanonicalizeRef(..)
         std::string& str_frag = urls.start_part(url::FRAGMENT);
         while (pointer < last) {
-            // UTF-8 percent encode c using the simple encode set & ignore '\0'
+            // UTF-8 percent encode c using the C0 control percent-encode set & ignore '\0'
             UCharT uch = static_cast<UCharT>(*pointer);
             if (uch >= 0x80) {
                 // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
@@ -1418,8 +1418,8 @@ inline bool url_parser::parse_opaque_host(url_serializer& urls, const CharT* fir
         return false; //TODO-ERR: failure
 
     std::string& str_host = urls.start_part(url::HOST);
-    //TODO: UTF-8 percent encode it using the simple encode set
-    //detail::AppendStringOfType(first, last, detail::CHAR_SIMPLE, str_host);
+    //TODO: UTF-8 percent encode it using the C0 control percent-encode set
+    //detail::AppendStringOfType(first, last, detail::CHAR_C0_CTRL, str_host);
     // do_simple_path(..) tą daro, tačiau galimi warning(), o jų čia nereikia,
     // todėl reikalinga kita kodavimo f-ja:
     do_simple_path(first, last, str_host);
@@ -1567,7 +1567,7 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
 
     bool success = true;
     while (pointer < last) {
-        // UTF-8 percent encode c using the simple encode set
+        // UTF-8 percent encode c using the C0 control percent-encode set
         UCharT uch = static_cast<UCharT>(*pointer);
         if (uch >= 0x80) {
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
