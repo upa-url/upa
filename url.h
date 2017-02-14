@@ -1546,7 +1546,7 @@ inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last,
         } else {
             // Just append the 7-bit character, possibly escaping it.
             unsigned char uc = static_cast<unsigned char>(uch);
-            if (!IsCharOfType(uc, detail::CHAR_DEFAULT))
+            if (!IsCharOfType(uc, detail::CHAR_PATH))
                 detail::AppendEscapedChar(uc, output);
             else
                 output.push_back(uc);

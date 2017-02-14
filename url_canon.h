@@ -33,8 +33,8 @@ enum SharedCharTypes {
   // Valid in an ASCII-representation of an octal digit.
   CHAR_OCT = 32,
 
-  // Characters that do not require escaping in path (not default encode set)
-  CHAR_DEFAULT = 64,
+  // Characters that do not require escaping in path (not path percent-encode set)
+  CHAR_PATH = 64,
 
   // Forbidden host code points:
   // U+0000, U+0009, U+000A, U+000D, U+0020, "#", "%", "/", ":", "?", "@", "[", "\", "]"
