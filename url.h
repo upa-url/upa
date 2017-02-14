@@ -713,10 +713,10 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                 //if (state_override) {
                 //TODO:
                 // 1. If state override is given, run these subsubsteps:
-                //    1. If url’s scheme is a special scheme and buffer is not, terminate this algorithm.
-                //    2. If url’s scheme is not a special scheme and buffer is, terminate this algorithm.
+                //    1. If url’s scheme is a special scheme and buffer is not, then return.
+                //    2. If url’s scheme is not a special scheme and buffer is, then return.
                 // 2. Set url’s scheme to buffer.
-                // 4. If state override is given, terminate this algorithm.
+                // 4. If state override is given, then return.
                 //}
                 if (urls.is_file_scheme()) {
                     // TODO-WARN: if remaining does not start with "//", validation error.
@@ -1070,10 +1070,10 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         default:
             if (base && base->is_file_scheme()) {
                 str_view<char> base_path = base->get_path_first_string(2);
-                // if base’s path first string is a normalized Windows drive letter
+                // if base’s path[0] is a normalized Windows drive letter
                 if (base_path.length() == 2 &&
                     is_normalized_Windows_drive(base_path[0], base_path[1])) {
-                    // append base’s path first string to url’s path
+                    // append base’s path[0] to url’s path
                     std::string& str_path = urls.start_path_segment();
                     str_path.append(base_path.data(), 2); // "C:"
                     urls.save_path_segment();
