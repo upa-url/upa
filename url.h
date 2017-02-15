@@ -194,6 +194,12 @@ public:
     template <typename CharT>
     bool protocol(const CharT* first, const CharT* last);
 
+    template <typename CharT>
+    void username(const CharT* first, const CharT* last);
+
+    template <typename CharT>
+    void password(const CharT* first, const CharT* last);
+
     // getters
 
     // get serialized URL
@@ -343,6 +349,11 @@ protected:
         set_flag(CANNOT_BE_BASE_FLAG);
     }
 
+    // info
+    bool canHaveUsernamePasswordPort() {
+        return !(is_empty(url::HOST) || cannot_be_base() || is_file_scheme());
+    }
+
 private:
     std::string norm_url_;
     std::array<std::size_t, PART_COUNT> part_end_;
@@ -388,8 +399,8 @@ public:
     }
 
     void fill_parts_offset(url::PartType t1, url::PartType t2, size_t offset);
-    std::string& start_part(url::PartType new_pt);
-    void save_part();
+    virtual std::string& start_part(url::PartType new_pt);
+    virtual void save_part();
 
     void clear_host();
     void empty_host();
@@ -455,6 +466,7 @@ class url_setter : public url_serializer {
 public:
     url_setter(url& dest_url)
         : url_serializer(dest_url)
+        , curr_pt_(url::SCHEME)
     {}
 
     ~url_setter() {
@@ -475,6 +487,16 @@ public:
     void clear_scheme() {
         //?? assert(last_pt_ == url::SCHEME);
         strp_.clear();
+    }
+
+    std::string& start_part(url::PartType new_pt) {
+        //TODO
+        curr_pt_ = new_pt;
+        return strp_;
+    }
+    void save_part() {
+        //TODO: url_.set_part(...) ...!!!
+        insert_part(curr_pt_, strp_.data(), strp_.length());
     }
 
 protected:
@@ -505,6 +527,7 @@ protected:
 
 protected:
     std::string strp_;
+    url::PartType curr_pt_;
 };
 
 
@@ -734,9 +757,33 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
 
 template <typename CharT>
 inline bool url::protocol(const CharT* first, const CharT* last) {
-    url_setter urls(*this); // new URL
+    url_setter urls(*this);
 
     return url_parser::url_parse(urls, first, last, nullptr, url_parser::scheme_start_state);
+}
+
+template <typename CharT>
+inline void url::username(const CharT* first, const CharT* last) {
+    if (canHaveUsernamePasswordPort()) {
+        url_setter urls(*this);
+
+        std::string& str_username = urls.start_part(url::USERNAME);
+        // UTF-8 percent encode it using the userinfo encode set
+        detail::AppendStringOfType(first, last, detail::CHAR_USERINFO, str_username);
+        urls.save_part();
+    }
+}
+
+template <typename CharT>
+inline void url::password(const CharT* first, const CharT* last) {
+    if (canHaveUsernamePasswordPort()) {
+        url_setter urls(*this);
+
+        std::string& str_password = urls.start_part(url::PASSWORD);
+        // UTF-8 percent encode it using the userinfo encode set
+        detail::AppendStringOfType(first, last, detail::CHAR_USERINFO, str_password);
+        urls.save_part();
+    }
 }
 
 

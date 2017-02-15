@@ -275,11 +275,17 @@ void test_parser()
 void test_setters()
 {
     whatwg::url url;
-    url.parse("http://example.org/foo/bar", nullptr);
+    url.parse("ws://example.org/foo/bar", nullptr);
     cout_url(url);
 
-    const char szProtocol[] = "ws";
-    url.protocol(szProtocol, szProtocol + std::strlen(szProtocol));
+    const char* sz = "http:";
+    url.protocol(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "user01";
+    url.username(sz, sz + std::strlen(sz));
+    sz = "pass@01";
+    url.password(sz, sz + std::strlen(sz));
     cout_url(url);
 }
 
