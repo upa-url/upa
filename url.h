@@ -466,7 +466,9 @@ class url_setter : public url_serializer {
 public:
     url_setter(url& dest_url)
         : url_serializer(dest_url)
+        , use_strp_(true)
         , curr_pt_(url::SCHEME)
+        , add_off_(0)
     {}
 
     ~url_setter() {
@@ -490,13 +492,45 @@ public:
     }
 
     std::string& start_part(url::PartType new_pt) {
-        //TODO
+        assert(new_pt > url::SCHEME);
         curr_pt_ = new_pt;
-        return strp_;
+        if (url_.part_[new_pt].offset) {
+            use_strp_ = true;
+            if (is_empty(new_pt)) {
+                switch (new_pt) {
+                case url::PASSWORD:
+                    strp_ += ':';
+                    add_off_ = 1;
+                    break;
+                default:
+                    add_off_ = 0;
+                }
+            } else {
+                add_off_ = 0;
+            }
+            return strp_;
+        } else {
+            use_strp_ = false;
+            last_pt_ = find_last_part(new_pt);
+            return url_serializer::start_part(new_pt);
+        }
     }
     void save_part() {
-        //TODO: url_.set_part(...) ...!!!
-        insert_part(curr_pt_, strp_.data(), strp_.length());
+        if (use_strp_) {
+            size_t offset = url_.part_[curr_pt_].offset + add_off_;
+            size_t len = strp_.length() - add_off_;
+            //TODO: jei nauja reikšmė tuščia...
+            if ((curr_pt_ == url::USERNAME || curr_pt_ == url::PASSWORD) && !has_credentials()) {
+                strp_ += '@';
+            }
+            replace_part(curr_pt_, strp_.data(), strp_.length());
+            url_.part_[curr_pt_].offset = offset;
+            url_.part_[curr_pt_].len = len;
+            if (curr_pt_ == url::USERNAME && is_empty(url::PASSWORD))
+                url_.part_[url::PASSWORD].offset = offset + len;
+        } else {
+            url_serializer::save_part();
+        }
     }
 
 protected:
@@ -514,6 +548,8 @@ protected:
                 return static_cast<url::PartType>(ind);
         return url::SCHEME;
     }
+
+#if 0
     void insert_part(url::PartType new_pt, const char* str, size_t len) {
         assert(new_pt > url::SCHEME);
         if (url_.part_[new_pt].offset) {
@@ -524,10 +560,13 @@ protected:
             url_serializer::save_part();
         }
     }
+#endif
 
 protected:
+    bool use_strp_;
     std::string strp_;
     url::PartType curr_pt_;
+    size_t add_off_;
 };
 
 
