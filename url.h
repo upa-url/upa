@@ -1661,7 +1661,7 @@ inline url_serializer::~url_serializer() {
 
 inline void url_serializer::fill_parts_offset(url::PartType t1, url::PartType t2, size_t offset) {
     for (int ind = t1; ind < t2; ind++)
-        url_.part_[ind].offset = offset;
+        url_.part_end_[ind] = offset;
 }
 
 inline std::string& url_serializer::start_part(url::PartType new_pt) {
@@ -1678,7 +1678,7 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
             url_.norm_url_ += ':';
             break;
         } else {
-            url_.part_[url::PASSWORD].offset = url_.norm_url_.length();
+            url_.part_end_[url::PASSWORD] = url_.norm_url_.length();
             fill_start_pt = url::HOST;
         }
     case url::PASSWORD:
@@ -1713,12 +1713,12 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
     }
 
     assert(last_pt_ < new_pt);
-    url_.part_[last_pt_ = new_pt].offset = url_.norm_url_.length();
+    url_.part_end_[last_pt_ = new_pt] = url_.norm_url_.length(); //TODO!: ar čia reikia??
     return url_.norm_url_;
 }
 
 inline void url_serializer::save_part() {
-    url_.part_[last_pt_].len = url_.norm_url_.length() - url_.part_[last_pt_].offset;
+    url_.part_end_[last_pt_] = url_.norm_url_.length();
 }
 
 // append_empty_to_path() kviečiamas trijose vietose:
@@ -1760,12 +1760,10 @@ inline void url_serializer::clear_host() {
     assert(!is_empty(url::SCHEME));
     assert(last_pt_ == url::HOST || (last_pt_ == url::PATH && is_empty_path()));
     // if last_pt_ == url::PATH
-    url_.part_[url::PATH].offset = 0;
-    //url_.part_[url::PATH].len = 0;
-    // paliekam tik "scheme:"   
-    url_.norm_url_.resize(url_.part_[url::SCHEME].len + 1);
-    url_.part_[url::HOST].offset = 0;
-    url_.part_[url::HOST].len = 0;
+    url_.part_end_[url::PATH] = 0;
+    // paliekam tik "scheme:"
+    url_.norm_url_.resize(url_.part_end_[url::SCHEME] + 1);
+    fill_parts_offset(url::USERNAME, url::PATH, 0);
     url_.flags_ &= ~url::HOST_FLAG; // set to null
     last_pt_ = url::SCHEME;
 }
