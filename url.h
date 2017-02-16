@@ -134,9 +134,6 @@ inline bool AsciiEqualNoCase(const CharT* first, const CharT* last, const char* 
     return *strz == 0;
 }
 
-extern const char kSchemeCanonical[0x80];
-extern const uint8_t kPartStart[/*url::PART_COUNT*/ 10]; // TODO: PART_COUNT
-
 extern const scheme_info* get_scheme_info(const str_view<char> src);
 inline const scheme_info* get_scheme_info(const char* name, std::size_t len) {
     return get_scheme_info(str_view<char>(name, len));
@@ -267,32 +264,13 @@ public:
         return std::string(norm_url_.data() + part_end_[FRAGMENT - 1], norm_url_.data() + part_end_[FRAGMENT]);
     }
 
-    std::string get_part(PartType t) const {
-        if (t == SCHEME)
-            return std::string(norm_url_.data(), part_end_[SCHEME]);
-        // begin & end offsets
-        const size_t b = part_end_[t - 1] + detail::kPartStart[t];
-        const size_t e = part_end_[t];
-        return std::string(norm_url_.data() + b, e > b ? e - b : 0);
-    }
+    // get info
+    
+    std::string get_part(PartType t) const;
 
-    str_view<char> get_part_view(PartType t) const {
-        if (t == SCHEME)
-            return str_view<char>(norm_url_.data(), part_end_[SCHEME]);
-        // begin & end offsets
-        const size_t b = part_end_[t - 1] + detail::kPartStart[t];
-        const size_t e = part_end_[t];
-        return str_view<char>(norm_url_.data() + b, e > b ? e - b : 0);
-    }
+    str_view<char> get_part_view(PartType t) const;
 
-    bool is_empty(const PartType t) const {
-        if (t == SCHEME)
-            return part_end_[SCHEME] == 0;
-        // begin & end offsets
-        const size_t b = part_end_[t - 1] + detail::kPartStart[t];
-        const size_t e = part_end_[t];
-        return b >= e;
-    }
+    bool is_empty(const PartType t) const;
 
     bool is_null(const PartType t) const {
         return !(flags_ & (1u << t));
@@ -538,6 +516,15 @@ private:
     static bool do_simple_path(const CharT* pointer, const CharT* last, std::string& output);
 };
 
+namespace detail {
+
+// canonical version of each possible input letter in the scheme
+extern const char kSchemeCanonical[0x80];
+
+// part start
+extern const uint8_t kPartStart[url::PART_COUNT];
+
+}
 
 // Removable URL chars
 
@@ -647,6 +634,35 @@ inline bool is_authority_end_char(CharT c) {
 template <typename CharT>
 inline bool is_special_authority_end_char(CharT c) {
     return c == '/' || c == '?' || c == '#' || c == '\\';
+}
+
+// url class
+
+inline std::string url::get_part(PartType t) const {
+    if (t == SCHEME)
+        return std::string(norm_url_.data(), part_end_[SCHEME]);
+    // begin & end offsets
+    const size_t b = part_end_[t - 1] + detail::kPartStart[t];
+    const size_t e = part_end_[t];
+    return std::string(norm_url_.data() + b, e > b ? e - b : 0);
+}
+
+inline str_view<char> url::get_part_view(PartType t) const {
+    if (t == SCHEME)
+        return str_view<char>(norm_url_.data(), part_end_[SCHEME]);
+    // begin & end offsets
+    const size_t b = part_end_[t - 1] + detail::kPartStart[t];
+    const size_t e = part_end_[t];
+    return str_view<char>(norm_url_.data() + b, e > b ? e - b : 0);
+}
+
+inline bool url::is_empty(const PartType t) const {
+    if (t == SCHEME)
+        return part_end_[SCHEME] == 0;
+    // begin & end offsets
+    const size_t b = part_end_[t - 1] + detail::kPartStart[t];
+    const size_t e = part_end_[t];
+    return b >= e;
 }
 
 inline void url::clear() {
