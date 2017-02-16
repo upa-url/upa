@@ -55,6 +55,18 @@ const scheme_info* get_scheme_info(const str_view<char> src) {
     return nullptr;
 }
 
+// Part start
+
+const uint8_t kPartStart[url::PART_COUNT] = {
+    0, 0, 0,
+    1,   // ':' PASSWORD
+    0, 0,
+    1,   // ':' PORT
+    0,
+    1,   // '?' QUERY
+    1    // '#' FRAGMENT
+};
+
 
 } // namespace detail
 } // namespace whatwg

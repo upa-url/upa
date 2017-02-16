@@ -135,6 +135,7 @@ inline bool AsciiEqualNoCase(const CharT* first, const CharT* last, const char* 
 }
 
 extern const char kSchemeCanonical[0x80];
+extern const uint8_t kPartStart[url::PART_COUNT];
 
 extern const scheme_info* get_scheme_info(const str_view<char> src);
 inline const scheme_info* get_scheme_info(const char* name, std::size_t len) {
@@ -217,7 +218,7 @@ public:
     }
 
     std::string protocol() const {
-        return std::string(norm_url_.data() + part_[SCHEME].offset, part_[SCHEME].len ? part_[SCHEME].len + 1 : 0);
+        return std::string(norm_url_.data(), part_end_[SCHEME] ? part_end_[SCHEME] + 1 : 0);
     }
 
     std::string username() const {
@@ -234,9 +235,8 @@ public:
         if (is_null(PORT))
             return get_part(HOST);
         // "host:port"
-        const size_t offset = is_empty(HOST) ? part_[PORT].offset - 1 : part_[HOST].offset;
-        const size_t iend = part_[PORT].offset + part_[PORT].len;
-        return std::string(norm_url_.data() + offset, iend - offset);
+        const size_t offset = part_end_[HOST_START];
+        return std::string(norm_url_.data() + offset, part_end_[PORT] - offset);
     }
 
     std::string hostname() const {
@@ -256,25 +256,42 @@ public:
     std::string search() const {
         if (is_empty(QUERY))
             return std::string("");
-        return std::string(norm_url_.data() + part_[QUERY].offset - 1, part_[QUERY].len + 1);
+        // return with '?'
+        return std::string(norm_url_.data() + part_end_[QUERY - 1], norm_url_.data() + part_end_[QUERY]);
     }
 
     std::string hash() const {
         if (is_empty(FRAGMENT))
             return std::string("");
-        return std::string(norm_url_.data() + part_[FRAGMENT].offset - 1, part_[FRAGMENT].len + 1);
+        // return with '#'
+        return std::string(norm_url_.data() + part_end_[FRAGMENT - 1], norm_url_.data() + part_end_[FRAGMENT]);
     }
 
     std::string get_part(PartType t) const {
-        return std::string(norm_url_.data() + part_[t].offset, part_[t].len);
+        if (t == SCHEME)
+            return std::string(norm_url_.data(), part_end_[SCHEME]);
+        // begin & end offsets
+        const size_t b = part_end_[t - 1] + detail::kPartStart[t];
+        const size_t e = part_end_[t];
+        return std::string(norm_url_.data() + b, e > b ? e - b : 0);
     }
 
     str_view<char> get_part_view(PartType t) const {
-        return str_view<char>(norm_url_.data() + part_[t].offset, part_[t].len);
+        if (t == SCHEME)
+            return str_view<char>(norm_url_.data(), part_end_[SCHEME]);
+        // begin & end offsets
+        const size_t b = part_end_[t - 1] + detail::kPartStart[t];
+        const size_t e = part_end_[t];
+        return str_view<char>(norm_url_.data() + b, e > b ? e - b : 0);
     }
 
     bool is_empty(const PartType t) const {
-        return part_[t].empty();
+        if (t == SCHEME)
+            return part_end_[SCHEME] == 0;
+        // begin & end offsets
+        const size_t b = part_end_[t - 1] + detail::kPartStart[t];
+        const size_t e = part_end_[t];
+        return b >= e;
     }
 
     bool is_null(const PartType t) const {
