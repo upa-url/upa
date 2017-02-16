@@ -1710,7 +1710,8 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
     }
 
     assert(last_pt_ < new_pt);
-    url_.part_end_[last_pt_ = new_pt] = url_.norm_url_.length(); //TODO!: ar čia reikia??
+    // value to url_.part_end_[new_pt] will be assigned in save_part()
+    last_pt_ = new_pt;
     return url_.norm_url_;
 }
 
