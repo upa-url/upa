@@ -31,8 +31,10 @@ void cout_str(const char32_t* str) {
 void cout_url(const whatwg::url& url) {
     static char* part_name[whatwg::url::PART_COUNT] = {
         "SCHEME",
+        nullptr,
         "USERNAME",
         "PASSWORD",
+        nullptr,
         "HOST",
         "PORT",
         "PATH",
@@ -44,6 +46,8 @@ void cout_url(const whatwg::url& url) {
 
     // print parts
     for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {
+        if (!part_name[part]) continue;
+
         std::string strPart;
         switch (part) {
         case whatwg::url::PATH:
