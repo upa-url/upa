@@ -426,6 +426,7 @@ public:
     void save_part();
 
     void clear_host();
+    void empty_host();
 
     // path
     // TODO: append_to_path() --> append_empty_to_path()
@@ -1129,12 +1130,8 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                 return false; // TODO-ERR: failure
             // if host is "localhost", then set host to the empty string
             if (urls.get_part_view(url::HOST).equal({ "localhost", 9 })) {
-                // TODO: galiam sukurti pvz.: urls.empty_host()
-                urls.clear_host();
                 // set empty host
-                urls.start_part(url::HOST);
-                urls.save_part();
-                urls.set_flag(url::HOST_FLAG);
+                urls.empty_host();
             }
             // if state override is given, then return
             if (state_override)
@@ -1766,6 +1763,13 @@ inline void url_serializer::clear_host() {
     fill_parts_offset(url::SCHEME_SEP, url::PATH, 0);
     url_.flags_ &= ~url::HOST_FLAG; // set to null
     last_pt_ = url::SCHEME;
+}
+
+inline void url_serializer::empty_host() {
+    assert(last_pt_ == url::HOST);
+    const std::size_t host_end = url_.part_end_[url::HOST_START];
+    url_.part_end_[url::HOST] = host_end;
+    url_.norm_url_.resize(host_end);
 }
 
 // append parts from other url
