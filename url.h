@@ -135,7 +135,7 @@ inline bool AsciiEqualNoCase(const CharT* first, const CharT* last, const char* 
 }
 
 extern const char kSchemeCanonical[0x80];
-extern const uint8_t kPartStart[url::PART_COUNT];
+extern const uint8_t kPartStart[/*url::PART_COUNT*/ 10]; // TODO: PART_COUNT
 
 extern const scheme_info* get_scheme_info(const str_view<char> src);
 inline const scheme_info* get_scheme_info(const char* name, std::size_t len) {
@@ -1793,7 +1793,7 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
     if (ifirst <= t2) {
         int ilast = t2;
         for (; ilast >= ifirst; ilast--) {
-            if (src.part_[ilast].offset)
+            if (src.part_end_[ilast])
                 break;
         }
         if (ifirst <= ilast) {
@@ -1802,30 +1802,31 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             std::string& norm_url = start_part(ifirst);
             
             // last part and url_.path_segment_count_
-            detail::url_part lastp(src.part_[ilast]);
+            std::size_t lastp_end = src.part_end_[ilast];
             if (pathOpFn && ilast == url::PATH) {
                 unsigned segment_count = src.path_segment_count_;
                 // https://isocpp.org/wiki/faq/pointers-to-members
                 // todo: use std::invoke (c++17)
-                (src.*pathOpFn)(lastp, segment_count);
+                (src.*pathOpFn)(lastp_end, segment_count);
                 url_.path_segment_count_ = segment_count;
             } else if (ifirst <= url::PATH && url::PATH <= ilast) {
                 url_.path_segment_count_ = src.path_segment_count_;
             }
             // src
-            const char* first = src.norm_url_.data() + src.part_[ifirst].offset;
-            const char* last = src.norm_url_.data() + lastp.offset + lastp.len;
+            const std::size_t offset = src.part_end_[ifirst - 1] + detail::kPartStart[ifirst];
+            const char* first = src.norm_url_.data() + offset;
+            const char* last = src.norm_url_.data() + lastp_end;
             // dest                     
-            int delta = static_cast<int>(norm_url.length()) - src.part_[ifirst].offset;
+            int delta = static_cast<int>(norm_url.length()) - offset;
             // copy normalized url string from src
             norm_url.append(first, last);
-            // adjust url_.part_
+            // adjust url_.part_end_
             for (int ind = ifirst; ind < ilast; ind++) {
-                // if (src.part_[ind].offset) // nebereikia tikrinti, nes užpildyta
-                url_.part_[ind] = detail::url_part(src.part_[ind].offset + delta, src.part_[ind].len);
+                // if (src.part_end_[ind]) // nebereikia tikrinti, nes užpildyta
+                url_.part_end_[ind] = src.part_end_[ind] + delta;
             }
             // ilast part from lastp
-            url_.part_[ilast] = detail::url_part(lastp.offset + delta, lastp.len);
+            url_.part_end_[ilast] = lastp_end + delta;
             last_pt_ = static_cast<url::PartType>(ilast);
         }
     }
