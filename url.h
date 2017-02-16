@@ -170,11 +170,12 @@ public:
         : scheme_inf_(nullptr)
         , flags_(INITIAL_FLAGS)
         , path_segment_count_(0)
+        //TODO??: part_end_.fill(0)
     {}
     // copy constructor
     url(const url& src)
         : norm_url_(src.norm_url_)
-        , part_(src.part_)
+        , part_end_(src.part_end_)
         , scheme_inf_(src.scheme_inf_)
         , flags_(src.flags_)
         , path_segment_count_(src.path_segment_count_)
@@ -182,7 +183,7 @@ public:
     // move constructor
     url(url&& src)
         : norm_url_(std::move(src.norm_url_))
-        , part_(src.part_)
+        , part_end_(src.part_end_)
         , scheme_inf_(src.scheme_inf_)
         , flags_(src.flags_)
         , path_segment_count_(src.path_segment_count_)
@@ -634,7 +635,7 @@ inline bool is_special_authority_end_char(CharT c) {
 
 inline void url::clear() {
     norm_url_.resize(0);
-    part_.fill(detail::url_part{});
+    part_end_.fill(0);
     scheme_inf_ = nullptr;
     flags_ = INITIAL_FLAGS;
     path_segment_count_ = 0;
