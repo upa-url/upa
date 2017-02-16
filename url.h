@@ -150,8 +150,10 @@ class url {
 public:
     enum PartType {
         SCHEME = 0,
+        SCHEME_SEP,
         USERNAME,
         PASSWORD,
+        HOST_START,
         HOST,
         PORT,
         PATH,
@@ -362,7 +364,7 @@ protected:
 
 private:
     std::string norm_url_;
-    std::array<detail::url_part, PART_COUNT> part_;
+    std::array<std::size_t, PART_COUNT> part_end_;
     const detail::scheme_info* scheme_inf_;
     unsigned flags_;
     unsigned path_segment_count_;
