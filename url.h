@@ -332,16 +332,11 @@ protected:
         return !(flags_ & flag);
     }
 
-    // set part range
-    void set_part(PartType t, std::size_t b, std::size_t e) {
-        part_[t] = detail::url_part::from_range(b, e);
-    }
-
     // scheme
     template <class StringT>
     void set_scheme_str(const StringT str) {
         norm_url_.resize(0); // clear all
-        part_[SCHEME] = detail::url_part(0, str.length());
+        part_end_[SCHEME] = str.length();
         norm_url_.append(str.data(), str.length());
         norm_url_ += ':';
     }
@@ -353,13 +348,16 @@ protected:
         set_scheme_str(str);
         scheme_inf_ = detail::get_scheme_info(str);
     }
+    // TODO: remove b and e --> len
     void set_scheme(std::size_t b, std::size_t e) {
-        set_part(SCHEME, b, e);
+        assert(b == 0);
+        part_end_[SCHEME] = e;
         scheme_inf_ = detail::get_scheme_info(get_part_view(SCHEME));
     }
     void clear_scheme() {
         norm_url_.resize(0); // clear all
-        set_part(SCHEME, 0, 0);
+        part_end_[SCHEME] = 0;
+        //??: part_end_[SCHEME_SEP] = 0;
         scheme_inf_ = nullptr;
     }
 
