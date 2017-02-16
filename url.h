@@ -364,8 +364,8 @@ protected:
     // path util
     str_view<char> get_path_first_string(size_t len) const;
     // path shortening
-    bool get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) const;
-    bool get_shorten_path(detail::url_part& part, unsigned& path_segment_count) const;
+    bool get_path_rem_last(std::size_t& path_end, unsigned& path_segment_count) const;
+    bool get_shorten_path(std::size_t& path_end, unsigned& path_segment_count) const;
     
     // flags
     void set_flag(const UrlFlag flag) {
@@ -438,7 +438,7 @@ public:
 
     void shorten_path();
 
-    typedef bool (url::*PathOpFn)(detail::url_part& part, unsigned& segment_count) const;
+    typedef bool (url::*PathOpFn)(std::size_t& path_end, unsigned& segment_count) const;
     void append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn = nullptr);
 
     // flags
@@ -1614,23 +1614,22 @@ inline str_view<char> url::get_path_first_string(size_t len) const {
 
 // path shortening
 
-inline bool url::get_path_rem_last(detail::url_part& part, unsigned& path_segment_count) const {
+inline bool url::get_path_rem_last(std::size_t& path_end, unsigned& path_segment_count) const {
     if (path_segment_count_ > 0) {
         // Remove path’s last item
-        const char* first = norm_url_.data() + part_[url::PATH].offset;
-        const char* last = first + part_[url::PATH].len;
+        const char* first = norm_url_.data() + part_end_[url::PATH-1];
+        const char* last = norm_url_.data() + part_end_[url::PATH];
         const char* it = find_last(first, last, '/');
         if (it == last) it = first; // jei nebuvo '/' išmesim visą kelią
         // shorten
-        part.offset = part_[url::PATH].offset;
-        part.len = it - first;
+        path_end = it - norm_url_.data();
         path_segment_count = path_segment_count_ - 1;
         return true;
     }
     return false;
 }
 
-inline bool url::get_shorten_path(detail::url_part& part, unsigned& path_segment_count) const {
+inline bool url::get_shorten_path(std::size_t& path_end, unsigned& path_segment_count) const {
     if (path_segment_count_ == 0)
         return false;
     if (is_file_scheme() && path_segment_count_ == 1) {
@@ -1639,15 +1638,15 @@ inline bool url::get_shorten_path(detail::url_part& part, unsigned& path_segment
             return false;
     }
     // Remove path's last item
-    return get_path_rem_last(part, path_segment_count);
+    return get_path_rem_last(path_end, path_segment_count);
 }
 
 // class url_serializer
 
 inline void url_serializer::shorten_path() {
     assert(last_pt_ <= url::PATH);
-    if (url_.get_shorten_path(url_.part_[url::PATH], url_.path_segment_count_))
-        url_.norm_url_.resize(url_.part_[url::PATH].offset + url_.part_[url::PATH].len);
+    if (url_.get_shorten_path(url_.part_end_[url::PATH], url_.path_segment_count_))
+        url_.norm_url_.resize(url_.part_end_[url::PATH]);
 }
 
 inline url_serializer::~url_serializer() {
