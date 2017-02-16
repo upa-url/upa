@@ -1679,7 +1679,7 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
             break;
         } else {
             url_.part_end_[url::PASSWORD] = url_.norm_url_.length();
-            fill_start_pt = url::HOST;
+            fill_start_pt = url::HOST_START; // (url::PASSWORD + 1)
         }
     case url::PASSWORD:
         if (new_pt == url::HOST) {
@@ -1763,7 +1763,7 @@ inline void url_serializer::clear_host() {
     url_.part_end_[url::PATH] = 0;
     // paliekam tik "scheme:"
     url_.norm_url_.resize(url_.part_end_[url::SCHEME] + 1);
-    fill_parts_offset(url::USERNAME, url::PATH, 0);
+    fill_parts_offset(url::SCHEME_SEP, url::PATH, 0);
     url_.flags_ &= ~url::HOST_FLAG; // set to null
     last_pt_ = url::SCHEME;
 }
