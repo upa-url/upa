@@ -69,24 +69,6 @@ namespace whatwg {
 
 namespace detail {
 
-struct url_part {
-    url_part() : offset(0), len(0) {}
-    url_part(std::size_t b, std::size_t l) : offset(b), len(l) {}
-
-    template <class InputIt>
-    url_part(InputIt begin, InputIt first, InputIt last)
-        : offset(first - begin), len(last - first) {}
-
-    static url_part from_range(std::size_t b, std::size_t e) {
-        return url_part(b, e - b);
-    }
-
-    bool empty() const { return len == 0; }
-
-    std::size_t offset; // Byte offset in the string of this component.
-    std::size_t len;    // Will be -1 if the component is unspecified.
-};
-
 
 struct scheme_info {
     str_view<char> scheme;
@@ -104,6 +86,7 @@ struct scheme_info {
     operator const str_view<char>&() const { return scheme; }
 };
 
+// todo: str_equal(..) nenaudojama
 template <typename CharT>
 bool str_equal(const CharT* first, const CharT* last, const char* strz) {
     for (const CharT* it = first; it < last; it++) {
@@ -111,11 +94,6 @@ bool str_equal(const CharT* first, const CharT* last, const char* strz) {
         strz++;
     }
     return *strz == 0;
-}
-
-template <typename CharT>
-bool part_equal(const CharT* begin, const url_part& part, const char* strz) {
-    return str_equal(begin + part.offset, begin + part.offset + part.len, strz);
 }
 
 // Lowercase the ASCII character
