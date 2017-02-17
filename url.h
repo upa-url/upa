@@ -468,7 +468,6 @@ public:
         : url_serializer(dest_url)
         , use_strp_(true)
         , curr_pt_(url::SCHEME)
-        , add_off_(0)
     {}
 
     ~url_setter() {
@@ -494,19 +493,14 @@ public:
     std::string& start_part(url::PartType new_pt) {
         assert(new_pt > url::SCHEME);
         curr_pt_ = new_pt;
-        if (url_.part_[new_pt].offset) {
+        if (url_.part_end_[new_pt]) {
             use_strp_ = true;
             if (is_empty(new_pt)) {
                 switch (new_pt) {
                 case url::PASSWORD:
                     strp_ += ':';
-                    add_off_ = 1;
                     break;
-                default:
-                    add_off_ = 0;
                 }
-            } else {
-                add_off_ = 0;
             }
             return strp_;
         } else {
@@ -517,17 +511,15 @@ public:
     }
     void save_part() {
         if (use_strp_) {
-            size_t offset = url_.part_[curr_pt_].offset + add_off_;
-            size_t len = strp_.length() - add_off_;
+            size_t part_end = url_.part_end_[curr_pt_ - 1] + strp_.length();
             //TODO: jei nauja reikšmė tuščia...
             if ((curr_pt_ == url::USERNAME || curr_pt_ == url::PASSWORD) && !has_credentials()) {
                 strp_ += '@';
             }
             replace_part(curr_pt_, strp_.data(), strp_.length());
-            url_.part_[curr_pt_].offset = offset;
-            url_.part_[curr_pt_].len = len;
+            url_.part_end_[curr_pt_] = part_end;
             if (curr_pt_ == url::USERNAME && is_empty(url::PASSWORD))
-                url_.part_[url::PASSWORD].offset = offset + len;
+                url_.part_end_[url::PASSWORD] = part_end;
         } else {
             url_serializer::save_part();
         }
@@ -535,16 +527,18 @@ public:
 
 protected:
     void replace_part(url::PartType new_pt, const char* str, size_t len) {
-        int diff = static_cast<int>(len)-static_cast<int>(url_.part_[new_pt].len);
-        url_.norm_url_.replace(url_.part_[new_pt].offset, url_.part_[new_pt].len, str, len);
-        for (auto it = std::begin(url_.part_) + new_pt + 1; it < std::end(url_.part_); it++) {
-            if (!it->offset) break;
-            it->offset += diff;
+        const std::size_t b = (new_pt > url::SCHEME) ? url_.part_end_[new_pt - 1] : 0;
+        const std::size_t l = url_.part_end_[new_pt] - b;
+        const int diff = static_cast<int>(len)-static_cast<int>(l);
+        url_.norm_url_.replace(b, l, str, len);
+        for (auto it = std::begin(url_.part_end_) + new_pt + 1; it < std::end(url_.part_end_); it++) {
+            if (*it == 0) break;
+            *it += diff;
         }
     }
     url::PartType find_last_part(url::PartType pt) const {
         for (int ind = pt; ind > 0; ind--)
-            if (url_.part_[ind].offset)
+            if (url_.part_end_[ind])
                 return static_cast<url::PartType>(ind);
         return url::SCHEME;
     }
@@ -552,7 +546,7 @@ protected:
 #if 0
     void insert_part(url::PartType new_pt, const char* str, size_t len) {
         assert(new_pt > url::SCHEME);
-        if (url_.part_[new_pt].offset) {
+        if (url_.part_end_[new_pt]) {
             replace_part(new_pt, str, len);
         } else {
             last_pt_ = find_last_part(new_pt);
@@ -566,7 +560,6 @@ protected:
     bool use_strp_;
     std::string strp_;
     url::PartType curr_pt_;
-    size_t add_off_;
 };
 
 
