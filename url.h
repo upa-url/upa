@@ -547,11 +547,14 @@ protected:
     void replace_part(url::PartType new_pt, const char* str, size_t len) {
         const std::size_t b = (new_pt > url::SCHEME) ? url_.part_end_[new_pt - 1] : 0;
         const std::size_t l = url_.part_end_[new_pt] - b;
-        const int diff = static_cast<int>(len)-static_cast<int>(l);
         url_.norm_url_.replace(b, l, str, len);
-        for (auto it = std::begin(url_.part_end_) + new_pt + 1; it < std::end(url_.part_end_); it++) {
-            if (*it == 0) break;
-            *it += diff;
+        // adjust positions
+        const int diff = static_cast<int>(len)-static_cast<int>(l);
+        if (diff) {
+            for (auto it = std::begin(url_.part_end_) + new_pt + 1; it < std::end(url_.part_end_); it++) {
+                if (*it == 0) break;
+                *it += diff;
+            }
         }
     }
     url::PartType find_last_part(url::PartType pt) const {
