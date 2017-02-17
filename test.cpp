@@ -287,6 +287,10 @@ void test_setters()
     sz = "pass@01";
     url.password(sz, sz + std::strlen(sz));
     cout_url(url);
+
+    sz = "file:";
+    url.protocol(sz, sz + std::strlen(sz));
+    cout_url(url);
 }
 
 #include "buffer.h"
