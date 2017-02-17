@@ -903,8 +903,17 @@ inline bool url::search(const CharT* first, const CharT* last) {
 
 template <typename CharT>
 inline bool url::hash(const CharT* first, const CharT* last) {
-    //TODO
-    return false;
+    //TODO: https://github.com/whatwg/url/pull/254 removes this check: 
+    if (get_part_view(SCHEME).equal({ "javascript", 10 }))
+        return false;
+    
+    url_setter urls(*this);
+    if (first == last) {
+        urls.clear_part(url::FRAGMENT);
+        return true;
+    }
+    if (*first == '#') first++;
+    return url_parser::url_parse(urls, first, last, nullptr, url_parser::fragment_state);
 }
 
 

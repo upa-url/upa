@@ -308,6 +308,10 @@ void test_setters()
     url.search(sz, sz + std::strlen(sz));
     cout_url(url);
 
+    sz = "#frag";
+    url.hash(sz, sz + std::strlen(sz));
+    cout_url(url);
+
     // test switch to file: scheme
     sz = "file:";
     url.protocol(sz, sz + std::strlen(sz));
