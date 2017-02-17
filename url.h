@@ -1090,10 +1090,6 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
 
         if (pointer == end_of_authority) {
             // buffer is the empty string
-            if (state_override && urls.has_credentials()) {
-                // TODO-WARN: validation error
-                return true;
-            }
             // set empty host
             urls.start_part(url::HOST);
             urls.save_part();

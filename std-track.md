@@ -4,8 +4,8 @@
 **URL Standard**
 https://url.spec.whatwg.org/
 
-[15 February 2017]
-https://url.spec.whatwg.org/commit-snapshots/6463c120676f5feda513752b67a61abde46d96f5/
+[16 February 2017]
+https://url.spec.whatwg.org/commit-snapshots/9b2eb10eb8436adaf6620b1864b25442152f205b/
 
 ---
 **Infra Standard** - fundamental concepts upon which standards are built
