@@ -288,6 +288,12 @@ void test_setters()
     url.password(sz, sz + std::strlen(sz));
     cout_url(url);
 
+    sz = "example.net";
+    url.hostname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+
+    // test switch to file: scheme
     sz = "file:";
     url.protocol(sz, sz + std::strlen(sz));
     cout_url(url);

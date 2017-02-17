@@ -200,6 +200,9 @@ public:
     template <typename CharT>
     void password(const CharT* first, const CharT* last);
 
+    template <typename CharT>
+    bool hostname(const CharT* first, const CharT* last);
+
     // getters
 
     // get serialized URL
@@ -816,6 +819,16 @@ inline void url::password(const CharT* first, const CharT* last) {
         detail::AppendStringOfType(first, last, detail::CHAR_USERINFO, str_password);
         urls.save_part();
     }
+}
+
+template <typename CharT>
+inline bool url::hostname(const CharT* first, const CharT* last) {
+    if (!cannot_be_base()) {
+        url_setter urls(*this);
+
+        return url_parser::url_parse(urls, first, last, nullptr, url_parser::hostname_state);
+    }
+    return false;
 }
 
 
