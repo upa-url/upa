@@ -288,6 +288,10 @@ void test_setters()
     url.password(sz, sz + std::strlen(sz));
     cout_url(url);
 
+    sz = "example.org:81";
+    url.host(sz, sz + std::strlen(sz));
+    cout_url(url);
+
     sz = "example.net";
     url.hostname(sz, sz + std::strlen(sz));
     cout_url(url);

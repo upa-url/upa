@@ -201,6 +201,9 @@ public:
     void password(const CharT* first, const CharT* last);
 
     template <typename CharT>
+    bool host(const CharT* first, const CharT* last);
+
+    template <typename CharT>
     bool hostname(const CharT* first, const CharT* last);
 
     // getters
@@ -501,6 +504,7 @@ public:
             if (is_empty(new_pt)) {
                 switch (new_pt) {
                 case url::PASSWORD:
+                case url::PORT:
                     strp_ += ':';
                     break;
                 }
@@ -523,6 +527,8 @@ public:
             url_.part_end_[curr_pt_] = part_end;
             if (curr_pt_ == url::USERNAME && is_empty(url::PASSWORD))
                 url_.part_end_[url::PASSWORD] = part_end;
+            // cleanup
+            strp_.clear();
         } else {
             url_serializer::save_part();
         }
@@ -819,6 +825,16 @@ inline void url::password(const CharT* first, const CharT* last) {
         detail::AppendStringOfType(first, last, detail::CHAR_USERINFO, str_password);
         urls.save_part();
     }
+}
+
+template <typename CharT>
+inline bool url::host(const CharT* first, const CharT* last) {
+    if (!cannot_be_base()) {
+        url_setter urls(*this);
+
+        return url_parser::url_parse(urls, first, last, nullptr, url_parser::host_state);
+    }
+    return false;
 }
 
 template <typename CharT>
