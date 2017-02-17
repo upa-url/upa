@@ -316,6 +316,12 @@ void test_setters()
     sz = "file:";
     url.protocol(sz, sz + std::strlen(sz));
     cout_url(url);
+
+    // javscript: scheme test
+    url.parse("JavaScript:alert(1)", nullptr);
+    sz = "#frag";
+    url.hash(sz, sz + std::strlen(sz));
+    cout_url(url);
 }
 
 #include "buffer.h"
