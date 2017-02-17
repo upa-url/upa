@@ -304,6 +304,10 @@ void test_setters()
     url.port(sz, sz + std::strlen(sz));
     cout_url(url);
 
+    sz = "?a=3";
+    url.search(sz, sz + std::strlen(sz));
+    cout_url(url);
+
     // test switch to file: scheme
     sz = "file:";
     url.protocol(sz, sz + std::strlen(sz));

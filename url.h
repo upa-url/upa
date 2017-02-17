@@ -874,6 +874,7 @@ inline bool url::port(const CharT* first, const CharT* last) {
         url_setter urls(*this);
         if (first == last) {
             urls.clear_part(url::PORT);
+            return true;
         } else {
             return url_parser::url_parse(urls, first, last, nullptr, url_parser::port_state);
         }
@@ -889,8 +890,15 @@ inline bool url::pathname(const CharT* first, const CharT* last) {
 
 template <typename CharT>
 inline bool url::search(const CharT* first, const CharT* last) {
-    //TODO
-    return false;
+    url_setter urls(*this);
+    if (first == last) {
+        urls.clear_part(url::QUERY);
+        //todo: empty context object’s query object’s list
+        return true;
+    }
+    if (*first == '?') first++;
+    return url_parser::url_parse(urls, first, last, nullptr, url_parser::query_state);
+    //todo: set context object’s query object’s list to the result of parsing input
 }
 
 template <typename CharT>
