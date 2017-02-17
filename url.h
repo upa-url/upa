@@ -206,6 +206,9 @@ public:
     template <typename CharT>
     bool hostname(const CharT* first, const CharT* last);
 
+    template <typename CharT>
+    bool port(const CharT* first, const CharT* last);
+
     // getters
 
     // get serialized URL
@@ -501,13 +504,11 @@ public:
         curr_pt_ = new_pt;
         if (url_.part_end_[new_pt]) {
             use_strp_ = true;
-            if (is_empty(new_pt)) {
-                switch (new_pt) {
-                case url::PASSWORD:
-                case url::PORT:
-                    strp_ += ':';
-                    break;
-                }
+            switch (new_pt) {
+            case url::PASSWORD:
+            case url::PORT:
+                strp_ += ':';
+                break;
             }
             return strp_;
         } else {
@@ -843,6 +844,20 @@ inline bool url::hostname(const CharT* first, const CharT* last) {
         url_setter urls(*this);
 
         return url_parser::url_parse(urls, first, last, nullptr, url_parser::hostname_state);
+    }
+    return false;
+}
+
+template <typename CharT>
+inline bool url::port(const CharT* first, const CharT* last) {
+    if (canHaveUsernamePasswordPort()) {
+        if (first == last) {
+            //TODO: clear port
+        } else {
+            url_setter urls(*this);
+
+            return url_parser::url_parse(urls, first, last, nullptr, url_parser::port_state);
+        }
     }
     return false;
 }

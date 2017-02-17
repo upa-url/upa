@@ -296,6 +296,9 @@ void test_setters()
     url.hostname(sz, sz + std::strlen(sz));
     cout_url(url);
 
+    sz = "88";
+    url.port(sz, sz + std::strlen(sz));
+    cout_url(url);
 
     // test switch to file: scheme
     sz = "file:";
