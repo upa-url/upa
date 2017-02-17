@@ -209,6 +209,15 @@ public:
     template <typename CharT>
     bool port(const CharT* first, const CharT* last);
 
+    template <typename CharT>
+    bool pathname(const CharT* first, const CharT* last);
+
+    template <typename CharT>
+    bool search(const CharT* first, const CharT* last);
+
+    template <typename CharT>
+    bool hash(const CharT* first, const CharT* last);
+
     // getters
 
     // get serialized URL
@@ -869,6 +878,24 @@ inline bool url::port(const CharT* first, const CharT* last) {
             return url_parser::url_parse(urls, first, last, nullptr, url_parser::port_state);
         }
     }
+    return false;
+}
+
+template <typename CharT>
+inline bool url::pathname(const CharT* first, const CharT* last) {
+    //TODO
+    return false;
+}
+
+template <typename CharT>
+inline bool url::search(const CharT* first, const CharT* last) {
+    //TODO
+    return false;
+}
+
+template <typename CharT>
+inline bool url::hash(const CharT* first, const CharT* last) {
+    //TODO
     return false;
 }
 
