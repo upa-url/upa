@@ -535,6 +535,14 @@ public:
         }
     }
 
+    void clear_port() {
+        if (url_.part_end_[url::PORT]) {
+            replace_part(url::PORT, "", 0);
+            url_.part_end_[url::PORT] = url_.part_end_[url::PORT - 1];
+            url_.flags_ &= ~url::PORT_FLAG; // set to null
+        }
+    }
+
 protected:
     void replace_part(url::PartType new_pt, const char* str, size_t len) {
         const std::size_t b = (new_pt > url::SCHEME) ? url_.part_end_[new_pt - 1] : 0;
@@ -851,11 +859,10 @@ inline bool url::hostname(const CharT* first, const CharT* last) {
 template <typename CharT>
 inline bool url::port(const CharT* first, const CharT* last) {
     if (canHaveUsernamePasswordPort()) {
+        url_setter urls(*this);
         if (first == last) {
-            //TODO: clear port
+            urls.clear_port();
         } else {
-            url_setter urls(*this);
-
             return url_parser::url_parse(urls, first, last, nullptr, url_parser::port_state);
         }
     }
