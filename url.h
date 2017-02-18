@@ -534,6 +534,11 @@ public:
     }
     void save_part() {
         if (use_strp_) {
+            if (curr_pt_ == url::HOST && is_null(url::HOST)) {
+                // TODO optimmizuoti: start_part(..): strp_ += "//"
+                replace_part(url::SCHEME_SEP, "://", 3);
+                url_.part_end_[url::SCHEME_SEP] = url_.part_end_[url::SCHEME] + 3; // skip "://"
+            }
             size_t part_end = url_.part_end_[curr_pt_ - 1] + strp_.length();
             //TODO: jei nauja reikšmė tuščia...
             if ((curr_pt_ == url::USERNAME || curr_pt_ == url::PASSWORD) && !has_credentials()) {

@@ -317,6 +317,14 @@ void test_setters()
     url.protocol(sz, sz + std::strlen(sz));
     cout_url(url);
 
+    // non-special
+    url.parse("non-special:/path", nullptr);
+    cout_url(url);
+
+    sz = "example.net";
+    url.hostname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
     // javscript: scheme test
     url.parse("JavaScript:alert(1)", nullptr);
     sz = "#frag";
