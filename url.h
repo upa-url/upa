@@ -518,6 +518,12 @@ public:
             case url::PORT:
                 strp_ += ':';
                 break;
+            case url::QUERY:
+                strp_ += '?';
+                break;
+            case url::FRAGMENT:
+                strp_ += '#';
+                break;
             }
             return strp_;
         } else {
