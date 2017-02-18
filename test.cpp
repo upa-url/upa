@@ -317,6 +317,10 @@ void test_setters()
     url.protocol(sz, sz + std::strlen(sz));
     cout_url(url);
 
+    sz = "localhost";
+    url.hostname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
     // non-special
     url.parse("non-special:/path", nullptr);
     cout_url(url);
