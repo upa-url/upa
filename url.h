@@ -420,8 +420,8 @@ public:
     virtual std::string& start_part(url::PartType new_pt);
     virtual void save_part();
 
-    void clear_host();
-    void empty_host();
+    virtual void clear_host();
+    virtual void empty_host();
 
     // path
     // TODO: append_to_path() --> append_empty_to_path()
@@ -562,6 +562,15 @@ public:
             url_.flags_ &= ~(1u << pt); // set to null
         }
     }
+    void empty_part(const url::PartType pt) {
+        if (url_.part_end_[pt]) {
+            replace_part(pt, "", 0);
+            url_.part_end_[pt] = url_.part_end_[pt - 1];
+        }
+    }
+
+    virtual void clear_host() { clear_part(url::HOST); }
+    virtual void empty_host() { empty_part(url::HOST); }
 
 protected:
     void replace_part(url::PartType new_pt, const char* str, size_t len) {
