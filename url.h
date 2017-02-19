@@ -1260,9 +1260,10 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         // pagal: https://cs.chromium.org/chromium/src/url/url_canon_etc.cc : DoCanonicalizeRef(..)
         std::string& str_frag = urls.start_part(url::FRAGMENT);
         while (pointer < last) {
-            // UTF-8 percent encode c using the C0 control percent-encode set & ignore '\0'
+            // UTF-8 percent encode c using the C0 control percent-encode set (U+0000 ... U+001F and >U+007E)
+            // and ignore '\0'
             UCharT uch = static_cast<UCharT>(*pointer);
-            if (uch >= 0x80) {
+            if (uch >= 0x7f) {
                 // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
                 detail::AppendUTF8EscapedChar(pointer, last, str_frag);
             } else {
@@ -1572,9 +1573,9 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
 
     bool success = true;
     while (pointer < last) {
-        // UTF-8 percent encode c using the C0 control percent-encode set
+        // UTF-8 percent encode c using the C0 control percent-encode set (U+0000 ... U+001F and >U+007E)
         UCharT uch = static_cast<UCharT>(*pointer);
-        if (uch >= 0x80) {
+        if (uch >= 0x7f) {
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
             success &= detail::AppendUTF8EscapedChar(pointer, last, output);
         } else {
