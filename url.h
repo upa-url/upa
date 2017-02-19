@@ -529,13 +529,16 @@ public:
             switch (new_pt) {
             case url::PASSWORD:
             case url::PORT:
-                strp_ += ':';
+                strp_ = ':';
                 break;
             case url::QUERY:
-                strp_ += '?';
+                strp_ = '?';
                 break;
             case url::FRAGMENT:
-                strp_ += '#';
+                strp_ = '#';
+                break;
+            default:
+                strp_.clear();
                 break;
             }
             return strp_;
@@ -552,15 +555,22 @@ public:
                 replace_part(url::SCHEME_SEP, "://", 3);
                 url_.part_end_[url::SCHEME_SEP] = url_.part_end_[url::SCHEME] + 3; // skip "://"
             }
+            bool not_empty = strp_.length() > detail::kPartStart[curr_pt_];
+            if ((curr_pt_ == url::PASSWORD || curr_pt_ == url::PORT) && !not_empty) {
+                strp_.clear();
+            }
             size_t part_end = url_.part_end_[curr_pt_ - 1] + strp_.length();
-            //TODO: jei nauja reikšmė tuščia...
-            if ((curr_pt_ == url::USERNAME || curr_pt_ == url::PASSWORD) && !has_credentials()) {
+            if ((curr_pt_ == url::USERNAME || curr_pt_ == url::PASSWORD) && not_empty
+                && !has_credentials()) {
                 strp_ += '@';
             }
             replace_part(curr_pt_, strp_.data(), strp_.length());
             url_.part_end_[curr_pt_] = part_end;
+            // TODO: to not HACK:
             if (curr_pt_ == url::USERNAME && is_empty(url::PASSWORD))
                 url_.part_end_[url::PASSWORD] = part_end;
+            if ((curr_pt_ == url::USERNAME || curr_pt_ == url::PASSWORD) && !not_empty && !has_credentials())
+                empty_part(url::HOST_START);
             // cleanup
             strp_.clear();
         } else {
