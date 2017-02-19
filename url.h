@@ -345,6 +345,16 @@ private:
     friend class url_parser;
 };
 
+namespace detail {
+
+// canonical version of each possible input letter in the scheme
+extern const char kSchemeCanonical[0x80];
+
+// part start
+extern const uint8_t kPartStart[url::PART_COUNT];
+
+}
+
 
 class url_serializer {
 public:
@@ -494,15 +504,6 @@ private:
     static bool do_simple_path(const CharT* pointer, const CharT* last, std::string& output);
 };
 
-namespace detail {
-
-// canonical version of each possible input letter in the scheme
-extern const char kSchemeCanonical[0x80];
-
-// part start
-extern const uint8_t kPartStart[url::PART_COUNT];
-
-}
 
 // Removable URL chars
 
