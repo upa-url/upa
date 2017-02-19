@@ -420,6 +420,9 @@ public:
     virtual std::string& start_part(url::PartType new_pt);
     virtual void save_part();
 
+    // TODO: galima naudoti vietoj clear_host():
+    virtual void clear_part(const url::PartType pt) {}
+
     virtual void clear_host();
     virtual void empty_host();
 
@@ -1279,7 +1282,10 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     urls.start_part(url::PORT) += std::to_string(port);
                     urls.save_part();
                     urls.set_flag(url::PORT_FLAG);
-                } //TODO: (2-1-3) Set url’s port to null
+                } else {
+                    // (2-1-3) Set url’s port to null
+                    urls.clear_part(url::PORT);
+                }
             }
             if (state_override)
                 return true; // (2-2)
