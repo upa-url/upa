@@ -45,7 +45,7 @@ void cout_url(const whatwg::url& url) {
     std::wcout << "HREF: " << to_wstr(url.href()) << "\n";
 
     // origin
-    std::wcout << "origin: " << to_wstr(url.origin_ascii()) << "\n";
+    std::wcout << "origin: " << to_wstr(url.origin()) << "\n";
 
     // print parts
     for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {

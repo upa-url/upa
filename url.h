@@ -646,9 +646,28 @@ inline std::string url::origin_ascii() const {
 
 // Unicode serialization of an origin
 // https://html.spec.whatwg.org/multipage/browsers.html#unicode-serialisation-of-an-origin
-//inline std::string url::origin() const {
-//  //TODO
-//}
+inline std::string url::origin() const {
+    if (is_special_scheme()) {
+        if (is_file_scheme())
+            return "null"; // opaque origin
+        // "scheme://"
+        std::string str_origin(norm_url_, 0, part_end_[SCHEME_SEP]);
+        
+        //TODO: if host is a domain, then apply domain to Unicode
+        //TODO: domain, if not IPv4 or IPv6
+        str_origin.append(norm_url_.data() + part_end_[HOST_START], norm_url_.data() + part_end_[HOST]);
+
+        if (!is_null(PORT))
+            str_origin.append(norm_url_.data() + part_end_[HOST], norm_url_.data() + part_end_[PORT]);
+        return str_origin;
+    } else if (get_part_view(SCHEME).equal({ "blob", 4 })) {
+        url u;
+        if (u.parse(get_part_view(PATH), nullptr))
+            return u.origin();
+    }
+    return "null"; // opaque origin
+}
+
 
 inline std::string url::get_part(PartType t) const {
     if (t == SCHEME)
