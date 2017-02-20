@@ -37,7 +37,7 @@ struct UIDNAWrapper {
         UErrorCode err = U_ZERO_ERROR;
         // TODO(jungshik): Change options as different parties (browsers,
         // registrars, search engines) converge toward a consensus.
-        value = uidna_openUTS46(UIDNA_CHECK_BIDI, &err);
+        value = uidna_openUTS46(UIDNA_CHECK_BIDI | UIDNA_NONTRANSITIONAL_TO_ASCII, &err);
         if (U_FAILURE(err)) {
             //todo: CHECK(false) << "failed to open UTS46 data with error: " << err;
             value = nullptr;
