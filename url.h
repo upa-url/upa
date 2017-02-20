@@ -622,6 +622,11 @@ inline bool is_special_authority_end_char(CharT c) {
 
 // url class
 
+// Origin
+// https://url.spec.whatwg.org/#concept-url-origin
+
+// ASCII serialization of an origin
+// https://html.spec.whatwg.org/multipage/browsers.html#ascii-serialisation-of-an-origin
 inline std::string url::origin_ascii() const {
     if (is_special_scheme()) {
         if (is_file_scheme())
@@ -639,6 +644,8 @@ inline std::string url::origin_ascii() const {
     return "null"; // opaque origin
 }
 
+// Unicode serialization of an origin
+// https://html.spec.whatwg.org/multipage/browsers.html#unicode-serialisation-of-an-origin
 //inline std::string url::origin() const {
 //  //TODO
 //}
