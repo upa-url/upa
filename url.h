@@ -653,9 +653,14 @@ inline std::string url::origin() const {
         // "scheme://"
         std::string str_origin(norm_url_, 0, part_end_[SCHEME_SEP]);
         
-        //TODO: if host is a domain, then apply domain to Unicode
+        // if host is a domain, then apply domain to Unicode
         //TODO: domain, if not IPv4 or IPv6
-        str_origin.append(norm_url_.data() + part_end_[HOST_START], norm_url_.data() + part_end_[HOST]);
+        auto hostv = get_part_view(HOST);
+        simple_buffer<char> buff;
+        if (IDNToUnicode(hostv.data(), static_cast<int>(hostv.length()), buff))
+            str_origin.append(buff.begin(), buff.end());
+        else
+            str_origin.append(hostv.data(), hostv.length());
 
         if (!is_null(PORT))
             str_origin.append(norm_url_.data() + part_end_[HOST], norm_url_.data() + part_end_[PORT]);
