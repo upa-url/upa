@@ -271,6 +271,10 @@ void test_parser()
     // https://github.com/whatwg/url/issues/148
     url_testas("unknown://†/");
     url_testas("notspecial://H%4fSt/path");
+
+    // file slashes
+    // https://github.com/whatwg/url/issues/232#issuecomment-281263060
+    url_testas("file://localhost///a//../..//");
 }
 
 #include "buffer.h"
