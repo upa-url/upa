@@ -361,8 +361,8 @@ protected:
         set_flag(CANNOT_BE_BASE_FLAG);
     }
 
-    void set_host_type(const UrlFlag hf) {
-        flags_ = (flags_ & ~HOST_TYPE_MASK) | (hf & HOST_TYPE_MASK);
+    void set_host_flag(const UrlFlag hf) {
+        flags_ = (flags_ & ~HOST_TYPE_MASK) | (HOST_FLAG | hf);
     }
 
 private:
@@ -441,6 +441,7 @@ public:
 
     // flags
     void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
+    void set_host_flag(const url::UrlFlag hf) { url_.set_host_flag(hf); }
     // IMPORTANT: cannot-be-a-base-URL flag must be set before or just after
     // SCHEME set; because other part's serialization depends on this flag
     void set_cannot_be_base() {
@@ -1190,7 +1191,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             // set empty host
             urls.start_part(url::HOST);
             urls.save_part();
-            urls.set_flag(url::HOST_FLAG);
+            urls.set_host_flag(url::HOST_FLAG);
             // if state override is given, then return
             if (state_override)
                 return true;
@@ -1399,7 +1400,7 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
         // set empty host
         urls.start_part(url::HOST);
         urls.save_part();
-        urls.set_flag(url::HOST_FLAG);
+        urls.set_host_flag(url::HOST_FLAG);
         return true;
     }
     assert(first < last);
@@ -1497,7 +1498,7 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
         std::string& str_host = urls.start_part(url::HOST);
         str_host.append(buff_ascii.begin(), buff_ascii.end());
         urls.save_part();
-        urls.set_flag(url::HOST_FLAG);
+        urls.set_host_flag(url::HOST_TYPE_DOMAIN);
     }
     return res != RES_ERROR;
 }
@@ -1514,7 +1515,7 @@ inline bool url_parser::parse_opaque_host(url_serializer& urls, const CharT* fir
     // todėl reikalinga kita kodavimo f-ja:
     do_simple_path(first, last, str_host);
     urls.save_part();
-    urls.set_flag(url::HOST_FLAG);
+    urls.set_host_flag(url::HOST_TYPE_OPAQUE);
     return true;
 }
 
@@ -1527,7 +1528,7 @@ inline ParseResult url_parser::parse_ipv4(url_serializer& urls, const CharT* fir
         std::string& str_ipv4 = urls.start_part(url::HOST);
         ipv4_serialize(ipv4, str_ipv4);
         urls.save_part();
-        urls.set_flag(url::HOST_FLAG);
+        urls.set_host_flag(url::HOST_TYPE_IPV4);
     }
     return res;
 }
@@ -1542,7 +1543,7 @@ inline bool url_parser::parse_ipv6(url_serializer& urls, const CharT* first, con
         ipv6_serialize(ipv6addr, str_ipv6);
         str_ipv6.push_back(']');
         urls.save_part();
-        urls.set_flag(url::HOST_FLAG);
+        urls.set_host_flag(url::HOST_TYPE_IPV6);
         return true;
     }
     return false;
@@ -1841,7 +1842,7 @@ inline void url_serializer::clear_host() {
     // paliekam tik "scheme:"
     url_.norm_url_.resize(url_.part_end_[url::SCHEME] + 1);
     fill_parts_offset(url::SCHEME_SEP, url::PATH, 0);
-    url_.flags_ &= ~url::HOST_FLAG; // set to null
+    url_.flags_ &= ~(url::HOST_FLAG | url::HOST_TYPE_MASK); // set to null
     last_pt_ = url::SCHEME;
 }
 
