@@ -138,6 +138,13 @@ public:
         PART_COUNT
     };
 
+    enum class HostType {
+        Opaque = 0,
+        Domain = 1,
+        IPv4 = 2,
+        IPv6 = 3
+    };
+
     /**
     * \brief Default constructor.
     * Constructs empty URL
@@ -223,6 +230,15 @@ public:
         return get_part(HOST);
     }
 
+    HostType host_type() const {
+        switch (flags_ & HOST_TYPE_MASK) {
+        case HOST_TYPE_OPAQUE: return HostType::Opaque;
+        case HOST_TYPE_DOMAIN: return HostType::Domain;
+        case HOST_TYPE_IPV4: return HostType::IPv4;
+        case HOST_TYPE_IPV6: return HostType::IPv6;
+        }
+    }
+
     std::string port() const {
         return get_part(PORT);
     }
@@ -285,6 +301,12 @@ protected:
         FRAGMENT_FLAG = (1u << FRAGMENT),
         // other flags
         CANNOT_BE_BASE_FLAG = (1u << (PART_COUNT + 0)),
+        // host type
+        HOST_TYPE_MASK = (3u << (PART_COUNT + 1)),
+        HOST_TYPE_OPAQUE = 0,
+        HOST_TYPE_DOMAIN = (1u << (PART_COUNT + 1)),
+        HOST_TYPE_IPV4 = (2u << (PART_COUNT + 1)),
+        HOST_TYPE_IPV6 = (3u << (PART_COUNT + 1)),
         // initial flags (empty (but not null) parts)
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
@@ -337,6 +359,10 @@ protected:
     }
     void set_cannot_be_base() {
         set_flag(CANNOT_BE_BASE_FLAG);
+    }
+
+    void set_host_type(const UrlFlag hf) {
+        flags_ = (flags_ & ~HOST_TYPE_MASK) | (hf & HOST_TYPE_MASK);
     }
 
 private:
