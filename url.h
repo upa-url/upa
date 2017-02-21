@@ -681,13 +681,14 @@ inline std::string url::origin() const {
         std::string str_origin(norm_url_, 0, part_end_[SCHEME_SEP]);
         
         // if host is a domain, then apply domain to Unicode
-        //TODO: domain, if not IPv4 or IPv6
         auto hostv = get_part_view(HOST);
-        simple_buffer<char> buff;
-        if (IDNToUnicode(hostv.data(), static_cast<int>(hostv.length()), buff))
+        if (host_type() == HostType::Domain) {
+            simple_buffer<char> buff;
+            IDNToUnicode(hostv.data(), static_cast<int>(hostv.length()), buff);
             str_origin.append(buff.begin(), buff.end());
-        else
+        } else {
             str_origin.append(hostv.data(), hostv.length());
+        }
 
         if (!is_null(PORT))
             str_origin.append(norm_url_.data() + part_end_[HOST], norm_url_.data() + part_end_[PORT]);
@@ -1916,8 +1917,8 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
         }
     }
 
-    // copy not null flags
-    unsigned mask = 0;
+    // copy host_type & not null flags
+    unsigned mask = url::HOST_TYPE_MASK;
     for (int ind = t1; ind <= t2; ind++) {
         mask |= (1u << ind);
     }
