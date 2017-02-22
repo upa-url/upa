@@ -7,6 +7,7 @@
 namespace whatwg {
 
 bool IDNToASCII(const char16_t* src, int src_len, simple_buffer<char16_t>& output);
+bool IDNToUnicode(const char* src, int src_len, simple_buffer<char>& output);
 
 } // namespace whatwg
 

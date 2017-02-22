@@ -44,6 +44,9 @@ void cout_url(const whatwg::url& url) {
 
     std::wcout << "HREF: " << to_wstr(url.href()) << "\n";
 
+    // origin
+    std::wcout << "origin: " << to_wstr(url.origin_ascii()) << "\n";
+
     // print parts
     for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {
         if (!part_name[part]) continue;
@@ -270,6 +273,10 @@ void test_parser()
     // https://github.com/whatwg/url/issues/148
     url_testas("unknown://†/");
     url_testas("notspecial://H%4fSt/path");
+
+    // file slashes
+    // https://github.com/whatwg/url/issues/232#issuecomment-281263060
+    url_testas("file://localhost///a//../..//");
 }
 
 void test_setters()

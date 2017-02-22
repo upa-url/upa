@@ -37,7 +37,11 @@ struct UIDNAWrapper {
         UErrorCode err = U_ZERO_ERROR;
         // TODO(jungshik): Change options as different parties (browsers,
         // registrars, search engines) converge toward a consensus.
-        value = uidna_openUTS46(UIDNA_CHECK_BIDI, &err);
+        // UIDNA_NONTRANSITIONAL_TO_UNICODE: see module.exports.toUnicode(..)
+        // at: https://github.com/Sebmaster/tr46.js/blob/master/index.js
+        value = uidna_openUTS46(UIDNA_CHECK_BIDI
+            | UIDNA_NONTRANSITIONAL_TO_ASCII
+            | UIDNA_NONTRANSITIONAL_TO_UNICODE, &err);
         if (U_FAILURE(err)) {
             //todo: CHECK(false) << "failed to open UTS46 data with error: " << err;
             value = nullptr;
@@ -85,6 +89,35 @@ bool IDNToASCII(const char16_t* src, int src_len, simple_buffer<char16_t>& outpu
         // TODO(jungshik): Look at info.errors to handle them case-by-case basis
         // if necessary.
         if (err != U_BUFFER_OVERFLOW_ERROR || info.errors != 0)
+            return false;  // Unknown error, give up.
+
+        // Not enough room in our buffer, expand.
+        output.reserve(output_length);
+    }
+}
+
+// TODO: common function template for IDNToASCII and IDNToUnicode
+
+bool IDNToUnicode(const char* src, int src_len, simple_buffer<char>& output) {
+    // TODO: inicializavimas
+    static UIDNAWrapper g_uidna;
+
+    UIDNA* uidna = g_uidna.value;
+    assert(uidna != nullptr);
+    while (true) {
+        UErrorCode err = U_ZERO_ERROR;
+        UIDNAInfo info = UIDNA_INFO_INITIALIZER;
+        int output_length = uidna_nameToUnicodeUTF8(uidna, src, src_len, output.data(), output.capacity(), &info, &err);
+        if (U_SUCCESS(err)) {
+            output.resize(output_length);
+            return true;
+        }
+
+        // TODO: Signify validation errors for any returned errors, and then, return result
+        // https://url.spec.whatwg.org/#concept-domain-to-unicode
+        // TODO(jungshik): Look at info.errors to handle them case-by-case basis
+        // if necessary.
+        if (err != U_BUFFER_OVERFLOW_ERROR)
             return false;  // Unknown error, give up.
 
         // Not enough room in our buffer, expand.

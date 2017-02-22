@@ -138,6 +138,13 @@ public:
         PART_COUNT
     };
 
+    enum class HostType {
+        Opaque = 0,
+        Domain = 1,
+        IPv4 = 2,
+        IPv6 = 3
+    };
+
     /**
     * \brief Default constructor.
     * Constructs empty URL
@@ -225,6 +232,11 @@ public:
         return norm_url_;
     }
 
+    // ASCII serialized origin
+    std::string origin_ascii() const;
+    // Unicode serialized origin in utf-8
+    std::string origin() const;
+
     std::string protocol() const {
         return std::string(norm_url_.data(), part_end_[SCHEME] ? part_end_[SCHEME] + 1 : 0);
     }
@@ -249,6 +261,15 @@ public:
 
     std::string hostname() const {
         return get_part(HOST);
+    }
+
+    HostType host_type() const {
+        switch (flags_ & HOST_TYPE_MASK) {
+        case HOST_TYPE_OPAQUE: return HostType::Opaque;
+        case HOST_TYPE_DOMAIN: return HostType::Domain;
+        case HOST_TYPE_IPV4: return HostType::IPv4;
+        case HOST_TYPE_IPV6: return HostType::IPv6;
+        }
     }
 
     std::string port() const {
@@ -313,6 +334,12 @@ protected:
         FRAGMENT_FLAG = (1u << FRAGMENT),
         // other flags
         CANNOT_BE_BASE_FLAG = (1u << (PART_COUNT + 0)),
+        // host type
+        HOST_TYPE_MASK = (3u << (PART_COUNT + 1)),
+        HOST_TYPE_OPAQUE = 0,
+        HOST_TYPE_DOMAIN = (1u << (PART_COUNT + 1)),
+        HOST_TYPE_IPV4 = (2u << (PART_COUNT + 1)),
+        HOST_TYPE_IPV6 = (3u << (PART_COUNT + 1)),
         // initial flags (empty (but not null) parts)
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
@@ -365,6 +392,10 @@ protected:
     }
     void set_cannot_be_base() {
         set_flag(CANNOT_BE_BASE_FLAG);
+    }
+
+    void set_host_flag(const UrlFlag hf) {
+        flags_ = (flags_ & ~HOST_TYPE_MASK) | (HOST_FLAG | hf);
     }
 
     // info
@@ -452,6 +483,7 @@ public:
 
     // flags
     void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
+    void set_host_flag(const url::UrlFlag hf) { url_.set_host_flag(hf); }
     // IMPORTANT: cannot-be-a-base-URL flag must be set before or just after
     // SCHEME set; because other part's serialization depends on this flag
     void set_cannot_be_base() {
@@ -801,6 +833,59 @@ inline bool is_special_authority_end_char(CharT c) {
 }
 
 // url class
+
+// Origin
+// https://url.spec.whatwg.org/#concept-url-origin
+
+// ASCII serialization of an origin
+// https://html.spec.whatwg.org/multipage/browsers.html#ascii-serialisation-of-an-origin
+inline std::string url::origin_ascii() const {
+    if (is_special_scheme()) {
+        if (is_file_scheme())
+            return "null"; // opaque origin
+        // "scheme://"
+        std::string str_origin(norm_url_, 0, part_end_[SCHEME_SEP]);
+        // "host:port"
+        str_origin.append(norm_url_.data() + part_end_[HOST_START], norm_url_.data() + part_end_[PORT]);
+        return str_origin;
+    } else if (get_part_view(SCHEME).equal({ "blob", 4 })) {
+        url u;
+        if (u.parse(get_part_view(PATH), nullptr))
+            return u.origin_ascii();
+    }
+    return "null"; // opaque origin
+}
+
+// Unicode serialization of an origin
+// https://html.spec.whatwg.org/multipage/browsers.html#unicode-serialisation-of-an-origin
+inline std::string url::origin() const {
+    if (is_special_scheme()) {
+        if (is_file_scheme())
+            return "null"; // opaque origin
+        // "scheme://"
+        std::string str_origin(norm_url_, 0, part_end_[SCHEME_SEP]);
+        
+        // if host is a domain, then apply domain to Unicode
+        auto hostv = get_part_view(HOST);
+        if (host_type() == HostType::Domain) {
+            simple_buffer<char> buff;
+            IDNToUnicode(hostv.data(), static_cast<int>(hostv.length()), buff);
+            str_origin.append(buff.begin(), buff.end());
+        } else {
+            str_origin.append(hostv.data(), hostv.length());
+        }
+
+        if (!is_null(PORT))
+            str_origin.append(norm_url_.data() + part_end_[HOST], norm_url_.data() + part_end_[PORT]);
+        return str_origin;
+    } else if (get_part_view(SCHEME).equal({ "blob", 4 })) {
+        url u;
+        if (u.parse(get_part_view(PATH), nullptr))
+            return u.origin();
+    }
+    return "null"; // opaque origin
+}
+
 
 inline std::string url::get_part(PartType t) const {
     if (t == SCHEME)
@@ -1392,7 +1477,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             // set empty host
             urls.start_part(url::HOST);
             urls.save_part();
-            urls.set_flag(url::HOST_FLAG);
+            urls.set_host_flag(url::HOST_FLAG);
             // if state override is given, then return
             if (state_override)
                 return true;
@@ -1601,7 +1686,7 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
         // set empty host
         urls.start_part(url::HOST);
         urls.save_part();
-        urls.set_flag(url::HOST_FLAG);
+        urls.set_host_flag(url::HOST_FLAG);
         return true;
     }
     assert(first < last);
@@ -1699,7 +1784,7 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
         std::string& str_host = urls.start_part(url::HOST);
         str_host.append(buff_ascii.begin(), buff_ascii.end());
         urls.save_part();
-        urls.set_flag(url::HOST_FLAG);
+        urls.set_host_flag(url::HOST_TYPE_DOMAIN);
     }
     return res != RES_ERROR;
 }
@@ -1716,7 +1801,7 @@ inline bool url_parser::parse_opaque_host(url_serializer& urls, const CharT* fir
     // todėl reikalinga kita kodavimo f-ja:
     do_simple_path(first, last, str_host);
     urls.save_part();
-    urls.set_flag(url::HOST_FLAG);
+    urls.set_host_flag(url::HOST_TYPE_OPAQUE);
     return true;
 }
 
@@ -1729,7 +1814,7 @@ inline ParseResult url_parser::parse_ipv4(url_serializer& urls, const CharT* fir
         std::string& str_ipv4 = urls.start_part(url::HOST);
         ipv4_serialize(ipv4, str_ipv4);
         urls.save_part();
-        urls.set_flag(url::HOST_FLAG);
+        urls.set_host_flag(url::HOST_TYPE_IPV4);
     }
     return res;
 }
@@ -1744,7 +1829,7 @@ inline bool url_parser::parse_ipv6(url_serializer& urls, const CharT* first, con
         ipv6_serialize(ipv6addr, str_ipv6);
         str_ipv6.push_back(']');
         urls.save_part();
-        urls.set_flag(url::HOST_FLAG);
+        urls.set_host_flag(url::HOST_TYPE_IPV6);
         return true;
     }
     return false;
@@ -2043,7 +2128,7 @@ inline void url_serializer::clear_host() {
     // paliekam tik "scheme:"
     url_.norm_url_.resize(url_.part_end_[url::SCHEME] + 1);
     fill_parts_offset(url::SCHEME_SEP, url::PATH, 0);
-    url_.flags_ &= ~url::HOST_FLAG; // set to null
+    url_.flags_ &= ~(url::HOST_FLAG | url::HOST_TYPE_MASK); // set to null
     last_pt_ = url::SCHEME;
 }
 
@@ -2117,8 +2202,8 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
         }
     }
 
-    // copy not null flags
-    unsigned mask = 0;
+    // copy host_type & not null flags
+    unsigned mask = url::HOST_TYPE_MASK;
     for (int ind = t1; ind <= t2; ind++) {
         mask |= (1u << ind);
     }
