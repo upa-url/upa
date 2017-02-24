@@ -224,6 +224,16 @@ void test_parser()
     url_testas("file:///example.net/C:/");
     url_testas("file:/example.net/C:/");
     url_testas("file:example.net/C:/");
+    // no warnings?
+    url_testas("file:///C:/path");
+    url_testas("file://C:/path");
+    url_testas("file:/C:/path");
+    url_testas("file:C:/path");
+
+    url_testas("file:///nothost/path");
+    url_testas("file://host/path");
+    url_testas("file:/nothost/path");
+    url_testas("file:nothost/path");
 
     // file and ? or #
     // jsdom/whatwg-url parser BUG
