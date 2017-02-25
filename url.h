@@ -1598,11 +1598,11 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
                 urls.is_empty_path() &&
                 is_Windows_drive(pointer[0], pointer[1]))
             {
-                if (!urls.is_null(url::HOST)) {
-                    // 1. If url’s host is non-null, validation error
+                if (!urls.is_empty(url::HOST)) {
+                    // 1. If url’s host is not the empty string, validation error
                     // TODO-WARN: validation error
-                    // 2. Set url’s host to null
-                    urls.clear_host();
+                    // 2. Set url’s host to the empty string
+                    urls.empty_host();
                 }
                 // and replace the second code point in buffer with ":"
                 std::string& str_path = urls.start_path_segment();
