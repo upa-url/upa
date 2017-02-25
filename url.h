@@ -1193,7 +1193,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             // set empty host
             urls.start_part(url::HOST);
             urls.save_part();
-            urls.set_host_flag(url::HOST_FLAG);
+            urls.set_host_flag(url::HOST_TYPE_STRING);
             // if state override is given, then return
             if (state_override)
                 return true;
@@ -1402,7 +1402,7 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
         // set empty host
         urls.start_part(url::HOST);
         urls.save_part();
-        urls.set_host_flag(url::HOST_FLAG);
+        urls.set_host_flag(url::HOST_TYPE_STRING);
         return true;
     }
     assert(first < last);
