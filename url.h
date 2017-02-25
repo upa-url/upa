@@ -139,10 +139,11 @@ public:
     };
 
     enum class HostType {
-        Opaque = 0,
-        Domain = 1,
-        IPv4 = 2,
-        IPv6 = 3
+        Empty = 0,
+        Opaque,
+        Domain,
+        IPv4,
+        IPv6
     };
 
     /**
@@ -232,7 +233,7 @@ public:
 
     HostType host_type() const {
         switch (flags_ & HOST_TYPE_MASK) {
-        case HOST_TYPE_OPAQUE: return HostType::Opaque;
+        case HOST_TYPE_STRING: return is_empty(HOST) ? HostType::Empty : HostType::Opaque;
         case HOST_TYPE_DOMAIN: return HostType::Domain;
         case HOST_TYPE_IPV4: return HostType::IPv4;
         case HOST_TYPE_IPV6: return HostType::IPv6;
@@ -303,7 +304,7 @@ protected:
         CANNOT_BE_BASE_FLAG = (1u << (PART_COUNT + 0)),
         // host type
         HOST_TYPE_MASK = (3u << (PART_COUNT + 1)),
-        HOST_TYPE_OPAQUE = 0,
+        HOST_TYPE_STRING = 0,
         HOST_TYPE_DOMAIN = (1u << (PART_COUNT + 1)),
         HOST_TYPE_IPV4 = (2u << (PART_COUNT + 1)),
         HOST_TYPE_IPV6 = (3u << (PART_COUNT + 1)),
@@ -1516,7 +1517,7 @@ inline bool url_parser::parse_opaque_host(url_serializer& urls, const CharT* fir
     // todėl reikalinga kita kodavimo f-ja:
     do_simple_path(first, last, str_host);
     urls.save_part();
-    urls.set_host_flag(url::HOST_TYPE_OPAQUE);
+    urls.set_host_flag(url::HOST_TYPE_STRING);
     return true;
 }
 
