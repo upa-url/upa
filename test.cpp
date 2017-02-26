@@ -224,6 +224,9 @@ void test_parser()
     url_testas("file:///example.net/C:/");
     url_testas("file:/example.net/C:/");
     url_testas("file:example.net/C:/");
+    // C:
+    url_testas("file://example.net/p/../C:/");
+    url_testas("file://example.net/../C:/");
     // no warnings?
     url_testas("file:///C:/path");
     url_testas("file://C:/path");
