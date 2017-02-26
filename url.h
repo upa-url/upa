@@ -1849,10 +1849,19 @@ inline void url_serializer::clear_host() {
 }
 
 inline void url_serializer::empty_host() {
-    assert(last_pt_ == url::HOST);
+    assert(last_pt_ >= url::HOST);
     const std::size_t host_end = url_.part_end_[url::HOST_START];
-    url_.part_end_[url::HOST] = host_end;
-    url_.norm_url_.resize(host_end);
+    if (last_pt_ == url::HOST) {
+        url_.part_end_[url::HOST] = host_end;
+        url_.norm_url_.resize(host_end);
+    } else if (last_pt_ > url::HOST) {
+        const size_t diff = url_.part_end_[url::HOST] - host_end;
+        if (diff) {
+            for (int pt = url::HOST; pt <= last_pt_; pt++)
+                url_.part_end_[pt] -= diff;
+            url_.norm_url_.erase(host_end, diff);
+        }
+    }
 }
 
 // append parts from other url
