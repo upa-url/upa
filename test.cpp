@@ -337,6 +337,15 @@ void test_setters()
     url.hostname(sz, sz + std::strlen(sz));
     cout_url(url);
 
+    // test windows drive letters and ..
+    sz = "example.org";
+    url.hostname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "/c|/../path";
+    url.pathname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
     // non-special
     url.parse("non-special:/path", nullptr);
     cout_url(url);
