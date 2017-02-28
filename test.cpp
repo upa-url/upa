@@ -311,12 +311,21 @@ void test_setters()
     url.port(sz, sz + std::strlen(sz));
     cout_url(url);
 
+    sz = "/path";
+    url.pathname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
     sz = "#frag";
     url.hash(sz, sz + std::strlen(sz));
     cout_url(url);
 
     sz = "?a=3";
     url.search(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    // test path
+    sz = "/other/path";
+    url.pathname(sz, sz + std::strlen(sz));
     cout_url(url);
 
     // test switch to file: scheme
