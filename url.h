@@ -24,6 +24,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 
 template<typename CharT, typename Traits = std::char_traits<CharT>>
@@ -470,13 +471,13 @@ public:
     // path
     // TODO: append_to_path() --> append_empty_to_path()
     void append_to_path();
-    std::string& start_path_segment();
-    void save_path_segment();
+    virtual std::string& start_path_segment();
+    virtual void save_path_segment();
     // if '/' not required:
     std::string& start_path_string();
     void save_path_string();
 
-    void shorten_path();
+    virtual void shorten_path();
 
     typedef bool (url::*PathOpFn)(std::size_t& path_end, unsigned& segment_count) const;
     void append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn = nullptr);
@@ -494,7 +495,7 @@ public:
     // get info
     str_view<char> get_part_view(url::PartType t) const { return url_.get_part_view(t); }
     bool is_empty(const url::PartType t) const { return url_.is_empty(t); }
-    bool is_empty_path() const { return url_.path_segment_count_ == 0; }
+    virtual bool is_empty_path() const { return url_.path_segment_count_ == 0; }
     bool is_null(const url::PartType t) const  { return url_.is_null(t); }
     bool is_special_scheme() const { return url_.is_special_scheme(); }
     bool is_file_scheme() const { return url_.is_file_scheme(); }
@@ -585,7 +586,7 @@ public:
             if (curr_pt_ == url::HOST && is_null(url::HOST)) {
                 // TODO optimmizuoti: start_part(..): strp_ += "//"
                 replace_part(url::SCHEME_SEP, "://", 3);
-                url_.part_end_[url::SCHEME_SEP] = url_.part_end_[url::SCHEME] + 3; // skip "://"
+                url_.part_end_[url::SCHEME_SEP] = url_.part_end_[url::SCHEME] + 3; // point after "://"
             }
             bool not_empty = strp_.length() > detail::kPartStart[curr_pt_];
             if ((curr_pt_ == url::PASSWORD || curr_pt_ == url::PORT) && !not_empty) {
@@ -627,6 +628,13 @@ public:
     virtual void clear_host() { clear_part(url::HOST); }
     virtual void empty_host() { empty_part(url::HOST); }
 
+    // path
+    virtual std::string& start_path_segment();
+    virtual void save_path_segment();
+    void commit_path();
+    virtual void shorten_path();
+    virtual bool is_empty_path() const;
+
 protected:
     void replace_part(url::PartType new_pt, const char* str, size_t len) {
         const std::size_t b = (new_pt > url::SCHEME) ? url_.part_end_[new_pt - 1] : 0;
@@ -664,6 +672,7 @@ protected:
 protected:
     bool use_strp_;
     std::string strp_;
+    std::vector<size_t> path_seg_end_;
     url::PartType curr_pt_;
 };
 
@@ -1003,7 +1012,14 @@ inline bool url::port(const CharT* first, const CharT* last) {
 
 template <typename CharT>
 inline bool url::pathname(const CharT* first, const CharT* last) {
-    //TODO
+    if (!cannot_be_base()) {
+        url_setter urls(*this);
+
+        if (url_parser::url_parse(urls, first, last, nullptr, url_parser::path_start_state)) {
+            urls.commit_path();
+            return true;
+        }
+    }
     return false;
 }
 
@@ -2208,6 +2224,44 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
         mask |= (1u << ind);
     }
     url_.flags_ = (url_.flags_ & ~mask) | (src.flags_ & mask);
+}
+
+
+// url_setter
+
+inline std::string& url_setter::start_path_segment() {
+    //curr_pt_ = url::PATH; // not used
+    strp_ += '/';
+    return strp_;
+}
+
+inline void url_setter::save_path_segment() {
+    path_seg_end_.push_back(strp_.length());
+}
+
+inline void url_setter::commit_path() {
+    // fill part_end_ until url::PATH if not filled
+    fill_parts_offset(find_last_part(url::PATH), url::PATH, url_.norm_url_.length());
+    // replace path part
+    replace_part(url::PATH, strp_.data(), strp_.length());
+    url_.part_end_[url::PATH] = url_.part_end_[url::PATH - 1] + strp_.length();
+    url_.path_segment_count_ = path_seg_end_.size();
+}
+
+inline void url_setter::shorten_path() {
+    if (path_seg_end_.size() == 1) {
+        if (is_file_scheme() && strp_.length() == 3 && is_normalized_Windows_drive(strp_[1], strp_[2]))
+            return;
+        path_seg_end_.pop_back();
+        strp_.clear();
+    } else if (path_seg_end_.size() >= 2) {
+        path_seg_end_.pop_back();
+        strp_.resize(path_seg_end_.back());
+    }
+}
+
+inline bool url_setter::is_empty_path() const {
+    return path_seg_end_.empty();
 }
 
 
