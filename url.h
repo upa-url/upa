@@ -627,14 +627,12 @@ public:
     void clear_part(const url::PartType pt) {
         if (url_.part_end_[pt]) {
             replace_part(pt, "", 0);
-            url_.part_end_[pt] = url_.part_end_[pt - 1];
             url_.flags_ &= ~(1u << pt); // set to null
         }
     }
     void empty_part(const url::PartType pt) {
         if (url_.part_end_[pt]) {
             replace_part(pt, "", 0);
-            url_.part_end_[pt] = url_.part_end_[pt - 1];
         }
     }
 
@@ -2265,10 +2263,12 @@ inline void url_setter::save_path_segment() {
 
 inline void url_setter::commit_path() {
     // fill part_end_ until url::PATH if not filled
-    fill_parts_offset(find_last_part(url::PATH), url::PATH, url_.norm_url_.length());
+    for (int ind = url::PATH; ind > 0; ind--) {
+        if (url_.part_end_[ind]) break;
+        url_.part_end_[ind] = url_.norm_url_.length();
+    }
     // replace path part
     replace_part(url::PATH, strp_.data(), strp_.length());
-    url_.part_end_[url::PATH] = url_.part_end_[url::PATH - 1] + strp_.length();
     url_.path_segment_count_ = path_seg_end_.size();
 }
 
