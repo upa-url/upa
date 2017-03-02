@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <initializer_list>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -560,6 +561,12 @@ public:
         if (url_.part_end_[new_pt]) {
             use_strp_ = true;
             switch (new_pt) {
+            case url::HOST:
+                if (get_part_len(url::SCHEME_SEP) < 3)
+                    strp_ = "://";
+                else
+                    strp_.clear();
+                break;
             case url::PASSWORD:
             case url::PORT:
                 strp_ = ':';
@@ -583,27 +590,44 @@ public:
     }
     void save_part() {
         if (use_strp_) {
-            if (curr_pt_ == url::HOST && is_null(url::HOST)) {
-                // TODO optimmizuoti: start_part(..): strp_ += "//"
-                replace_part(url::SCHEME_SEP, "://", 3);
-                url_.part_end_[url::SCHEME_SEP] = url_.part_end_[url::SCHEME] + 3; // point after "://"
+            if (curr_pt_ == url::HOST) {
+                if (get_part_len(url::SCHEME_SEP) < 3)
+                    // SCHEME_SEP, USERNAME, PASSWORD, HOST_START; HOST
+                    replace_part(url::SCHEME_SEP, strp_.data(), strp_.length(), { 3, 3, 3, 3 });
+                else
+                    replace_part(url::HOST, strp_.data(), strp_.length());
+            } else {
+                const bool empty_val = strp_.length() <= detail::kPartStart[curr_pt_];
+                if ((curr_pt_ == url::PASSWORD || curr_pt_ == url::PORT) && empty_val)
+                    strp_.clear(); // drop ':'
+                switch (curr_pt_) {
+                case url::USERNAME:
+                    if (!empty_val && !has_credentials()) {
+                        strp_ += '@';
+                        // USERNAME, PASSWORD; HOST_START
+                        replace_part(curr_pt_, strp_.data(), strp_.length(), { strp_.length() - 1, strp_.length() - 1 });
+                    } else if (empty_val && is_empty(url::PASSWORD)) {
+                        replace_part(curr_pt_, "", 0, { 0, 0 });
+                    } else {
+                        replace_part(curr_pt_, strp_.data(), strp_.length());
+                    }
+                    break;
+                case url::PASSWORD:
+                    if (!empty_val && !has_credentials()) {
+                        strp_ += '@';
+                        // PASSWORD; HOST_START
+                        replace_part(curr_pt_, strp_.data(), strp_.length(), { strp_.length() - 1 });
+                    } else if (empty_val && is_empty(url::USERNAME)) {
+                        replace_part(curr_pt_, "", 0, { 0 });
+                    } else {
+                        replace_part(curr_pt_, strp_.data(), strp_.length());
+                    }
+                    break;
+                default:
+                    replace_part(curr_pt_, strp_.data(), strp_.length());
+                    break;
+                }
             }
-            bool not_empty = strp_.length() > detail::kPartStart[curr_pt_];
-            if ((curr_pt_ == url::PASSWORD || curr_pt_ == url::PORT) && !not_empty) {
-                strp_.clear();
-            }
-            size_t part_end = url_.part_end_[curr_pt_ - 1] + strp_.length();
-            if ((curr_pt_ == url::USERNAME || curr_pt_ == url::PASSWORD) && not_empty
-                && !has_credentials()) {
-                strp_ += '@';
-            }
-            replace_part(curr_pt_, strp_.data(), strp_.length());
-            url_.part_end_[curr_pt_] = part_end;
-            // TODO: to not HACK:
-            if (curr_pt_ == url::USERNAME && is_empty(url::PASSWORD))
-                url_.part_end_[url::PASSWORD] = part_end;
-            if ((curr_pt_ == url::USERNAME || curr_pt_ == url::PASSWORD) && !not_empty && !has_credentials())
-                empty_part(url::HOST_START);
             // cleanup
             strp_.clear();
         } else {
@@ -636,6 +660,9 @@ public:
     virtual bool is_empty_path() const;
 
 protected:
+    std::size_t get_part_len(const url::PartType pt) {
+        return url_.part_end_[pt] - url_.part_end_[pt - 1];
+    }
     void replace_part(const url::PartType new_pt, const char* str, const size_t len) {
         const std::size_t b = (new_pt > url::SCHEME) ? url_.part_end_[new_pt - 1] : 0;
         const std::size_t l = url_.part_end_[new_pt] - b;
@@ -643,21 +670,23 @@ protected:
         // adjust positions
         const int diff = static_cast<int>(len)-static_cast<int>(l);
         if (diff) {
-            for (auto it = std::begin(url_.part_end_) + new_pt; it < std::end(url_.part_end_); it++) {
+            for (auto it = std::begin(url_.part_end_) + new_pt; it != std::end(url_.part_end_); it++) {
                 if (*it == 0) break;
                 *it += diff;
             }
         }
     }
-    void replace_part(const url::PartType new_pt, const char* str, const size_t len, const size_t len1) {
+    void replace_part(const url::PartType new_pt, const char* str, const size_t len, std::initializer_list<size_t> lst) {
         const std::size_t b = (new_pt > url::SCHEME) ? url_.part_end_[new_pt - 1] : 0;
-        const std::size_t l = url_.part_end_[new_pt + 1] - b;
+        const std::size_t l = url_.part_end_[new_pt + lst.size()] - b;
         url_.norm_url_.replace(b, l, str, len);
-        url_.part_end_[new_pt] = b + len1;
+        std::transform(lst.begin(), lst.end(), std::begin(url_.part_end_) + new_pt, [b](size_t pos) {
+            return b + pos;
+        });
         // adjust positions
         const int diff = static_cast<int>(len)-static_cast<int>(l);
         if (diff) {
-            for (auto it = std::begin(url_.part_end_) + new_pt; it < std::end(url_.part_end_); it++) {
+            for (auto it = std::begin(url_.part_end_) + new_pt + lst.size(); it != std::end(url_.part_end_); it++) {
                 if (*it == 0) break;
                 *it += diff;
             }
