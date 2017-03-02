@@ -1837,15 +1837,9 @@ inline void url_serializer::save_path_string() {
 
 
 inline void url_serializer::clear_host() {
-    assert(!is_empty(url::SCHEME));
-    assert(last_pt_ == url::HOST || (last_pt_ == url::PATH && is_empty_path()));
-    // if last_pt_ == url::PATH
-    url_.part_end_[url::PATH] = 0;
-    // paliekam tik "scheme:"
-    url_.norm_url_.resize(url_.part_end_[url::SCHEME] + 1);
-    fill_parts_offset(url::SCHEME_SEP, url::PATH, 0);
+    //NOT USED
+    empty_host();
     url_.flags_ &= ~(url::HOST_FLAG | url::HOST_TYPE_MASK); // set to null
-    last_pt_ = url::SCHEME;
 }
 
 inline void url_serializer::empty_host() {
