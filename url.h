@@ -597,8 +597,6 @@ public:
                     replace_part(url::HOST, strp_.data(), strp_.length());
             } else {
                 const bool empty_val = strp_.length() <= detail::kPartStart[curr_pt_];
-                if ((curr_pt_ == url::PASSWORD || curr_pt_ == url::PORT) && empty_val)
-                    strp_.clear(); // drop ':'
                 switch (curr_pt_) {
                 case url::USERNAME:
                 case url::PASSWORD:
@@ -606,14 +604,15 @@ public:
                         strp_ += '@';
                         // USERNAME, PASSWORD; HOST_START
                         replace_part(url::HOST_START, strp_.data(), strp_.length(), curr_pt_, strp_.length() - 1);
+                        break;
                     } else if (empty_val && is_empty(curr_pt_ == url::USERNAME ? url::PASSWORD : url::USERNAME)) {
                         // both username and password will be empty, so also drop '@'
                         replace_part(url::HOST_START, "", 0, curr_pt_, 0);
-                    } else {
-                        replace_part(curr_pt_, strp_.data(), strp_.length());
+                        break;
                     }
-                    break;
                 default:
+                    if ((curr_pt_ == url::PASSWORD || curr_pt_ == url::PORT) && empty_val)
+                        strp_.clear(); // drop ':'
                     replace_part(curr_pt_, strp_.data(), strp_.length());
                     break;
                 }
