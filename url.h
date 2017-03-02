@@ -24,6 +24,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 
 template<typename CharT, typename Traits = std::char_traits<CharT>>
@@ -175,6 +176,8 @@ public:
 
     void clear();
 
+    // parser
+    
     template <typename CharT>
     bool parse(const CharT* first, const CharT* last, const url* base);
     // wchar_t
@@ -194,6 +197,37 @@ public:
         while (*last) last++;
         return parse(strz, last, base);
     }
+
+    // setters
+
+    template <typename CharT>
+    bool protocol(const CharT* first, const CharT* last);
+
+    template <typename CharT>
+    void username(const CharT* first, const CharT* last);
+
+    template <typename CharT>
+    void password(const CharT* first, const CharT* last);
+
+    template <typename CharT>
+    bool host(const CharT* first, const CharT* last);
+
+    template <typename CharT>
+    bool hostname(const CharT* first, const CharT* last);
+
+    template <typename CharT>
+    bool port(const CharT* first, const CharT* last);
+
+    template <typename CharT>
+    bool pathname(const CharT* first, const CharT* last);
+
+    template <typename CharT>
+    bool search(const CharT* first, const CharT* last);
+
+    template <typename CharT>
+    bool hash(const CharT* first, const CharT* last);
+
+    // getters
 
     // get serialized URL
     const std::string& href() const {
@@ -366,6 +400,11 @@ protected:
         flags_ = (flags_ & ~HOST_TYPE_MASK) | (HOST_FLAG | hf);
     }
 
+    // info
+    bool canHaveUsernamePasswordPort() {
+        return !(is_empty(url::HOST) || cannot_be_base() || is_file_scheme());
+    }
+
 private:
     std::string norm_url_;
     std::array<std::size_t, PART_COUNT> part_end_;
@@ -374,6 +413,7 @@ private:
     unsigned path_segment_count_;
 
     friend class url_serializer;
+    friend class url_setter;
     friend class url_parser;
 };
 
@@ -398,7 +438,7 @@ public:
     ~url_serializer();
 
     void new_url() { url_.clear(); }
-    void reserve(size_t new_cap) { url_.norm_url_.reserve(new_cap); }
+    virtual void reserve(size_t new_cap) { url_.norm_url_.reserve(new_cap); }
 
     // set data
     void set_scheme(const url& src) { url_.set_scheme(src); }
@@ -406,36 +446,39 @@ public:
     void set_scheme(std::size_t b, std::size_t e) { url_.set_scheme(b, e); }
 
     //TODO atskirti inline
-    std::string& start_scheme() {
+    virtual std::string& start_scheme() {
         url_.norm_url_.resize(0);
         return url_.norm_url_;
     }
-    void save_scheme() {
+    virtual void save_scheme() {
         set_scheme(0, url_.norm_url_.length());
         url_.norm_url_.push_back(':');
     }
-    void clear_scheme() {
+    virtual void clear_scheme() {
         assert(last_pt_ == url::SCHEME);
         url_.clear_scheme();
     }
 
     void fill_parts_offset(url::PartType t1, url::PartType t2, size_t offset);
-    std::string& start_part(url::PartType new_pt);
-    void save_part();
+    virtual std::string& start_part(url::PartType new_pt);
+    virtual void save_part();
 
-    void clear_host();
-    void empty_host();
+    // TODO: galima naudoti vietoj clear_host():
+    virtual void clear_part(const url::PartType pt) {}
+
+    virtual void clear_host();
+    virtual void empty_host();
 
     // path
     // TODO: append_to_path() --> append_empty_to_path()
     void append_to_path();
-    std::string& start_path_segment();
-    void save_path_segment();
+    virtual std::string& start_path_segment();
+    virtual void save_path_segment();
     // if '/' not required:
     std::string& start_path_string();
     void save_path_string();
 
-    void shorten_path();
+    virtual void shorten_path();
 
     typedef bool (url::*PathOpFn)(std::size_t& path_end, unsigned& segment_count) const;
     void append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn = nullptr);
@@ -453,7 +496,7 @@ public:
     // get info
     str_view<char> get_part_view(url::PartType t) const { return url_.get_part_view(t); }
     bool is_empty(const url::PartType t) const { return url_.is_empty(t); }
-    bool is_empty_path() const { return url_.path_segment_count_ == 0; }
+    virtual bool is_empty_path() const { return url_.path_segment_count_ == 0; }
     bool is_null(const url::PartType t) const  { return url_.is_null(t); }
     bool is_special_scheme() const { return url_.is_special_scheme(); }
     bool is_file_scheme() const { return url_.is_file_scheme(); }
@@ -481,6 +524,179 @@ public:
 protected:
     url& url_;
     url::PartType last_pt_;
+};
+
+// TODO
+class url_setter : public url_serializer {
+public:
+    url_setter(url& dest_url)
+        : url_serializer(dest_url)
+        , use_strp_(true)
+        , curr_pt_(url::SCHEME)
+    {}
+
+    ~url_setter() {
+        //todo: kad ~url_serializer() nieko nedarytų:
+        last_pt_ = url::FRAGMENT;
+    }
+
+    //???
+    void reserve(size_t new_cap) { strp_.reserve(new_cap); }
+
+    std::string& start_scheme() {
+        return strp_;
+    }
+    void save_scheme() {
+        replace_part(url::SCHEME, strp_.data(), strp_.length());
+        set_scheme(0, strp_.length());
+    }
+    void clear_scheme() {
+        //?? assert(last_pt_ == url::SCHEME);
+        strp_.clear();
+    }
+
+    std::string& start_part(url::PartType new_pt) {
+        assert(new_pt > url::SCHEME);
+        curr_pt_ = new_pt;
+        if (url_.part_end_[new_pt]) {
+            use_strp_ = true;
+            switch (new_pt) {
+            case url::HOST:
+                if (get_part_len(url::SCHEME_SEP) < 3)
+                    strp_ = "://";
+                else
+                    strp_.clear();
+                break;
+            case url::PASSWORD:
+            case url::PORT:
+                strp_ = ':';
+                break;
+            case url::QUERY:
+                strp_ = '?';
+                break;
+            case url::FRAGMENT:
+                strp_ = '#';
+                break;
+            default:
+                strp_.clear();
+                break;
+            }
+            return strp_;
+        } else {
+            use_strp_ = false;
+            last_pt_ = find_last_part(new_pt);
+            return url_serializer::start_part(new_pt);
+        }
+    }
+    void save_part() {
+        if (use_strp_) {
+            if (curr_pt_ == url::HOST) {
+                if (get_part_len(url::SCHEME_SEP) < 3)
+                    // SCHEME_SEP, USERNAME, PASSWORD, HOST_START; HOST
+                    replace_part(url::HOST, strp_.data(), strp_.length(), url::SCHEME_SEP, 3);
+                else
+                    replace_part(url::HOST, strp_.data(), strp_.length());
+            } else {
+                const bool empty_val = strp_.length() <= detail::kPartStart[curr_pt_];
+                switch (curr_pt_) {
+                case url::USERNAME:
+                case url::PASSWORD:
+                    if (!empty_val && !has_credentials()) {
+                        strp_ += '@';
+                        // USERNAME, PASSWORD; HOST_START
+                        replace_part(url::HOST_START, strp_.data(), strp_.length(), curr_pt_, strp_.length() - 1);
+                        break;
+                    } else if (empty_val && is_empty(curr_pt_ == url::USERNAME ? url::PASSWORD : url::USERNAME)) {
+                        // both username and password will be empty, so also drop '@'
+                        replace_part(url::HOST_START, "", 0, curr_pt_, 0);
+                        break;
+                    }
+                default:
+                    if ((curr_pt_ == url::PASSWORD || curr_pt_ == url::PORT) && empty_val)
+                        strp_.clear(); // drop ':'
+                    replace_part(curr_pt_, strp_.data(), strp_.length());
+                    break;
+                }
+            }
+            // cleanup
+            strp_.clear();
+        } else {
+            url_serializer::save_part();
+        }
+    }
+
+    void clear_part(const url::PartType pt) {
+        if (url_.part_end_[pt]) {
+            replace_part(pt, "", 0);
+            url_.flags_ &= ~(1u << pt); // set to null
+        }
+    }
+    void empty_part(const url::PartType pt) {
+        if (url_.part_end_[pt]) {
+            replace_part(pt, "", 0);
+        }
+    }
+
+    virtual void clear_host() { clear_part(url::HOST); }
+    virtual void empty_host() { empty_part(url::HOST); }
+
+    // path
+    virtual std::string& start_path_segment();
+    virtual void save_path_segment();
+    void commit_path();
+    virtual void shorten_path();
+    virtual bool is_empty_path() const;
+
+protected:
+    std::size_t get_part_pos(const url::PartType pt) const {
+        return pt > url::SCHEME ? url_.part_end_[pt - 1] : 0;
+    }
+    std::size_t get_part_len(const url::PartType pt) const {
+        return url_.part_end_[pt] - url_.part_end_[pt - 1];
+    }
+    void replace_part(const url::PartType new_pt, const char* str, const size_t len) {
+        replace_part(new_pt, str, len, new_pt, 0);
+    }
+    void replace_part(const url::PartType last_pt, const char* str, const size_t len, const url::PartType first_pt, const size_t len0) {
+        const std::size_t b = get_part_pos(first_pt);
+        const std::size_t l = url_.part_end_[last_pt] - b;
+        url_.norm_url_.replace(b, l, str, len);
+        std::fill(std::begin(url_.part_end_) + first_pt, std::begin(url_.part_end_) + last_pt, b + len0);
+        // adjust positions
+        const int diff = static_cast<int>(len)-static_cast<int>(l);
+        if (diff) {
+            for (auto it = std::begin(url_.part_end_) + last_pt; it != std::end(url_.part_end_); it++) {
+                if (*it == 0) break;
+                *it += diff;
+            }
+        }
+    }
+
+    url::PartType find_last_part(url::PartType pt) const {
+        for (int ind = pt; ind > 0; ind--)
+            if (url_.part_end_[ind])
+                return static_cast<url::PartType>(ind);
+        return url::SCHEME;
+    }
+
+#if 0
+    void insert_part(url::PartType new_pt, const char* str, size_t len) {
+        assert(new_pt > url::SCHEME);
+        if (url_.part_end_[new_pt]) {
+            replace_part(new_pt, str, len);
+        } else {
+            last_pt_ = find_last_part(new_pt);
+            url_serializer::start_part(new_pt).append(str, len);
+            url_serializer::save_part();
+        }
+    }
+#endif
+
+protected:
+    bool use_strp_;
+    std::string strp_;
+    std::vector<size_t> path_seg_end_;
+    url::PartType curr_pt_;
 };
 
 
@@ -752,6 +968,109 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     return url_parser::url_parse(urls, first, last, base);
 }
 
+template <typename CharT>
+inline bool url::protocol(const CharT* first, const CharT* last) {
+    url_setter urls(*this);
+
+    return url_parser::url_parse(urls, first, last, nullptr, url_parser::scheme_start_state);
+}
+
+template <typename CharT>
+inline void url::username(const CharT* first, const CharT* last) {
+    if (canHaveUsernamePasswordPort()) {
+        url_setter urls(*this);
+
+        std::string& str_username = urls.start_part(url::USERNAME);
+        // UTF-8 percent encode it using the userinfo encode set
+        detail::AppendStringOfType(first, last, detail::CHAR_USERINFO, str_username);
+        urls.save_part();
+    }
+}
+
+template <typename CharT>
+inline void url::password(const CharT* first, const CharT* last) {
+    if (canHaveUsernamePasswordPort()) {
+        url_setter urls(*this);
+
+        std::string& str_password = urls.start_part(url::PASSWORD);
+        // UTF-8 percent encode it using the userinfo encode set
+        detail::AppendStringOfType(first, last, detail::CHAR_USERINFO, str_password);
+        urls.save_part();
+    }
+}
+
+template <typename CharT>
+inline bool url::host(const CharT* first, const CharT* last) {
+    if (!cannot_be_base()) {
+        url_setter urls(*this);
+
+        return url_parser::url_parse(urls, first, last, nullptr, url_parser::host_state);
+    }
+    return false;
+}
+
+template <typename CharT>
+inline bool url::hostname(const CharT* first, const CharT* last) {
+    if (!cannot_be_base()) {
+        url_setter urls(*this);
+
+        return url_parser::url_parse(urls, first, last, nullptr, url_parser::hostname_state);
+    }
+    return false;
+}
+
+template <typename CharT>
+inline bool url::port(const CharT* first, const CharT* last) {
+    if (canHaveUsernamePasswordPort()) {
+        url_setter urls(*this);
+        if (first == last) {
+            urls.clear_part(url::PORT);
+            return true;
+        } else {
+            return url_parser::url_parse(urls, first, last, nullptr, url_parser::port_state);
+        }
+    }
+    return false;
+}
+
+template <typename CharT>
+inline bool url::pathname(const CharT* first, const CharT* last) {
+    if (!cannot_be_base()) {
+        url_setter urls(*this);
+
+        if (url_parser::url_parse(urls, first, last, nullptr, url_parser::path_start_state)) {
+            urls.commit_path();
+            return true;
+        }
+    }
+    return false;
+}
+
+template <typename CharT>
+inline bool url::search(const CharT* first, const CharT* last) {
+    url_setter urls(*this);
+    if (first == last) {
+        urls.clear_part(url::QUERY);
+        //todo: empty context object’s query object’s list
+        return true;
+    }
+    if (*first == '?') first++;
+    return url_parser::url_parse(urls, first, last, nullptr, url_parser::query_state);
+    //todo: set context object’s query object’s list to the result of parsing input
+}
+
+template <typename CharT>
+inline bool url::hash(const CharT* first, const CharT* last) {
+    url_setter urls(*this);
+    if (first == last) {
+        urls.clear_part(url::FRAGMENT);
+        return true;
+    }
+    if (*first == '#') first++;
+    return url_parser::url_parse(urls, first, last, nullptr, url_parser::fragment_state);
+}
+
+
 // https://url.spec.whatwg.org/#concept-basic-url-parser
 template <typename CharT>
 inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override)
@@ -789,7 +1108,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         bool is_scheme = false;
         state = no_scheme_state;
         auto it_colon = std::find(pointer, last, ':');
-        if (it_colon < last) {
+        if (it_colon < last || state_override /* kad protocol(s) nereiktų s + ':' */) {
             is_scheme = true;
             // start of scheme
             std::string& str_scheme = urls.start_scheme();
@@ -807,17 +1126,18 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                 }
             }
             if (is_scheme) {
-                pointer = it_colon + 1; // skip ':'
-                urls.save_scheme();
                 // kas toliau
-                //if (state_override) {
-                //TODO:
-                // 1. If state override is given, run these subsubsteps:
-                //    1. If url’s scheme is a special scheme and buffer is not, then return.
-                //    2. If url’s scheme is not a special scheme and buffer is, then return.
-                // 2. Set url’s scheme to buffer.
-                // 4. If state override is given, then return.
-                //}
+                if (state_override) {
+                    const detail::scheme_info* scheme_inf = detail::get_scheme_info(str_scheme.data(), str_scheme.length());
+                    const bool is_special_old = urls.is_special_scheme();
+                    const bool is_special_new = scheme_inf && scheme_inf->is_special;
+                    if (is_special_old == is_special_new)
+                        urls.save_scheme();
+                    // if state override is given, then return
+                    return true;
+                }
+                urls.save_scheme();
+                pointer = it_colon + 1; // skip ':'
                 if (urls.is_file_scheme()) {
                     // TODO-WARN: if remaining does not start with "//", validation error.
                     state = file_state;
@@ -1093,7 +1413,10 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     urls.start_part(url::PORT) += std::to_string(port);
                     urls.save_part();
                     urls.set_flag(url::PORT_FLAG);
-                } //TODO: (2-1-3) Set url’s port to null
+                } else {
+                    // (2-1-3) Set url’s port to null
+                    urls.clear_part(url::PORT);
+                }
             }
             if (state_override)
                 return true; // (2-2)
@@ -1927,6 +2250,46 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
         mask |= (1u << ind);
     }
     url_.flags_ = (url_.flags_ & ~mask) | (src.flags_ & mask);
+}
+
+
+// url_setter
+
+inline std::string& url_setter::start_path_segment() {
+    //curr_pt_ = url::PATH; // not used
+    strp_ += '/';
+    return strp_;
+}
+
+inline void url_setter::save_path_segment() {
+    path_seg_end_.push_back(strp_.length());
+}
+
+inline void url_setter::commit_path() {
+    // fill part_end_ until url::PATH if not filled
+    for (int ind = url::PATH; ind > 0; ind--) {
+        if (url_.part_end_[ind]) break;
+        url_.part_end_[ind] = url_.norm_url_.length();
+    }
+    // replace path part
+    replace_part(url::PATH, strp_.data(), strp_.length());
+    url_.path_segment_count_ = path_seg_end_.size();
+}
+
+inline void url_setter::shorten_path() {
+    if (path_seg_end_.size() == 1) {
+        if (is_file_scheme() && strp_.length() == 3 && is_normalized_Windows_drive(strp_[1], strp_[2]))
+            return;
+        path_seg_end_.pop_back();
+        strp_.clear();
+    } else if (path_seg_end_.size() >= 2) {
+        path_seg_end_.pop_back();
+        strp_.resize(path_seg_end_.back());
+    }
+}
+
+inline bool url_setter::is_empty_path() const {
+    return path_seg_end_.empty();
 }
 
 

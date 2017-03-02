@@ -103,6 +103,7 @@ void url_testas(const CharT* str_url, const CharT* str_base)
 // Main
 
 void test_parser();
+void test_setters();
 void run_unit_tests();
 
 int main()
@@ -110,8 +111,9 @@ int main()
     // set user-preferred locale
     setlocale(LC_ALL, "");
 
-    test_parser();
-    run_unit_tests();
+//  test_parser();
+    test_setters();
+//  run_unit_tests();
 
     return 0;
 }
@@ -288,6 +290,92 @@ void test_parser()
     // file slashes
     // https://github.com/whatwg/url/issues/232#issuecomment-281263060
     url_testas("file://localhost///a//../..//");
+}
+
+void test_setters()
+{
+    whatwg::url url;
+    url.parse("ws://example.org/foo/bar", nullptr);
+    cout_url(url);
+
+    const char* sz = "http:";
+    url.protocol(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "user01";
+    url.username(sz, sz + std::strlen(sz));
+    sz = "pass@01";
+    url.password(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "example.org:81";
+    url.host(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "example.net";
+    url.hostname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "88";
+    url.port(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "";
+    url.port(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "/path";
+    url.pathname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "#frag";
+    url.hash(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "?a=3";
+    url.search(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    // test path
+    sz = "/other/path";
+    url.pathname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    // test switch to file: scheme
+    sz = "file:";
+    url.protocol(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "localhost";
+    url.hostname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    // test windows drive letters and ..
+    sz = "example.org";
+    url.hostname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "/c|/../path";
+    url.pathname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    // non-special
+    url.parse("non-special:/path", nullptr);
+    cout_url(url);
+
+    sz = "example.net";
+    url.hostname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "";
+    url.hostname(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    // javscript: scheme test
+    url.parse("JavaScript:alert(1)", nullptr);
+    sz = "#frag";
+    url.hash(sz, sz + std::strlen(sz));
+    cout_url(url);
 }
 
 #include "buffer.h"
