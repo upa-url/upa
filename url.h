@@ -607,6 +607,7 @@ public:
                         // USERNAME, PASSWORD; HOST_START
                         replace_part(url::HOST_START, strp_.data(), strp_.length(), curr_pt_, strp_.length() - 1);
                     } else if (empty_val && is_empty(curr_pt_ == url::USERNAME ? url::PASSWORD : url::USERNAME)) {
+                        // both username and password will be empty, so also drop '@'
                         replace_part(url::HOST_START, "", 0, curr_pt_, 0);
                     } else {
                         replace_part(curr_pt_, strp_.data(), strp_.length());
