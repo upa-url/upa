@@ -649,11 +649,14 @@ public:
     virtual bool is_empty_path() const;
 
 protected:
-    std::size_t get_part_len(const url::PartType pt) {
+    std::size_t get_part_pos(const url::PartType pt) const {
+        return pt > url::SCHEME ? url_.part_end_[pt - 1] : 0;
+    }
+    std::size_t get_part_len(const url::PartType pt) const {
         return url_.part_end_[pt] - url_.part_end_[pt - 1];
     }
     void replace_part(const url::PartType new_pt, const char* str, const size_t len) {
-        const std::size_t b = (new_pt > url::SCHEME) ? url_.part_end_[new_pt - 1] : 0;
+        const std::size_t b = get_part_pos(new_pt);
         const std::size_t l = url_.part_end_[new_pt] - b;
         url_.norm_url_.replace(b, l, str, len);
         // adjust positions
@@ -666,7 +669,7 @@ protected:
         }
     }
     void replace_part(const url::PartType last_pt, const char* str, const size_t len, const url::PartType first_pt, const size_t len0) {
-        const std::size_t b = (first_pt > url::SCHEME) ? url_.part_end_[first_pt - 1] : 0;
+        const std::size_t b = get_part_pos(first_pt);
         const std::size_t l = url_.part_end_[last_pt] - b;
         url_.norm_url_.replace(b, l, str, len);
         std::fill(std::begin(url_.part_end_) + first_pt, std::begin(url_.part_end_) + last_pt, b + len0);
