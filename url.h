@@ -656,17 +656,7 @@ protected:
         return url_.part_end_[pt] - url_.part_end_[pt - 1];
     }
     void replace_part(const url::PartType new_pt, const char* str, const size_t len) {
-        const std::size_t b = get_part_pos(new_pt);
-        const std::size_t l = url_.part_end_[new_pt] - b;
-        url_.norm_url_.replace(b, l, str, len);
-        // adjust positions
-        const int diff = static_cast<int>(len)-static_cast<int>(l);
-        if (diff) {
-            for (auto it = std::begin(url_.part_end_) + new_pt; it != std::end(url_.part_end_); it++) {
-                if (*it == 0) break;
-                *it += diff;
-            }
-        }
+        replace_part(new_pt, str, len, new_pt, 0);
     }
     void replace_part(const url::PartType last_pt, const char* str, const size_t len, const url::PartType first_pt, const size_t len0) {
         const std::size_t b = get_part_pos(first_pt);
