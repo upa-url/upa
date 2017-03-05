@@ -220,6 +220,9 @@ public:
     // setters
 
     template <typename CharT>
+    bool href(const CharT* first, const CharT* last);
+
+    template <typename CharT>
     bool protocol(const CharT* first, const CharT* last);
 
     template <typename CharT>
@@ -985,6 +988,17 @@ inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
     //TODO-WARN: validation error if trimmed
 
     return url_parser::url_parse(urls, first, last, base);
+}
+
+template <typename CharT>
+inline bool url::href(const CharT* first, const CharT* last) {
+    url u; // parsedURL
+
+    if (u.parse(first, last, nullptr)) {
+        *this = std::move(u);
+        return true;
+    }
+    return false;
 }
 
 template <typename CharT>
