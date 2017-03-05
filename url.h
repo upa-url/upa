@@ -174,6 +174,25 @@ public:
         , path_segment_count_(src.path_segment_count_)
     {}
 
+    // assign
+    url& operator=(const url& src) {
+        norm_url_ = src.norm_url_;
+        part_end_ = src.part_end_;
+        scheme_inf_ = src.scheme_inf_;
+        flags_ = src.flags_;
+        path_segment_count_ = src.path_segment_count_;
+        return *this;
+    }
+
+    url& operator=(url&& src) {
+        norm_url_ = std::move(src.norm_url_);
+        part_end_ = src.part_end_;
+        scheme_inf_ = src.scheme_inf_;
+        flags_ = src.flags_;
+        path_segment_count_ = src.path_segment_count_;
+        return *this;
+    }
+
     void clear();
 
     // parser
