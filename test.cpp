@@ -298,7 +298,17 @@ void test_setters()
     url.parse("ws://example.org/foo/bar", nullptr);
     cout_url(url);
 
-    const char* sz = "http:";
+    const char* sz;
+
+    sz = "wss://%00/foo/bar"; // failure
+    url.href(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "wss://example.org/foo/bar";
+    url.href(sz, sz + std::strlen(sz));
+    cout_url(url);
+
+    sz = "http:";
     url.protocol(sz, sz + std::strlen(sz));
     cout_url(url);
 
