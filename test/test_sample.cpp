@@ -62,6 +62,9 @@ void cout_url(const whatwg::url& url) {
         }
         if (!strPart.empty()) {
             std::wcout << part_name[part] << ": " << to_wstr(strPart) << "\n";
+        } else if (part == whatwg::url::HOST &&
+            url.is_null(static_cast<whatwg::url::PartType>(part))) {
+            std::wcout << part_name[part] << ": <null>\n";
         }
     }
 }
