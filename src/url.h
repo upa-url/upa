@@ -113,6 +113,14 @@ inline bool AsciiEqualNoCase(const CharT* first, const CharT* last, const char* 
     return *strz == 0;
 }
 
+inline int port_from_str(const char* first, const char* last) {
+    int port = 0;
+    for (auto it = first; it != last; it++) {
+        port = port * 10 + (*it - '0');
+    }
+    return port;
+}
+
 extern const scheme_info* get_scheme_info(const str_view<char> src);
 inline const scheme_info* get_scheme_info(const char* name, std::size_t len) {
     return get_scheme_info(str_view<char>(name, len));
@@ -319,6 +327,10 @@ public:
         // return with '#'
         return std::string(norm_url_.data() + part_end_[FRAGMENT - 1], norm_url_.data() + part_end_[FRAGMENT]);
     }
+
+    // port to int
+    int port_int() const;
+    int real_port_int() const;
 
     // get info
     
@@ -938,6 +950,20 @@ inline std::string url::origin() const {
             return u.origin();
     }
     return "null"; // opaque origin
+}
+
+inline int url::port_int() const {
+    auto vport = get_part_view(PORT);
+    return vport.length() ? detail::port_from_str(vport.data(), vport.data() + vport.length()) : -1;
+}
+
+inline int url::real_port_int() const {
+    auto vport = get_part_view(PORT);
+    if (vport.length()) {
+        return detail::port_from_str(vport.data(), vport.data() + vport.length());
+    } else {
+        return scheme_inf_ ? scheme_inf_->default_port : -1;
+    }
 }
 
 
