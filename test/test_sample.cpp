@@ -116,7 +116,7 @@ int main()
 
     test_parser();
     test_setters();
-//  run_unit_tests();
+    run_unit_tests();
 
     return 0;
 }
@@ -415,6 +415,21 @@ void run_unit_tests() {
 
     std::cout << buff.data();
 
+
+    // port test
+    whatwg::url url;
+    url.parse("http://aaa/", nullptr);
+    assert(url.port_int() == -1);
+    assert(url.real_port_int() == 80);
+    url.parse("http://aaa:8080/", nullptr);
+    assert(url.port_int() == 8080);
+    assert(url.real_port_int() == 8080);
+    url.parse("non-special://aaa/", nullptr);
+    assert(url.port_int() == -1);
+    assert(url.real_port_int() == -1);
+    url.parse("non-special://aaa:123/", nullptr);
+    assert(url.port_int() == 123);
+    assert(url.real_port_int() == 123);
 
     // IPv4 parser test
     const char* szEmpty = "";
