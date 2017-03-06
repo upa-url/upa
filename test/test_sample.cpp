@@ -114,7 +114,7 @@ int main()
     // set user-preferred locale
     setlocale(LC_ALL, "");
 
-//  test_parser();
+    test_parser();
     test_setters();
 //  run_unit_tests();
 
@@ -220,6 +220,10 @@ void test_parser()
 
     // https://github.com/jsdom/whatwg-url/issues/50
     url_testas("https://r3---sn-p5qlsnz6.googlevideo.com/");
+
+    // non "http://"
+    url_testas("http:/example.net");
+    url_testas("http:example.net");
 
     // test https://url.spec.whatwg.org/#path-state
     // 1.4.1. scheme is "file", url’s path is empty, and buffer is a Windows drive letter
