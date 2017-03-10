@@ -213,6 +213,13 @@ void test_parser()
     url_testas("http://[2::0]");
     url_testas("http://[2::]");
 
+    // port test
+    // https://github.com/whatwg/url/issues/257#issuecomment-285553590
+    url_testas("http://example.net:65535");
+    url_testas("http://example.net:65536");
+    url_testas("asdf://host:65535");
+    url_testas("asdf://host:65536");
+
     // IDNA testai
     // http://www.unicode.org/reports/tr46/#Implementation_Notes
     url_testas("http://%E5%8D%81%zz.com/");
