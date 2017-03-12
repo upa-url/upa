@@ -1190,8 +1190,14 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     const detail::scheme_info* scheme_inf = detail::get_scheme_info(str_scheme.data(), str_scheme.length());
                     const bool is_special_old = urls.is_special_scheme();
                     const bool is_special_new = scheme_inf && scheme_inf->is_special;
-                    if (is_special_old == is_special_new)
-                        urls.save_scheme();
+                    if (is_special_old != is_special_new) return true;
+                    // new URL("http://u:p@host:88/).protocol("file:");
+                    if (scheme_inf && scheme_inf->is_file && (urls.has_credentials() || !urls.is_null(url::PORT))) return true;
+                    // new URL("file:///path).protocol("http:");
+                    if (urls.is_file_scheme() && urls.is_empty(url::HOST)) return true;
+                    // OR ursl.is_empty(url::HOST) && scheme_inf->no_empty_host
+
+                    urls.save_scheme();
                     // if state override is given, then return
                     return true;
                 }
