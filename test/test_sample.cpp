@@ -235,6 +235,8 @@ void test_parser()
     // test https://url.spec.whatwg.org/#path-state
     // 1.4.1. scheme is "file", url’s path is empty, and buffer is a Windows drive letter
     url_testas("file://example.net/C:/");
+    url_testas("file://1.2.3.4/C:/");
+    url_testas("file://[1::8]/C:/");
 
     // https://url.spec.whatwg.org/#concept-url-serializer
     url_testas("file:///example.net/C:/");
