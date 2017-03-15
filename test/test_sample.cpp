@@ -60,11 +60,23 @@ void cout_url(const whatwg::url& url) {
             strPart = url.get_part(static_cast<whatwg::url::PartType>(part));
             break;
         }
+        if (part == whatwg::url::HOST) {
+            const char* szHostType;
+            if (url.is_null(static_cast<whatwg::url::PartType>(part))) {
+                szHostType = "null";
+            } else {
+                switch (url.host_type()) {
+                case whatwg::url::HostType::Empty: szHostType = "Empty"; break;
+                case whatwg::url::HostType::Opaque: szHostType = "Opaque"; break;
+                case whatwg::url::HostType::Domain: szHostType = "Domain"; break;
+                case whatwg::url::HostType::IPv4: szHostType = "IPv4"; break;
+                case whatwg::url::HostType::IPv6: szHostType = "IPv6"; break;
+                }
+            }
+            std::wcout << "host_type: " << szHostType << "\n";
+        }
         if (!strPart.empty()) {
             std::wcout << part_name[part] << ": " << to_wstr(strPart) << "\n";
-        } else if (part == whatwg::url::HOST &&
-            url.is_null(static_cast<whatwg::url::PartType>(part))) {
-            std::wcout << part_name[part] << ": <null>\n";
         }
     }
 }
