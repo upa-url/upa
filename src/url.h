@@ -2238,6 +2238,7 @@ inline void url_serializer::empty_host() {
             url_.norm_url_.erase(host_end, diff);
         }
     }
+    url_.set_host_flag(url::HOST_TYPE_STRING);
 }
 
 // append parts from other url
