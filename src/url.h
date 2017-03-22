@@ -481,6 +481,7 @@ public:
     void save_path_string();
 
     virtual void shorten_path();
+    virtual void remove_leading_path_slashes();
 
     typedef bool (url::*PathOpFn)(std::size_t& path_end, unsigned& segment_count) const;
     void append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn = nullptr);
@@ -647,6 +648,7 @@ public:
     virtual void save_path_segment();
     void commit_path();
     virtual void shorten_path();
+    virtual void remove_leading_path_slashes();
     virtual bool is_empty_path() const;
 
 protected:
@@ -1633,7 +1635,12 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
 
         parse_path(urls, pointer, end_of_path);
         pointer = end_of_path;
-        
+
+        // trim leading slashes of file URL path
+        if (urls.is_file_scheme()) {
+            urls.remove_leading_path_slashes();
+        }
+
         if (pointer == last) {
             return true;
         } else {
@@ -2092,6 +2099,24 @@ inline void url_serializer::shorten_path() {
         url_.norm_url_.resize(url_.part_end_[url::PATH]);
 }
 
+static inline size_t count_leading_path_slashes(const char* first, const char* last) {
+    return std::distance(first,
+        std::find_if_not(first, last, [](char c){ return c == '/'; }));
+}
+
+inline void url_serializer::remove_leading_path_slashes() {
+    assert(last_pt_ == url::PATH);
+    size_t count = count_leading_path_slashes(
+        url_.norm_url_.data() + url_.part_end_[url::PATH-1],
+        url_.norm_url_.data() + url_.part_end_[url::PATH]);
+    if (count > 1) {
+        count -= 1;
+        url_.norm_url_.erase(url_.part_end_[url::PATH-1], count);
+        url_.part_end_[url::PATH] -= count;
+        url_.path_segment_count_ -= count;
+    }
+}
+
 inline url_serializer::~url_serializer() {
     switch (last_pt_) {
     case url::SCHEME:
@@ -2327,6 +2352,15 @@ inline void url_setter::shorten_path() {
     } else if (path_seg_end_.size() >= 2) {
         path_seg_end_.pop_back();
         strp_.resize(path_seg_end_.back());
+    }
+}
+
+inline void url_setter::remove_leading_path_slashes() {
+    size_t count = count_leading_path_slashes(strp_.data(), strp_.data() + strp_.length());
+    if (count > 1) {
+        count -= 1;
+        strp_.erase(0, count);
+        path_seg_end_.erase(path_seg_end_.begin(), std::next(path_seg_end_.begin(), count));
     }
 }
 
