@@ -53,5 +53,8 @@
     <ClInclude Include="..\src\url_ip.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\str_view.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

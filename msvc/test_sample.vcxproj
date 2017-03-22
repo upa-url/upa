@@ -74,6 +74,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\src\buffer.h" />
+    <ClInclude Include="..\src\str_view.h" />
     <ClInclude Include="..\src\url.h" />
     <ClInclude Include="..\src\url_canon.h" />
     <ClInclude Include="..\src\url_idna.h" />
