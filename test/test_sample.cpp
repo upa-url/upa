@@ -318,6 +318,9 @@ void test_parser()
     // file slashes
     // https://github.com/whatwg/url/issues/232#issuecomment-281263060
     url_testas("file://localhost///a//../..//");
+    // https://github.com/whatwg/url/pull/278
+    url_testas("/..//localhost//pig", "file://lion/");
+    url_testas("file:/..//localhost//pig", "file://lion/");
 }
 
 void test_setters()
