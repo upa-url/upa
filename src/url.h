@@ -35,6 +35,8 @@ public:
     const CharT* data() const { return ptr_; }
     std::size_t length() const { return len_; }
     std::size_t size() const { return len_; }
+    const CharT* begin() const { return ptr_; }
+    const CharT* end() const { return ptr_ + len_; }
 
     CharT operator[](std::size_t ind) const {
         return ptr_[ind];
