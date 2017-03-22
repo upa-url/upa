@@ -1540,6 +1540,9 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     urls.save_path_segment();
                     // Note: This is a (platform - independent) Windows drive letter quirk.
                     // Both url’s and base’s host are null under these conditions and therefore not copied.
+                } else {
+                    // set url’s host to base’s host
+                    urls.append_parts(*base, url::HOST, url::HOST);
                 }
             }
             state = path_state;
