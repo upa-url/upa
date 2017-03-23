@@ -32,6 +32,13 @@ namespace whatwg {
 namespace detail {
 
 
+// NOTE: is_local, is_http, is_network, is_fetch are defined and used by
+// Fetch Standard: https://fetch.spec.whatwg.org/#url
+// They weren't used by the URL Standard directly. So it's safe to remove them.
+// See:
+// https://github.com/whatwg/url/commit/8fb8684
+// https://github.com/whatwg/url/pull/276
+// https://github.com/whatwg/fetch/pull/512
 struct scheme_info {
     str_view<char> scheme;
     int default_port;           // -1 if none
