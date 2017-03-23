@@ -1135,7 +1135,12 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         bool is_scheme = false;
         state = no_scheme_state;
         auto it_colon = std::find(pointer, last, ':');
-        if (it_colon < last || state_override /* kad protocol(s) nereiktų s + ':' */) {
+        // Deviation from URL stdandart's [ 2. ... if c is ":", run ... ] to
+        // [ 2. ... if c is ":", or EOF and state override is given, run ... ]
+        // This lets protocol setter to pass input without adding ':' to the end.
+        // Similiar deviation exists in nodejs, see:
+        // https://github.com/nodejs/node/pull/11917#pullrequestreview-28061847
+        if (it_colon < last || state_override) {
             is_scheme = true;
             // start of scheme
             std::string& str_scheme = urls.start_scheme();
