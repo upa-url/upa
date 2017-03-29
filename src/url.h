@@ -481,7 +481,8 @@ public:
     void save_path_string();
 
     virtual void shorten_path();
-    virtual void remove_leading_path_slashes();
+    // retunrs how many slashes are removed
+    virtual size_t remove_leading_path_slashes();
 
     typedef bool (url::*PathOpFn)(std::size_t& path_end, unsigned& segment_count) const;
     void append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn = nullptr);
@@ -648,7 +649,8 @@ public:
     virtual void save_path_segment();
     void commit_path();
     virtual void shorten_path();
-    virtual void remove_leading_path_slashes();
+    // retunrs how many slashes are removed
+    virtual size_t remove_leading_path_slashes();
     virtual bool is_empty_path() const;
 
 protected:
@@ -1639,6 +1641,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         // trim leading slashes of file URL path
         if (urls.is_file_scheme()) {
             urls.remove_leading_path_slashes();
+            // if (urls.remove_leading_path_slashes() > 0) // TODO-WARN: validation error
         }
 
         if (pointer == last) {
@@ -2104,7 +2107,7 @@ static inline size_t count_leading_path_slashes(const char* first, const char* l
         std::find_if_not(first, last, [](char c){ return c == '/'; }));
 }
 
-inline void url_serializer::remove_leading_path_slashes() {
+inline size_t url_serializer::remove_leading_path_slashes() {
     assert(last_pt_ == url::PATH);
     size_t count = count_leading_path_slashes(
         url_.norm_url_.data() + url_.part_end_[url::PATH-1],
@@ -2114,7 +2117,9 @@ inline void url_serializer::remove_leading_path_slashes() {
         url_.norm_url_.erase(url_.part_end_[url::PATH-1], count);
         url_.part_end_[url::PATH] -= count;
         url_.path_segment_count_ -= count;
+        return count;
     }
+    return 0;
 }
 
 inline url_serializer::~url_serializer() {
@@ -2355,13 +2360,15 @@ inline void url_setter::shorten_path() {
     }
 }
 
-inline void url_setter::remove_leading_path_slashes() {
+inline size_t url_setter::remove_leading_path_slashes() {
     size_t count = count_leading_path_slashes(strp_.data(), strp_.data() + strp_.length());
     if (count > 1) {
         count -= 1;
         strp_.erase(0, count);
         path_seg_end_.erase(path_seg_end_.begin(), std::next(path_seg_end_.begin(), count));
+        return count;
     }
+    return 0;
 }
 
 inline bool url_setter::is_empty_path() const {
