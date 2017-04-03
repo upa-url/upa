@@ -321,6 +321,10 @@ void test_parser()
     // https://github.com/whatwg/url/pull/278
     url_testas("/..//localhost//pig", "file://lion/");
     url_testas("file:/..//localhost//pig", "file://lion/");
+
+    // domain to ASCII (VerifyDnsLength = false)
+    url_testas("https://../");
+    url_testas("https://x01234567890123456789012345678901234567890123456789012345678901†/");
 }
 
 void test_setters()
