@@ -75,20 +75,26 @@ bool IDNToASCII(const char16_t* src, int src_len, simple_buffer<char16_t>& outpu
     // TODO: inicializavimas
     static UIDNAWrapper g_uidna;
 
+    // https://url.spec.whatwg.org/#concept-domain-to-ascii
+    // http://www.unicode.org/reports/tr46/#ToASCII
+    // VerifyDnsLength = false
+    static const uint32_t UIDNA_ERR_MASK = ~(uint32_t)(
+        UIDNA_ERROR_EMPTY_LABEL | UIDNA_ERROR_LABEL_TOO_LONG |
+        UIDNA_ERROR_DOMAIN_NAME_TOO_LONG
+        );
+
     UIDNA* uidna = g_uidna.value;
     assert(uidna != nullptr);
     while (true) {
         UErrorCode err = U_ZERO_ERROR;
         UIDNAInfo info = UIDNA_INFO_INITIALIZER;
         int output_length = uidna_nameToASCII(uidna, (const UChar*)src, src_len, (UChar*)output.data(), output.capacity(), &info, &err);
-        if (U_SUCCESS(err) && info.errors == 0) {
+        if (U_SUCCESS(err) && (info.errors & UIDNA_ERR_MASK) == 0) {
             output.resize(output_length);
             return true;
         }
 
-        // TODO(jungshik): Look at info.errors to handle them case-by-case basis
-        // if necessary.
-        if (err != U_BUFFER_OVERFLOW_ERROR || info.errors != 0)
+        if (err != U_BUFFER_OVERFLOW_ERROR || (info.errors & UIDNA_ERR_MASK) != 0)
             return false;  // Unknown error, give up.
 
         // Not enough room in our buffer, expand.
