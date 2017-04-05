@@ -1768,8 +1768,11 @@ template <typename CharT>
 inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, const CharT* last) {
     typedef std::make_unsigned<CharT>::type UCharT;
 
-    // ši sąlyga turi būti patikrinta prieš kreipiantis
-    // (todo angl?: this condition must by verified before calling)
+    // 1. Non-"file" special URL's cannot have an empty host.
+    // 2. For "file" URL's empty host is set in the file_host_state 1.2
+    //    https://url.spec.whatwg.org/#file-host-state
+    // So empty host here will be set only for non-special URL's, instead of in
+    // the opaque host parser (if follow URL standard).
     if (first == last) {
         // https://github.com/whatwg/url/issues/79
         // https://github.com/whatwg/url/pull/189
