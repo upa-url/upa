@@ -2,6 +2,7 @@
 #include "url_idna.h"
 #include <cassert>
 #include <limits>
+#include <type_traits>
 // ICU
 #include "unicode/uidna.h"
 
@@ -52,6 +53,14 @@ struct UIDNAWrapper {
     UIDNA* value;
 };
 
+// utility class to get unsigned max value of (signed) arithmetic type
+template <typename T, typename UT = std::make_unsigned<T>::type>
+struct unsigned_limit {
+    static UT max()  {
+        return static_cast<UT>(std::numeric_limits<T>::max());
+    }
+};
+
 } // namespace
 
 
@@ -86,7 +95,7 @@ bool IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_t>& ou
 
     // uidna_nameToASCII uses int32_t length
     // http://icu-project.org/apiref/icu4c/uidna_8h.html#a9cc0383836cc8b73d14e86d5014ee7ae
-    if (src_len > std::numeric_limits<int32_t>::max())
+    if (src_len > unsigned_limit<int32_t>::max())
         return false; // too long
 
     UIDNA* uidna = g_uidna.value;
@@ -119,7 +128,7 @@ bool IDNToUnicode(const char* src, size_t src_len, simple_buffer<char>& output) 
 
     // uidna_nameToUnicodeUTF8 uses int32_t length
     // http://icu-project.org/apiref/icu4c/uidna_8h.html#a61648a995cff1f8d626df1c16ad4f3b8
-    if (src_len > std::numeric_limits<int32_t>::max())
+    if (src_len > unsigned_limit<int32_t>::max())
         return false; // too long
 
     UIDNA* uidna = g_uidna.value;
