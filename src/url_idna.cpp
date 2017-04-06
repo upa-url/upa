@@ -1,6 +1,7 @@
 
 #include "url_idna.h"
 #include <cassert>
+#include <limits>
 // ICU
 #include "unicode/uidna.h"
 
@@ -71,7 +72,7 @@ struct UIDNAWrapper {
 
 static_assert(sizeof(char16_t) == sizeof(UChar), "");
 
-bool IDNToASCII(const char16_t* src, int src_len, simple_buffer<char16_t>& output) {
+bool IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_t>& output) {
     // TODO: inicializavimas
     static UIDNAWrapper g_uidna;
 
@@ -83,12 +84,20 @@ bool IDNToASCII(const char16_t* src, int src_len, simple_buffer<char16_t>& outpu
         UIDNA_ERROR_DOMAIN_NAME_TOO_LONG
         );
 
+    // uidna_nameToASCII uses int32_t length
+    // http://icu-project.org/apiref/icu4c/uidna_8h.html#a9cc0383836cc8b73d14e86d5014ee7ae
+    if (src_len > std::numeric_limits<int32_t>::max())
+        return false; // too long
+
     UIDNA* uidna = g_uidna.value;
     assert(uidna != nullptr);
     while (true) {
         UErrorCode err = U_ZERO_ERROR;
         UIDNAInfo info = UIDNA_INFO_INITIALIZER;
-        int output_length = uidna_nameToASCII(uidna, (const UChar*)src, src_len, (UChar*)output.data(), output.capacity(), &info, &err);
+        int output_length = uidna_nameToASCII(uidna,
+            (const UChar*)src, static_cast<int32_t>(src_len),
+            (UChar*)output.data(), output.capacity(),
+            &info, &err);
         if (U_SUCCESS(err) && (info.errors & UIDNA_ERR_MASK) == 0) {
             output.resize(output_length);
             return true;
@@ -104,16 +113,24 @@ bool IDNToASCII(const char16_t* src, int src_len, simple_buffer<char16_t>& outpu
 
 // TODO: common function template for IDNToASCII and IDNToUnicode
 
-bool IDNToUnicode(const char* src, int src_len, simple_buffer<char>& output) {
+bool IDNToUnicode(const char* src, size_t src_len, simple_buffer<char>& output) {
     // TODO: inicializavimas
     static UIDNAWrapper g_uidna;
+
+    // uidna_nameToUnicodeUTF8 uses int32_t length
+    // http://icu-project.org/apiref/icu4c/uidna_8h.html#a61648a995cff1f8d626df1c16ad4f3b8
+    if (src_len > std::numeric_limits<int32_t>::max())
+        return false; // too long
 
     UIDNA* uidna = g_uidna.value;
     assert(uidna != nullptr);
     while (true) {
         UErrorCode err = U_ZERO_ERROR;
         UIDNAInfo info = UIDNA_INFO_INITIALIZER;
-        int output_length = uidna_nameToUnicodeUTF8(uidna, src, src_len, output.data(), output.capacity(), &info, &err);
+        int output_length = uidna_nameToUnicodeUTF8(uidna,
+            src, static_cast<int32_t>(src_len),
+            output.data(), output.capacity(),
+            &info, &err);
         if (U_SUCCESS(err)) {
             output.resize(output_length);
             return true;

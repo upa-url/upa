@@ -907,7 +907,7 @@ inline std::string url::origin() const {
         auto hostv = get_part_view(HOST);
         if (host_type() == HostType::Domain) {
             simple_buffer<char> buff;
-            IDNToUnicode(hostv.data(), static_cast<int>(hostv.length()), buff);
+            IDNToUnicode(hostv.data(), hostv.length(), buff);
             str_origin.append(buff.begin(), buff.end());
         } else {
             str_origin.append(hostv.data(), hostv.length());
