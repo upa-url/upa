@@ -1933,7 +1933,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
     // path state; includes:
     // 1. [ (/,\) - 1, 2, 3, 4 - [ 1 (if first segment), 2 ] ]
     // 2. [ 1 ... 4 ]
-    auto double_dot = [](const CharT* const pointer, const int len) -> bool {
+    auto double_dot = [](const CharT* const pointer, const size_t len) -> bool {
         if (len == 2) {
             return (pointer[0] == '.' && pointer[1] == '.');
         } else if (len == 4) {
@@ -1944,7 +1944,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
         } else
             return false;
     };
-    auto single_dot = [](const CharT* const pointer, const int len) -> bool {
+    auto single_dot = [](const CharT* const pointer, const size_t len) -> bool {
         if (len == 1) {
             return pointer[0] == '.';
         } else if (len == 3) {
@@ -1960,7 +1960,8 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
             ? std::find_if(pointer, last, is_slash<CharT>)
             : std::find(pointer, last, '/');
 
-        int len = end_of_segment - pointer;
+        // end_of_segment >= pointer
+        const size_t len = end_of_segment - pointer;
         bool is_last = end_of_segment == last;
         // TODO-WARN: 1. If url is special and c is "\", validation error.
 
