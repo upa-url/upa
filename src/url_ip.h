@@ -268,9 +268,9 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&pieces)[
                 if (value == 0) // leading zero
                     return false; // TODO-ERR: validation error
                 value = value * 10 + (*pointer - '0');
-                pointer++;
                 if (value > 255)
                     return false; // TODO-ERR: validation error
+                pointer++;
             }
             pieces[piece_pointer] = pieces[piece_pointer] * 0x100 + value;
             numbers_seen++;
