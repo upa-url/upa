@@ -1,8 +1,7 @@
 
 #include "url_idna.h"
+#include "int_cast.h"
 #include <cassert>
-#include <limits>
-#include <type_traits>
 // ICU
 #include "unicode/uidna.h"
 
@@ -51,14 +50,6 @@ struct UIDNAWrapper {
     }
 
     UIDNA* value;
-};
-
-// utility class to get unsigned max value of (signed) arithmetic type
-template <typename T, typename UT = std::make_unsigned<T>::type>
-struct unsigned_limit {
-    static UT max()  {
-        return static_cast<UT>(std::numeric_limits<T>::max());
-    }
 };
 
 } // namespace
