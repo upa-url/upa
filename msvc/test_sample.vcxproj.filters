@@ -56,5 +56,8 @@
     <ClInclude Include="..\src\str_view.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\int_cast.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
