@@ -14,6 +14,7 @@
 #define WHATWG_URL_H
 
 #include "buffer.h"
+#include "int_cast.h"
 #include "str_view.h"
 #include "url_canon.h"
 #include "url_idna.h"
@@ -669,7 +670,7 @@ protected:
         url_.norm_url_.replace(b, l, str, len);
         std::fill(std::begin(url_.part_end_) + first_pt, std::begin(url_.part_end_) + last_pt, b + len0);
         // adjust positions
-        const int diff = static_cast<int>(len)-static_cast<int>(l);
+        const ptrdiff_t diff = checked_diff<ptrdiff_t>(len, l);
         if (diff) {
             for (auto it = std::begin(url_.part_end_) + last_pt; it != std::end(url_.part_end_); it++) {
                 if (*it == 0) break;
@@ -2305,8 +2306,8 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             const std::size_t offset = src.part_end_[ifirst - 1] + detail::kPartStart[ifirst];
             const char* first = src.norm_url_.data() + offset;
             const char* last = src.norm_url_.data() + lastp_end;
-            // dest                     
-            int delta = static_cast<int>(norm_url.length()) - offset;
+            // dest
+            const ptrdiff_t delta = checked_diff<ptrdiff_t>(norm_url.length(), offset);
             // copy normalized url string from src
             norm_url.append(first, last);
             // adjust url_.part_end_
