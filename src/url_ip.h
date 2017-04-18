@@ -263,16 +263,16 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&pieces)[
                 return false;
             }
             // While c is an ASCII digit, run these subsubsteps
-            unsigned value = *(pointer++) - '0';
+            unsigned ipv4Piece = *(pointer++) - '0';
             while (pointer != last && IsAsciiDigit(*pointer)) {
-                if (value == 0) // leading zero
+                if (ipv4Piece == 0) // leading zero
                     return false; // TODO-ERR: validation error
-                value = value * 10 + (*pointer - '0');
-                if (value > 255)
+                ipv4Piece = ipv4Piece * 10 + (*pointer - '0');
+                if (ipv4Piece > 255)
                     return false; // TODO-ERR: validation error
                 pointer++;
             }
-            pieces[piece_pointer] = pieces[piece_pointer] * 0x100 + value;
+            pieces[piece_pointer] = pieces[piece_pointer] * 0x100 + ipv4Piece;
             numbers_seen++;
             if (!(numbers_seen & 1)) // 2 or 4
                 piece_pointer++;
