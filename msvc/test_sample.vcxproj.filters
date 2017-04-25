@@ -59,5 +59,8 @@
     <ClInclude Include="..\src\int_cast.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\url_result.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -78,6 +78,7 @@
     <ClInclude Include="..\src\str_view.h" />
     <ClInclude Include="..\src\url.h" />
     <ClInclude Include="..\src\url_canon.h" />
+    <ClInclude Include="..\src\url_result.h" />
     <ClInclude Include="..\src\url_idna.h" />
     <ClInclude Include="..\src\url_ip.h" />
     <ClInclude Include="..\src\url_util.h" />
