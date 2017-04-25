@@ -744,7 +744,7 @@ public:
     static bool parse_opaque_host(url_serializer& urls, const CharT* first, const CharT* last);
 
     template <typename CharT>
-    static ParseResult parse_ipv4(url_serializer& urls, const CharT* first, const CharT* last);
+    static url_result parse_ipv4(url_serializer& urls, const CharT* first, const CharT* last);
 
     template <typename CharT>
     static bool parse_ipv6(url_serializer& urls, const CharT* first, const CharT* last);
@@ -1873,14 +1873,15 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
         return false;
     }
     // IPv4
-    const ParseResult res = parse_ipv4(urls, buff_ascii.begin(), buff_ascii.end());
-    if (res == RES_FALSE) {
+    const url_result res = parse_ipv4(urls, buff_ascii.begin(), buff_ascii.end());
+    if (res == url_result::False) {
         std::string& str_host = urls.start_part(url::HOST);
         str_host.append(buff_ascii.begin(), buff_ascii.end());
         urls.save_part();
         urls.set_host_flag(url::HOST_TYPE_DOMAIN);
+        return true; // url_result::Ok
     }
-    return res != RES_ERROR;
+    return res == url_result::Ok;
 }
 
 template <typename CharT>
@@ -1900,11 +1901,11 @@ inline bool url_parser::parse_opaque_host(url_serializer& urls, const CharT* fir
 }
 
 template <typename CharT>
-inline ParseResult url_parser::parse_ipv4(url_serializer& urls, const CharT* first, const CharT* last) {
+inline url_result url_parser::parse_ipv4(url_serializer& urls, const CharT* first, const CharT* last) {
     uint32_t ipv4;
 
-    const ParseResult res = ipv4_parse(first, last, ipv4);
-    if (res == RES_OK) {
+    const url_result res = ipv4_parse(first, last, ipv4);
+    if (res == url_result::Ok) {
         std::string& str_ipv4 = urls.start_part(url::HOST);
         ipv4_serialize(ipv4, str_ipv4);
         urls.save_part();
