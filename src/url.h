@@ -738,16 +738,16 @@ public:
     static bool url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override = not_set_state);
 
     template <typename CharT>
-    static bool parse_host(url_serializer& urls, const CharT* first, const CharT* last);
+    static url_result parse_host(url_serializer& urls, const CharT* first, const CharT* last);
 
     template <typename CharT>
-    static bool parse_opaque_host(url_serializer& urls, const CharT* first, const CharT* last);
+    static url_result parse_opaque_host(url_serializer& urls, const CharT* first, const CharT* last);
 
     template <typename CharT>
     static url_result parse_ipv4(url_serializer& urls, const CharT* first, const CharT* last);
 
     template <typename CharT>
-    static bool parse_ipv6(url_serializer& urls, const CharT* first, const CharT* last);
+    static url_result parse_ipv6(url_serializer& urls, const CharT* first, const CharT* last);
 
     template <typename CharT>
     static void parse_path(url_serializer& urls, const CharT* first, const CharT* last);
@@ -1419,7 +1419,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             }
 
             // parse and set host:
-            if (!parse_host(urls, pointer, it_host_end))
+            if (parse_host(urls, pointer, it_host_end) != url_result::Ok)
                 return false;
 
             if (is_port) {
@@ -1576,7 +1576,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             // TODO: buffer is not reset here and instead used in the path state
         } else {
             // parse and set host:
-            if (!parse_host(urls, pointer, end_of_authority))
+            if (parse_host(urls, pointer, end_of_authority) != url_result::Ok)
                 return false; // TODO-ERR: failure
             // if host is "localhost", then set host to the empty string
             if (urls.get_part_view(url::HOST).equal({ "localhost", 9 })) {
@@ -1766,7 +1766,7 @@ static inline bool is_valid_opaque_host_chars(const CharT* first, const CharT* l
 }
 
 template <typename CharT>
-inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, const CharT* last) {
+inline url_result url_parser::parse_host(url_serializer& urls, const CharT* first, const CharT* last) {
     typedef std::make_unsigned<CharT>::type UCharT;
 
     // 1. Non-"file" special URL's cannot have an empty host.
@@ -1781,7 +1781,7 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
         urls.start_part(url::HOST);
         urls.save_part();
         urls.set_host_flag(url::HOST_TYPE_STRING);
-        return true;
+        return url_result::Ok;
     }
     assert(first < last);
 
@@ -1790,7 +1790,7 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
             return parse_ipv6(urls, first + 1, last - 1);
         } else {
             // TODO-ERR: validation error
-            return false;
+            return url_result::InvalidIpv6Address;
         }
     }
 
@@ -1868,10 +1868,10 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
 
     url_result res = IDNToASCII(buff_uc.data(), buff_uc.length(), buff_ascii);
     if (res != url_result::Ok)
-        return false;
+        return res;
     if (!is_valid_host_chars(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
         //TODO-ERR: validation error
-        return false;
+        return url_result::InvalidDomainCharacter;
     }
     // IPv4
     res = parse_ipv4(urls, buff_ascii.begin(), buff_ascii.end());
@@ -1880,15 +1880,15 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
         str_host.append(buff_ascii.begin(), buff_ascii.end());
         urls.save_part();
         urls.set_host_flag(url::HOST_TYPE_DOMAIN);
-        return true; // url_result::Ok
+        return url_result::Ok;
     }
-    return res == url_result::Ok;
+    return res;
 }
 
 template <typename CharT>
-inline bool url_parser::parse_opaque_host(url_serializer& urls, const CharT* first, const CharT* last) {
+inline url_result url_parser::parse_opaque_host(url_serializer& urls, const CharT* first, const CharT* last) {
     if (!is_valid_opaque_host_chars(first, last))
-        return false; //TODO-ERR: failure
+        return url_result::InvalidDomainCharacter; //TODO-ERR: failure
 
     std::string& str_host = urls.start_part(url::HOST);
     //TODO: UTF-8 percent encode it using the C0 control percent-encode set
@@ -1898,7 +1898,7 @@ inline bool url_parser::parse_opaque_host(url_serializer& urls, const CharT* fir
     do_simple_path(first, last, str_host);
     urls.save_part();
     urls.set_host_flag(url::HOST_TYPE_STRING);
-    return true;
+    return url_result::Ok;
 }
 
 template <typename CharT>
@@ -1916,7 +1916,7 @@ inline url_result url_parser::parse_ipv4(url_serializer& urls, const CharT* firs
 }
 
 template <typename CharT>
-inline bool url_parser::parse_ipv6(url_serializer& urls, const CharT* first, const CharT* last) {
+inline url_result url_parser::parse_ipv6(url_serializer& urls, const CharT* first, const CharT* last) {
     uint16_t ipv6addr[8];
 
     if (ipv6_parse(first, last, ipv6addr)) {
@@ -1926,9 +1926,9 @@ inline bool url_parser::parse_ipv6(url_serializer& urls, const CharT* first, con
         str_ipv6.push_back(']');
         urls.save_part();
         urls.set_host_flag(url::HOST_TYPE_IPV6);
-        return true;
+        return url_result::Ok;
     }
-    return false;
+    return url_result::InvalidIpv6Address;
 }
 
 template <typename CharT>
