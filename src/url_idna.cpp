@@ -113,14 +113,14 @@ url_result IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_
 
 // TODO: common function template for IDNToASCII and IDNToUnicode
 
-bool IDNToUnicode(const char* src, size_t src_len, simple_buffer<char>& output) {
+url_result IDNToUnicode(const char* src, size_t src_len, simple_buffer<char>& output) {
     // TODO: inicializavimas
     static UIDNAWrapper g_uidna;
 
     // uidna_nameToUnicodeUTF8 uses int32_t length
     // http://icu-project.org/apiref/icu4c/uidna_8h.html#a61648a995cff1f8d626df1c16ad4f3b8
     if (src_len > unsigned_limit<int32_t>::max())
-        return false; // too long
+        return url_result::Overflow; // too long
 
     UIDNA* uidna = g_uidna.value;
     assert(uidna != nullptr);
@@ -133,7 +133,7 @@ bool IDNToUnicode(const char* src, size_t src_len, simple_buffer<char>& output) 
             &info, &err);
         if (U_SUCCESS(err)) {
             output.resize(output_length);
-            return true;
+            return url_result::Ok;
         }
 
         // TODO: Signify validation errors for any returned errors, and then, return result
@@ -141,7 +141,7 @@ bool IDNToUnicode(const char* src, size_t src_len, simple_buffer<char>& output) 
         // TODO(jungshik): Look at info.errors to handle them case-by-case basis
         // if necessary.
         if (err != U_BUFFER_OVERFLOW_ERROR)
-            return false;  // Unknown error, give up.
+            return url_result::IdnaError;  // Unknown error, give up.
 
         // Not enough room in our buffer, expand.
         output.reserve(output_length);

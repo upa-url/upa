@@ -8,7 +8,7 @@
 namespace whatwg {
 
 url_result IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_t>& output);
-bool IDNToUnicode(const char* src, size_t src_len, simple_buffer<char>& output);
+url_result IDNToUnicode(const char* src, size_t src_len, simple_buffer<char>& output);
 
 } // namespace whatwg
 
