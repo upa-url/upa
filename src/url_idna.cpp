@@ -72,7 +72,7 @@ struct UIDNAWrapper {
 
 static_assert(sizeof(char16_t) == sizeof(UChar), "");
 
-bool IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_t>& output) {
+url_result IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_t>& output) {
     // TODO: inicializavimas
     static UIDNAWrapper g_uidna;
 
@@ -87,7 +87,7 @@ bool IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_t>& ou
     // uidna_nameToASCII uses int32_t length
     // http://icu-project.org/apiref/icu4c/uidna_8h.html#a9cc0383836cc8b73d14e86d5014ee7ae
     if (src_len > unsigned_limit<int32_t>::max())
-        return false; // too long
+        return url_result::Overflow; // too long
 
     UIDNA* uidna = g_uidna.value;
     assert(uidna != nullptr);
@@ -100,11 +100,11 @@ bool IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_t>& ou
             &info, &err);
         if (U_SUCCESS(err) && (info.errors & UIDNA_ERR_MASK) == 0) {
             output.resize(output_length);
-            return true;
+            return url_result::Ok;
         }
 
         if (err != U_BUFFER_OVERFLOW_ERROR || (info.errors & UIDNA_ERR_MASK) != 0)
-            return false;  // Unknown error, give up.
+            return url_result::IdnaError;  // IDNA error, give up.
 
         // Not enough room in our buffer, expand.
         output.reserve(output_length);

@@ -1866,14 +1866,15 @@ inline bool url_parser::parse_host(url_serializer& urls, const CharT* first, con
     // domain to ASCII
     simple_buffer<char16_t> buff_ascii;
 
-    if (!IDNToASCII(buff_uc.data(), buff_uc.length(), buff_ascii))
+    url_result res = IDNToASCII(buff_uc.data(), buff_uc.length(), buff_ascii);
+    if (res != url_result::Ok)
         return false;
     if (!is_valid_host_chars(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
         //TODO-ERR: validation error
         return false;
     }
     // IPv4
-    const url_result res = parse_ipv4(urls, buff_ascii.begin(), buff_ascii.end());
+    res = parse_ipv4(urls, buff_ascii.begin(), buff_ascii.end());
     if (res == url_result::False) {
         std::string& str_host = urls.start_part(url::HOST);
         str_host.append(buff_ascii.begin(), buff_ascii.end());
