@@ -288,6 +288,10 @@ void test_parser()
     url_testas("file://");
     url_testas("file:///");
 
+    // https://github.com/whatwg/url/issues/303
+    url_testas("/c:/foo/bar", "file:///c:/baz/qux");
+    url_testas("/test", "file:///c:/x");
+
     // failure: empty host
     url_testas("http:#abc");
 
