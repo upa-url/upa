@@ -299,6 +299,9 @@ void test_parser()
     url_testas("C|/", "file://host/dir/file");
     url_testas("C|\\", "file://host/dir/file");
     url_testas("/C|", "file://host/dir/file");
+    // papildomi mano testai
+    url_testas("C", "file://host/dir/file");
+    url_testas("C|a", "file://host/dir/file");
 
     // failure: empty host
     url_testas("http:#abc");
