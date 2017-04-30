@@ -1504,9 +1504,10 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                         state = fragment_state; // sets fragment to the empty string
                         break;
                     default:
+                        // pointer points to remaining
                         if (pointer + 1 == last // remaining consists of one code point
-                            || (pointer + 1 < last && !is_Windows_drive(ch, pointer[0]))
-                            || (pointer + 2 < last && !is_special_authority_end_char(pointer[1]))
+                            || !(pointer + 1 <= last && is_Windows_drive(ch, pointer[0]))
+                            || !(pointer + 2 <= last && is_special_authority_end_char(pointer[1]))
                             ) {
                             // set url’s host to base’s host, url’s path to base’s path, and then shorten url’s path
                             urls.append_parts(*base, url::HOST, url::PATH, &url::get_shorten_path);
