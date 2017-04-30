@@ -292,6 +292,14 @@ void test_parser()
     url_testas("/c:/foo/bar", "file:///c:/baz/qux");
     url_testas("/test", "file:///c:/x");
 
+    // https://github.com/whatwg/url/issues/304
+    url_testas("C|", "file://host/dir/file");
+    url_testas("C|#", "file://host/dir/file");
+    url_testas("C|?", "file://host/dir/file");
+    url_testas("C|/", "file://host/dir/file");
+    url_testas("C|\\", "file://host/dir/file");
+    url_testas("/C|", "file://host/dir/file");
+
     // failure: empty host
     url_testas("http:#abc");
 
