@@ -1,4 +1,5 @@
 #include "url.h"
+#include <fstream>
 #include <iostream>
 // conversion
 #include <codecvt>
@@ -118,6 +119,70 @@ void url_testas(const CharT* str_url, const CharT* str_base)
     }
 }
 
+/*
+ * URL samples reader
+ *
+ * File format:
+
+BASE:<base URL>
+URL:
+<url1>
+<url2>
+
+BASE::<base URL>
+URL:
+<url1>
+<url2>
+
+**/
+
+void read_samples(const char* file_name)
+{
+    std::cout << "========== " << file_name << " ==========\n";
+    std::ifstream file(file_name, std::ios_base::in | std::ios_base::binary);
+    if (!file.is_open()) {
+        std::cerr << "Can't open samples file: " << file_name << std::endl;
+        return;
+    }
+
+    enum class State {
+        header, url
+    } state = State::header;
+    whatwg::url url_base;
+
+    std::string line;
+    while (std::getline(file, line)) {
+        switch (state) {
+        case State::header: {
+            bool ok = false;
+            auto icolon = line.find(':');
+            if (icolon != line.npos) {
+                if (line.compare(0, icolon, "BASE") == 0) {
+                    ok = url_base.parse(line.data() + icolon + 1, line.data() + line.length(), nullptr);
+                } else if (line.compare(0, icolon, "URL") == 0) {
+                    state = State::url;
+                    ok = true;
+                }
+            }
+            if (!ok) {
+                std::cerr << "Error in header" << std::endl;
+                return;
+            }
+            break;
+        }
+        case State::url: {
+            if (line.length() > 0) {
+                url_testas(line.c_str(), (url_base.href().empty() ? nullptr : &url_base));
+            } else {
+                state = State::header;
+                url_base.clear();
+            }
+            break;
+        }
+        }
+    }
+}
+
 
 // Main
 
@@ -130,9 +195,11 @@ int main()
     // set user-preferred locale
     setlocale(LC_ALL, "");
 
-    test_parser();
-    test_setters();
-    run_unit_tests();
+    read_samples("../testai/test-samples.txt");
+
+//  test_parser();
+//  test_setters();
+//  run_unit_tests();
 
     return 0;
 }
