@@ -4,6 +4,8 @@
 // conversion
 #include <codecvt>
 #include <locale>
+// json
+#include "json_writer/json_writer.h"
 
 
 template <class ...Args>
@@ -119,6 +121,37 @@ void url_testas(const CharT* str_url, const CharT* str_base)
     }
 }
 
+template <typename CharT>
+void url_parse_to_json(json_writer& json, const CharT* str_url, whatwg::url* base = nullptr)
+{
+    json.object_start();
+
+    json.name("input"); json.value(str_url);
+    if (base) {
+        json.name("base"); json.value(base->href());
+    }
+
+    // url parse result
+    whatwg::url url;
+    if (url.parse(str_url, base)) {
+        json.name("href");     json.value(url.href());
+        json.name("origin");   json.value(url.origin()); // ne visada reikia
+        json.name("protocol"); json.value(url.protocol());
+        json.name("username"); json.value(url.username());
+        json.name("password"); json.value(url.password());
+        json.name("host");     json.value(url.host());
+        json.name("hostname"); json.value(url.hostname());
+        json.name("port");     json.value(url.port());
+        json.name("pathname"); json.value(url.pathname());
+        json.name("search");   json.value(url.search());
+        json.name("hash");     json.value(url.hash());
+    } else {
+        json.name("failure");  json.value_bool(true);
+    }
+
+    json.object_end();
+}
+
 /*
  * URL samples reader
  *
@@ -136,14 +169,22 @@ URL:
 
 **/
 
-void read_samples(const char* file_name)
+void read_samples(const char* file_name, const char* fn_out)
 {
     std::cout << "========== " << file_name << " ==========\n";
-    std::ifstream file(file_name, std::ios_base::in | std::ios_base::binary);
+    std::ifstream file(file_name, std::ios_base::in);
     if (!file.is_open()) {
         std::cerr << "Can't open samples file: " << file_name << std::endl;
         return;
     }
+
+    std::ofstream fout(fn_out, std::ios_base::out | std::ios_base::binary);
+    if (!fout.is_open()) {
+        std::cerr << "Can't create results file: " << fn_out << std::endl;
+        return;
+    }
+    json_writer json(fout, 2);
+    json.array_start();
 
     enum class State {
         header, url
@@ -172,7 +213,8 @@ void read_samples(const char* file_name)
         }
         case State::url: {
             if (line.length() > 0) {
-                url_testas(line.c_str(), (url_base.href().empty() ? nullptr : &url_base));
+                // url_testas(line.c_str(), (url_base.href().empty() ? nullptr : &url_base));
+                url_parse_to_json(json, line.c_str(), (url_base.href().empty() ? nullptr : &url_base));
             } else {
                 state = State::header;
                 url_base.clear();
@@ -181,6 +223,8 @@ void read_samples(const char* file_name)
         }
         }
     }
+
+    json.array_end();
 }
 
 
@@ -195,7 +239,7 @@ int main()
     // set user-preferred locale
     setlocale(LC_ALL, "");
 
-    read_samples("../testai/test-samples.txt");
+    read_samples("../testai/test-samples.txt", "../testai/test-samples.json");
 
 //  test_parser();
 //  test_setters();
