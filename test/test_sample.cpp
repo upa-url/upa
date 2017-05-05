@@ -227,6 +227,37 @@ void read_samples(const char* file_name, const char* fn_out)
     json.array_end();
 }
 
+bool AsciiEqualsIgnoreCase(const char* test, const char* lcase) {
+    auto ascii_lc = [](char c) { return (c >= 'A' && c <= 'Z') ? c + ('a' - 'A') : c; };
+    while (*test && ascii_lc(*test) == *lcase) test++, lcase++;
+    return *test == 0 && *lcase == 0;
+}
+
+const char* end_of_file_name(const char* fname) {
+    const char* last = fname + std::strlen(fname);
+    for (const char* p = last; p > fname; ) {
+        p--;
+        switch (p[0]) {
+        case '.':
+            return p;
+        case '/':
+        case '\\':
+            return last;
+        }
+    }
+    return last;
+}
+
+void read_samples(const char* file_name) {
+    const char* ext = end_of_file_name(file_name);
+    if (!AsciiEqualsIgnoreCase(ext, ".json")) {
+        std::string fn_out(file_name, ext);
+        fn_out.append(".json");
+        read_samples(file_name, fn_out.c_str());
+    } else {
+        std::cerr << "Samples file can not be .json: " << file_name << std::endl;
+    }
+}
 
 // Main
 
@@ -234,17 +265,29 @@ void test_parser();
 void test_setters();
 void run_unit_tests();
 
-int main()
+int main(int argc, char *argv[])
 {
     // set user-preferred locale
     setlocale(LC_ALL, "");
 
-    read_samples("../testai/test-samples.txt", "../testai/test-samples.json");
+    if (argc > 1) {
+        const char* flag = argv[1];
+        if (flag[0] == '-') {
+            switch (flag[1]) {
+            case 'g':
+                if (argc > 2) {
+                    read_samples(argv[2]);
+                    return 0;
+                }
+            }
+        }
+        std::cerr << "test_sample [-g <samples file>]" << std::endl;
 
-//  test_parser();
-//  test_setters();
-//  run_unit_tests();
-
+    } else {
+        test_parser();
+        test_setters();
+        run_unit_tests();
+    }
     return 0;
 }
 
