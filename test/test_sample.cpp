@@ -152,6 +152,45 @@ void url_parse_to_json(json_writer& json, const CharT* str_url, whatwg::url* bas
     json.object_end();
 }
 
+class SamplesOutput {
+public:
+    virtual bool open() { return true; };
+    virtual void close() {};
+    virtual void output(const char* str_url, whatwg::url* base) {
+        url_testas(str_url, base);
+    }
+};
+
+class SamplesOutputJson : public SamplesOutput {
+public:
+    SamplesOutputJson(std::string&& fname)
+        : fname_(std::forward<std::string>(fname))
+        , json_(fout_, 2)
+    {}
+
+    bool open() override {
+        fout_.open(fname_, std::ios_base::out | std::ios_base::binary);
+        if (!fout_.is_open()) {
+            std::cerr << "Can't create results file: " << fname_ << std::endl;
+            return false;
+        }
+        json_.array_start();
+        return true;
+    };
+
+    void close() override {
+        json_.array_end();
+    }
+
+    void output(const char* str_url, whatwg::url* base) override {
+        url_parse_to_json(json_, str_url, base);
+    }
+private:
+    std::string fname_;
+    std::ofstream fout_;
+    json_writer json_;
+};
+
 /*
  * URL samples reader
  *
@@ -169,7 +208,7 @@ URL:
 
 **/
 
-void read_samples(const char* file_name, const char* fn_out)
+void read_samples(const char* file_name, SamplesOutput& out)
 {
     std::cout << "========== " << file_name << " ==========\n";
     std::ifstream file(file_name, std::ios_base::in);
@@ -178,13 +217,8 @@ void read_samples(const char* file_name, const char* fn_out)
         return;
     }
 
-    std::ofstream fout(fn_out, std::ios_base::out | std::ios_base::binary);
-    if (!fout.is_open()) {
-        std::cerr << "Can't create results file: " << fn_out << std::endl;
+    if (!out.open())
         return;
-    }
-    json_writer json(fout, 2);
-    json.array_start();
 
     enum class State {
         header, url
@@ -213,8 +247,7 @@ void read_samples(const char* file_name, const char* fn_out)
         }
         case State::url: {
             if (line.length() > 0) {
-                // url_testas(line.c_str(), (url_base.href().empty() ? nullptr : &url_base));
-                url_parse_to_json(json, line.c_str(), (url_base.href().empty() ? nullptr : &url_base));
+                out.output(line.c_str(), (url_base.href().empty() ? nullptr : &url_base));
             } else {
                 state = State::header;
                 url_base.clear();
@@ -224,7 +257,7 @@ void read_samples(const char* file_name, const char* fn_out)
         }
     }
 
-    json.array_end();
+    out.close();
 }
 
 bool AsciiEqualsIgnoreCase(const char* test, const char* lcase) {
@@ -253,7 +286,8 @@ void read_samples(const char* file_name) {
     if (!AsciiEqualsIgnoreCase(ext, ".json")) {
         std::string fn_out(file_name, ext);
         fn_out.append(".json");
-        read_samples(file_name, fn_out.c_str());
+        SamplesOutputJson out(std::move(fn_out));
+        read_samples(file_name, out);
     } else {
         std::cerr << "Samples file can not be .json: " << file_name << std::endl;
     }
@@ -279,9 +313,18 @@ int main(int argc, char *argv[])
                     read_samples(argv[2]);
                     return 0;
                 }
+            case 't':
+                if (argc > 2) {
+                    SamplesOutput out;
+                    read_samples(argv[2], out);
+                    return 0;
+                }
             }
         }
-        std::cerr << "test_sample [-g <samples file>]" << std::endl;
+        std::cerr
+            << "test_sample [-g <samples file>]\n"
+            << "test_sample [-t <samples file>]"
+            << std::endl;
 
     } else {
         test_parser();
