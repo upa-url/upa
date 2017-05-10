@@ -201,12 +201,13 @@ URL:
 <url1>
 <url2>
 
-BASE::<base URL>
-URL:
-<url1>
-<url2>
+SET:<setter name>
+url:<URL to parse>
+val:<new value>
 
 **/
+
+bool read_setter(std::ifstream& file, const char* name, const char* name_end);
 
 void read_samples(const char* file_name, SamplesOutput& out)
 {
@@ -237,6 +238,10 @@ void read_samples(const char* file_name, SamplesOutput& out)
                 } else if (line.compare(0, icolon, "URL") == 0) {
                     state = State::url;
                     ok = true;
+                } else if (line.compare(0, icolon, "SET") == 0) {
+                    if (!read_setter(file, line.data() + icolon + 1, line.data() + line.length()))
+                        return;
+                    ok = true;
                 }
             }
             if (!ok) {
@@ -258,6 +263,70 @@ void read_samples(const char* file_name, SamplesOutput& out)
     }
 
     out.close();
+}
+
+inline static void AsciiTrimWhiteSpace(const char*& first, const char*& last) {
+    auto ascii_ws = [](char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r'; };
+    // trim space
+    while (first < last && ascii_ws(*first)) first++;
+    while (first < last && ascii_ws(*(last - 1))) last--;
+}
+
+bool read_setter(std::ifstream& file, const char* name, const char* name_end) {
+    AsciiTrimWhiteSpace(name, name_end);
+    std::string strName(name, name_end);
+
+    whatwg::url url;
+
+    std::string line;
+    bool ok = true;
+    while (std::getline(file, line)) {
+        if (line.length() == 0) break;
+        auto icolon = line.find(':');
+        if (icolon != line.npos) {
+            const char* val = line.data() + icolon + 1;
+            const char* val_end = line.data() + line.length();
+            if (line.compare(0, icolon, "url") == 0) {
+                std::cout << "URL=";
+                std::cout.write(val, val_end - val);
+                std::cout << std::endl;
+                ok = url.parse(val, val_end, nullptr);
+            } else if (line.compare(0, icolon, "val") == 0) {
+                // set value
+                if (strName == "protocol") {
+                    url.protocol(val, val_end);
+                } else if (strName == "username") {
+                    url.username(val, val_end);
+                } else if (strName == "password") {
+                    url.password(val, val_end);
+                } else if (strName == "host") {
+                    url.host(val, val_end);
+                } else if (strName == "hostname") {
+                    url.hostname(val, val_end);
+                } else if (strName == "port") {
+                    url.port(val, val_end);
+                } else if (strName == "pathname") {
+                    url.pathname(val, val_end);
+                } else if (strName == "search") {
+                    url.search(val, val_end);
+                } else if (strName == "hash") {
+                    url.hash(val, val_end);
+                } else {
+                    std::cerr << "Unknown setter: " << strName << std::endl;
+                    return false;
+                }
+                std::cout << strName << "=";
+                std::cout.write(val, val_end - val);
+                std::cout << std::endl;
+                cout_url_eol(url);
+            }
+        }
+        if (!ok) {
+            std::cerr << "Error in line:\n" << line << std::endl;
+            break;
+        }
+    }
+    return ok;
 }
 
 bool AsciiEqualsIgnoreCase(const char* test, const char* lcase) {
