@@ -741,6 +741,16 @@ void run_unit_tests() {
 
     std::cout << buff.data();
 
+    // IDNA sample
+    whatwg::simple_buffer<char> buf8;
+    whatwg::simple_buffer<char16_t> buf16;
+
+    std::string str("xn--abc.com");
+    whatwg::IDNToUnicode(str.data(), str.length(), buf8);
+    std::wstring wstr(to_wstr(buf8.begin(), buf8.end()));
+    whatwg::IDNToASCII((const char16_t*)wstr.data(), wstr.length(), buf16);
+    std::wstring wstrR((const wchar_t*)buf16.data(), buf16.size());
+
 
     // port test
     whatwg::url url;
