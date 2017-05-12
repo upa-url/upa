@@ -156,6 +156,11 @@ class SamplesOutput {
 public:
     virtual bool open() { return true; };
     virtual void close() {};
+    virtual void comment(const char* sz) {
+        std::wcout << sz << std::endl;
+        while (*sz) std::wcout << '~', sz++;
+        std::wcout << std::endl;
+    }
     virtual void output(const char* str_url, whatwg::url* base) {
         url_testas(str_url, base);
     }
@@ -182,6 +187,9 @@ public:
         json_.array_end();
     }
 
+    virtual void comment(const char* sz) {
+        json_.value(sz);
+    }
     void output(const char* str_url, whatwg::url* base) override {
         url_parse_to_json(json_, str_url, base);
     }
@@ -196,6 +204,7 @@ private:
  *
  * File format:
 
+COMMENT:<comment>
 BASE:<base URL>
 URL:
 <url1>
@@ -230,19 +239,23 @@ void read_samples(const char* file_name, SamplesOutput& out)
     while (std::getline(file, line)) {
         switch (state) {
         case State::header: {
-            bool ok = false;
+            bool ok = true;
             auto icolon = line.find(':');
             if (icolon != line.npos) {
                 if (line.compare(0, icolon, "BASE") == 0) {
                     ok = url_base.parse(line.data() + icolon + 1, line.data() + line.length(), nullptr);
+                } else if (line.compare(0, icolon, "COMMENT") == 0) {
+                    out.comment(line.data() + icolon + 1);
                 } else if (line.compare(0, icolon, "URL") == 0) {
                     state = State::url;
-                    ok = true;
                 } else if (line.compare(0, icolon, "SET") == 0) {
                     if (!read_setter(file, line.data() + icolon + 1, line.data() + line.length()))
                         return;
-                    ok = true;
+                } else {
+                    ok = false;
                 }
+            } else {
+                ok = false;
             }
             if (!ok) {
                 std::cerr << "Error in header" << std::endl;
