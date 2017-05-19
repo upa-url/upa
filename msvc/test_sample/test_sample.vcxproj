@@ -47,7 +47,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\src;D:\LIB\icu\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\src;D:\LIB\icu\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -63,7 +63,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\src;D:\LIB\icu\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\src;D:\LIB\icu\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -73,23 +73,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\buffer.h" />
-    <ClInclude Include="..\src\int_cast.h" />
-    <ClInclude Include="..\src\str_view.h" />
-    <ClInclude Include="..\src\url.h" />
-    <ClInclude Include="..\src\url_canon.h" />
-    <ClInclude Include="..\src\url_result.h" />
-    <ClInclude Include="..\src\url_idna.h" />
-    <ClInclude Include="..\src\url_ip.h" />
-    <ClInclude Include="..\src\url_util.h" />
+    <ClInclude Include="..\..\src\buffer.h" />
+    <ClInclude Include="..\..\src\int_cast.h" />
+    <ClInclude Include="..\..\src\str_view.h" />
+    <ClInclude Include="..\..\src\url.h" />
+    <ClInclude Include="..\..\src\url_canon.h" />
+    <ClInclude Include="..\..\src\url_result.h" />
+    <ClInclude Include="..\..\src\url_idna.h" />
+    <ClInclude Include="..\..\src\url_ip.h" />
+    <ClInclude Include="..\..\src\url_util.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\test\test_sample.cpp" />
-    <ClCompile Include="..\src\url.cpp" />
-    <ClCompile Include="..\src\url_canon.cpp" />
-    <ClCompile Include="..\src\url_idna.cpp" />
-    <ClCompile Include="..\src\url_ip.cpp" />
-    <ClCompile Include="..\src\url_util.cpp" />
+    <ClCompile Include="..\..\test\test_sample.cpp" />
+    <ClCompile Include="..\..\src\url.cpp" />
+    <ClCompile Include="..\..\src\url_canon.cpp" />
+    <ClCompile Include="..\..\src\url_idna.cpp" />
+    <ClCompile Include="..\..\src\url_ip.cpp" />
+    <ClCompile Include="..\..\src\url_util.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

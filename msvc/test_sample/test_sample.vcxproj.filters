@@ -15,51 +15,51 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\test\test_sample.cpp">
+    <ClCompile Include="..\..\test\test_sample.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\url.cpp">
+    <ClCompile Include="..\..\src\url.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\url_util.cpp">
+    <ClCompile Include="..\..\src\url_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\url_canon.cpp">
+    <ClCompile Include="..\..\src\url_canon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\url_idna.cpp">
+    <ClCompile Include="..\..\src\url_idna.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\url_ip.cpp">
+    <ClCompile Include="..\..\src\url_ip.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\url.h">
+    <ClInclude Include="..\..\src\url.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\url_util.h">
+    <ClInclude Include="..\..\src\url_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\url_canon.h">
+    <ClInclude Include="..\..\src\url_canon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\url_idna.h">
+    <ClInclude Include="..\..\src\url_idna.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\buffer.h">
+    <ClInclude Include="..\..\src\buffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\url_ip.h">
+    <ClInclude Include="..\..\src\url_ip.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\str_view.h">
+    <ClInclude Include="..\..\src\str_view.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\int_cast.h">
+    <ClInclude Include="..\..\src\int_cast.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\url_result.h">
+    <ClInclude Include="..\..\src\url_result.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
