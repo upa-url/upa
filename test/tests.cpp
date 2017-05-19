@@ -1,0 +1,316 @@
+//
+// url library tests
+//
+
+#include "url.h"
+#include "ddt/DataDrivenTest.hpp"
+
+// https://github.com/kazuho/picojson
+# include "picojson/picojson.h"
+
+#include <fstream>
+#include <iostream>
+#include <map>
+#include <string>
+
+// URL parser test
+
+class ParserObj : public std::map<std::string, std::string> {
+public:
+    ParserObj() : failure(false) {}
+
+    bool failure;
+};
+
+void test_parser(DataDrivenTest& ddt, ParserObj& obj)
+{
+    const std::string& input = obj["input"];
+    const std::string& base = obj["base"];
+
+    std::string str_case("<" + input + "> BASE: <" + base + ">");
+
+    ddt.test_case(str_case.c_str(), [&](DataDrivenTest::TestCase& tc) {
+        whatwg::url url;
+        whatwg::url url_base;
+
+        bool parse_success;
+        if (!base.empty()) {
+            parse_success = url_base.parse(base, nullptr);
+            parse_success = parse_success && url.parse(input, &url_base);
+        } else {
+            parse_success = url.parse(input, nullptr);
+        }
+
+        // check "failure"
+        tc.assert_equal(obj.failure, !parse_success, "parse failure");
+
+        // attributes
+        if (parse_success && !obj.failure) {
+            tc.assert_equal(obj["href"], url.href(), "href");
+            auto itOrigin = obj.find("origin");
+            if (itOrigin != obj.end())
+                tc.assert_equal(itOrigin->second, url.origin(), "origin");
+            tc.assert_equal(obj["protocol"], url.protocol(), "protocol");
+            tc.assert_equal(obj["username"], url.username(), "username");
+            tc.assert_equal(obj["password"], url.password(), "password");
+            tc.assert_equal(obj["host"], url.host(), "host");
+            tc.assert_equal(obj["hostname"], url.hostname(), "hostname");
+            tc.assert_equal(obj["port"], url.port(), "port");
+            tc.assert_equal(obj["pathname"], url.pathname(), "pathname");
+            tc.assert_equal(obj["search"], url.search(), "search");
+            tc.assert_equal(obj["hash"], url.hash(), "hash");
+        }
+    });
+}
+
+// URL setter test
+
+class SetterObj {
+public:
+    SetterObj(const std::string& setter) : m_setter(setter)
+    {}
+
+    std::string m_setter;
+    std::string m_href;
+    std::string m_new_value;
+    std::map<std::string, std::string> m_expected;
+};
+
+void test_setter(DataDrivenTest& ddt, SetterObj& obj)
+{
+    std::string str_case("URL(\"" + obj.m_href + "\")." + obj.m_setter + "(\"" + obj.m_new_value + "\");");
+
+    ddt.test_case(str_case.c_str(), [&](DataDrivenTest::TestCase& tc) {
+        whatwg::url url;
+
+        bool parse_success = url.parse(obj.m_href, nullptr);
+
+        // attributes
+        if (parse_success) {
+            // set value
+            if (obj.m_setter == "protocol") {
+                url.protocol(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+            } else if (obj.m_setter == "username") {
+                url.username(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+            } else if (obj.m_setter == "password") {
+                url.password(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+            } else if (obj.m_setter == "host") {
+                url.host(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+            } else if (obj.m_setter == "hostname") {
+                url.hostname(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+            } else if (obj.m_setter == "port") {
+                url.port(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+            } else if (obj.m_setter == "pathname") {
+                url.pathname(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+            } else if (obj.m_setter == "search") {
+                url.search(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+            } else if (obj.m_setter == "hash") {
+                url.hash(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+            }
+
+            // test result
+            std::string str_val;
+            for (auto it = obj.m_expected.begin(); it != obj.m_expected.end(); it++) {
+                if (it->first == "href") str_val = url.href();
+                else if (it->first == "origin") str_val = url.origin();
+                else if (it->first == "protocol") str_val = url.protocol();
+                else if (it->first == "username") str_val = url.username();
+                else if (it->first == "password") str_val = url.password();
+                else if (it->first == "host") str_val = url.host();
+                else if (it->first == "hostname") str_val = url.hostname();
+                else if (it->first == "port") str_val = url.port();
+                else if (it->first == "pathname") str_val = url.pathname();
+                else if (it->first == "search") str_val = url.search();
+                else if (it->first == "hash") str_val = url.hash();
+                
+                tc.assert_equal(it->second, str_val, it->first.c_str());
+            }
+        }
+    });
+}
+
+
+// Test runner
+
+bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file);
+bool run_setter_tests(DataDrivenTest& ddt, std::ifstream& file);
+
+typedef bool(*RunTests)(DataDrivenTest& ddt, std::ifstream& file);
+
+int test_from_file(RunTests run_tests, const char* file_name)
+{
+    DataDrivenTest ddt;
+    ddt.config_show_passed(false);
+    ddt.config_debug_break(true);
+
+    std::cout << "========== " << file_name << " ==========\n";
+    std::ifstream file(file_name, std::ios_base::in | std::ios_base::binary);
+    if (!file.is_open()) {
+        std::cerr << "Can't open tests file: " << file_name << std::endl;
+        return 4;
+    }
+
+    if (!run_tests(ddt, file))
+        return 2; // JSON error
+
+    return ddt.result();
+}
+
+int main(int argc, char** argv)
+{
+    int err = 0;
+
+    err |= test_from_file(run_parser_tests, "w3c-tests/urltestdata.json");
+    err |= test_from_file(run_parser_tests, "w3c-tests/urltestdata-mano.json");
+//  err |= test_from_file(run_parser_tests, "w3c-tests/urltestdata-mano-bandymai.json");
+
+    err |= test_from_file(run_setter_tests, "w3c-tests/setters_tests.json");
+
+    return err;
+}
+
+// Read tests in JSON format
+
+namespace {
+    // parses urltestdata.json
+    class root_context : public picojson::deny_parse_context {
+    protected:
+        DataDrivenTest& m_ddt;
+    public:
+        root_context(DataDrivenTest& ddt) : m_ddt(ddt) {}
+
+        // array only as root
+        bool parse_array_start() { return true; }
+        bool parse_array_stop(size_t) { return true; }
+
+        template <typename Iter> bool parse_array_item(picojson::input<Iter>& in, size_t) {
+            picojson::value item;
+
+            // parse the array item
+            picojson::default_parse_context ctx(&item);
+            if (!picojson::_parse(ctx, in))
+                return false;
+            
+            // analyze array item
+            if (item.is<picojson::object>()) {
+                ParserObj obj;
+
+                const picojson::object& o = item.get<picojson::object>();
+                for (picojson::object::const_iterator it = o.begin(); it != o.end(); it++) {
+                    if (it->first == "failure") {
+                        obj.failure = it->second.evaluate_as_boolean();
+                    } else {
+                        if (!it->second.is<std::string>())
+                            return false; // klaida: reikia string
+                        obj[it->first] = it->second.get<std::string>();
+                    }
+                }
+                test_parser(m_ddt, obj);
+            } else if (item.is<std::string>()) {
+                // comment
+                // std::cout << value.as_string() << std::endl;
+            } else {
+                std::cout << "[ERR: invalid file]" << std::endl;
+                return false;
+            }
+            return true;
+        }
+    };
+
+    // parses setters_tests.json
+    class root_context2 : public picojson::deny_parse_context {
+    protected:
+        DataDrivenTest& m_ddt;
+        std::string m_setter_name;
+    public:
+        root_context2(DataDrivenTest& ddt) : m_ddt(ddt) {}
+
+        // array only as root
+        bool parse_array_start() { return true; }
+        bool parse_array_stop(size_t) { return true; }
+
+        template <typename Iter> bool parse_array_item(picojson::input<Iter>& in, size_t) {
+            picojson::value item;
+
+            // parse the array item
+            picojson::default_parse_context ctx(&item);
+            if (!picojson::_parse(ctx, in))
+                return false;
+
+            // analyze array item
+            if (item.is<picojson::object>()) {
+                SetterObj obj(m_setter_name);
+
+                try {
+                    const picojson::object& o = item.get<picojson::object>();
+                    obj.m_href = o.at("href").get<std::string>();
+                    obj.m_new_value = o.at("new_value").get<std::string>();
+                    const picojson::object& oexp = o.at("expected").get<picojson::object>();
+                    for (picojson::object::const_iterator itexp = oexp.begin(); itexp != oexp.end(); itexp++) {
+                        if (!itexp->second.is<std::string>())
+                            return false; // klaida: reikia string
+                        obj.m_expected[itexp->first] = itexp->second.get<std::string>();
+                    }
+                }
+                catch (const std::out_of_range& ex) {
+                    std::cout << "[ERR:invalid file]: " << ex.what() << std::endl;
+                    return false;
+                }
+
+                test_setter(m_ddt, obj);
+            } else {
+                std::cout << "[ERR: invalid file]" << std::endl;
+                return false;
+            }
+            return true;
+        }
+
+        // object only as root
+        bool parse_object_start() { return true; }
+
+        template <typename Iter> bool parse_object_item(picojson::input<Iter>& in, const std::string& name) {
+            if (name == "comment") {
+                // skip
+                return picojson::_parse(picojson::null_parse_context(), in);
+            } else {
+                m_setter_name = name;
+                // parse array
+                return picojson::_parse(*this, in);
+            }
+        }
+    };
+}
+
+bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file)
+{
+    std::string err;
+
+    root_context ctx(ddt);
+
+    // for unformatted reading use std::istreambuf_iterator
+    // http://stackoverflow.com/a/17776228/3908097
+    picojson::_parse(ctx, std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), &err);
+
+    if (!err.empty()) {
+        std::cerr << err << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool run_setter_tests(DataDrivenTest& ddt, std::ifstream& file)
+{
+    std::string err;
+
+    root_context2 ctx(ddt);
+
+    // for unformatted reading use std::istreambuf_iterator
+    // http://stackoverflow.com/a/17776228/3908097
+    picojson::_parse(ctx, std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), &err);
+
+    if (!err.empty()) {
+        std::cerr << err << std::endl;
+        return false;
+    }
+    return true;
+}
