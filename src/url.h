@@ -234,9 +234,9 @@ public:
     }
 
     // ASCII serialized origin
-    std::string origin_ascii() const;
-    // Unicode serialized origin in utf-8
     std::string origin() const;
+    // Unicode serialized origin in utf-8
+    std::string origin_unicode() const;
 
     std::string protocol() const {
         return std::string(norm_url_.data(), part_end_[SCHEME] ? part_end_[SCHEME] + 1 : 0);
@@ -878,7 +878,7 @@ inline bool is_special_authority_end_char(CharT c) {
 
 // ASCII serialization of an origin
 // https://html.spec.whatwg.org/multipage/browsers.html#ascii-serialisation-of-an-origin
-inline std::string url::origin_ascii() const {
+inline std::string url::origin() const {
     if (is_special_scheme()) {
         if (is_file_scheme())
             return "null"; // opaque origin
@@ -890,14 +890,14 @@ inline std::string url::origin_ascii() const {
     } else if (get_part_view(SCHEME).equal({ "blob", 4 })) {
         url u;
         if (u.parse(get_part_view(PATH), nullptr))
-            return u.origin_ascii();
+            return u.origin();
     }
     return "null"; // opaque origin
 }
 
 // Unicode serialization of an origin
 // https://html.spec.whatwg.org/multipage/browsers.html#unicode-serialisation-of-an-origin
-inline std::string url::origin() const {
+inline std::string url::origin_unicode() const {
     if (is_special_scheme()) {
         if (is_file_scheme())
             return "null"; // opaque origin
@@ -920,7 +920,7 @@ inline std::string url::origin() const {
     } else if (get_part_view(SCHEME).equal({ "blob", 4 })) {
         url u;
         if (u.parse(get_part_view(PATH), nullptr))
-            return u.origin();
+            return u.origin_unicode();
     }
     return "null"; // opaque origin
 }
