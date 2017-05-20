@@ -87,6 +87,10 @@ template <typename CharT>
 inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ipv4) {
     typedef std::make_unsigned<CharT>::type UCharT;
 
+    // Comes from: 6.1. If part is the empty string, return input
+    if (first == last)
+        return url_result::False;
+
     // <1>.<2>.<3>.<4>.<->
     const CharT* part[6];
     int dot_count = 0;
