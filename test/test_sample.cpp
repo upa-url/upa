@@ -6,6 +6,8 @@
 #include <locale>
 // json
 #include "json_writer/json_writer.h"
+// https://github.com/kazuho/picojson
+# include "picojson/picojson.h"
 
 
 template <class ...Args>
@@ -208,7 +210,7 @@ COMMENT:<comment>
 BASE:<base URL>
 URL:
 <url1>
-<url2>
+"<url2 as JSON string>"
 
 SET:<setter name>
 url:<URL to parse>
@@ -265,6 +267,16 @@ void read_samples(const char* file_name, SamplesOutput& out)
         }
         case State::url: {
             if (line.length() > 0) {
+                if (line[0] == '"') {
+                    // parse JSON string
+                    picojson::value v;
+                    std::string err = picojson::parse(v, line);
+                    if (!err.empty()) {
+                        std::cerr << "Skip invalid line: " << line << std::endl;
+                        continue;
+                    }
+                    line = v.get<std::string>();
+                }
                 out.output(line.c_str(), (url_base.href().empty() ? nullptr : &url_base));
             } else {
                 state = State::header;
