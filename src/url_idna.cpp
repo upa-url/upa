@@ -2,6 +2,7 @@
 #include "url_idna.h"
 #include "int_cast.h"
 #include <cassert>
+#include <mutex>
 // ICU
 #include "unicode/uidna.h"
 
@@ -12,45 +13,28 @@ namespace whatwg {
 
 namespace {
 
-// A wrapper to ICU's UIDNA, a C pointer to a UTS46/IDNA 2008 handling
-// object opened with uidna_openUTS46().
-//
-// We use UTS46 with BiDiCheck to migrate from IDNA 2003 (with unassigned
-// code points allowed) to IDNA 2008 with
-// the backward compatibility in mind. What it does:
-//
-// 1. Use the up-to-date Unicode data.
-// 2. Define a case folding/mapping with the up-to-date Unicode data as
-//    in IDNA 2003.
-// 3. Use transitional mechanism for 4 deviation characters (sharp-s,
-//    final sigma, ZWJ and ZWNJ) for now.
-// 4. Continue to allow symbols and punctuations.
-// 5. Apply new BiDi check rules more permissive than the IDNA 2003 BiDI rules.
-// 6. Do not apply STD3 rules
-// 7. Do not allow unassigned code points.
-//
-// It also closely matches what IE 10 does except for the BiDi check (
-// http://goo.gl/3XBhqw ).
-// See http://unicode.org/reports/tr46/ and references therein
-// for more details.
-struct UIDNAWrapper {
-    UIDNAWrapper() {
+// Return UTS46 ICU handler opened with uidna_openUTS46()
+
+const UIDNA* getUIDNA() {
+    static UIDNA* uidna;
+    static std::once_flag once;
+
+    std::call_once(once, [] {
         UErrorCode err = U_ZERO_ERROR;
-        // TODO(jungshik): Change options as different parties (browsers,
-        // registrars, search engines) converge toward a consensus.
-        // UIDNA_NONTRANSITIONAL_TO_UNICODE: see module.exports.toUnicode(..)
-        // at: https://github.com/Sebmaster/tr46.js/blob/master/index.js
-        value = uidna_openUTS46(UIDNA_CHECK_BIDI
+        // https://url.spec.whatwg.org/#idna
+        // UseSTD3ASCIIRules = false
+        // Nontransitional_Processing
+        // CheckBidi = true
+        uidna = uidna_openUTS46(UIDNA_CHECK_BIDI
             | UIDNA_NONTRANSITIONAL_TO_ASCII
             | UIDNA_NONTRANSITIONAL_TO_UNICODE, &err);
         if (U_FAILURE(err)) {
             //todo: CHECK(false) << "failed to open UTS46 data with error: " << err;
-            value = nullptr;
+            uidna = nullptr;
         }
-    }
-
-    UIDNA* value;
-};
+    });
+    return uidna;
+}
 
 } // namespace
 
@@ -73,9 +57,6 @@ struct UIDNAWrapper {
 static_assert(sizeof(char16_t) == sizeof(UChar), "");
 
 url_result IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_t>& output) {
-    // TODO: inicializavimas
-    static UIDNAWrapper g_uidna;
-
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
     // http://www.unicode.org/reports/tr46/#ToASCII
     // VerifyDnsLength = false
@@ -89,7 +70,7 @@ url_result IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_
     if (src_len > unsigned_limit<int32_t>::max())
         return url_result::Overflow; // too long
 
-    UIDNA* uidna = g_uidna.value;
+    const UIDNA* uidna = getUIDNA();
     assert(uidna != nullptr);
     while (true) {
         UErrorCode err = U_ZERO_ERROR;
@@ -114,15 +95,12 @@ url_result IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_
 // TODO: common function template for IDNToASCII and IDNToUnicode
 
 url_result IDNToUnicode(const char* src, size_t src_len, simple_buffer<char>& output) {
-    // TODO: inicializavimas
-    static UIDNAWrapper g_uidna;
-
     // uidna_nameToUnicodeUTF8 uses int32_t length
     // http://icu-project.org/apiref/icu4c/uidna_8h.html#a61648a995cff1f8d626df1c16ad4f3b8
     if (src_len > unsigned_limit<int32_t>::max())
         return url_result::Overflow; // too long
 
-    UIDNA* uidna = g_uidna.value;
+    const UIDNA* uidna = getUIDNA();
     assert(uidna != nullptr);
     while (true) {
         UErrorCode err = U_ZERO_ERROR;
