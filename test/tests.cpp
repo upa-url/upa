@@ -200,7 +200,7 @@ int main(int argc, char** argv)
     err |= test_from_file(run_parser_tests, "w3c-tests/urltestdata-mano.json");
 //  err |= test_from_file(run_parser_tests, "w3c-tests/urltestdata-mano-bandymai.json");
 
-    // err |= test_from_file(run_host_parser_tests, "w3c-tests/toascii.json");
+    err |= test_from_file(run_host_parser_tests, "w3c-tests/toascii.json");
 
     err |= test_from_file(run_setter_tests, "w3c-tests/setters_tests.json");
 

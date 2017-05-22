@@ -59,10 +59,15 @@ static_assert(sizeof(char16_t) == sizeof(UChar), "");
 url_result IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_t>& output) {
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
     // http://www.unicode.org/reports/tr46/#ToASCII
-    // VerifyDnsLength = false
     static const uint32_t UIDNA_ERR_MASK = ~(uint32_t)(
-        UIDNA_ERROR_EMPTY_LABEL | UIDNA_ERROR_LABEL_TOO_LONG |
-        UIDNA_ERROR_DOMAIN_NAME_TOO_LONG
+        // VerifyDnsLength = false
+        UIDNA_ERROR_EMPTY_LABEL
+        | UIDNA_ERROR_LABEL_TOO_LONG
+        | UIDNA_ERROR_DOMAIN_NAME_TOO_LONG
+        // CheckHyphens = false
+        | UIDNA_ERROR_LEADING_HYPHEN
+        | UIDNA_ERROR_TRAILING_HYPHEN
+        | UIDNA_ERROR_HYPHEN_3_4
         );
 
     // uidna_nameToASCII uses int32_t length
