@@ -63,6 +63,41 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
     });
 }
 
+void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
+{
+    // Test file format:
+    // https://github.com/w3c/web-platform-tests/pull/5976
+    static const auto make_url = [](const std::string& host)->std::string {
+        std::string str_url("http://");
+        str_url += host;
+        str_url += "/x";
+        return str_url;
+    };
+    
+    const std::string& input = obj["input"];
+    std::string str_case("URLHost(\"" + input + "\")");
+
+    ddt.test_case(str_case.c_str(), [&](DataDrivenTest::TestCase& tc) {
+        std::string input_url(make_url(input));
+
+        whatwg::url url;
+        bool parse_success = url.parse(input_url, nullptr);
+
+        // check "failure"
+        tc.assert_equal(obj.failure, !parse_success, "parse failure");
+
+        // attributes
+        if (parse_success && !obj.failure) {
+            const auto itOutput = obj.find("output");
+            const std::string& output = itOutput != obj.end() ? itOutput->second : input;
+            std::string output_url(make_url(output));
+
+            tc.assert_equal(output_url, url.href(), "href");
+            tc.assert_equal(output, url.hostname(), "hostname");
+        }
+    });
+}
+
 // URL setter test
 
 class SetterObj {
@@ -133,6 +168,7 @@ void test_setter(DataDrivenTest& ddt, SetterObj& obj)
 // Test runner
 
 bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file);
+bool run_host_parser_tests(DataDrivenTest& ddt, std::ifstream& file);
 bool run_setter_tests(DataDrivenTest& ddt, std::ifstream& file);
 
 typedef bool(*RunTests)(DataDrivenTest& ddt, std::ifstream& file);
@@ -164,6 +200,8 @@ int main(int argc, char** argv)
     err |= test_from_file(run_parser_tests, "w3c-tests/urltestdata-mano.json");
 //  err |= test_from_file(run_parser_tests, "w3c-tests/urltestdata-mano-bandymai.json");
 
+    // err |= test_from_file(run_host_parser_tests, "w3c-tests/toascii.json");
+
     err |= test_from_file(run_setter_tests, "w3c-tests/setters_tests.json");
 
     return err;
@@ -172,12 +210,21 @@ int main(int argc, char** argv)
 // Read tests in JSON format
 
 namespace {
+    enum class TestType {
+        UrlParser,
+        HostParser
+    };
+
     // parses urltestdata.json
     class root_context : public picojson::deny_parse_context {
     protected:
         DataDrivenTest& m_ddt;
+        TestType m_ttype;
     public:
-        root_context(DataDrivenTest& ddt) : m_ddt(ddt) {}
+        root_context(DataDrivenTest& ddt, TestType ttype)
+            : m_ddt(ddt)
+            , m_ttype(ttype)
+        {}
 
         // array only as root
         bool parse_array_start() { return true; }
@@ -197,15 +244,34 @@ namespace {
 
                 const picojson::object& o = item.get<picojson::object>();
                 for (picojson::object::const_iterator it = o.begin(); it != o.end(); it++) {
-                    if (it->first == "failure") {
-                        obj.failure = it->second.evaluate_as_boolean();
-                    } else {
-                        if (!it->second.is<std::string>())
-                            return false; // klaida: reikia string
-                        obj[it->first] = it->second.get<std::string>();
+                    switch (m_ttype) {
+                    case TestType::UrlParser:
+                        if (it->first == "failure") {
+                            obj.failure = it->second.evaluate_as_boolean();
+                            continue;
+                        }
+                        break;
+                    case TestType::HostParser:
+                        if (it->first == "output" && it->second.is<picojson::null>()) {
+                            obj.failure = true;
+                            continue;
+                        }
+                        break;
                     }
+                    // string attributes
+                    if (!it->second.is<std::string>())
+                        return false; // error: need string
+                    obj[it->first] = it->second.get<std::string>();
                 }
-                test_parser(m_ddt, obj);
+                // run item test
+                switch (m_ttype) {
+                case TestType::UrlParser:
+                    test_parser(m_ddt, obj);
+                    break;
+                case TestType::HostParser:
+                    test_host_parser(m_ddt, obj);
+                    break;
+                }
             } else if (item.is<std::string>()) {
                 // comment
                 // std::cout << value.as_string() << std::endl;
@@ -297,7 +363,12 @@ bool run_some_tests(Context &ctx, std::ifstream& file) {
 }
 
 bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file) {
-    root_context ctx(ddt);
+    root_context ctx(ddt, TestType::UrlParser);
+    return run_some_tests(ctx, file);
+}
+
+bool run_host_parser_tests(DataDrivenTest& ddt, std::ifstream& file) {
+    root_context ctx(ddt, TestType::HostParser);
     return run_some_tests(ctx, file);
 }
 
