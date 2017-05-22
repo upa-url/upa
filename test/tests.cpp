@@ -281,11 +281,9 @@ namespace {
     };
 }
 
-bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file)
-{
+template <typename Context>
+bool run_some_tests(Context &ctx, std::ifstream& file) {
     std::string err;
-
-    root_context ctx(ddt);
 
     // for unformatted reading use std::istreambuf_iterator
     // http://stackoverflow.com/a/17776228/3908097
@@ -298,19 +296,12 @@ bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file)
     return true;
 }
 
-bool run_setter_tests(DataDrivenTest& ddt, std::ifstream& file)
-{
-    std::string err;
+bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file) {
+    root_context ctx(ddt);
+    return run_some_tests(ctx, file);
+}
 
+bool run_setter_tests(DataDrivenTest& ddt, std::ifstream& file) {
     root_context2 ctx(ddt);
-
-    // for unformatted reading use std::istreambuf_iterator
-    // http://stackoverflow.com/a/17776228/3908097
-    picojson::_parse(ctx, std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), &err);
-
-    if (!err.empty()) {
-        std::cerr << err << std::endl;
-        return false;
-    }
-    return true;
+    return run_some_tests(ctx, file);
 }
