@@ -25,7 +25,10 @@ const UIDNA* getUIDNA() {
         // UseSTD3ASCIIRules = false
         // Nontransitional_Processing
         // CheckBidi = true
-        uidna = uidna_openUTS46(UIDNA_CHECK_BIDI
+        // CheckJoiners = true
+        uidna = uidna_openUTS46(
+            UIDNA_CHECK_BIDI
+            | UIDNA_CHECK_CONTEXTJ
             | UIDNA_NONTRANSITIONAL_TO_ASCII
             | UIDNA_NONTRANSITIONAL_TO_UNICODE, &err);
         if (U_FAILURE(err)) {
