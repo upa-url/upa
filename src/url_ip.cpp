@@ -30,7 +30,10 @@ void ipv4_serialize(uint32_t ipv4, std::string& output) {
 
 // IPv6
 
-static int longest_zero_sequence(const uint16_t* first, const uint16_t* last, const uint16_t*& start, const uint16_t*& end) {
+static int longest_zero_sequence(
+    const uint16_t* first, const uint16_t* last,
+    const uint16_t*& compress, const uint16_t*& compress_end)
+{
     int last_count = 0;
     for (auto it = first; it != last; it++) {
         if (*it == 0) {
@@ -39,8 +42,8 @@ static int longest_zero_sequence(const uint16_t* first, const uint16_t* last, co
             const int count = ite - it;
             if (last_count < count) {
                 last_count = count;
-                start = it;
-                end = ite;
+                compress = it;
+                compress_end = ite;
             }
             if (ite == last) break;
             it = ite; // it++ in loop skips not 0
@@ -50,18 +53,19 @@ static int longest_zero_sequence(const uint16_t* first, const uint16_t* last, co
 }
 
 void ipv6_serialize(const uint16_t(&address)[8], std::string& output) {
-    const auto first = std::begin(address);
-    const auto last = std::end(address);
+    const uint16_t *first = std::begin(address);
+    const uint16_t *last = std::end(address);
 
-    const uint16_t *zero_start;
-    const uint16_t *zero_end;
-    if (longest_zero_sequence(first, last, zero_start, zero_end) <= 1)
-        zero_start = zero_end = last;
+    const uint16_t *compress;
+    const uint16_t *compress_end;
+    if (longest_zero_sequence(first, last, compress, compress_end) <= 1)
+        compress = compress_end = last;
 
+    // "it" pointer corresponds to pieceIndex in the URL standard
     for (auto it = first; true;) {
-        if (it == zero_start) {
+        if (it == compress) {
             output.append("::", it == first ? 2 : 1);
-            if ((it = zero_end) == last) break;
+            if ((it = compress_end) == last) break;
         }
         unsigned_to_str<uint32_t>(*it, output, 16);
         if (++it == last) break;
