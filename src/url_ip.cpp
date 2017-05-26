@@ -49,9 +49,9 @@ static int longest_zero_sequence(const uint16_t* first, const uint16_t* last, co
     return last_count;
 }
 
-void ipv6_serialize(const uint16_t(&pieces)[8], std::string& output) {
-    const auto first = std::begin(pieces);
-    const auto last = std::end(pieces);
+void ipv6_serialize(const uint16_t(&address)[8], std::string& output) {
+    const auto first = std::begin(address);
+    const auto last = std::end(address);
 
     const uint16_t *zero_start;
     const uint16_t *zero_end;
