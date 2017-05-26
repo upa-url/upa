@@ -180,7 +180,7 @@ inline bool IsAsciiDigit(CharT ch) {
 template <typename CharT>
 inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)[8]) {
     std::fill(std::begin(address), std::end(address), 0);
-    int piece_pointer = 0;      // zero
+    int piece_index = 0;        // zero
     int compress_pointer = 0;   // null
     bool is_ipv4 = false;
 
@@ -196,12 +196,12 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
             return false;
         }
         pointer += 2;
-        compress_pointer = ++piece_pointer;
+        compress_pointer = ++piece_index;
     }
 
     // Main
     while (pointer < last) {
-        if (piece_pointer == 8) {
+        if (piece_index == 8) {
             // TODO-ERR: validation error
             return false;
         }
@@ -211,7 +211,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
                 return false;
             }
             pointer++;
-            compress_pointer = ++piece_pointer;
+            compress_pointer = ++piece_index;
             continue;
         }
 
@@ -239,11 +239,11 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
                 return false;
             }
         }
-        address[piece_pointer++] = value;
+        address[piece_index++] = value;
     }
 
     if (is_ipv4) {
-        if (piece_pointer > 6) {
+        if (piece_index > 6) {
             // TODO-ERR: validation error
             return false;
         }
@@ -271,10 +271,10 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
                     return false; // TODO-ERR: validation error
                 pointer++;
             }
-            address[piece_pointer] = address[piece_pointer] * 0x100 + ipv4Piece;
+            address[piece_index] = address[piece_index] * 0x100 + ipv4Piece;
             numbers_seen++;
             if (!(numbers_seen & 1)) // 2 or 4
-                piece_pointer++;
+                piece_index++;
         }
         // If c is the EOF code point and numbersSeen is not 4
         if (numbers_seen != 4)  {
@@ -285,13 +285,13 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
 
     // Finale
     if (compress_pointer) {
-        if (int diff = 8 - piece_pointer) {
-            for (int ind = piece_pointer - 1; ind >= compress_pointer; ind--) {
+        if (int diff = 8 - piece_index) {
+            for (int ind = piece_index - 1; ind >= compress_pointer; ind--) {
                 address[ind + diff] = address[ind];
                 address[ind] = 0;
             }
         }
-    } else if (piece_pointer != 8) {
+    } else if (piece_index != 8) {
         // TODO-ERR: validation error
         return false;
     }
