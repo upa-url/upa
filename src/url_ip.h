@@ -180,8 +180,8 @@ inline bool IsAsciiDigit(CharT ch) {
 template <typename CharT>
 inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)[8]) {
     std::fill(std::begin(address), std::end(address), 0);
-    int piece_index = 0;        // zero
-    int compress_pointer = 0;   // null
+    int piece_index = 0;    // zero
+    int compress = 0;       // null
     bool is_ipv4 = false;
 
     const size_t len = last - first;
@@ -196,7 +196,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
             return false;
         }
         pointer += 2;
-        compress_pointer = ++piece_index;
+        compress = ++piece_index;
     }
 
     // Main
@@ -206,12 +206,12 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
             return false;
         }
         if (pointer[0] == ':') {
-            if (compress_pointer) {
+            if (compress) {
                 // TODO-ERR: validation error
                 return false;
             }
             pointer++;
-            compress_pointer = ++piece_index;
+            compress = ++piece_index;
             continue;
         }
 
@@ -284,9 +284,9 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
     }
 
     // Finale
-    if (compress_pointer) {
+    if (compress) {
         if (int diff = 8 - piece_index) {
-            for (int ind = piece_index - 1; ind >= compress_pointer; ind--) {
+            for (int ind = piece_index - 1; ind >= compress; ind--) {
                 address[ind + diff] = address[ind];
                 address[ind] = 0;
             }
