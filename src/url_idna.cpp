@@ -114,10 +114,8 @@ url_result IDNToUnicode(const char* src, size_t src_len, simple_buffer<char>& ou
             return url_result::Ok;
         }
 
-        // TODO: Signify validation errors for any returned errors, and then, return result
         // https://url.spec.whatwg.org/#concept-domain-to-unicode
-        // TODO(jungshik): Look at info.errors to handle them case-by-case basis
-        // if necessary.
+        // TODO: Signify validation errors for any returned errors, and then, return result
         if (err != U_BUFFER_OVERFLOW_ERROR)
             return url_result::IdnaError;  // Unknown error, give up.
 
