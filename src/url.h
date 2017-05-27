@@ -17,8 +17,8 @@
 #include "int_cast.h"
 #include "str_view.h"
 #include "url_canon.h"
+#include "url_host.h"
 #include "url_idna.h"
-#include "url_ip.h"
 #include "url_util.h"
 #include <algorithm>
 #include <array>
@@ -114,14 +114,6 @@ public:
         QUERY,
         FRAGMENT,
         PART_COUNT
-    };
-
-    enum class HostType {
-        Empty = 0,
-        Opaque,
-        Domain,
-        IPv4,
-        IPv6
     };
 
     /**
@@ -265,12 +257,7 @@ public:
     }
 
     HostType host_type() const {
-        switch (flags_ & HOST_TYPE_MASK) {
-        case HOST_TYPE_STRING: return is_empty(HOST) ? HostType::Empty : HostType::Opaque;
-        case HOST_TYPE_DOMAIN: return HostType::Domain;
-        case HOST_TYPE_IPV4: return HostType::IPv4;
-        case HOST_TYPE_IPV6: return HostType::IPv6;
-        }
+        return static_cast<HostType>((flags_ & HOST_TYPE_MASK) >> HOST_TYPE_SHIFT);
     }
 
     std::string port() const {
@@ -340,11 +327,9 @@ protected:
         // other flags
         CANNOT_BE_BASE_FLAG = (1u << (PART_COUNT + 0)),
         // host type
-        HOST_TYPE_MASK = (3u << (PART_COUNT + 1)),
-        HOST_TYPE_STRING = 0,
-        HOST_TYPE_DOMAIN = (1u << (PART_COUNT + 1)),
-        HOST_TYPE_IPV4 = (2u << (PART_COUNT + 1)),
-        HOST_TYPE_IPV6 = (3u << (PART_COUNT + 1)),
+        HOST_TYPE_SHIFT = (PART_COUNT + 1),
+        HOST_TYPE_MASK = (7u << HOST_TYPE_SHIFT),
+
         // initial flags (empty (but not null) parts)
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
@@ -399,8 +384,8 @@ protected:
         set_flag(CANNOT_BE_BASE_FLAG);
     }
 
-    void set_host_flag(const UrlFlag hf) {
-        flags_ = (flags_ & ~HOST_TYPE_MASK) | (HOST_FLAG | hf);
+    void set_host_type(const HostType ht) {
+        flags_ = (flags_ & ~HOST_TYPE_MASK) | HOST_FLAG | (static_cast<unsigned int>(ht) << HOST_TYPE_SHIFT);
     }
 
     // info
@@ -431,7 +416,7 @@ extern const uint8_t kPartStart[url::PART_COUNT];
 }
 
 
-class url_serializer {
+class url_serializer : public host_output {
 public:
     url_serializer(url& dest_url)
         : url_(dest_url)
@@ -472,6 +457,10 @@ public:
     virtual void clear_host();
     virtual void empty_host();
 
+    // host_output overrides
+    virtual std::string& hostStart();
+    virtual void hostDone(HostType ht);
+
     // path
     // TODO: append_to_path() --> append_empty_to_path()
     void append_to_path();
@@ -490,7 +479,7 @@ public:
 
     // flags
     void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
-    void set_host_flag(const url::UrlFlag hf) { url_.set_host_flag(hf); }
+    void set_host_type(const HostType ht) { url_.set_host_type(ht); }
     // IMPORTANT: cannot-be-a-base-URL flag must be set before or just after
     // SCHEME set; because other part's serialization depends on this flag
     void set_cannot_be_base() {
@@ -739,15 +728,6 @@ public:
 
     template <typename CharT>
     static url_result parse_host(url_serializer& urls, const CharT* first, const CharT* last);
-
-    template <typename CharT>
-    static url_result parse_opaque_host(url_serializer& urls, const CharT* first, const CharT* last);
-
-    template <typename CharT>
-    static url_result parse_ipv4(url_serializer& urls, const CharT* first, const CharT* last);
-
-    template <typename CharT>
-    static url_result parse_ipv6(url_serializer& urls, const CharT* first, const CharT* last);
 
     template <typename CharT>
     static void parse_path(url_serializer& urls, const CharT* first, const CharT* last);
@@ -1563,7 +1543,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             // set empty host
             urls.start_part(url::HOST);
             urls.save_part();
-            urls.set_host_flag(url::HOST_TYPE_STRING);
+            urls.set_host_type(HostType::Empty);
             // if state override is given, then return
             if (state_override)
                 return true;
@@ -1755,181 +1735,8 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
 // internal functions
 
 template <typename CharT>
-static inline bool is_valid_host_chars(const CharT* first, const CharT* last) {
-    return std::none_of(first, last, detail::IsInvalidHostChar<CharT>);
-}
-
-template <typename CharT>
-static inline bool is_valid_opaque_host_chars(const CharT* first, const CharT* last) {
-    return std::none_of(first, last, [](CharT c) {
-        return detail::IsInvalidHostChar(c) && c != '%';
-    });
-}
-
-template <typename CharT>
 inline url_result url_parser::parse_host(url_serializer& urls, const CharT* first, const CharT* last) {
-    typedef std::make_unsigned<CharT>::type UCharT;
-
-    // 1. Non-"file" special URL's cannot have an empty host.
-    // 2. For "file" URL's empty host is set in the file_host_state 1.2
-    //    https://url.spec.whatwg.org/#file-host-state
-    // So empty host here will be set only for non-special URL's, instead of in
-    // the opaque host parser (if follow URL standard).
-    if (first == last) {
-        // https://github.com/whatwg/url/issues/79
-        // https://github.com/whatwg/url/pull/189
-        // set empty host
-        urls.start_part(url::HOST);
-        urls.save_part();
-        urls.set_host_flag(url::HOST_TYPE_STRING);
-        return url_result::Ok;
-    }
-    assert(first < last);
-
-    if (*first == '[') {
-        if (*(last - 1) == ']') {
-            return parse_ipv6(urls, first + 1, last - 1);
-        } else {
-            // TODO-ERR: validation error
-            return url_result::InvalidIpv6Address;
-        }
-    }
-
-    if (!urls.is_special_scheme())
-        return parse_opaque_host(urls, first, last);
-
-    // check if host has non ascii characters or percent sign
-    bool has_no_ascii = false;
-    bool has_escaped = false;
-    for (auto it = first; it < last;) {
-        UCharT uch = static_cast<UCharT>(*it++);
-        if (uch >= 0x80) {
-            has_no_ascii = true;
-        } else {
-            unsigned char uc8;
-            if (uch == '%' && detail::DecodeEscaped(it, last, uc8)) {
-                has_escaped = true;
-                if ((has_no_ascii = has_no_ascii || (uc8 >= 0x80))) break;
-            }
-        }
-    }
-
-    //TODO: klaidų nustatymas pagal standartą
-
-    std::basic_string<char16_t> buff_uc;
-    if (has_no_ascii) {
-        if (has_escaped) {
-            simple_buffer<unsigned char> buff_utf8;
-
-            uint32_t code_point;
-            for (auto it = first; it < last;) {
-                url_util::read_utf_char(it, last, code_point);
-                if (code_point == '%') {
-                    // unescape until escaped
-                    unsigned char uc8;
-                    if (detail::DecodeEscaped(it, last, uc8)) {
-                        buff_utf8.push_back(uc8);
-                        while (it < last && *it == '%') {
-                            it++; // skip '%'
-                            if (!detail::DecodeEscaped(it, last, uc8))
-                                uc8 = '%';
-                            buff_utf8.push_back(uc8);
-                        }
-                        detail::ConvertUTF8ToUTF16(buff_utf8.data(), buff_utf8.data() + buff_utf8.size(), buff_uc);
-                        buff_utf8.clear();
-                    } else {
-                        detail::AppendUTF16Value(code_point, buff_uc);
-                    }
-                } else {
-                    detail::AppendUTF16Value(code_point, buff_uc);
-                }
-            }
-        } else {
-            detail::ConvertToUTF16(first, last, buff_uc);
-        }
-    } else {
-        // (first,last) has only ASCII characters
-        // Net ir ASCII turi praeiti IDNToASCII patikrinimą;
-        // tačiau žr.: https://github.com/jsdom/whatwg-url/issues/50
-        //  ^-- kad korektiškai veiktų reikia Unicode 9 palaikymo
-        if (has_escaped) {
-            for (auto it = first; it < last;) {
-                unsigned char uc8 = static_cast<unsigned char>(*it++);
-                if (uc8 == '%')
-                    detail::DecodeEscaped(it, last, uc8);
-                buff_uc.push_back(uc8);
-            }
-        } else {
-            buff_uc.append(first, last);
-        }
-    }
-
-    // domain to ASCII
-    simple_buffer<char16_t> buff_ascii;
-
-    url_result res = IDNToASCII(buff_uc.data(), buff_uc.length(), buff_ascii);
-    if (res != url_result::Ok)
-        return res;
-    if (!is_valid_host_chars(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
-        //TODO-ERR: validation error
-        return url_result::InvalidDomainCharacter;
-    }
-    // IPv4
-    res = parse_ipv4(urls, buff_ascii.begin(), buff_ascii.end());
-    if (res == url_result::False) {
-        std::string& str_host = urls.start_part(url::HOST);
-        str_host.append(buff_ascii.begin(), buff_ascii.end());
-        urls.save_part();
-        urls.set_host_flag(url::HOST_TYPE_DOMAIN);
-        return url_result::Ok;
-    }
-    return res;
-}
-
-template <typename CharT>
-inline url_result url_parser::parse_opaque_host(url_serializer& urls, const CharT* first, const CharT* last) {
-    if (!is_valid_opaque_host_chars(first, last))
-        return url_result::InvalidDomainCharacter; //TODO-ERR: failure
-
-    std::string& str_host = urls.start_part(url::HOST);
-    //TODO: UTF-8 percent encode it using the C0 control percent-encode set
-    //detail::AppendStringOfType(first, last, detail::CHAR_C0_CTRL, str_host);
-    // do_simple_path(..) tą daro, tačiau galimi warning(), o jų čia nereikia,
-    // todėl reikalinga kita kodavimo f-ja:
-    do_simple_path(first, last, str_host);
-    urls.save_part();
-    urls.set_host_flag(url::HOST_TYPE_STRING);
-    return url_result::Ok;
-}
-
-template <typename CharT>
-inline url_result url_parser::parse_ipv4(url_serializer& urls, const CharT* first, const CharT* last) {
-    uint32_t ipv4;
-
-    const url_result res = ipv4_parse(first, last, ipv4);
-    if (res == url_result::Ok) {
-        std::string& str_ipv4 = urls.start_part(url::HOST);
-        ipv4_serialize(ipv4, str_ipv4);
-        urls.save_part();
-        urls.set_host_flag(url::HOST_TYPE_IPV4);
-    }
-    return res;
-}
-
-template <typename CharT>
-inline url_result url_parser::parse_ipv6(url_serializer& urls, const CharT* first, const CharT* last) {
-    uint16_t ipv6addr[8];
-
-    if (ipv6_parse(first, last, ipv6addr)) {
-        std::string& str_ipv6 = urls.start_part(url::HOST);
-        str_ipv6.push_back('[');
-        ipv6_serialize(ipv6addr, str_ipv6);
-        str_ipv6.push_back(']');
-        urls.save_part();
-        urls.set_host_flag(url::HOST_TYPE_IPV6);
-        return url_result::Ok;
-    }
-    return url_result::InvalidIpv6Address;
+    return host_parser::parse_host(first, last, urls.is_special_scheme(), urls);
 }
 
 template <typename CharT>
@@ -2258,7 +2065,18 @@ inline void url_serializer::empty_host() {
             url_.norm_url_.erase(host_end, diff);
         }
     }
-    url_.set_host_flag(url::HOST_TYPE_STRING);
+    url_.set_host_type(HostType::Empty);
+}
+
+// host_output overrides
+
+inline std::string& url_serializer::hostStart() {
+    return start_part(url::HOST);
+}
+
+inline void url_serializer::hostDone(HostType ht) {
+    save_part();
+    set_host_type(ht);
 }
 
 // append parts from other url

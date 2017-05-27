@@ -71,11 +71,11 @@ void cout_url(const whatwg::url& url) {
                 szHostType = "null";
             } else {
                 switch (url.host_type()) {
-                case whatwg::url::HostType::Empty: szHostType = "Empty"; break;
-                case whatwg::url::HostType::Opaque: szHostType = "Opaque"; break;
-                case whatwg::url::HostType::Domain: szHostType = "Domain"; break;
-                case whatwg::url::HostType::IPv4: szHostType = "IPv4"; break;
-                case whatwg::url::HostType::IPv6: szHostType = "IPv6"; break;
+                case whatwg::HostType::Empty: szHostType = "Empty"; break;
+                case whatwg::HostType::Opaque: szHostType = "Opaque"; break;
+                case whatwg::HostType::Domain: szHostType = "Domain"; break;
+                case whatwg::HostType::IPv4: szHostType = "IPv4"; break;
+                case whatwg::HostType::IPv6: szHostType = "IPv6"; break;
                 }
             }
             std::wcout << "host_type: " << szHostType << "\n";
