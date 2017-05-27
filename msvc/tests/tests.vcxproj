@@ -82,7 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\url.h" />
-    <ClInclude Include="..\..\test\ddt\DataDrivenTest.hpp" />
+    <ClInclude Include="..\..\deps\ddt\DataDrivenTest.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

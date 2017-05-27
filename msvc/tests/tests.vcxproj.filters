@@ -38,7 +38,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\test\ddt\DataDrivenTest.hpp">
+    <ClInclude Include="..\..\deps\ddt\DataDrivenTest.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\url.h">
