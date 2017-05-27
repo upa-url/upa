@@ -3,6 +3,7 @@
 
 #include "url_canon.h"
 #include "url_result.h"
+#include <algorithm> // std::min
 #include <cassert>
 #include <cstdint> // uint32_t
 #include <limits>
