@@ -797,5 +797,5 @@ void run_unit_tests() {
     uint32_t ipv4 = 1;
     assert(whatwg::ipv4_parse_number(szEmpty, szEmpty, ipv4) == whatwg::url_result::Ok && ipv4 == 0);
     ipv4 = 1;
-    assert(whatwg::ipv4_parse(szEmpty, szEmpty, ipv4) == whatwg::url_result::Ok && ipv4 == 0);
+    assert(whatwg::ipv4_parse(szEmpty, szEmpty, ipv4) == whatwg::url_result::False);
 }
