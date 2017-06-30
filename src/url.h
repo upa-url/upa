@@ -496,6 +496,7 @@ public:
     bool is_file_scheme() const { return url_.is_file_scheme(); }
     bool has_credentials() const { return url_.has_credentials(); }
     const detail::scheme_info* scheme_inf() const { return url_.scheme_inf_; }
+    int port_int() const { return url_.port_int(); }
 
 #if 0
     std::string& start_username();
@@ -1155,7 +1156,17 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     if (urls.is_file_scheme() && urls.is_empty(url::HOST)) return true;
                     // OR ursl.is_empty(url::HOST) && scheme_inf->no_empty_host
 
+                    // set url’s scheme
                     urls.save_scheme();
+
+                    // https://github.com/whatwg/url/pull/328
+                    // optimization: compare ports if scheme has the default port
+                    if (scheme_inf && scheme_inf->default_port >= 0 &&
+                        urls.port_int() == scheme_inf->default_port) {
+                        // set url’s port to null
+                        urls.clear_part(url::PORT);
+                    }
+
                     // if state override is given, then return
                     return true;
                 }
