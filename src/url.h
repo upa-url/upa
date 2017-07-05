@@ -725,7 +725,7 @@ public:
     };
 
     template <typename CharT>
-    static bool url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override = not_set_state);
+    static url_result url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override = not_set_state);
 
     template <typename CharT>
     static url_result parse_host(url_serializer& urls, const CharT* first, const CharT* last);
@@ -1086,7 +1086,7 @@ inline bool url::hash(const CharT* first, const CharT* last) {
 
 // https://url.spec.whatwg.org/#concept-basic-url-parser
 template <typename CharT>
-inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override)
+inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override)
 {
     typedef std::make_unsigned<CharT>::type UCharT;
 
@@ -1113,7 +1113,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             state = no_scheme_state;
         } else {
             //TODO-ERR: validation error
-            return false;
+            return url_result::InvalidSchemeCharacter;
         }
     }
 
@@ -1149,11 +1149,11 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     const detail::scheme_info* scheme_inf = detail::get_scheme_info(str_scheme.data(), str_scheme.length());
                     const bool is_special_old = urls.is_special_scheme();
                     const bool is_special_new = scheme_inf && scheme_inf->is_special;
-                    if (is_special_old != is_special_new) return true;
+                    if (is_special_old != is_special_new) return url_result::False;
                     // new URL("http://u:p@host:88/).protocol("file:");
-                    if (scheme_inf && scheme_inf->is_file && (urls.has_credentials() || !urls.is_null(url::PORT))) return true;
+                    if (scheme_inf && scheme_inf->is_file && (urls.has_credentials() || !urls.is_null(url::PORT))) return url_result::False;
                     // new URL("file:///path).protocol("http:");
-                    if (urls.is_file_scheme() && urls.is_empty(url::HOST)) return true;
+                    if (urls.is_file_scheme() && urls.is_empty(url::HOST)) return url_result::False;
                     // OR ursl.is_empty(url::HOST) && scheme_inf->no_empty_host
 
                     // set url’s scheme
@@ -1168,7 +1168,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     }
 
                     // if state override is given, then return
-                    return true;
+                    return url_result::Ok;
                 }
                 urls.save_scheme();
                 pointer = it_colon + 1; // skip ':'
@@ -1202,7 +1202,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         }
         if (state_override && !is_scheme) {
             //TODO-ERR: validation error
-            return false;
+            return url_result::InvalidSchemeCharacter;
         }
     }
 
@@ -1220,14 +1220,14 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     pointer++;
                 } else {
                     // TODO-ERR: 1. validation error
-                    return false;
+                    return url_result::RelativeUrlWithCannotBeABase;
                 }
             } else {
                 state = base->is_file_scheme() ? file_state : relative_state;
             }
         } else {
             //TODO-ERR: 1. validation error
-            return false;
+            return url_result::RelativeUrlWithoutBase;
         }
     }
     
@@ -1258,7 +1258,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             // Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
             // url’s port to base’s port, url’s path to base’s path, and url’s query to base’s query
             urls.append_parts(*base, url::USERNAME, url::QUERY);
-            return true; // EOF
+            return url_result::Ok; // EOF
         } else {
             const CharT ch = *(pointer++);
             switch (ch) {
@@ -1348,7 +1348,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         if (it_eta != end_of_authority) {
             if (std::distance(it_eta, end_of_authority) == 1) {
                 // disallow empty host, example: "http://u:p@/"
-                return false; // TODO-ERR: 2.1. validation error, failure
+                return url_result::EmptyHost; // TODO-ERR: 2.1. validation error, failure
             }
             //TODO-WARN: validation error
             auto it_colon = std::find(pointer, it_eta, ':');
@@ -1401,28 +1401,29 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             if (pointer == it_host_end) {
                 // make sure that if port is present or scheme is special, host is non-empty
                 if (is_port || urls.is_special_scheme()) {
-                    // TODO-ERR: validation error, host failure
-                    return false;
+                    // TODO-ERR: validation error
+                    return url_result::EmptyHost;
                 } else if (state_override && (urls.has_credentials() || !urls.is_null(url::PORT))) {
-                    // TODO-WARN: validation error
-                    return true;
+                    // TODO-WARN: validation error (empty host)
+                    return url_result::False;
                 }
             }
 
             // parse and set host:
-            if (parse_host(urls, pointer, it_host_end) != url_result::Ok)
-                return false;
+            const url_result res = parse_host(urls, pointer, it_host_end);
+            if (res != url_result::Ok)
+                return res; // TODO-ERR: failure
 
             if (is_port) {
                 pointer = it_host_end + 1; // skip ':'
                 state = port_state;
                 if (state_override == hostname_state)
-                    return true;
+                    return url_result::Ok;
             } else {
                 pointer = it_host_end;
                 state = path_start_state;
                 if (state_override)
-                    return true;
+                    return url_result::Ok;
             }
         }
     }
@@ -1440,7 +1441,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                 int port = 0;
                 for (auto it = pointer; it < end_of_digits; it++) {
                     port = port * 10 + (*it - '0');
-                    if (port > 0xFFFF) return false; // TODO-ERR: (2-1-2) validation error, failure
+                    if (port > 0xFFFF) return url_result::InvalidPort; // TODO-ERR: (2-1-2) validation error, failure
                 }
                 // set port if not default
                 if (urls.scheme_inf() == nullptr || urls.scheme_inf()->default_port != port) {
@@ -1453,12 +1454,12 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                 }
             }
             if (state_override)
-                return true; // (2-2)
+                return url_result::Ok; // (2-2)
             state = path_start_state;
             pointer = end_of_authority;
         } else {
-            // TODO-ERR: (3) validation error, failure
-            return false;
+            // TODO-ERR: (3) validation error, failure (contains non-digit)
+            return url_result::InvalidPort;
         }
     }
 
@@ -1480,7 +1481,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
                     // EOF code point
                     // Set url's host to base's host, url's path to base's path, and url's query to base's query
                     urls.append_parts(*base, url::HOST, url::QUERY);
-                    return true; // EOF
+                    return url_result::Ok; // EOF
                 } else {
                     const CharT ch = *(pointer++);
                     switch (ch) {
@@ -1557,7 +1558,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             urls.set_host_type(HostType::Empty);
             // if state override is given, then return
             if (state_override)
-                return true;
+                return url_result::Ok;
             state = path_start_state;
         } else if (!state_override && pointer + 2 == end_of_authority && is_Windows_drive(pointer[0], pointer[1])) {
             // buffer is a Windows drive letter
@@ -1568,8 +1569,9 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             // TODO: buffer is not reset here and instead used in the path state
         } else {
             // parse and set host:
-            if (parse_host(urls, pointer, end_of_authority) != url_result::Ok)
-                return false; // TODO-ERR: failure
+            const url_result res = parse_host(urls, pointer, end_of_authority);
+            if (res != url_result::Ok)
+                return res; // TODO-ERR: failure
             // if host is "localhost", then set host to the empty string
             if (urls.get_part_view(url::HOST).equal({ "localhost", 9 })) {
                 // set empty host
@@ -1577,7 +1579,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             }
             // if state override is given, then return
             if (state_override)
-                return true;
+                return url_result::Ok;
             pointer = end_of_authority;
             state = path_start_state;
         }
@@ -1619,7 +1621,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
             }
         } else {
             // EOF
-            return true;
+            return url_result::Ok;
         }
     }
 
@@ -1638,7 +1640,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         }
 
         if (pointer == last) {
-            return true;
+            return url_result::Ok; // EOF
         } else {
             const CharT ch = *pointer++;
             if (ch == '?') {
@@ -1664,7 +1666,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         pointer = end_of_path;
 
         if (pointer == last) {
-            return true;
+            return url_result::Ok; // EOF
         } else {
             const CharT ch = *pointer++;
             if (ch == '?') {
@@ -1703,7 +1705,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
 
         pointer = end_of_query;
         if (pointer == last)
-            return true; // EOF
+            return url_result::Ok; // EOF
         // *pointer == '#'
         //TODO: set url’s fragment to the empty string
         state = fragment_state;
@@ -1740,7 +1742,7 @@ inline bool url_parser::url_parse(url_serializer& urls, const CharT* first, cons
         urls.set_flag(url::FRAGMENT_FLAG);
     }
 
-    return true;
+    return url_result::Ok;
 }
 
 // internal functions

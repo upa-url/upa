@@ -6,8 +6,9 @@ namespace whatwg {
 enum class url_result {
     // success
     Ok = 0,
-    False,                         // internal
+    False,                         // setter ignored the value; non-ipv4 address (internal)
     // failure
+    InvalidSchemeCharacter,        // invalid scheme character
     EmptyHost,                     // host cannot be empty
     IdnaError,                     // invalid international domain name
     InvalidPort,                   // invalid port number
