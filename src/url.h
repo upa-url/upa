@@ -19,6 +19,7 @@
 #include "url_canon.h"
 #include "url_host.h"
 #include "url_idna.h"
+#include "url_result.h"
 #include "url_util.h"
 #include <algorithm>
 #include <array>
@@ -167,20 +168,20 @@ public:
     // parser
     
     template <typename CharT>
-    bool parse(const CharT* first, const CharT* last, const url* base);
+    url_result parse(const CharT* first, const CharT* last, const url* base);
     // wchar_t
-    bool parse(const wchar_t* first, const wchar_t* last, const url* base) {
+    url_result parse(const wchar_t* first, const wchar_t* last, const url* base) {
         typedef std::conditional<sizeof(wchar_t) == sizeof(char16_t), char16_t, char32_t>::type CharT;
         return parse(reinterpret_cast<const CharT*>(first), reinterpret_cast<const CharT*>(last), base);
     }
 
     template <class BufferT>
-    bool parse(const BufferT& str, const url* base) {
+    url_result parse(const BufferT& str, const url* base) {
         return parse(str.data(), str.data() + str.size(), base);
     }
 
     template <typename CharT>
-    bool parse(const CharT* strz, const url* base) {
+    url_result parse(const CharT* strz, const url* base) {
         const CharT* last = strz;
         while (*last) last++;
         return parse(strz, last, base);
@@ -870,7 +871,7 @@ inline std::string url::origin() const {
         return str_origin;
     } else if (get_part_view(SCHEME).equal({ "blob", 4 })) {
         url u;
-        if (u.parse(get_part_view(PATH), nullptr))
+        if (u.parse(get_part_view(PATH), nullptr) == url_result::Ok)
             return u.origin();
     }
     return "null"; // opaque origin
@@ -900,7 +901,7 @@ inline std::string url::origin_unicode() const {
         return str_origin;
     } else if (get_part_view(SCHEME).equal({ "blob", 4 })) {
         url u;
-        if (u.parse(get_part_view(PATH), nullptr))
+        if (u.parse(get_part_view(PATH), nullptr) == url_result::Ok)
             return u.origin_unicode();
     }
     return "null"; // opaque origin
@@ -957,7 +958,7 @@ inline void url::clear() {
 }
 
 template <typename CharT>
-inline bool url::parse(const CharT* first, const CharT* last, const url* base) {
+inline url_result url::parse(const CharT* first, const CharT* last, const url* base) {
     url_serializer urls(*this); // new URL
 
     // reset URL
@@ -974,7 +975,7 @@ template <typename CharT>
 inline bool url::href(const CharT* first, const CharT* last) {
     url u; // parsedURL
 
-    if (u.parse(first, last, nullptr)) {
+    if (u.parse(first, last, nullptr) == url_result::Ok) {
         *this = std::move(u);
         return true;
     }
