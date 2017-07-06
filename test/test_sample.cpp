@@ -102,7 +102,7 @@ void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
 
     // url parse result
     whatwg::url url;
-    if (url.parse(str_url, base)) {
+    if (whatwg::success(url.parse(str_url, base))) {
         // serialized
         cout_url(url);
     } else {
@@ -115,7 +115,7 @@ template <typename CharT>
 void url_testas(const CharT* str_url, const CharT* str_base)
 {
     whatwg::url url_base;
-    if (url_base.parse(str_base, nullptr)) {
+    if (whatwg::success(url_base.parse(str_base, nullptr))) {
         url_testas(str_url, &url_base);
     } else {
         cout_str(str_base);  std::wcout << "\n";
@@ -135,7 +135,7 @@ void url_parse_to_json(json_writer& json, const CharT* str_url, whatwg::url* bas
 
     // url parse result
     whatwg::url url;
-    if (url.parse(str_url, base)) {
+    if (whatwg::success(url.parse(str_url, base))) {
         json.name("href");     json.value(url.href());
         json.name("origin");   json.value(url.origin()); // ne visada reikia
         json.name("protocol"); json.value(url.protocol());
@@ -245,7 +245,8 @@ void read_samples(const char* file_name, SamplesOutput& out)
             auto icolon = line.find(':');
             if (icolon != line.npos) {
                 if (line.compare(0, icolon, "BASE") == 0) {
-                    ok = url_base.parse(line.data() + icolon + 1, line.data() + line.length(), nullptr);
+                    const auto res = url_base.parse(line.data() + icolon + 1, line.data() + line.length(), nullptr);
+                    ok = whatwg::success(res);
                 } else if (line.compare(0, icolon, "COMMENT") == 0) {
                     out.comment(line.data() + icolon + 1);
                 } else if (line.compare(0, icolon, "URL") == 0) {
@@ -315,7 +316,7 @@ bool read_setter(std::ifstream& file, const char* name, const char* name_end) {
                 std::cout << "URL=";
                 std::cout.write(val, val_end - val);
                 std::cout << std::endl;
-                ok = url.parse(val, val_end, nullptr);
+                ok = whatwg::success(url.parse(val, val_end, nullptr));
             } else if (line.compare(0, icolon, "val") == 0) {
                 // set value
                 if (strName == "protocol") {
