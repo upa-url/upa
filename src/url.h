@@ -985,7 +985,7 @@ template <typename CharT>
 inline bool url::protocol(const CharT* first, const CharT* last) {
     url_setter urls(*this);
 
-    return url_parser::url_parse(urls, first, last, nullptr, url_parser::scheme_start_state);
+    return url_parser::url_parse(urls, first, last, nullptr, url_parser::scheme_start_state) == url_result::Ok;
 }
 
 template <typename CharT>
@@ -1017,7 +1017,7 @@ inline bool url::host(const CharT* first, const CharT* last) {
     if (!cannot_be_base()) {
         url_setter urls(*this);
 
-        return url_parser::url_parse(urls, first, last, nullptr, url_parser::host_state);
+        return url_parser::url_parse(urls, first, last, nullptr, url_parser::host_state) == url_result::Ok;
     }
     return false;
 }
@@ -1027,7 +1027,7 @@ inline bool url::hostname(const CharT* first, const CharT* last) {
     if (!cannot_be_base()) {
         url_setter urls(*this);
 
-        return url_parser::url_parse(urls, first, last, nullptr, url_parser::hostname_state);
+        return url_parser::url_parse(urls, first, last, nullptr, url_parser::hostname_state) == url_result::Ok;
     }
     return false;
 }
@@ -1040,7 +1040,7 @@ inline bool url::port(const CharT* first, const CharT* last) {
             urls.clear_part(url::PORT);
             return true;
         } else {
-            return url_parser::url_parse(urls, first, last, nullptr, url_parser::port_state);
+            return url_parser::url_parse(urls, first, last, nullptr, url_parser::port_state) == url_result::Ok;
         }
     }
     return false;
@@ -1051,7 +1051,7 @@ inline bool url::pathname(const CharT* first, const CharT* last) {
     if (!cannot_be_base()) {
         url_setter urls(*this);
 
-        if (url_parser::url_parse(urls, first, last, nullptr, url_parser::path_start_state)) {
+        if (url_parser::url_parse(urls, first, last, nullptr, url_parser::path_start_state) == url_result::Ok) {
             urls.commit_path();
             return true;
         }
@@ -1068,7 +1068,7 @@ inline bool url::search(const CharT* first, const CharT* last) {
         return true;
     }
     if (*first == '?') first++;
-    return url_parser::url_parse(urls, first, last, nullptr, url_parser::query_state);
+    return url_parser::url_parse(urls, first, last, nullptr, url_parser::query_state) == url_result::Ok;
     //todo: set context object’s query object’s list to the result of parsing input
 }
 
@@ -1080,7 +1080,7 @@ inline bool url::hash(const CharT* first, const CharT* last) {
         return true;
     }
     if (*first == '#') first++;
-    return url_parser::url_parse(urls, first, last, nullptr, url_parser::fragment_state);
+    return url_parser::url_parse(urls, first, last, nullptr, url_parser::fragment_state) == url_result::Ok;
 }
 
 
