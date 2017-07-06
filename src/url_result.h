@@ -21,6 +21,10 @@ enum class url_result {
     Overflow,                      // URLs is too long
 };
 
+inline bool success(url_result res) {
+    return res == url_result::Ok;
+}
+
 }
 
 #endif // URL_RESULT_H
