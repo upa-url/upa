@@ -35,10 +35,10 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
 
         bool parse_success;
         if (!base.empty()) {
-            parse_success = url_base.parse(base, nullptr);
-            parse_success = parse_success && url.parse(input, &url_base);
+            parse_success = url_base.parse(base, nullptr) == whatwg::url_result::Ok;
+            parse_success = parse_success && url.parse(input, &url_base) == whatwg::url_result::Ok;
         } else {
-            parse_success = url.parse(input, nullptr);
+            parse_success = url.parse(input, nullptr) == whatwg::url_result::Ok;
         }
 
         // check "failure"
@@ -81,7 +81,7 @@ void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
         std::string input_url(make_url(input));
 
         whatwg::url url;
-        bool parse_success = url.parse(input_url, nullptr);
+        bool parse_success = url.parse(input_url, nullptr) == whatwg::url_result::Ok;
 
         // check "failure"
         tc.assert_equal(obj.failure, !parse_success, "parse failure");
@@ -118,7 +118,7 @@ void test_setter(DataDrivenTest& ddt, SetterObj& obj)
     ddt.test_case(str_case.c_str(), [&](DataDrivenTest::TestCase& tc) {
         whatwg::url url;
 
-        bool parse_success = url.parse(obj.m_href, nullptr);
+        bool parse_success = url.parse(obj.m_href, nullptr) == whatwg::url_result::Ok;
 
         // attributes
         if (parse_success) {
