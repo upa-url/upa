@@ -1700,7 +1700,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         // TODO: dabar palaiko tik encoding = "UTF-8"; kitų palaikymą galima padaryti pagal:
         // https://cs.chromium.org/chromium/src/url/url_canon_query.cc?rcl=1479817139&l=93
         std::string& str_query = urls.start_part(url::QUERY);
-        detail::AppendStringOfType(pointer, end_of_query, detail::CHAR_QUERY, str_query); // šis dar koduoja 0x27 '
+        detail::AppendStringOfType(pointer, end_of_query, detail::CHAR_QUERY, str_query);
         urls.save_part();
         urls.set_flag(url::QUERY_FLAG);
 
