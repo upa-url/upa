@@ -9,7 +9,10 @@
 template<typename CharT, typename Traits = std::char_traits<CharT>>
 class str_view {
 public:
+    str_view(const str_view& sv) : ptr_(sv.ptr_), len_(sv.len_) {}
     str_view(const CharT* ptr, std::size_t len) : ptr_(ptr), len_(len) {}
+    str_view(const CharT* ptr) : ptr_(ptr), len_(Traits::length(ptr)) {}
+    str_view(const std::basic_string<CharT>& str) : ptr_(str.data()), len_(str.length()) {}
 
     const CharT* data() const { return ptr_; }
     std::size_t length() const { return len_; }
