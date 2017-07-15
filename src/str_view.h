@@ -30,7 +30,6 @@ public:
     str_view& operator=(const str_view&) = default;
     str_view(const CharT* ptr, std::size_t len) : ptr_(ptr), len_(len) {}
     str_view(const CharT* ptr) : ptr_(ptr), len_(Traits::length(ptr)) {}
-    str_view(const std::basic_string<CharT>& str) : ptr_(str.data()), len_(str.length()) {}
 
     // iterator support
     const CharT* begin() const { return ptr_; }
@@ -73,7 +72,16 @@ public:
         return len_ == x.len_ && Traits::compare(ptr_, x.ptr_, len_) == 0;
     }
 
-    void append_to(std::basic_string<CharT>& str) const {
+    // basic_string, basic_string_view support
+    template <class StrT, typename = std::enable_if<std::is_same<StrT::value_type, value_type>::value>::type>
+    str_view(const StrT& str) : ptr_(str.data()), len_(str.length()) {}
+
+    template <class StrT, typename = std::enable_if<std::is_same<StrT::value_type, value_type>::value>::type>
+    operator StrT() const { return StrT(ptr_, len_); }
+
+    // basic_string support
+    template <class StrT, typename = std::enable_if<std::is_same<StrT::value_type, value_type>::value>::type>
+    void append_to(StrT& str) const {
         str.append(ptr_, len_);
     }
 
