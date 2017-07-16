@@ -124,23 +124,23 @@ void test_setter(DataDrivenTest& ddt, SetterObj& obj)
         if (parse_success) {
             // set value
             if (obj.m_setter == "protocol") {
-                url.protocol(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+                url.protocol(obj.m_new_value);
             } else if (obj.m_setter == "username") {
-                url.username(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+                url.username(obj.m_new_value);
             } else if (obj.m_setter == "password") {
-                url.password(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+                url.password(obj.m_new_value);
             } else if (obj.m_setter == "host") {
-                url.host(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+                url.host(obj.m_new_value);
             } else if (obj.m_setter == "hostname") {
-                url.hostname(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+                url.hostname(obj.m_new_value);
             } else if (obj.m_setter == "port") {
-                url.port(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+                url.port(obj.m_new_value);
             } else if (obj.m_setter == "pathname") {
-                url.pathname(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+                url.pathname(obj.m_new_value);
             } else if (obj.m_setter == "search") {
-                url.search(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+                url.search(obj.m_new_value);
             } else if (obj.m_setter == "hash") {
-                url.hash(obj.m_new_value.data(), obj.m_new_value.data() + obj.m_new_value.length());
+                url.hash(obj.m_new_value);
             }
 
             // test result
