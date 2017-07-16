@@ -663,93 +663,71 @@ void test_setters()
     url.parse("ws://example.org/foo/bar", nullptr);
     cout_url_eol(url);
 
-    const char* sz;
-
-    sz = "wss://%00/foo/bar"; // failure
-    url.href(sz, sz + std::strlen(sz));
+    url.href("wss://%00/foo/bar"); // failure
     cout_url_eol(url);
 
-    sz = "wss://example.org/foo/bar";
-    url.href(sz, sz + std::strlen(sz));
+    url.href("wss://example.org/foo/bar");
     cout_url_eol(url);
 
-    sz = "http:";
-    url.protocol(sz, sz + std::strlen(sz));
+    url.protocol("http:");
     cout_url_eol(url);
 
-    sz = "user01";
-    url.username(sz, sz + std::strlen(sz));
-    sz = "pass@01";
-    url.password(sz, sz + std::strlen(sz));
+    url.username("user01");
+    url.password("pass@01");
     cout_url_eol(url);
 
-    sz = "example.org:81";
-    url.host(sz, sz + std::strlen(sz));
+    url.host("example.org:81");
     cout_url_eol(url);
 
-    sz = "example.net";
-    url.hostname(sz, sz + std::strlen(sz));
+    url.hostname("example.net");
     cout_url_eol(url);
 
-    sz = "88";
-    url.port(sz, sz + std::strlen(sz));
+    url.port("88");
     cout_url_eol(url);
 
-    sz = "";
-    url.port(sz, sz + std::strlen(sz));
+    url.port("");
     cout_url_eol(url);
 
-    sz = "/path";
-    url.pathname(sz, sz + std::strlen(sz));
+    url.pathname("/path");
     cout_url_eol(url);
 
-    sz = "#frag";
-    url.hash(sz, sz + std::strlen(sz));
+    url.hash("#frag");
     cout_url_eol(url);
 
-    sz = "?a=3";
-    url.search(sz, sz + std::strlen(sz));
+    url.search("?a=3");
     cout_url_eol(url);
 
     // test path
-    sz = "/other/path";
-    url.pathname(sz, sz + std::strlen(sz));
+    url.pathname("/other/path");
     cout_url_eol(url);
 
     // test switch to file: scheme
-    sz = "file:";
-    url.protocol(sz, sz + std::strlen(sz));
+    url.protocol("file:");
     cout_url_eol(url);
 
-    sz = "localhost";
-    url.hostname(sz, sz + std::strlen(sz));
+    url.hostname("localhost");
     cout_url_eol(url);
 
     // test windows drive letters and ..
-    sz = "example.org";
-    url.hostname(sz, sz + std::strlen(sz));
+    url.hostname("example.org");
     cout_url_eol(url);
 
-    sz = "/c|/../path";
-    url.pathname(sz, sz + std::strlen(sz));
+    url.pathname("/c|/../path");
     cout_url_eol(url);
 
     // non-special
     url.parse("non-special:/path", nullptr);
     cout_url_eol(url);
 
-    sz = "example.net";
-    url.hostname(sz, sz + std::strlen(sz));
+    url.hostname("example.net");
     cout_url_eol(url);
 
-    sz = "";
-    url.hostname(sz, sz + std::strlen(sz));
+    url.hostname("");
     cout_url_eol(url);
 
     // javscript: scheme test
     url.parse("JavaScript:alert(1)", nullptr);
-    sz = "#frag";
-    url.hash(sz, sz + std::strlen(sz));
+    url.hash("#frag");
     cout_url_eol(url);
 }
 
