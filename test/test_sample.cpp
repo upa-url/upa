@@ -444,6 +444,11 @@ void test_parser()
 
     url_testas("mailto:vardenis@example.com", nullptr);
 
+#if !(defined(_MSC_VER) && _MSC_VER >= 1900)
+    // MS VC 2015 and later bug: codecvt_utf8[_utf16] doesn't support char16_t, char32_t
+    // https://connect.microsoft.com/VisualStudio/feedback/details/1348277/link-error-when-using-std-codecvt-utf8-utf16-char16-t
+    // https://connect.microsoft.com/VisualStudio/feedback/details/1403302/unresolved-external-when-using-codecvt-utf8
+
     const char* szUrl = "http://user:pass@klausimėlis.lt/?key=ąče#frag";
     url_testas(szUrl);
     // char16_t
@@ -456,6 +461,7 @@ void test_parser()
     // wchar_t
     url_testas(to_wstr(szUrl).c_str());
     // --
+#endif
 
     url_testas("http://user:pass@klausim%c4%97lis.lt/?key=ąče#frag");
     url_testas("http://user:pass@klausim%25lis.lt/?key=ąče#frag");
