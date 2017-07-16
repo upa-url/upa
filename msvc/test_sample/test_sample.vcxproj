@@ -75,6 +75,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\buffer.h" />
     <ClInclude Include="..\..\src\int_cast.h" />
+    <ClInclude Include="..\..\src\str_arg.h" />
     <ClInclude Include="..\..\src\str_view.h" />
     <ClInclude Include="..\..\src\url.h" />
     <ClInclude Include="..\..\src\url_canon.h" />
