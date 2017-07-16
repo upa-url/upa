@@ -15,6 +15,7 @@
 
 #include "buffer.h"
 #include "int_cast.h"
+#include "str_arg.h"
 #include "str_view.h"
 #include "url_canon.h"
 #include "url_host.h"
@@ -189,11 +190,19 @@ public:
 
     // setters
 
-    template <typename CharT>
+    template <typename CharT, typename = enable_if_char_t<CharT>>
     bool href(const CharT* first, const CharT* last);
+    template <class ...Args, typename = enable_if_str_arg_t<Args...>>
+    inline bool href(const Args& ...args) {
+        return href(str_arg::begin(args...), str_arg::end(args...));
+    }
 
-    template <typename CharT>
+    template <typename CharT, typename = enable_if_char_t<CharT>>
     bool protocol(const CharT* first, const CharT* last);
+    template <class ...Args, typename = enable_if_str_arg_t<Args...>>
+    inline bool protocol(const Args& ...args) {
+        return protocol(str_arg::begin(args...), str_arg::end(args...));
+    }
 
     template <typename CharT>
     void username(const CharT* first, const CharT* last);
@@ -971,7 +980,7 @@ inline url_result url::parse(const CharT* first, const CharT* last, const url* b
     return url_parser::url_parse(urls, first, last, base);
 }
 
-template <typename CharT>
+template <typename CharT, typename>
 inline bool url::href(const CharT* first, const CharT* last) {
     url u; // parsedURL
 
@@ -982,7 +991,7 @@ inline bool url::href(const CharT* first, const CharT* last) {
     return false;
 }
 
-template <typename CharT>
+template <typename CharT, typename>
 inline bool url::protocol(const CharT* first, const CharT* last) {
     url_setter urls(*this);
 
