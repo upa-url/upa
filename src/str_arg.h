@@ -47,13 +47,23 @@ inline const wchar_char_t* end(const wchar_t*, const wchar_t* ptr) {
     return reinterpret_cast<const wchar_char_t*>(ptr);
 }
 
-// character sequence with length
+// character sequence with unsigned length
 template<typename CharT>
 inline const CharT* begin(const CharT* ptr, std::size_t) {
     return ptr;
 }
 template<typename CharT>
 inline const CharT* end(const CharT* ptr, std::size_t len) {
+    return ptr + len;
+}
+
+// character sequence with signed length
+template<typename CharT>
+inline const CharT* begin(const CharT* ptr, std::ptrdiff_t) {
+    return ptr;
+}
+template<typename CharT>
+inline const CharT* end(const CharT* ptr, std::ptrdiff_t len) {
     return ptr + len;
 }
 
