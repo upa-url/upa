@@ -1487,7 +1487,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 }
                 // set port if not default
                 if (urls.scheme_inf() == nullptr || urls.scheme_inf()->default_port != port) {
-                    urls.start_part(url::PORT) += std::to_string(port);
+                    unsigned_to_str(port, urls.start_part(url::PORT), 10);
                     urls.save_part();
                     urls.set_flag(url::PORT_FLAG);
                 } else {

@@ -11,6 +11,24 @@
 
 namespace whatwg {
 
+// append unsigned integer to string
+
+template <typename UIntT>
+inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
+    static const char digit[] = "0123456789abcdef";
+
+    // divider
+    UIntT divider = 1;
+    const UIntT num0 = num / base;
+    while (divider <= num0) divider *= base;
+
+    // convert
+    do {
+        output.push_back(digit[num / divider % base]);
+        divider /= base;
+    } while (divider);
+}
+
 // IPv4 parser
 
 // TODO-WARN: validationErrorFlag
