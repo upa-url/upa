@@ -17,16 +17,19 @@ template <typename UIntT>
 inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
     static const char digit[] = "0123456789abcdef";
 
-    // divider
-    UIntT divider = 1;
+    // count digits
+    size_t count = output.length() + 1;
+    // one division is needed to prevent the multiplication overflow
     const UIntT num0 = num / base;
-    while (divider <= num0) divider *= base;
+    for (UIntT divider = 1; divider <= num0; divider *= base)
+        count++;
+    output.resize(count);
 
     // convert
     do {
-        output.push_back(digit[num / divider % base]);
-        divider /= base;
-    } while (divider);
+        output[--count] = digit[num % base];
+        num /= base;
+    } while (num);
 }
 
 // IPv4 parser
