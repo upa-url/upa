@@ -390,6 +390,7 @@ void read_samples(const char* file_name) {
 
 // Main
 
+void test_interactive();
 void test_parser();
 void test_setters();
 void run_unit_tests();
@@ -403,6 +404,9 @@ int main(int argc, char *argv[])
         const char* flag = argv[1];
         if (flag[0] == '-') {
             switch (flag[1]) {
+            case 'i':
+                test_interactive();
+                return 0;
             case 'g':
                 if (argc > 2) {
                     read_samples(argv[2]);
@@ -417,8 +421,9 @@ int main(int argc, char *argv[])
             }
         }
         std::cerr
-            << "test_sample [-g <samples file>]\n"
-            << "test_sample [-t <samples file>]"
+            << "test_sample [-i]\n"
+            << "test_sample -g <samples file>\n"
+            << "test_sample -t <samples file>"
             << std::endl;
 
     } else {
@@ -427,6 +432,17 @@ int main(int argc, char *argv[])
         run_unit_tests();
     }
     return 0;
+}
+
+void test_interactive()
+{
+    std::cout << "Enter URL; enter empty line to exit\n";
+
+    std::string str;
+    while (std::getline(std::cin, str)) {
+        if (str.empty()) break;
+        url_testas(str.c_str());
+    }
 }
 
 void test_parser()
