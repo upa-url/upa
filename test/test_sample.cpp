@@ -54,10 +54,8 @@ void cout_url(const whatwg::url& url) {
         "FRAGMENT"
     };
 
-    std::wcout << "HREF: " << to_wstr(url.href()) << "\n";
-
-    // origin
-    std::wcout << "origin: " << to_wstr(url.origin()) << "\n";
+    cout_name_str("HREF", url.href());
+    cout_name_str("origin", url.origin());
 
     // print parts
     for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {
