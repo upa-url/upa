@@ -306,6 +306,14 @@ public:
         return get_part(PORT);
     }
 
+    // path + search
+    str_view<char> path_view() const {
+        // begin & end offsets
+        const size_t b = part_end_[PATH - 1];
+        const size_t e = part_end_[QUERY] ? part_end_[QUERY] : part_end_[PATH];
+        return str_view<char>(norm_url_.data() + b, e ? e - b : 0);
+    }
+
     std::string pathname() const {
         // https://url.spec.whatwg.org/#dom-url-pathname
         // already serialized as needed
