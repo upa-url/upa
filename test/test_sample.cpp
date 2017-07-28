@@ -33,6 +33,13 @@ void cout_str(const char32_t* str) {
         std::wcout.put(static_cast<wchar_t>(*str));
 }
 
+template <class T>
+void cout_name_str(const char* name, T&& str) {
+    if (!str.empty()) {
+        std::wcout << name << ": " << to_wstr(std::forward<T>(str)) << "\n";
+    }
+}
+
 void cout_url(const whatwg::url& url) {
     static char* part_name[whatwg::url::PART_COUNT] = {
         "SCHEME",
@@ -56,15 +63,12 @@ void cout_url(const whatwg::url& url) {
     for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {
         if (!part_name[part]) continue;
 
-        std::string strPart;
-        switch (part) {
-        case whatwg::url::PATH:
-            strPart = url.pathname();
-            break;
-        default:
-            strPart = url.get_part(static_cast<whatwg::url::PartType>(part));
-            break;
+        if (part == whatwg::url::PATH) {
+            cout_name_str("path", url.path_view());
+            cout_name_str("pathname", url.pathname());
+            continue;
         }
+
         if (part == whatwg::url::HOST) {
             const char* szHostType;
             if (url.is_null(static_cast<whatwg::url::PartType>(part))) {
@@ -80,9 +84,8 @@ void cout_url(const whatwg::url& url) {
             }
             std::wcout << "host_type: " << szHostType << "\n";
         }
-        if (!strPart.empty()) {
-            std::wcout << part_name[part] << ": " << to_wstr(strPart) << "\n";
-        }
+
+        cout_name_str(part_name[part], url.get_part(static_cast<whatwg::url::PartType>(part)));
     }
 }
 
