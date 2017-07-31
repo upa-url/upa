@@ -91,4 +91,24 @@ private:
 };
 
 
+// compare two str_view
+template<class CharT, class Traits>
+/*constexpr*/ bool operator==(str_view<CharT, Traits> lhs, str_view<CharT, Traits> rhs) /*noexcept*/ {
+    return lhs.equal(rhs);
+}
+
+// compare objects convertible to str_view for equality
+template<class CharT, class Traits, class StrT,
+class = std::enable_if<std::is_convertible<StrT, str_view<CharT, Traits>>::value>::type>
+/*constexpr*/ bool operator==(StrT&& lhs, const str_view<CharT, Traits> rhs) {
+    return rhs.equal(std::forward<StrT>(lhs));
+}
+
+template<class CharT, class Traits, class StrT,
+class = std::enable_if<std::is_convertible<StrT, str_view<CharT, Traits>>::value>::type>
+/*constexpr*/ bool operator==(const str_view<CharT, Traits> lhs, StrT&& rhs) {
+    return lhs.equal(std::forward<StrT>(rhs));
+}
+
+
 #endif // STR_VIEW_H
