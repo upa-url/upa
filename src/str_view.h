@@ -110,5 +110,12 @@ class = std::enable_if<std::is_convertible<StrT, str_view<CharT, Traits>>::value
     return lhs.equal(std::forward<StrT>(rhs));
 }
 
+// stream output
+template <class CharT, class Traits>
+std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& os,
+    str_view<CharT, Traits> v) {
+    // TODO FormattedOutputFunction
+    return os.write(v.data(), v.length());
+}
 
 #endif // STR_VIEW_H
