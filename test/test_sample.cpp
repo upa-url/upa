@@ -62,7 +62,7 @@ void cout_url(const whatwg::url& url) {
         if (!part_name[part]) continue;
 
         if (part == whatwg::url::PATH) {
-            cout_name_str("path", url.path_view());
+            cout_name_str("path", url.path());
             cout_name_str("pathname", url.pathname());
             continue;
         }

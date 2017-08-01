@@ -272,66 +272,70 @@ public:
     // Unicode serialized origin in utf-8
     std::string origin_unicode() const;
 
-    std::string protocol() const {
-        return std::string(norm_url_.data(), part_end_[SCHEME] ? part_end_[SCHEME] + 1 : 0);
+    str_view<char> protocol() const {
+        // "scheme:"
+        return str_view<char>(norm_url_.data(), part_end_[SCHEME] ? part_end_[SCHEME] + 1 : 0);
     }
 
-    std::string username() const {
-        return get_part(USERNAME);
+    str_view<char> username() const {
+        return get_part_view(USERNAME);
     }
 
-    std::string password() const {
-        return get_part(PASSWORD);
+    str_view<char> password() const {
+        return get_part_view(PASSWORD);
     }
 
-    std::string host() const {
+    str_view<char> host() const {
         if (is_null(HOST))
-            return std::string("");
-        if (is_null(PORT))
-            return get_part(HOST);
-        // "host:port"
-        const size_t offset = part_end_[HOST_START];
-        return std::string(norm_url_.data() + offset, part_end_[PORT] - offset);
+            return str_view<char>();
+        // "hostname:port"
+        const size_t b = part_end_[HOST_START];
+        const size_t e = is_null(PORT) ? part_end_[HOST] : part_end_[PORT];
+        return str_view<char>(norm_url_.data() + b, e - b);
     }
 
-    std::string hostname() const {
-        return get_part(HOST);
+    str_view<char> hostname() const {
+        return get_part_view(HOST);
     }
 
     HostType host_type() const {
         return static_cast<HostType>((flags_ & HOST_TYPE_MASK) >> HOST_TYPE_SHIFT);
     }
 
-    std::string port() const {
-        return get_part(PORT);
+    str_view<char> port() const {
+        return get_part_view(PORT);
     }
 
-    // path + search
-    str_view<char> path_view() const {
-        // begin & end offsets
+    // pathname + search
+    str_view<char> path() const {
+        // "pathname?query"
         const size_t b = part_end_[PATH - 1];
         const size_t e = part_end_[QUERY] ? part_end_[QUERY] : part_end_[PATH];
         return str_view<char>(norm_url_.data() + b, e ? e - b : 0);
     }
 
-    std::string pathname() const {
+    str_view<char> pathname() const {
         // https://url.spec.whatwg.org/#dom-url-pathname
         // already serialized as needed
-        return get_part(PATH);
+        return get_part_view(PATH);
     }
 
-    std::string search() const {
+    str_view<char> search() const {
         if (is_empty(QUERY))
-            return std::string("");
+            return str_view<char>();
         // return with '?'
-        return std::string(norm_url_.data() + part_end_[QUERY - 1], norm_url_.data() + part_end_[QUERY]);
+        const size_t b = part_end_[QUERY - 1];
+        const size_t e = part_end_[QUERY];
+        return str_view<char>(norm_url_.data() + b, e - b);
     }
 
-    std::string hash() const {
+    str_view<char> hash() const {
         if (is_empty(FRAGMENT))
-            return std::string("");
+            return str_view<char>();
         // return with '#'
-        return std::string(norm_url_.data() + part_end_[FRAGMENT - 1], norm_url_.data() + part_end_[FRAGMENT]);
+        const size_t b = part_end_[FRAGMENT - 1];
+        const size_t e = part_end_[FRAGMENT];
+        return str_view<char>(norm_url_.data() + b, e - b);
     }
 
     // port to int
