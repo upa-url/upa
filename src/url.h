@@ -344,8 +344,6 @@ public:
 
     // get info
     
-    std::string get_part(PartType t) const;
-
     str_view<char> get_part_view(PartType t) const;
 
     bool is_empty(const PartType t) const;
@@ -974,15 +972,6 @@ inline int url::real_port_int() const {
     }
 }
 
-
-inline std::string url::get_part(PartType t) const {
-    if (t == SCHEME)
-        return std::string(norm_url_.data(), part_end_[SCHEME]);
-    // begin & end offsets
-    const size_t b = part_end_[t - 1] + detail::kPartStart[t];
-    const size_t e = part_end_[t];
-    return std::string(norm_url_.data() + b, e > b ? e - b : 0);
-}
 
 inline str_view<char> url::get_part_view(PartType t) const {
     if (t == SCHEME)
