@@ -83,7 +83,7 @@ void cout_url(const whatwg::url& url) {
             std::wcout << "host_type: " << szHostType << "\n";
         }
 
-        cout_name_str(part_name[part], url.get_part(static_cast<whatwg::url::PartType>(part)));
+        cout_name_str(part_name[part], url.get_part_view(static_cast<whatwg::url::PartType>(part)));
     }
 }
 
