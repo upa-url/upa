@@ -263,7 +263,7 @@ public:
     // getters
 
     // get serialized URL
-    const std::string& href() const {
+    str_view<char> href() const {
         return norm_url_;
     }
 
