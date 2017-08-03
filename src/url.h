@@ -92,10 +92,7 @@ inline int port_from_str(const char* first, const char* last) {
     return port;
 }
 
-extern const scheme_info* get_scheme_info(const str_view<char> src);
-inline const scheme_info* get_scheme_info(const char* name, std::size_t len) {
-    return get_scheme_info(str_view<char>(name, len));
-}
+extern const scheme_info* get_scheme_info(str_view<char> src);
 
 
 } // namespace detail
@@ -1189,7 +1186,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             if (is_scheme) {
                 // kas toliau
                 if (state_override) {
-                    const detail::scheme_info* scheme_inf = detail::get_scheme_info(str_scheme.data(), str_scheme.length());
+                    const detail::scheme_info* scheme_inf = detail::get_scheme_info(str_scheme);
                     const bool is_special_old = urls.is_special_scheme();
                     const bool is_special_new = scheme_inf && scheme_inf->is_special;
                     if (is_special_old != is_special_new) return url_result::False;
