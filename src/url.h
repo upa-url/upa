@@ -58,16 +58,6 @@ struct scheme_info {
     operator const str_view<char>&() const { return scheme; }
 };
 
-// todo: str_equal(..) nenaudojama
-template <typename CharT>
-bool str_equal(const CharT* first, const CharT* last, const char* strz) {
-    for (const CharT* it = first; it < last; it++) {
-        if (*strz == 0 || *it != *strz) return false;
-        strz++;
-    }
-    return *strz == 0;
-}
-
 // Lowercase the ASCII character
 template <typename CharT>
 inline CharT AsciiToLower(CharT c) {
