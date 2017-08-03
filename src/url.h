@@ -58,6 +58,8 @@ struct scheme_info {
     operator const str_view<char>&() const { return scheme; }
 };
 
+extern const scheme_info* get_scheme_info(str_view<char> src);
+
 // Lowercase the ASCII character
 template <typename CharT>
 inline CharT AsciiToLower(CharT c) {
@@ -81,8 +83,6 @@ inline int port_from_str(const char* first, const char* last) {
     }
     return port;
 }
-
-extern const scheme_info* get_scheme_info(str_view<char> src);
 
 
 } // namespace detail
