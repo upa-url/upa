@@ -32,61 +32,6 @@
 
 namespace whatwg {
 
-namespace detail {
-
-
-// NOTE: is_local, is_http, is_network, is_fetch are defined and used by
-// Fetch Standard: https://fetch.spec.whatwg.org/#url
-// They weren't used by the URL Standard directly. So it's safe to remove them.
-// See:
-// https://github.com/whatwg/url/commit/8fb8684
-// https://github.com/whatwg/url/pull/276
-// https://github.com/whatwg/fetch/pull/512
-struct scheme_info {
-    str_view<char> scheme;
-    int default_port;           // -1 if none
-    unsigned is_special: 1;     // "ftp", "file", "gopher", "http", "https", "ws", "wss"
-    unsigned is_local : 1;      // "about", "blob", "data", "filesystem"
-    unsigned is_http : 1;       // "http", "https"
-    unsigned is_network : 1;    // "ftp" or an HTTP(S) scheme
-    unsigned is_fetch : 1;      // "about", "blob", "data", "file", "filesystem", or a network scheme
-    // other
-    unsigned is_file : 1;       // "file"
-    unsigned is_ws : 1;         // "ws", "wss"
-
-    // for search operations
-    operator const str_view<char>&() const { return scheme; }
-};
-
-extern const scheme_info* get_scheme_info(str_view<char> src);
-
-// Lowercase the ASCII character
-template <typename CharT>
-inline CharT AsciiToLower(CharT c) {
-    return (c <= 'Z' && c >= 'A') ? (c | 0x20) : c;
-}
-
-// strz must be in lower case
-template <typename CharT>
-inline bool AsciiEqualNoCase(const CharT* first, const CharT* last, const char* strz) {
-    for (const CharT* it = first; it < last; it++) {
-        if (*strz == 0 || AsciiToLower(*it) != *strz) return false;
-        strz++;
-    }
-    return *strz == 0;
-}
-
-inline int port_from_str(const char* first, const char* last) {
-    int port = 0;
-    for (auto it = first; it != last; it++) {
-        port = port * 10 + (*it - '0');
-    }
-    return port;
-}
-
-
-} // namespace detail
-
 // URL class
 
 class url {
@@ -285,6 +230,29 @@ public:
     bool has_credentials() const;
 
 protected:
+    // NOTE: is_local, is_http, is_network, is_fetch are defined and used by
+    // Fetch Standard: https://fetch.spec.whatwg.org/#url
+    // They weren't used by the URL Standard directly. So it's safe to remove them.
+    // See:
+    // https://github.com/whatwg/url/commit/8fb8684
+    // https://github.com/whatwg/url/pull/276
+    // https://github.com/whatwg/fetch/pull/512
+    struct scheme_info {
+        str_view<char> scheme;
+        int default_port;           // -1 if none
+        unsigned is_special : 1;        // "ftp", "file", "gopher", "http", "https", "ws", "wss"
+        unsigned is_local : 1;      // "about", "blob", "data", "filesystem"
+        unsigned is_http : 1;       // "http", "https"
+        unsigned is_network : 1;    // "ftp" or an HTTP(S) scheme
+        unsigned is_fetch : 1;      // "about", "blob", "data", "file", "filesystem", or a network scheme
+        // other
+        unsigned is_file : 1;       // "file"
+        unsigned is_ws : 1;         // "ws", "wss"
+
+        // for search operations
+        operator const str_view<char>&() const { return scheme; }
+    };
+
     enum UrlFlag : unsigned {
         // not null flags
         SCHEME_FLAG = (1u << SCHEME),
@@ -304,6 +272,10 @@ protected:
         // initial flags (empty (but not null) parts)
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
+
+    // get scheme info
+    static const scheme_info kSchemes[];
+    static const scheme_info* get_scheme_info(str_view<char> src);
 
     // set scheme
     template <class StringT>
@@ -333,7 +305,7 @@ protected:
 private:
     std::string norm_url_;
     std::array<std::size_t, PART_COUNT> part_end_;
-    const detail::scheme_info* scheme_inf_;
+    const scheme_info* scheme_inf_;
     unsigned flags_;
     unsigned path_segment_count_;
 
@@ -342,7 +314,32 @@ private:
     friend class url_parser;
 };
 
+
 namespace detail {
+
+// Lowercase the ASCII character
+template <typename CharT>
+inline CharT AsciiToLower(CharT c) {
+    return (c <= 'Z' && c >= 'A') ? (c | 0x20) : c;
+}
+
+// strz must be in lower case
+template <typename CharT>
+inline bool AsciiEqualNoCase(const CharT* first, const CharT* last, const char* strz) {
+    for (const CharT* it = first; it < last; it++) {
+        if (*strz == 0 || AsciiToLower(*it) != *strz) return false;
+        strz++;
+    }
+    return *strz == 0;
+}
+
+inline int port_from_str(const char* first, const char* last) {
+    int port = 0;
+    for (auto it = first; it != last; it++) {
+        port = port * 10 + (*it - '0');
+    }
+    return port;
+}
 
 // canonical version of each possible input letter in the scheme
 extern const char kSchemeCanonical[0x80];
@@ -350,7 +347,7 @@ extern const char kSchemeCanonical[0x80];
 // part start
 extern const uint8_t kPartStart[url::PART_COUNT];
 
-}
+} // namespace detail
 
 
 class url_serializer : public host_output {
@@ -432,7 +429,7 @@ public:
     bool is_special_scheme() const { return url_.is_special_scheme(); }
     bool is_file_scheme() const { return url_.is_file_scheme(); }
     bool has_credentials() const { return url_.has_credentials(); }
-    const detail::scheme_info* scheme_inf() const { return url_.scheme_inf_; }
+    const url::scheme_info* scheme_inf() const { return url_.scheme_inf_; }
     int port_int() const { return url_.port_int(); }
 
 #if 0
@@ -980,12 +977,12 @@ inline void url::set_scheme(const url& src) {
 
 inline void url::set_scheme(const str_view<char> str) {
     set_scheme_str(str);
-    scheme_inf_ = detail::get_scheme_info(str);
+    scheme_inf_ = get_scheme_info(str);
 }
 
 inline void url::set_scheme(std::size_t end_of_scheme) {
     part_end_[SCHEME] = end_of_scheme;
-    scheme_inf_ = detail::get_scheme_info(get_part_view(SCHEME));
+    scheme_inf_ = get_scheme_info(get_part_view(SCHEME));
 }
 
 inline void url::clear_scheme() {
@@ -1217,7 +1214,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             if (is_scheme) {
                 // kas toliau
                 if (state_override) {
-                    const detail::scheme_info* scheme_inf = detail::get_scheme_info(str_scheme);
+                    const url::scheme_info* scheme_inf = url::get_scheme_info(str_scheme);
                     const bool is_special_old = urls.is_special_scheme();
                     const bool is_special_new = scheme_inf && scheme_inf->is_special;
                     if (is_special_old != is_special_new) return url_result::False;

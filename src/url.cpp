@@ -30,9 +30,23 @@ const char kSchemeCanonical[0x80] = {
     'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',  0 ,  0 ,  0 ,  0 ,  0
 };
 
+// Part start
+
+const uint8_t kPartStart[url::PART_COUNT] = {
+    0, 0, 0,
+    1,   // ':' PASSWORD
+    0, 0,
+    1,   // ':' PORT
+    0,
+    1,   // '?' QUERY
+    1    // '#' FRAGMENT
+};
+
+} // namespace detail
+
 
 // MUST by sorted alphabetically by scheme
-const scheme_info kSchemes[] = {
+const url::scheme_info url::kSchemes[] = {
     // scheme,            port, is_special, is_local, is_http, is_network, is_fetch, is_file, is_ws
     { { "about", 5 },       -1,          0,        1,       0,          0,        1,       0,     0 },
     { { "blob", 4 },        -1,          0,        1,       0,          0,        1,       0,     0 },
@@ -47,7 +61,7 @@ const scheme_info kSchemes[] = {
     { { "wss", 3 },        443,          1,        0,       0,          0,        0,       0,     1 }
 };
 
-const scheme_info* get_scheme_info(const str_view<char> src) {
+const url::scheme_info* url::get_scheme_info(const str_view<char> src) {
     auto it = std::lower_bound(std::begin(kSchemes), std::end(kSchemes), src,
         [](const str_view<char>& a, const str_view<char>& b) { return a.compare(b) < 0; });
     if (it != std::end(kSchemes) && it->scheme.equal(src))
@@ -55,18 +69,5 @@ const scheme_info* get_scheme_info(const str_view<char> src) {
     return nullptr;
 }
 
-// Part start
 
-const uint8_t kPartStart[url::PART_COUNT] = {
-    0, 0, 0,
-    1,   // ':' PASSWORD
-    0, 0,
-    1,   // ':' PORT
-    0,
-    1,   // '?' QUERY
-    1    // '#' FRAGMENT
-};
-
-
-} // namespace detail
 } // namespace whatwg
