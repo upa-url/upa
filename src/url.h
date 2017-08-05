@@ -271,28 +271,18 @@ public:
 
     str_view<char> hash() const;
 
-    // get info
+    // get url info
     
     str_view<char> get_part_view(PartType t) const;
 
     bool is_empty(const PartType t) const;
+    bool is_null(const PartType t) const;
 
-    bool is_null(const PartType t) const {
-        return !(flags_ & (1u << t));
-    }
-
-    bool is_special_scheme() const {
-        return scheme_inf_ && scheme_inf_->is_special;
-    }
-
-    bool is_file_scheme() const {
-        return scheme_inf_ && scheme_inf_->is_file;
-    }
+    bool is_special_scheme() const;
+    bool is_file_scheme() const;
 
     // URL includes credentials?
-    bool has_credentials() const {
-        return !is_empty(USERNAME) || !is_empty(PASSWORD);
-    }
+    bool has_credentials() const;
 
 protected:
     enum UrlFlag : unsigned {
@@ -971,6 +961,7 @@ inline str_view<char> url::hash() const {
     return str_view<char>(norm_url_.data() + b, e - b);
 }
 
+// get url info
 
 inline str_view<char> url::get_part_view(PartType t) const {
     if (t == SCHEME)
@@ -989,6 +980,23 @@ inline bool url::is_empty(const PartType t) const {
     const size_t e = part_end_[t];
     return b >= e;
 }
+
+inline bool url::is_null(const PartType t) const {
+    return !(flags_ & (1u << t));
+}
+
+inline bool url::is_special_scheme() const {
+    return scheme_inf_ && scheme_inf_->is_special;
+}
+
+inline bool url::is_file_scheme() const {
+    return scheme_inf_ && scheme_inf_->is_file;
+}
+
+inline bool url::has_credentials() const {
+    return !is_empty(USERNAME) || !is_empty(PASSWORD);
+}
+
 
 inline void url::clear() {
     norm_url_.resize(0);
