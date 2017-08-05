@@ -305,10 +305,6 @@ protected:
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
 
-    bool is_null(const UrlFlag flag) const {
-        return !(flags_ & flag);
-    }
-
     // scheme
     template <class StringT>
     void set_scheme_str(const StringT str) {
