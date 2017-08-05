@@ -310,8 +310,7 @@ protected:
     void set_scheme_str(const StringT str);
     void set_scheme(const url& src);
     void set_scheme(const str_view<char> str);
-    // TODO: remove b and e --> len
-    void set_scheme(std::size_t b, std::size_t e);
+    void set_scheme(std::size_t end_of_scheme);
     void clear_scheme();
 
     // path util
@@ -369,7 +368,7 @@ public:
     // set data
     void set_scheme(const url& src) { url_.set_scheme(src); }
     void set_scheme(const str_view<char> str) { url_.set_scheme(str); }
-    void set_scheme(std::size_t b, std::size_t e) { url_.set_scheme(b, e); }
+    void set_scheme(std::size_t end_of_scheme) { url_.set_scheme(end_of_scheme); }
 
     //TODO atskirti inline
     virtual std::string& start_scheme() {
@@ -377,7 +376,7 @@ public:
         return url_.norm_url_;
     }
     virtual void save_scheme() {
-        set_scheme(0, url_.norm_url_.length());
+        set_scheme(url_.norm_url_.length());
         url_.norm_url_.push_back(':');
     }
     virtual void clear_scheme() {
@@ -481,7 +480,7 @@ public:
     }
     void save_scheme() {
         replace_part(url::SCHEME, strp_.data(), strp_.length());
-        set_scheme(0, strp_.length());
+        set_scheme(strp_.length());
     }
     void clear_scheme() {
         //?? assert(last_pt_ == url::SCHEME);
@@ -984,10 +983,8 @@ inline void url::set_scheme(const str_view<char> str) {
     scheme_inf_ = detail::get_scheme_info(str);
 }
 
-// TODO: remove b and e --> len
-inline void url::set_scheme(std::size_t b, std::size_t e) {
-    assert(b == 0);
-    part_end_[SCHEME] = e;
+inline void url::set_scheme(std::size_t end_of_scheme) {
+    part_end_[SCHEME] = end_of_scheme;
     scheme_inf_ = detail::get_scheme_info(get_part_view(SCHEME));
 }
 
