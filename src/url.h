@@ -320,30 +320,6 @@ private:
 
 namespace detail {
 
-// Lowercase the ASCII character
-template <typename CharT>
-inline CharT AsciiToLower(CharT c) {
-    return (c <= 'Z' && c >= 'A') ? (c | 0x20) : c;
-}
-
-// strz must be in lower case
-template <typename CharT>
-inline bool AsciiEqualNoCase(const CharT* first, const CharT* last, const char* strz) {
-    for (const CharT* it = first; it < last; it++) {
-        if (*strz == 0 || AsciiToLower(*it) != *strz) return false;
-        strz++;
-    }
-    return *strz == 0;
-}
-
-inline int port_from_str(const char* first, const char* last) {
-    int port = 0;
-    for (auto it = first; it != last; it++) {
-        port = port * 10 + (*it - '0');
-    }
-    return port;
-}
-
 // canonical version of each possible input letter in the scheme
 extern const char kSchemeCanonical[0x80];
 
@@ -682,6 +658,32 @@ private:
 };
 
 
+namespace detail {
+
+// Lowercase the ASCII character
+template <typename CharT>
+inline CharT AsciiToLower(CharT c) {
+    return (c <= 'Z' && c >= 'A') ? (c | 0x20) : c;
+}
+
+// strz must be in lower case
+template <typename CharT>
+inline bool AsciiEqualNoCase(const CharT* first, const CharT* last, const char* strz) {
+    for (const CharT* it = first; it < last; it++) {
+        if (*strz == 0 || AsciiToLower(*it) != *strz) return false;
+        strz++;
+    }
+    return *strz == 0;
+}
+
+inline int port_from_str(const char* first, const char* last) {
+    int port = 0;
+    for (auto it = first; it != last; it++) {
+        port = port * 10 + (*it - '0');
+    }
+    return port;
+}
+
 // Removable URL chars
 
 template <typename CharT, typename UCharT = std::make_unsigned<CharT>::type>
@@ -736,6 +738,8 @@ inline void do_remove_whitespace(const CharT*& first, const CharT*& last, simple
         break;
     }
 }
+
+} // namespace detail
 
 // reverse find
 
@@ -1038,7 +1042,7 @@ inline url_result url::parse(const CharT* first, const CharT* last, const url* b
     urls.new_url();
 
     // remove any leading and trailing C0 control or space:
-    do_trim(first, last);
+    detail::do_trim(first, last);
     //TODO-WARN: validation error if trimmed
 
     return url_parser::url_parse(urls, first, last, base);
@@ -1166,7 +1170,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
     // remove all ASCII tab or newline from URL
     simple_buffer<CharT> buff_no_ws;
-    do_remove_whitespace(first, last, buff_no_ws);
+    detail::do_remove_whitespace(first, last, buff_no_ws);
     //TODO-WARN: validation error if removed
 
     // reserve size (TODO: bet jei bus naudojama base?)
