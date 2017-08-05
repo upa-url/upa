@@ -739,8 +739,6 @@ inline void do_remove_whitespace(const CharT*& first, const CharT*& last, simple
     }
 }
 
-} // namespace detail
-
 // reverse find
 
 template<class InputIt, class T>
@@ -751,6 +749,8 @@ InputIt find_last(InputIt first, InputIt last, const T& value) {
     }
     return last;
 }
+
+} // namespace detail
 
 // special chars
 
@@ -1422,7 +1422,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#' || c == '\\'; }) :
             std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#'; });
         
-        auto it_eta = find_last(pointer, end_of_authority, '@');
+        auto it_eta = detail::find_last(pointer, end_of_authority, '@');
         if (it_eta != end_of_authority) {
             if (std::distance(it_eta, end_of_authority) == 1) {
                 // disallow empty host, example: "http://u:p@/"
@@ -1978,7 +1978,7 @@ inline bool url::get_path_rem_last(std::size_t& path_end, unsigned& path_segment
         // Remove path’s last item
         const char* first = norm_url_.data() + part_end_[url::PATH-1];
         const char* last = norm_url_.data() + part_end_[url::PATH];
-        const char* it = find_last(first, last, '/');
+        const char* it = detail::find_last(first, last, '/');
         if (it == last) it = first; // jei nebuvo '/' išmesim visą kelią
         // shorten
         path_end = it - norm_url_.data();
