@@ -305,34 +305,14 @@ protected:
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
 
-    // scheme
+    // set scheme
     template <class StringT>
-    void set_scheme_str(const StringT str) {
-        norm_url_.resize(0); // clear all
-        part_end_[SCHEME] = str.length();
-        norm_url_.append(str.data(), str.length());
-        norm_url_ += ':';
-    }
-    void set_scheme(const url& src) {
-        set_scheme_str(src.get_part_view(SCHEME));
-        scheme_inf_ = src.scheme_inf_;
-    }
-    void set_scheme(const str_view<char> str) {
-        set_scheme_str(str);
-        scheme_inf_ = detail::get_scheme_info(str);
-    }
+    void set_scheme_str(const StringT str);
+    void set_scheme(const url& src);
+    void set_scheme(const str_view<char> str);
     // TODO: remove b and e --> len
-    void set_scheme(std::size_t b, std::size_t e) {
-        assert(b == 0);
-        part_end_[SCHEME] = e;
-        scheme_inf_ = detail::get_scheme_info(get_part_view(SCHEME));
-    }
-    void clear_scheme() {
-        norm_url_.resize(0); // clear all
-        part_end_[SCHEME] = 0;
-        //??: part_end_[SCHEME_SEP] = 0;
-        scheme_inf_ = nullptr;
-    }
+    void set_scheme(std::size_t b, std::size_t e);
+    void clear_scheme();
 
     // path util
     str_view<char> get_path_first_string(size_t len) const;
@@ -341,24 +321,15 @@ protected:
     bool get_shorten_path(std::size_t& path_end, unsigned& path_segment_count) const;
     
     // flags
-    void set_flag(const UrlFlag flag) {
-        flags_ |= flag;
-    }
-    bool cannot_be_base() const {
-        return !!(flags_ & CANNOT_BE_BASE_FLAG);
-    }
-    void set_cannot_be_base() {
-        set_flag(CANNOT_BE_BASE_FLAG);
-    }
+    void set_flag(const UrlFlag flag);
 
-    void set_host_type(const HostType ht) {
-        flags_ = (flags_ & ~HOST_TYPE_MASK) | HOST_FLAG | (static_cast<unsigned int>(ht) << HOST_TYPE_SHIFT);
-    }
+    bool cannot_be_base() const;
+    void set_cannot_be_base();
+
+    void set_host_type(const HostType ht);
 
     // info
-    bool canHaveUsernamePasswordPort() {
-        return !(is_empty(url::HOST) || cannot_be_base() || is_file_scheme());
-    }
+    bool canHaveUsernamePasswordPort();
 
 private:
     std::string norm_url_;
@@ -993,6 +964,63 @@ inline bool url::has_credentials() const {
     return !is_empty(USERNAME) || !is_empty(PASSWORD);
 }
 
+// set scheme
+
+template <class StringT>
+inline void url::set_scheme_str(const StringT str) {
+    norm_url_.resize(0); // clear all
+    part_end_[SCHEME] = str.length();
+    norm_url_.append(str.data(), str.length());
+    norm_url_ += ':';
+}
+
+inline void url::set_scheme(const url& src) {
+    set_scheme_str(src.get_part_view(SCHEME));
+    scheme_inf_ = src.scheme_inf_;
+}
+
+inline void url::set_scheme(const str_view<char> str) {
+    set_scheme_str(str);
+    scheme_inf_ = detail::get_scheme_info(str);
+}
+
+// TODO: remove b and e --> len
+inline void url::set_scheme(std::size_t b, std::size_t e) {
+    assert(b == 0);
+    part_end_[SCHEME] = e;
+    scheme_inf_ = detail::get_scheme_info(get_part_view(SCHEME));
+}
+
+inline void url::clear_scheme() {
+    norm_url_.resize(0); // clear all
+    part_end_[SCHEME] = 0;
+    //?TODO?: part_end_[SCHEME_SEP] = 0;
+    scheme_inf_ = nullptr;
+}
+
+// flags
+
+inline void url::set_flag(const UrlFlag flag) {
+    flags_ |= flag;
+}
+
+inline bool url::cannot_be_base() const {
+    return !!(flags_ & CANNOT_BE_BASE_FLAG);
+}
+
+inline void url::set_cannot_be_base() {
+    set_flag(CANNOT_BE_BASE_FLAG);
+}
+
+inline void url::set_host_type(const HostType ht) {
+    flags_ = (flags_ & ~HOST_TYPE_MASK) | HOST_FLAG | (static_cast<unsigned int>(ht) << HOST_TYPE_SHIFT);
+}
+
+inline bool url::canHaveUsernamePasswordPort() {
+    return !(is_empty(url::HOST) || cannot_be_base() || is_file_scheme());
+}
+
+// url parsing
 
 inline void url::clear() {
     norm_url_.resize(0);
