@@ -240,84 +240,36 @@ public:
     // getters
 
     // get serialized URL
-    str_view<char> href() const {
-        return norm_url_;
-    }
+    str_view<char> href() const;
 
     // ASCII serialized origin
     std::string origin() const;
     // Unicode serialized origin in utf-8
     std::string origin_unicode() const;
 
-    str_view<char> protocol() const {
-        // "scheme:"
-        return str_view<char>(norm_url_.data(), part_end_[SCHEME] ? part_end_[SCHEME] + 1 : 0);
-    }
+    str_view<char> protocol() const;
 
-    str_view<char> username() const {
-        return get_part_view(USERNAME);
-    }
+    str_view<char> username() const;
+    str_view<char> password() const;
 
-    str_view<char> password() const {
-        return get_part_view(PASSWORD);
-    }
+    str_view<char> host() const;
+    str_view<char> hostname() const;
+    HostType host_type() const;
 
-    str_view<char> host() const {
-        if (is_null(HOST))
-            return str_view<char>();
-        // "hostname:port"
-        const size_t b = part_end_[HOST_START];
-        const size_t e = is_null(PORT) ? part_end_[HOST] : part_end_[PORT];
-        return str_view<char>(norm_url_.data() + b, e - b);
-    }
-
-    str_view<char> hostname() const {
-        return get_part_view(HOST);
-    }
-
-    HostType host_type() const {
-        return static_cast<HostType>((flags_ & HOST_TYPE_MASK) >> HOST_TYPE_SHIFT);
-    }
-
-    str_view<char> port() const {
-        return get_part_view(PORT);
-    }
-
-    // pathname + search
-    str_view<char> path() const {
-        // "pathname?query"
-        const size_t b = part_end_[PATH - 1];
-        const size_t e = part_end_[QUERY] ? part_end_[QUERY] : part_end_[PATH];
-        return str_view<char>(norm_url_.data() + b, e ? e - b : 0);
-    }
-
-    str_view<char> pathname() const {
-        // https://url.spec.whatwg.org/#dom-url-pathname
-        // already serialized as needed
-        return get_part_view(PATH);
-    }
-
-    str_view<char> search() const {
-        if (is_empty(QUERY))
-            return str_view<char>();
-        // return with '?'
-        const size_t b = part_end_[QUERY - 1];
-        const size_t e = part_end_[QUERY];
-        return str_view<char>(norm_url_.data() + b, e - b);
-    }
-
-    str_view<char> hash() const {
-        if (is_empty(FRAGMENT))
-            return str_view<char>();
-        // return with '#'
-        const size_t b = part_end_[FRAGMENT - 1];
-        const size_t e = part_end_[FRAGMENT];
-        return str_view<char>(norm_url_.data() + b, e - b);
-    }
+    str_view<char> port() const;
 
     // port to int
     int port_int() const;
     int real_port_int() const;
+
+    // pathname + search
+    str_view<char> path() const;
+
+    str_view<char> pathname() const;
+
+    str_view<char> search() const;
+
+    str_view<char> hash() const;
 
     // get info
     
@@ -883,6 +835,10 @@ inline bool is_special_authority_end_char(CharT c) {
 
 // url class
 
+inline  str_view<char> url::href() const {
+    return norm_url_;
+}
+
 // Origin
 // https://url.spec.whatwg.org/#concept-url-origin
 
@@ -935,6 +891,40 @@ inline std::string url::origin_unicode() const {
     return "null"; // opaque origin
 }
 
+inline str_view<char> url::protocol() const {
+    // "scheme:"
+    return str_view<char>(norm_url_.data(), part_end_[SCHEME] ? part_end_[SCHEME] + 1 : 0);
+}
+
+inline str_view<char> url::username() const {
+    return get_part_view(USERNAME);
+}
+
+inline str_view<char> url::password() const {
+    return get_part_view(PASSWORD);
+}
+
+inline str_view<char> url::host() const {
+    if (is_null(HOST))
+        return str_view<char>();
+    // "hostname:port"
+    const size_t b = part_end_[HOST_START];
+    const size_t e = is_null(PORT) ? part_end_[HOST] : part_end_[PORT];
+    return str_view<char>(norm_url_.data() + b, e - b);
+}
+
+inline str_view<char> url::hostname() const {
+    return get_part_view(HOST);
+}
+
+inline HostType url::host_type() const {
+    return static_cast<HostType>((flags_ & HOST_TYPE_MASK) >> HOST_TYPE_SHIFT);
+}
+
+inline str_view<char> url::port() const {
+    return get_part_view(PORT);
+}
+
 inline int url::port_int() const {
     auto vport = get_part_view(PORT);
     return vport.length() ? detail::port_from_str(vport.data(), vport.data() + vport.length()) : -1;
@@ -947,6 +937,38 @@ inline int url::real_port_int() const {
     } else {
         return scheme_inf_ ? scheme_inf_->default_port : -1;
     }
+}
+
+// pathname + search
+inline str_view<char> url::path() const {
+    // "pathname?query"
+    const size_t b = part_end_[PATH - 1];
+    const size_t e = part_end_[QUERY] ? part_end_[QUERY] : part_end_[PATH];
+    return str_view<char>(norm_url_.data() + b, e ? e - b : 0);
+}
+
+inline str_view<char> url::pathname() const {
+    // https://url.spec.whatwg.org/#dom-url-pathname
+    // already serialized as needed
+    return get_part_view(PATH);
+}
+
+inline str_view<char> url::search() const {
+    if (is_empty(QUERY))
+        return str_view<char>();
+    // return with '?'
+    const size_t b = part_end_[QUERY - 1];
+    const size_t e = part_end_[QUERY];
+    return str_view<char>(norm_url_.data() + b, e - b);
+}
+
+inline str_view<char> url::hash() const {
+    if (is_empty(FRAGMENT))
+        return str_view<char>();
+    // return with '#'
+    const size_t b = part_end_[FRAGMENT - 1];
+    const size_t e = part_end_[FRAGMENT];
+    return str_view<char>(norm_url_.data() + b, e - b);
 }
 
 
