@@ -61,9 +61,9 @@ const url::scheme_info url::kSchemes[] = {
     { { "wss", 3 },        443,          1,        0,       0,          0,        0,       0,     1 }
 };
 
-const url::scheme_info* url::get_scheme_info(const str_view<char> src) {
+const url::scheme_info* url::get_scheme_info(const str_view_type src) {
     auto it = std::lower_bound(std::begin(kSchemes), std::end(kSchemes), src,
-        [](const str_view<char>& a, const str_view<char>& b) { return a.compare(b) < 0; });
+        [](const str_view_type& a, const str_view_type& b) { return a.compare(b) < 0; });
     if (it != std::end(kSchemes) && it->scheme.equal(src))
         return it;
     return nullptr;

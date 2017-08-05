@@ -36,6 +36,9 @@ namespace whatwg {
 
 class url {
 public:
+    // types
+    using str_view_type = str_view<char>;
+
     enum PartType {
         SCHEME = 0,
         SCHEME_SEP,
@@ -185,40 +188,40 @@ public:
     // getters
 
     // get serialized URL
-    str_view<char> href() const;
+    str_view_type href() const;
 
     // ASCII serialized origin
     std::string origin() const;
     // Unicode serialized origin in utf-8
     std::string origin_unicode() const;
 
-    str_view<char> protocol() const;
+    str_view_type protocol() const;
 
-    str_view<char> username() const;
-    str_view<char> password() const;
+    str_view_type username() const;
+    str_view_type password() const;
 
-    str_view<char> host() const;
-    str_view<char> hostname() const;
+    str_view_type host() const;
+    str_view_type hostname() const;
     HostType host_type() const;
 
-    str_view<char> port() const;
+    str_view_type port() const;
 
     // port to int
     int port_int() const;
     int real_port_int() const;
 
     // pathname + search
-    str_view<char> path() const;
+    str_view_type path() const;
 
-    str_view<char> pathname() const;
+    str_view_type pathname() const;
 
-    str_view<char> search() const;
+    str_view_type search() const;
 
-    str_view<char> hash() const;
+    str_view_type hash() const;
 
     // get url info
     
-    str_view<char> get_part_view(PartType t) const;
+    str_view_type get_part_view(PartType t) const;
 
     bool is_empty(const PartType t) const;
     bool is_null(const PartType t) const;
@@ -238,9 +241,9 @@ protected:
     // https://github.com/whatwg/url/pull/276
     // https://github.com/whatwg/fetch/pull/512
     struct scheme_info {
-        str_view<char> scheme;
+        str_view_type scheme;
         int default_port;           // -1 if none
-        unsigned is_special : 1;        // "ftp", "file", "gopher", "http", "https", "ws", "wss"
+        unsigned is_special : 1;    // "ftp", "file", "gopher", "http", "https", "ws", "wss"
         unsigned is_local : 1;      // "about", "blob", "data", "filesystem"
         unsigned is_http : 1;       // "http", "https"
         unsigned is_network : 1;    // "ftp" or an HTTP(S) scheme
@@ -250,7 +253,7 @@ protected:
         unsigned is_ws : 1;         // "ws", "wss"
 
         // for search operations
-        operator const str_view<char>&() const { return scheme; }
+        operator const str_view_type&() const { return scheme; }
     };
 
     enum UrlFlag : unsigned {
@@ -275,18 +278,18 @@ protected:
 
     // get scheme info
     static const scheme_info kSchemes[];
-    static const scheme_info* get_scheme_info(str_view<char> src);
+    static const scheme_info* get_scheme_info(str_view_type src);
 
     // set scheme
     template <class StringT>
     void set_scheme_str(const StringT str);
     void set_scheme(const url& src);
-    void set_scheme(const str_view<char> str);
+    void set_scheme(const str_view_type str);
     void set_scheme(std::size_t end_of_scheme);
     void clear_scheme();
 
     // path util
-    str_view<char> get_path_first_string(size_t len) const;
+    str_view_type get_path_first_string(size_t len) const;
     // path shortening
     bool get_path_rem_last(std::size_t& path_end, unsigned& path_segment_count) const;
     bool get_shorten_path(std::size_t& path_end, unsigned& path_segment_count) const;
@@ -352,6 +355,9 @@ extern const uint8_t kPartStart[url::PART_COUNT];
 
 class url_serializer : public host_output {
 public:
+    // types
+    using str_view_type = url::str_view_type;
+
     url_serializer(url& dest_url)
         : url_(dest_url)
         , last_pt_(url::SCHEME)
@@ -364,7 +370,7 @@ public:
 
     // set data
     void set_scheme(const url& src) { url_.set_scheme(src); }
-    void set_scheme(const str_view<char> str) { url_.set_scheme(str); }
+    void set_scheme(const str_view_type str) { url_.set_scheme(str); }
     void set_scheme(std::size_t end_of_scheme) { url_.set_scheme(end_of_scheme); }
 
     //TODO atskirti inline
@@ -422,7 +428,7 @@ public:
     }
 
     // get info
-    str_view<char> get_part_view(url::PartType t) const { return url_.get_part_view(t); }
+    str_view_type get_part_view(url::PartType t) const { return url_.get_part_view(t); }
     bool is_empty(const url::PartType t) const { return url_.is_empty(t); }
     virtual bool is_empty_path() const { return url_.path_segment_count_ == 0; }
     bool is_null(const url::PartType t) const  { return url_.is_null(t); }
@@ -788,7 +794,7 @@ inline bool is_special_authority_end_char(CharT c) {
 
 // url class
 
-inline  str_view<char> url::href() const {
+inline url::str_view_type url::href() const {
     return norm_url_;
 }
 
@@ -844,29 +850,29 @@ inline std::string url::origin_unicode() const {
     return "null"; // opaque origin
 }
 
-inline str_view<char> url::protocol() const {
+inline url::str_view_type url::protocol() const {
     // "scheme:"
-    return str_view<char>(norm_url_.data(), part_end_[SCHEME] ? part_end_[SCHEME] + 1 : 0);
+    return str_view_type(norm_url_.data(), part_end_[SCHEME] ? part_end_[SCHEME] + 1 : 0);
 }
 
-inline str_view<char> url::username() const {
+inline url::str_view_type url::username() const {
     return get_part_view(USERNAME);
 }
 
-inline str_view<char> url::password() const {
+inline url::str_view_type url::password() const {
     return get_part_view(PASSWORD);
 }
 
-inline str_view<char> url::host() const {
+inline url::str_view_type url::host() const {
     if (is_null(HOST))
-        return str_view<char>();
+        return str_view_type();
     // "hostname:port"
     const size_t b = part_end_[HOST_START];
     const size_t e = is_null(PORT) ? part_end_[HOST] : part_end_[PORT];
-    return str_view<char>(norm_url_.data() + b, e - b);
+    return str_view_type(norm_url_.data() + b, e - b);
 }
 
-inline str_view<char> url::hostname() const {
+inline url::str_view_type url::hostname() const {
     return get_part_view(HOST);
 }
 
@@ -874,7 +880,7 @@ inline HostType url::host_type() const {
     return static_cast<HostType>((flags_ & HOST_TYPE_MASK) >> HOST_TYPE_SHIFT);
 }
 
-inline str_view<char> url::port() const {
+inline url::str_view_type url::port() const {
     return get_part_view(PORT);
 }
 
@@ -893,46 +899,46 @@ inline int url::real_port_int() const {
 }
 
 // pathname + search
-inline str_view<char> url::path() const {
+inline url::str_view_type url::path() const {
     // "pathname?query"
     const size_t b = part_end_[PATH - 1];
     const size_t e = part_end_[QUERY] ? part_end_[QUERY] : part_end_[PATH];
-    return str_view<char>(norm_url_.data() + b, e ? e - b : 0);
+    return str_view_type(norm_url_.data() + b, e ? e - b : 0);
 }
 
-inline str_view<char> url::pathname() const {
+inline url::str_view_type url::pathname() const {
     // https://url.spec.whatwg.org/#dom-url-pathname
     // already serialized as needed
     return get_part_view(PATH);
 }
 
-inline str_view<char> url::search() const {
+inline url::str_view_type url::search() const {
     if (is_empty(QUERY))
-        return str_view<char>();
+        return str_view_type();
     // return with '?'
     const size_t b = part_end_[QUERY - 1];
     const size_t e = part_end_[QUERY];
-    return str_view<char>(norm_url_.data() + b, e - b);
+    return str_view_type(norm_url_.data() + b, e - b);
 }
 
-inline str_view<char> url::hash() const {
+inline url::str_view_type url::hash() const {
     if (is_empty(FRAGMENT))
-        return str_view<char>();
+        return str_view_type();
     // return with '#'
     const size_t b = part_end_[FRAGMENT - 1];
     const size_t e = part_end_[FRAGMENT];
-    return str_view<char>(norm_url_.data() + b, e - b);
+    return str_view_type(norm_url_.data() + b, e - b);
 }
 
 // get url info
 
-inline str_view<char> url::get_part_view(PartType t) const {
+inline url::str_view_type url::get_part_view(PartType t) const {
     if (t == SCHEME)
-        return str_view<char>(norm_url_.data(), part_end_[SCHEME]);
+        return str_view_type(norm_url_.data(), part_end_[SCHEME]);
     // begin & end offsets
     const size_t b = part_end_[t - 1] + detail::kPartStart[t];
     const size_t e = part_end_[t];
-    return str_view<char>(norm_url_.data() + b, e > b ? e - b : 0);
+    return str_view_type(norm_url_.data() + b, e > b ? e - b : 0);
 }
 
 inline bool url::is_empty(const PartType t) const {
@@ -975,7 +981,7 @@ inline void url::set_scheme(const url& src) {
     scheme_inf_ = src.scheme_inf_;
 }
 
-inline void url::set_scheme(const str_view<char> str) {
+inline void url::set_scheme(const str_view_type str) {
     set_scheme_str(str);
     scheme_inf_ = get_scheme_info(str);
 }
@@ -1596,7 +1602,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
         default:
             if (base && base->is_file_scheme()) {
-                str_view<char> base_path = base->get_path_first_string(2);
+                url::str_view_type base_path = base->get_path_first_string(2);
                 // if base’s path[0] is a normalized Windows drive letter
                 if (base_path.length() == 2 &&
                     is_normalized_Windows_drive(base_path[0], base_path[1])) {
@@ -1949,16 +1955,16 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
 
 // path util
 
-inline str_view<char> url::get_path_first_string(size_t len) const {
-    str_view<char> pathv = get_part_view(PATH);
+inline url::str_view_type url::get_path_first_string(size_t len) const {
+    str_view_type pathv = get_part_view(PATH);
     if (pathv.length() == 0 || cannot_be_base())
         return pathv;
     // skip '/'
     pathv.remove_prefix(1);
     if (pathv.length() == len || (pathv.length() > len && pathv[len] == '/')) {
-        return str_view<char>(pathv.data(), len);
+        return str_view_type(pathv.data(), len);
     }
-    return str_view<char>(pathv.data(), 0);
+    return str_view_type(pathv.data(), 0);
 }
 
 // path shortening
@@ -1982,7 +1988,7 @@ inline bool url::get_shorten_path(std::size_t& path_end, unsigned& path_segment_
     if (path_segment_count_ == 0)
         return false;
     if (is_file_scheme() && path_segment_count_ == 1) {
-        str_view<char> path1 = get_path_first_string(2);
+        str_view_type path1 = get_path_first_string(2);
         if (path1.length() == 2 && is_normalized_Windows_drive(path1[0], path1[1]))
             return false;
     }
