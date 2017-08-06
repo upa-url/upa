@@ -1420,9 +1420,9 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     if (state == authority_state) {
         // TODO: saugoti end_of_authority ir naudoti kituose state
         auto end_of_authority = urls.is_special_scheme() ?
-            std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#' || c == '\\'; }) :
-            std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#'; });
-        
+            std::find_if(pointer, last, detail::is_special_authority_end_char<CharT>) :
+            std::find_if(pointer, last, detail::is_authority_end_char<CharT>);
+
         auto it_eta = detail::find_last(pointer, end_of_authority, '@');
         if (it_eta != end_of_authority) {
             if (std::distance(it_eta, end_of_authority) == 1) {
@@ -1456,8 +1456,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             state = file_host_state;
         } else {
             auto end_of_authority = urls.is_special_scheme() ?
-                std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#' || c == '\\'; }) :
-                std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#'; });
+                std::find_if(pointer, last, detail::is_special_authority_end_char<CharT>) :
+                std::find_if(pointer, last, detail::is_authority_end_char<CharT>);
 
             bool in_square_brackets = false; // [] flag
             bool is_port = false;
@@ -1509,8 +1509,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
     if (state == port_state) {
         auto end_of_authority = urls.is_special_scheme() ?
-            std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#' || c == '\\'; }) :
-            std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#'; });
+            std::find_if(pointer, last, detail::is_special_authority_end_char<CharT>) :
+            std::find_if(pointer, last, detail::is_authority_end_char<CharT>);
 
         auto end_of_digits = std::find_if_not(pointer, end_of_authority, detail::is_ascii_digit<CharT>);
 
