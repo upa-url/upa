@@ -349,20 +349,12 @@ public:
     void set_scheme(const str_view_type str) { url_.set_scheme(str); }
     void set_scheme(std::size_t end_of_scheme) { url_.set_scheme(end_of_scheme); }
 
-    //TODO atskirti inline
-    virtual std::string& start_scheme() {
-        url_.norm_url_.resize(0);
-        return url_.norm_url_;
-    }
-    virtual void save_scheme() {
-        set_scheme(url_.norm_url_.length());
-        url_.norm_url_.push_back(':');
-    }
-    virtual void clear_scheme() {
-        assert(last_pt_ == url::SCHEME);
-        url_.clear_scheme();
-    }
+    // set/clear scheme
+    virtual std::string& start_scheme();
+    virtual void save_scheme();
+    virtual void clear_scheme();
 
+    // set url's parts
     void fill_parts_offset(url::PartType t1, url::PartType t2, size_t offset);
     virtual std::string& start_part(url::PartType new_pt);
     virtual void save_part();
@@ -2040,6 +2032,25 @@ inline url_serializer::~url_serializer() {
         break;
     }
 }
+
+// set/clear scheme
+
+inline std::string& url_serializer::start_scheme() {
+    url_.norm_url_.resize(0);
+    return url_.norm_url_;
+}
+
+inline void url_serializer::save_scheme() {
+    set_scheme(url_.norm_url_.length());
+    url_.norm_url_.push_back(':');
+}
+
+inline void url_serializer::clear_scheme() {
+    assert(last_pt_ == url::SCHEME);
+    url_.clear_scheme();
+}
+
+// set url's parts
 
 inline void url_serializer::fill_parts_offset(url::PartType t1, url::PartType t2, size_t offset) {
     for (int ind = t1; ind < t2; ind++)
