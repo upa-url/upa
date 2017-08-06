@@ -374,8 +374,8 @@ public:
     virtual void empty_host();
 
     // host_output overrides
-    virtual std::string& hostStart();
-    virtual void hostDone(HostType ht);
+    std::string& hostStart() override;
+    void hostDone(HostType ht) override;
 
     // path
     // TODO: append_to_path() --> append_empty_to_path()
