@@ -750,8 +750,6 @@ InputIt find_last(InputIt first, InputIt last, const T& value) {
     return last;
 }
 
-} // namespace detail
-
 // special chars
 
 template <typename CharT>
@@ -795,6 +793,9 @@ template <typename CharT>
 inline bool is_special_authority_end_char(CharT c) {
     return c == '/' || c == '?' || c == '#' || c == '\\';
 }
+
+} // namespace detail
+
 
 // url class
 
@@ -1185,7 +1186,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
     // has scheme?
     if (state == scheme_start_state) {
-        if (pointer != last && is_first_scheme_char(*pointer)) {
+        if (pointer != last && detail::is_first_scheme_char(*pointer)) {
             state = scheme_state; // this appends first char to buffer
         } else if (!state_override) {
             state = no_scheme_state;
@@ -1408,7 +1409,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
     if (state == special_authority_ignore_slashes_state) {
         auto it = pointer;
-        while (it < last && is_slash(*it)) it++;
+        while (it < last && detail::is_slash(*it)) it++;
         // if (it != pointer) // TODO-WARN: validation error
         pointer = it;
         state = authority_state;
@@ -1511,7 +1512,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#' || c == '\\'; }) :
             std::find_if(pointer, last, [](CharT c) { return c == '/' || c == '?' || c == '#'; });
 
-        auto end_of_digits = std::find_if_not(pointer, end_of_authority, is_ascii_digit<CharT>);
+        auto end_of_digits = std::find_if_not(pointer, end_of_authority, detail::is_ascii_digit<CharT>);
 
         if (end_of_digits == end_of_authority || state_override) {
             if (pointer < end_of_digits) {
@@ -1576,8 +1577,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     default:
                         // pointer points to remaining
                         if (pointer == last // remaining consists of zero code points
-                            || !is_Windows_drive(ch, pointer[0])
-                            || (pointer + 2 <= last && !is_special_authority_end_char(pointer[1]))
+                            || !detail::is_Windows_drive(ch, pointer[0])
+                            || (pointer + 2 <= last && !detail::is_special_authority_end_char(pointer[1]))
                             ) {
                             // set url’s host to base’s host, url’s path to base’s path, and then shorten url’s path
                             urls.append_parts(*base, url::HOST, url::PATH, &url::get_shorten_path);
@@ -1609,7 +1610,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 url::str_view_type base_path = base->get_path_first_string(2);
                 // if base’s path[0] is a normalized Windows drive letter
                 if (base_path.length() == 2 &&
-                    is_normalized_Windows_drive(base_path[0], base_path[1])) {
+                    detail::is_normalized_Windows_drive(base_path[0], base_path[1])) {
                     // append base’s path[0] to url’s path
                     std::string& str_path = urls.start_path_segment();
                     str_path.append(base_path.data(), 2); // "C:"
@@ -1626,7 +1627,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     }
 
     if (state == file_host_state) {
-        auto end_of_authority = std::find_if(pointer, last, is_special_authority_end_char<CharT>);
+        auto end_of_authority = std::find_if(pointer, last, detail::is_special_authority_end_char<CharT>);
 
         if (pointer == end_of_authority) {
             // buffer is the empty string
@@ -1638,7 +1639,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             if (state_override)
                 return url_result::Ok;
             state = path_start_state;
-        } else if (!state_override && pointer + 2 == end_of_authority && is_Windows_drive(pointer[0], pointer[1])) {
+        } else if (!state_override && pointer + 2 == end_of_authority &&
+            detail::is_Windows_drive(pointer[0], pointer[1])) {
             // buffer is a Windows drive letter
             // TODO-WARN: validation error
             state = path_state;
@@ -1859,7 +1861,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
     auto pointer = first;
     while (true) {
         auto end_of_segment = urls.is_special_scheme()
-            ? std::find_if(pointer, last, is_slash<CharT>)
+            ? std::find_if(pointer, last, detail::is_slash<CharT>)
             : std::find(pointer, last, '/');
 
         // end_of_segment >= pointer
@@ -1876,7 +1878,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
             if (len == 2 &&
                 urls.is_file_scheme() &&
                 urls.is_empty_path() &&
-                is_Windows_drive(pointer[0], pointer[1]))
+                detail::is_Windows_drive(pointer[0], pointer[1]))
             {
                 if (!urls.is_empty(url::HOST)) {
                     // 1. If url’s host is not the empty string, validation error
@@ -1993,7 +1995,8 @@ inline bool url::get_shorten_path(std::size_t& path_end, unsigned& path_segment_
         return false;
     if (is_file_scheme() && path_segment_count_ == 1) {
         str_view_type path1 = get_path_first_string(2);
-        if (path1.length() == 2 && is_normalized_Windows_drive(path1[0], path1[1]))
+        if (path1.length() == 2 &&
+            detail::is_normalized_Windows_drive(path1[0], path1[1]))
             return false;
     }
     // Remove path's last item
@@ -2267,7 +2270,8 @@ inline void url_setter::commit_path() {
 
 inline void url_setter::shorten_path() {
     if (path_seg_end_.size() == 1) {
-        if (is_file_scheme() && strp_.length() == 3 && is_normalized_Windows_drive(strp_[1], strp_[2]))
+        if (is_file_scheme() && strp_.length() == 3 &&
+            detail::is_normalized_Windows_drive(strp_[1], strp_[2]))
             return;
         path_seg_end_.pop_back();
         strp_.clear();
