@@ -1995,7 +1995,7 @@ inline bool url::get_shorten_path(std::size_t& path_end, unsigned& path_segment_
     return get_path_rem_last(path_end, path_segment_count);
 }
 
-// class url_serializer
+// url_serializer class 
 
 inline void url_serializer::shorten_path() {
     assert(last_pt_ <= url::PATH);
@@ -2256,7 +2256,7 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
 }
 
 
-// url_setter
+// url_setter class
 
 inline std::string& url_setter::start_path_segment() {
     //curr_pt_ = url::PATH; // not used
