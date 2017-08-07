@@ -318,17 +318,6 @@ private:
 };
 
 
-namespace detail {
-
-// canonical version of each possible input letter in the scheme
-extern const char kSchemeCanonical[0x80];
-
-// part start
-extern const uint8_t kPartStart[url::PART_COUNT];
-
-} // namespace detail
-
-
 class url_serializer : public host_output {
 public:
     // types
@@ -534,6 +523,12 @@ private:
 
 
 namespace detail {
+
+// canonical version of each possible input letter in the scheme
+extern const char kSchemeCanonical[0x80];
+
+// part start
+extern const uint8_t kPartStart[url::PART_COUNT];
 
 // Lowercase the ASCII character
 template <typename CharT>
