@@ -3,7 +3,6 @@
 
 #include "url_canon.h"
 #include "url_result.h"
-#include <algorithm> // std::min
 #include <cassert>
 #include <cstdint> // uint32_t
 #include <limits>
@@ -240,7 +239,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
         // HEX
         uint16_t value;
         auto pointer0 = pointer;
-        get_hex_number(pointer, pointer + std::min(last - pointer, 4), value);
+        get_hex_number(pointer, (last - pointer <= 4 ? last : pointer + 4), value);
         if (pointer != last) {
             const CharT ch = *pointer;
             if (ch == '.') {
