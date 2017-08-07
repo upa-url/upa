@@ -41,7 +41,7 @@ void cout_name_str(const char* name, T&& str) {
 }
 
 void cout_url(const whatwg::url& url) {
-    static char* part_name[whatwg::url::PART_COUNT] = {
+    static const char* part_name[whatwg::url::PART_COUNT] = {
         "SCHEME",
         nullptr,
         "USERNAME",
