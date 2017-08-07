@@ -78,11 +78,11 @@ inline const CharT* end(const CharT* ptr) {
 }
 
 // string class with data() and length() member functions
-template<class StrT, typename CharT = StrT::value_type>
+template<class StrT, typename CharT = typename StrT::value_type>
 inline const CharT* begin(const StrT& str) {
     return str.data();
 }
-template<class StrT, typename CharT = StrT::value_type>
+template<class StrT, typename CharT = typename StrT::value_type>
 inline const CharT* end(const StrT& str) {
     return str.data() + str.length();
 }

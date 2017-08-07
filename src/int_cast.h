@@ -8,7 +8,7 @@
 namespace whatwg {
 
 // utility class to get unsigned (abs) max, min values of (signed) integer type
-template <typename T, typename UT = std::make_unsigned<T>::type>
+template <typename T, typename UT = typename std::make_unsigned<T>::type>
 struct unsigned_limit {
     static UT max()  {
         return static_cast<UT>(std::numeric_limits<T>::max());
@@ -24,8 +24,8 @@ struct unsigned_limit {
 };
 
 template <typename Out, typename T,
-    typename UT = std::make_unsigned<T>::type,
-    typename = typename std::enable_if<std::is_integral<T>::value, Out>::type>
+    typename UT = typename std::make_unsigned<T>::type,
+    typename = typename std::enable_if<std::is_integral<T>::value>::type>
 inline Out checked_diff(T a, T b) {
     if (a >= b) {
         const UT diff = static_cast<UT>(a) - static_cast<UT>(b);

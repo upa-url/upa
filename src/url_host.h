@@ -60,7 +60,7 @@ static inline bool is_valid_opaque_host_chars(const CharT* first, const CharT* l
 
 template <typename CharT>
 inline url_result host_parser::parse_host(const CharT* first, const CharT* last, bool isSpecial, host_output& dest) {
-    typedef std::make_unsigned<CharT>::type UCharT;
+    using UCharT = typename std::make_unsigned<CharT>::type;
 
     // 1. Non-"file" special URL's cannot have an empty host.
     // 2. For "file" URL's empty host is set in the file_host_state 1.2
@@ -185,7 +185,8 @@ inline url_result host_parser::parse_opaque_host(const CharT* first, const CharT
 
     //TODO: UTF-8 percent encode it using the C0 control percent-encode set
     //detail::AppendStringOfType(first, last, detail::CHAR_C0_CTRL, str_host);
-    typedef std::make_unsigned<CharT>::type UCharT;
+    using UCharT = typename std::make_unsigned<CharT>::type;
+
     const CharT* pointer = first;
     while (pointer < last) {
         // UTF-8 percent encode c using the C0 control percent-encode set (U+0000 ... U+001F and >U+007E)

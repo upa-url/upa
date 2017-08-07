@@ -73,14 +73,14 @@ public:
     }
 
     // basic_string, basic_string_view support
-    template <class StrT, typename = std::enable_if<std::is_same<StrT::value_type, value_type>::value>::type>
+    template <class StrT, typename = typename std::enable_if<std::is_same<typename StrT::value_type, value_type>::value>::type>
     str_view(const StrT& str) : ptr_(str.data()), len_(str.length()) {}
 
-    template <class StrT, typename = std::enable_if<std::is_same<StrT::value_type, value_type>::value>::type>
+    template <class StrT, typename = typename std::enable_if<std::is_same<typename StrT::value_type, value_type>::value>::type>
     operator StrT() const { return StrT(ptr_, len_); }
 
     // basic_string support
-    template <class StrT, typename = std::enable_if<std::is_same<StrT::value_type, value_type>::value>::type>
+    template <class StrT, typename = typename std::enable_if<std::is_same<typename StrT::value_type, value_type>::value>::type>
     void append_to(StrT& str) const {
         str.append(ptr_, len_);
     }
@@ -99,13 +99,13 @@ template<class CharT, class Traits>
 
 // compare objects convertible to str_view for equality
 template<class CharT, class Traits, class StrT,
-class = std::enable_if<std::is_convertible<StrT, str_view<CharT, Traits>>::value>::type>
+class = typename std::enable_if<std::is_convertible<StrT, str_view<CharT, Traits>>::value>::type>
 /*constexpr*/ bool operator==(StrT&& lhs, const str_view<CharT, Traits> rhs) {
     return rhs.equal(std::forward<StrT>(lhs));
 }
 
 template<class CharT, class Traits, class StrT,
-class = std::enable_if<std::is_convertible<StrT, str_view<CharT, Traits>>::value>::type>
+class = typename std::enable_if<std::is_convertible<StrT, str_view<CharT, Traits>>::value>::type>
 /*constexpr*/ bool operator==(const str_view<CharT, Traits> lhs, StrT&& rhs) {
     return lhs.equal(std::forward<StrT>(rhs));
 }

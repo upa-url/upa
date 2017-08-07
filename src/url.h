@@ -556,9 +556,9 @@ inline int port_from_str(const char* first, const char* last) {
 
 // Removable URL chars
 
-template <typename CharT, typename UCharT = std::make_unsigned<CharT>::type>
+template <typename CharT, typename UCharT = typename std::make_unsigned<CharT>::type>
 auto to_unsigned(CharT ch) -> UCharT {
-    return static_cast<std::make_unsigned<CharT>::type>(ch);
+    return static_cast<UCharT>(ch);
 }
 
 // chars to trim (C0 control or space: U+0000 to U+001F or U+0020)
@@ -1037,7 +1037,7 @@ inline bool url::hash(const CharT* first, const CharT* last) {
 template <typename CharT>
 inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override)
 {
-    typedef std::make_unsigned<CharT>::type UCharT;
+    using UCharT = typename std::make_unsigned<CharT>::type;
 
     // remove all ASCII tab or newline from URL
     simple_buffer<CharT> buff_no_ws;
@@ -1778,7 +1778,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
 
 template <typename CharT>
 inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last, std::string& output) {
-    typedef std::make_unsigned<CharT>::type UCharT;
+    using UCharT = typename std::make_unsigned<CharT>::type;
 
     // TODO-WARN: 2. [ 1 ... 2 ] validation error.
     bool success = true;
@@ -1803,7 +1803,7 @@ inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last,
 
 template <typename CharT>
 inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, std::string& output) {
-    typedef std::make_unsigned<CharT>::type UCharT;
+    using UCharT = typename std::make_unsigned<CharT>::type;
 
     // 3. of "cannot-be-a-base-URL path state"
     // TODO-WARN: 3. [ 1 ... 2 ] validation error.

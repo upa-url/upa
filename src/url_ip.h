@@ -107,7 +107,7 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
 
 template <typename CharT>
 inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ipv4) {
-    typedef std::make_unsigned<CharT>::type UCharT;
+    using UCharT = typename std::make_unsigned<CharT>::type;
 
     // Comes from: 6.1. If part is the empty string, return input
     if (first == last)
