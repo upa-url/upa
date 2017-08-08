@@ -76,8 +76,12 @@ public:
     template <class StrT, typename = typename std::enable_if<std::is_same<typename StrT::value_type, value_type>::value>::type>
     str_view(const StrT& str) : ptr_(str.data()), len_(str.length()) {}
 
-    template <class StrT, typename = typename std::enable_if<std::is_same<typename StrT::value_type, value_type>::value>::type>
-    operator StrT() const { return StrT(ptr_, len_); }
+    //template <class StrT, typename = typename std::enable_if<std::is_same<typename StrT::value_type, value_type>::value>::type>
+    //operator StrT() const { return StrT(ptr_, len_); }
+    template <class Allocator>
+    operator std::basic_string<CharT, Traits, Allocator>() const {
+        return std::basic_string<CharT, Traits, Allocator>(ptr_, len_);
+    }
 
     // basic_string support
     template <class StrT, typename = typename std::enable_if<std::is_same<typename StrT::value_type, value_type>::value>::type>
