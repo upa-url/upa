@@ -41,10 +41,10 @@ public:
     bool empty() const { return len_ == 0; }
 
     // element access
-    const CharT& operator[](size_type ind) const {
+    const_reference operator[](size_type ind) const {
         return ptr_[ind];
     }
-    const CharT* data() const { return ptr_; }
+    const_pointer data() const { return ptr_; }
 
     // modifiers
     void remove_prefix(size_type n) {
@@ -90,7 +90,7 @@ public:
     }
 
 private:
-    const CharT* ptr_;
+    const_pointer ptr_;
     size_type len_;
 };
 
