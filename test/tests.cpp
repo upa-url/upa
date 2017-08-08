@@ -228,9 +228,9 @@ namespace {
 
         // array only as root
         bool parse_array_start() { return true; }
-        bool parse_array_stop(size_t) { return true; }
+        bool parse_array_stop(std::size_t) { return true; }
 
-        template <typename Iter> bool parse_array_item(picojson::input<Iter>& in, size_t) {
+        template <typename Iter> bool parse_array_item(picojson::input<Iter>& in, std::size_t) {
             picojson::value item;
 
             // parse the array item
@@ -293,9 +293,9 @@ namespace {
 
         // array only as root
         bool parse_array_start() { return true; }
-        bool parse_array_stop(size_t) { return true; }
+        bool parse_array_stop(std::size_t) { return true; }
 
-        template <typename Iter> bool parse_array_item(picojson::input<Iter>& in, size_t) {
+        template <typename Iter> bool parse_array_item(picojson::input<Iter>& in, std::size_t) {
             picojson::value item;
 
             // parse the array item

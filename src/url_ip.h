@@ -17,7 +17,7 @@ inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
     static const char digit[] = "0123456789abcdef";
 
     // count digits
-    size_t count = output.length() + 1;
+    std::size_t count = output.length() + 1;
     // one division is needed to prevent the multiplication overflow
     const UIntT num0 = num / base;
     for (UIntT divider = 1; divider <= num0; divider *= base)
@@ -40,7 +40,7 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
     detail::SharedCharTypes base;
     uint32_t radix;
     if (first < last && first[0] == '0') {
-        const size_t len = last - first;
+        const std::size_t len = last - first;
         if (len == 1) {
             number = 0;
             return url_result::Ok;
@@ -205,7 +205,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
     int compress = 0;       // null
     bool is_ipv4 = false;
 
-    const size_t len = last - first;
+    const std::size_t len = last - first;
     // minimalus yra "::"
     if (len < 2) return false;
 

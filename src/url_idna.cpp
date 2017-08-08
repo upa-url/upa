@@ -59,7 +59,7 @@ const UIDNA* getUIDNA() {
 
 static_assert(sizeof(char16_t) == sizeof(UChar), "");
 
-url_result IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_t>& output) {
+url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<char16_t>& output) {
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
     // http://www.unicode.org/reports/tr46/#ToASCII
     static const uint32_t UIDNA_ERR_MASK = ~(uint32_t)(
@@ -102,7 +102,7 @@ url_result IDNToASCII(const char16_t* src, size_t src_len, simple_buffer<char16_
 
 // TODO: common function template for IDNToASCII and IDNToUnicode
 
-url_result IDNToUnicode(const char* src, size_t src_len, simple_buffer<char>& output) {
+url_result IDNToUnicode(const char* src, std::size_t src_len, simple_buffer<char>& output) {
     // uidna_nameToUnicodeUTF8 uses int32_t length
     // http://icu-project.org/apiref/icu4c/uidna_8h.html#a61648a995cff1f8d626df1c16ad4f3b8
     if (src_len > unsigned_limit<int32_t>::max())

@@ -289,7 +289,7 @@ protected:
     void clear_scheme();
 
     // path util
-    str_view_type get_path_first_string(size_t len) const;
+    str_view_type get_path_first_string(std::size_t len) const;
     // path shortening
     bool get_path_rem_last(std::size_t& path_end, unsigned& path_segment_count) const;
     bool get_shorten_path(std::size_t& path_end, unsigned& path_segment_count) const;
@@ -331,7 +331,7 @@ public:
     ~url_serializer();
 
     void new_url() { url_.clear(); }
-    virtual void reserve(size_t new_cap) { url_.norm_url_.reserve(new_cap); }
+    virtual void reserve(std::size_t new_cap) { url_.norm_url_.reserve(new_cap); }
 
     // set data
     void set_scheme(const url& src) { url_.set_scheme(src); }
@@ -344,7 +344,7 @@ public:
     virtual void clear_scheme();
 
     // set url's part
-    void fill_parts_offset(url::PartType t1, url::PartType t2, size_t offset);
+    void fill_parts_offset(url::PartType t1, url::PartType t2, std::size_t offset);
     virtual std::string& start_part(url::PartType new_pt);
     virtual void save_part();
 
@@ -369,7 +369,7 @@ public:
 
     virtual void shorten_path();
     // retunrs how many slashes are removed
-    virtual size_t remove_leading_path_slashes();
+    virtual std::size_t remove_leading_path_slashes();
 
     typedef bool (url::*PathOpFn)(std::size_t& path_end, unsigned& segment_count) const;
     void append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn = nullptr);
@@ -430,7 +430,7 @@ public:
     ~url_setter();
 
     //???
-    void reserve(size_t new_cap) override;
+    void reserve(std::size_t new_cap) override;
 
     // set/clear scheme
     std::string& start_scheme() override;
@@ -453,26 +453,26 @@ public:
     void commit_path();
     void shorten_path() override;
     // retunrs how many slashes are removed
-    size_t remove_leading_path_slashes() override;
+    std::size_t remove_leading_path_slashes() override;
     bool is_empty_path() const override;
 
 protected:
     std::size_t get_part_pos(const url::PartType pt) const;
     std::size_t get_part_len(const url::PartType pt) const;
-    void replace_part(const url::PartType new_pt, const char* str, const size_t len);
-    void replace_part(const url::PartType last_pt, const char* str, const size_t len,
-        const url::PartType first_pt, const size_t len0);
+    void replace_part(const url::PartType new_pt, const char* str, const std::size_t len);
+    void replace_part(const url::PartType last_pt, const char* str, const std::size_t len,
+        const url::PartType first_pt, const std::size_t len0);
 
     url::PartType find_last_part(url::PartType pt) const;
 
 #if 0
-    void insert_part(url::PartType new_pt, const char* str, size_t len);
+    void insert_part(url::PartType new_pt, const char* str, std::size_t len);
 #endif
 
 protected:
     bool use_strp_;
     std::string strp_;
-    std::vector<size_t> path_seg_end_;
+    std::vector<std::size_t> path_seg_end_;
     url::PartType curr_pt_;
 };
 
@@ -742,8 +742,8 @@ inline url::str_view_type url::host() const {
     if (is_null(HOST))
         return str_view_type();
     // "hostname:port"
-    const size_t b = part_end_[HOST_START];
-    const size_t e = is_null(PORT) ? part_end_[HOST] : part_end_[PORT];
+    const std::size_t b = part_end_[HOST_START];
+    const std::size_t e = is_null(PORT) ? part_end_[HOST] : part_end_[PORT];
     return str_view_type(norm_url_.data() + b, e - b);
 }
 
@@ -776,8 +776,8 @@ inline int url::real_port_int() const {
 // pathname + search
 inline url::str_view_type url::path() const {
     // "pathname?query"
-    const size_t b = part_end_[PATH - 1];
-    const size_t e = part_end_[QUERY] ? part_end_[QUERY] : part_end_[PATH];
+    const std::size_t b = part_end_[PATH - 1];
+    const std::size_t e = part_end_[QUERY] ? part_end_[QUERY] : part_end_[PATH];
     return str_view_type(norm_url_.data() + b, e ? e - b : 0);
 }
 
@@ -791,8 +791,8 @@ inline url::str_view_type url::search() const {
     if (is_empty(QUERY))
         return str_view_type();
     // return with '?'
-    const size_t b = part_end_[QUERY - 1];
-    const size_t e = part_end_[QUERY];
+    const std::size_t b = part_end_[QUERY - 1];
+    const std::size_t e = part_end_[QUERY];
     return str_view_type(norm_url_.data() + b, e - b);
 }
 
@@ -800,8 +800,8 @@ inline url::str_view_type url::hash() const {
     if (is_empty(FRAGMENT))
         return str_view_type();
     // return with '#'
-    const size_t b = part_end_[FRAGMENT - 1];
-    const size_t e = part_end_[FRAGMENT];
+    const std::size_t b = part_end_[FRAGMENT - 1];
+    const std::size_t e = part_end_[FRAGMENT];
     return str_view_type(norm_url_.data() + b, e - b);
 }
 
@@ -811,8 +811,8 @@ inline url::str_view_type url::get_part_view(PartType t) const {
     if (t == SCHEME)
         return str_view_type(norm_url_.data(), part_end_[SCHEME]);
     // begin & end offsets
-    const size_t b = part_end_[t - 1] + detail::kPartStart[t];
-    const size_t e = part_end_[t];
+    const std::size_t b = part_end_[t - 1] + detail::kPartStart[t];
+    const std::size_t e = part_end_[t];
     return str_view_type(norm_url_.data() + b, e > b ? e - b : 0);
 }
 
@@ -820,8 +820,8 @@ inline bool url::is_empty(const PartType t) const {
     if (t == SCHEME)
         return part_end_[SCHEME] == 0;
     // begin & end offsets
-    const size_t b = part_end_[t - 1] + detail::kPartStart[t];
-    const size_t e = part_end_[t];
+    const std::size_t b = part_end_[t - 1] + detail::kPartStart[t];
+    const std::size_t e = part_end_[t];
     return b >= e;
 }
 
@@ -1707,7 +1707,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
     // path state; includes:
     // 1. [ (/,\) - 1, 2, 3, 4 - [ 1 (if first segment), 2 ] ]
     // 2. [ 1 ... 4 ]
-    auto double_dot = [](const CharT* const pointer, const size_t len) -> bool {
+    auto double_dot = [](const CharT* const pointer, const std::size_t len) -> bool {
         if (len == 2) {
             return (pointer[0] == '.' && pointer[1] == '.');
         } else if (len == 4) {
@@ -1718,7 +1718,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
         } else
             return false;
     };
-    auto single_dot = [](const CharT* const pointer, const size_t len) -> bool {
+    auto single_dot = [](const CharT* const pointer, const std::size_t len) -> bool {
         if (len == 1) {
             return pointer[0] == '.';
         } else if (len == 3) {
@@ -1735,7 +1735,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
             : std::find(pointer, last, '/');
 
         // end_of_segment >= pointer
-        const size_t len = end_of_segment - pointer;
+        const std::size_t len = end_of_segment - pointer;
         bool is_last = end_of_segment == last;
         // TODO-WARN: 1. If url is special and c is "\", validation error.
 
@@ -1831,7 +1831,7 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
 
 // path util
 
-inline url::str_view_type url::get_path_first_string(size_t len) const {
+inline url::str_view_type url::get_path_first_string(std::size_t len) const {
     str_view_type pathv = get_part_view(PATH);
     if (pathv.length() == 0 || cannot_be_base())
         return pathv;
@@ -1881,14 +1881,14 @@ inline void url_serializer::shorten_path() {
         url_.norm_url_.resize(url_.part_end_[url::PATH]);
 }
 
-static inline size_t count_leading_path_slashes(const char* first, const char* last) {
+static inline std::size_t count_leading_path_slashes(const char* first, const char* last) {
     return std::distance(first,
         std::find_if_not(first, last, [](char c){ return c == '/'; }));
 }
 
-inline size_t url_serializer::remove_leading_path_slashes() {
+inline std::size_t url_serializer::remove_leading_path_slashes() {
     assert(last_pt_ == url::PATH);
-    size_t count = count_leading_path_slashes(
+    std::size_t count = count_leading_path_slashes(
         url_.norm_url_.data() + url_.part_end_[url::PATH-1],
         url_.norm_url_.data() + url_.part_end_[url::PATH]);
     if (count > 1) {
@@ -1930,7 +1930,7 @@ inline void url_serializer::clear_scheme() {
 
 // set url's part
 
-inline void url_serializer::fill_parts_offset(url::PartType t1, url::PartType t2, size_t offset) {
+inline void url_serializer::fill_parts_offset(url::PartType t1, url::PartType t2, std::size_t offset) {
     for (int ind = t1; ind < t2; ind++)
         url_.part_end_[ind] = offset;
 }
@@ -2041,7 +2041,7 @@ inline void url_serializer::empty_host() {
         url_.part_end_[url::HOST] = host_end;
         url_.norm_url_.resize(host_end);
     } else if (last_pt_ > url::HOST) {
-        const size_t diff = url_.part_end_[url::HOST] - host_end;
+        const std::size_t diff = url_.part_end_[url::HOST] - host_end;
         if (diff) {
             for (int pt = url::HOST; pt <= last_pt_; pt++)
                 url_.part_end_[pt] -= diff;
@@ -2142,7 +2142,7 @@ inline url_setter::~url_setter() {
 }
 
 //???
-inline void url_setter::reserve(size_t new_cap) {
+inline void url_setter::reserve(std::size_t new_cap) {
     strp_.reserve(new_cap);
 }
 
@@ -2282,8 +2282,8 @@ inline void url_setter::shorten_path() {
     }
 }
 
-inline size_t url_setter::remove_leading_path_slashes() {
-    size_t count = count_leading_path_slashes(strp_.data(), strp_.data() + strp_.length());
+inline std::size_t url_setter::remove_leading_path_slashes() {
+    std::size_t count = count_leading_path_slashes(strp_.data(), strp_.data() + strp_.length());
     if (count > 1) {
         count -= 1;
         strp_.erase(0, count);
@@ -2305,12 +2305,12 @@ inline std::size_t url_setter::get_part_len(const url::PartType pt) const {
     return url_.part_end_[pt] - url_.part_end_[pt - 1];
 }
 
-inline void url_setter::replace_part(const url::PartType new_pt, const char* str, const size_t len) {
+inline void url_setter::replace_part(const url::PartType new_pt, const char* str, const std::size_t len) {
     replace_part(new_pt, str, len, new_pt, 0);
 }
 
-inline void url_setter::replace_part(const url::PartType last_pt, const char* str, const size_t len,
-    const url::PartType first_pt, const size_t len0)
+inline void url_setter::replace_part(const url::PartType last_pt, const char* str, const std::size_t len,
+    const url::PartType first_pt, const std::size_t len0)
 {
     const std::size_t b = get_part_pos(first_pt);
     const std::size_t l = url_.part_end_[last_pt] - b;
@@ -2334,7 +2334,7 @@ inline url::PartType url_setter::find_last_part(url::PartType pt) const {
 }
 
 #if 0
-inline void url_setter::insert_part(url::PartType new_pt, const char* str, size_t len) {
+inline void url_setter::insert_part(url::PartType new_pt, const char* str, std::size_t len) {
     assert(new_pt > url::SCHEME);
     if (url_.part_end_[new_pt]) {
         replace_part(new_pt, str, len);
