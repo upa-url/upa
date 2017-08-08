@@ -20,7 +20,7 @@ public:
     using iterator = const_iterator;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using reverse_iterator = const_reverse_iterator;
-    using size_type = size_t;
+    using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
     // static constexpr size_type npos = size_type(-1);
 
@@ -28,7 +28,7 @@ public:
     str_view() : ptr_(nullptr), len_(0) {}
     str_view(const str_view&) = default;
     str_view& operator=(const str_view&) = default;
-    str_view(const CharT* ptr, std::size_t len) : ptr_(ptr), len_(len) {}
+    str_view(const CharT* ptr, size_type len) : ptr_(ptr), len_(len) {}
     str_view(const CharT* ptr) : ptr_(ptr), len_(Traits::length(ptr)) {}
 
     // iterator support
@@ -36,22 +36,22 @@ public:
     const CharT* end() const { return ptr_ + len_; }
 
     // capacity
-    std::size_t size() const { return len_; }
-    std::size_t length() const { return len_; }
+    size_type size() const { return len_; }
+    size_type length() const { return len_; }
     bool empty() const { return len_ == 0; }
 
     // element access
-    const CharT& operator[](std::size_t ind) const {
+    const CharT& operator[](size_type ind) const {
         return ptr_[ind];
     }
     const CharT* data() const { return ptr_; }
 
     // modifiers
-    void remove_prefix(size_t n) {
+    void remove_prefix(size_type n) {
         ptr_ += n;
         len_ -= n;
     }
-    void remove_suffix(size_t n) {
+    void remove_suffix(size_type n) {
         len_ -= n;
     }
     void swap(str_view& x) {
@@ -91,7 +91,7 @@ public:
 
 private:
     const CharT* ptr_;
-    std::size_t len_;
+    size_type len_;
 };
 
 
