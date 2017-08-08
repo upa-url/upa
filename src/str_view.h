@@ -83,12 +83,6 @@ public:
         return std::basic_string<CharT, Traits, Allocator>(ptr_, len_);
     }
 
-    // basic_string support
-    template <class StrT, typename = typename std::enable_if<std::is_same<typename StrT::value_type, value_type>::value>::type>
-    void append_to(StrT& str) const {
-        str.append(ptr_, len_);
-    }
-
 private:
     const_pointer ptr_;
     size_type len_;
