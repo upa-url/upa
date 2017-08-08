@@ -337,7 +337,8 @@ namespace {
         template <typename Iter> bool parse_object_item(picojson::input<Iter>& in, const std::string& name) {
             if (name == "comment") {
                 // skip
-                return picojson::_parse(picojson::null_parse_context(), in);
+                picojson::null_parse_context nullctx;
+                return picojson::_parse(nullctx, in);
             } else {
                 m_setter_name = name;
                 // parse array
