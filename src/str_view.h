@@ -16,7 +16,7 @@ public:
     using const_pointer = const CharT*;
     using reference = CharT&;
     using const_reference = const CharT&;
-    using const_iterator = pointer; // implementation-defined; see 21.4.2.2
+    using const_iterator = const CharT*; // implementation-defined; see 21.4.2.2
     using iterator = const_iterator;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using reverse_iterator = const_reverse_iterator;
@@ -32,8 +32,8 @@ public:
     str_view(const CharT* ptr) : ptr_(ptr), len_(Traits::length(ptr)) {}
 
     // iterator support
-    const CharT* begin() const { return ptr_; }
-    const CharT* end() const { return ptr_ + len_; }
+    const_iterator begin() const { return ptr_; }
+    const_iterator end() const { return ptr_ + len_; }
 
     // capacity
     size_type size() const { return len_; }
