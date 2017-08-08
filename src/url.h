@@ -2111,7 +2111,7 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             const char* first = src.norm_url_.data() + offset;
             const char* last = src.norm_url_.data() + lastp_end;
             // dest
-            const ptrdiff_t delta = checked_diff<ptrdiff_t>(norm_url.length(), offset);
+            const std::ptrdiff_t delta = checked_diff<std::ptrdiff_t>(norm_url.length(), offset);
             // copy normalized url string from src
             norm_url.append(first, last);
             // adjust url_.part_end_
@@ -2317,7 +2317,7 @@ inline void url_setter::replace_part(const url::PartType last_pt, const char* st
     url_.norm_url_.replace(b, l, str, len);
     std::fill(std::begin(url_.part_end_) + first_pt, std::begin(url_.part_end_) + last_pt, b + len0);
     // adjust positions
-    const ptrdiff_t diff = checked_diff<ptrdiff_t>(len, l);
+    const std::ptrdiff_t diff = checked_diff<std::ptrdiff_t>(len, l);
     if (diff) {
         for (auto it = std::begin(url_.part_end_) + last_pt; it != std::end(url_.part_end_); it++) {
             if (*it == 0) break;
