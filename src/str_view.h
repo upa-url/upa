@@ -95,6 +95,11 @@ template<class CharT, class Traits>
     return lhs.equal(rhs);
 }
 
+template<class CharT, class Traits>
+/*constexpr*/ bool operator!=(str_view<CharT, Traits> lhs, str_view<CharT, Traits> rhs) /*noexcept*/ {
+    return !lhs.equal(rhs);
+}
+
 // compare objects convertible to str_view for equality
 template<class CharT, class Traits, class StrT,
 class = typename std::enable_if<std::is_convertible<StrT, str_view<CharT, Traits>>::value>::type>
