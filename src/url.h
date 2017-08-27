@@ -233,22 +233,10 @@ public:
     bool has_credentials() const;
 
 protected:
-    // NOTE: is_local, is_http, is_network, is_fetch are defined and used by
-    // Fetch Standard: https://fetch.spec.whatwg.org/#url
-    // They weren't used by the URL Standard directly. So it's safe to remove them.
-    // See:
-    // https://github.com/whatwg/url/commit/8fb8684
-    // https://github.com/whatwg/url/pull/276
-    // https://github.com/whatwg/fetch/pull/512
     struct scheme_info {
         str_view_type scheme;
         int default_port;           // -1 if none
         unsigned is_special : 1;    // "ftp", "file", "gopher", "http", "https", "ws", "wss"
-        unsigned is_local : 1;      // "about", "blob", "data", "filesystem"
-        unsigned is_http : 1;       // "http", "https"
-        unsigned is_network : 1;    // "ftp" or an HTTP(S) scheme
-        unsigned is_fetch : 1;      // "about", "blob", "data", "file", "filesystem", or a network scheme
-        // other
         unsigned is_file : 1;       // "file"
         unsigned is_ws : 1;         // "ws", "wss"
 
