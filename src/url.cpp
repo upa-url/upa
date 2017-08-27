@@ -48,11 +48,7 @@ const uint8_t kPartStart[url::PART_COUNT] = {
 // MUST by sorted alphabetically by scheme
 const url::scheme_info url::kSchemes[] = {
     // scheme,            port, is_special, is_local, is_http, is_network, is_fetch, is_file, is_ws
-    { { "about", 5 },       -1,          0,        1,       0,          0,        1,       0,     0 },
-    { { "blob", 4 },        -1,          0,        1,       0,          0,        1,       0,     0 },
-    { { "data", 4 },        -1,          0,        1,       0,          0,        1,       0,     0 },
     { { "file", 4 },        -1,          1,        0,       0,          0,        1,       1,     0 },
-    { { "filesystem", 10 }, -1,          0,        1,       0,          0,        1,       0,     0 },
     { { "ftp", 3 },         21,          1,        0,       0,          1,        1,       0,     0 },
     { { "gopher", 6 },      70,          1,        0,       0,          0,        0,       0,     0 },
     { { "http", 4 },        80,          1,        0,       1,          1,        1,       0,     0 },
