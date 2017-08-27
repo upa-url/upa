@@ -45,23 +45,41 @@ const uint8_t kPartStart[url::PART_COUNT] = {
 } // namespace detail
 
 
-// MUST by sorted alphabetically by scheme
+// MUST by sorted by length
 const url::scheme_info url::kSchemes[] = {
     // scheme,         port, is_special, is_file, is_ws
-    { { "file", 4 },     -1,          1,       1,     0 },
-    { { "ftp", 3 },      21,          1,       0,     0 },
-    { { "gopher", 6 },   70,          1,       0,     0 },
-    { { "http", 4 },     80,          1,       0,     0 },
-    { { "https", 5 },   443,          1,       0,     0 },
     { { "ws", 2 },       80,          1,       0,     1 },
-    { { "wss", 3 },     443,          1,       0,     1 }
+    { { "wss", 3 },     443,          1,       0,     1 },
+    { { "ftp", 3 },      21,          1,       0,     0 },
+    { { "http", 4 },     80,          1,       0,     0 },
+    { { "file", 4 },     -1,          1,       1,     0 },
+    { { "https", 5 },   443,          1,       0,     0 },
+    { { "gopher", 6 },   70,          1,       0,     0 },
+};
+
+// scheme length to url::kSchemes index
+static const unsigned char kLengthToSchemesInd[] = {
+    0,  // 0
+    0,  // 1
+    0,  // 2
+    1,  // 3
+    3,  // 4
+    5,  // 5
+    6,  // 6
+    7,  // the end
 };
 
 const url::scheme_info* url::get_scheme_info(const str_view_type src) {
-    auto it = std::lower_bound(std::begin(kSchemes), std::end(kSchemes), src,
-        [](const str_view_type& a, const str_view_type& b) { return a.compare(b) < 0; });
-    if (it != std::end(kSchemes) && it->scheme.equal(src))
-        return it;
+    const std::size_t len = src.length();
+    // max scheme length = 6 ("gopher")
+    if (len <= 6) {
+        const int end = kLengthToSchemesInd[len + 1];
+        for (int ind = kLengthToSchemesInd[len]; ind < end; ind++) {
+            // src == kSchemes[ind].scheme, but length is the same and equal to the len
+            if (str_view_type::traits_type::compare(src.data(), kSchemes[ind].scheme.data(), len) == 0)
+                return &kSchemes[ind];
+        }
+    }
     return nullptr;
 }
 
