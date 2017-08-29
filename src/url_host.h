@@ -107,7 +107,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
 
     //TODO: klaidø nustatymas pagal standartà
 
-    std::basic_string<char16_t> buff_uc;
+    simple_buffer<char16_t> buff_uc;
     if (has_no_ascii) {
         if (has_escaped) {
             simple_buffer<unsigned char> buff_utf8;
@@ -158,7 +158,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     // domain to ASCII
     simple_buffer<char16_t> buff_ascii;
 
-    url_result res = IDNToASCII(buff_uc.data(), buff_uc.length(), buff_ascii);
+    url_result res = IDNToASCII(buff_uc.data(), buff_uc.size(), buff_ascii);
     if (res != url_result::Ok)
         return res;
     if (!is_valid_host_chars(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {

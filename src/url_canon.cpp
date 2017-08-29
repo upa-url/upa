@@ -177,7 +177,7 @@ void AppendStringOfType(const char32_t* first, const char32_t* last, SharedCharT
 }
 
 
-bool ConvertUTF8ToUTF16(const char* first, const char* last, std::basic_string<char16_t>& output) {
+bool ConvertUTF8ToUTF16(const char* first, const char* last, simple_buffer<char16_t>& output) {
     bool success = true;
     for (auto it = first; it < last;) {
         uint32_t code_point;

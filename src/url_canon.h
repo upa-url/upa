@@ -1,6 +1,7 @@
 #ifndef WHATWG_URLCANON_H
 #define WHATWG_URLCANON_H
 
+#include "buffer.h"
 #include "url_util.h"
 #include <string>
 
@@ -207,7 +208,7 @@ inline void AppendUTF8EscapedValue(unsigned char_value, std::string& output) {
 // UTF-16 functions -----------------------------------------------------------
 
 // Equivalent to U16_APPEND_UNSAFE in ICU but uses our output method.
-inline void AppendUTF16Value(unsigned code_point, std::basic_string<char16_t>& output) {
+inline void AppendUTF16Value(unsigned code_point, simple_buffer<char16_t>& output) {
     if (code_point > 0xffff) {
         output.push_back(static_cast<char16_t>((code_point >> 10) + 0xd7c0));
         output.push_back(static_cast<char16_t>((code_point & 0x3ff) | 0xdc00));
@@ -276,21 +277,21 @@ inline bool DecodeEscaped(const CharT*& first, const CharT* last, unsigned char&
 // return false in the failure case, and the caller should not continue as
 // normal.
 
-bool ConvertUTF8ToUTF16(const char* first, const char* last, std::basic_string<char16_t>& output);
-inline bool ConvertUTF8ToUTF16(const unsigned char* first, const unsigned char* last, std::basic_string<char16_t>& output) {
+bool ConvertUTF8ToUTF16(const char* first, const char* last, simple_buffer<char16_t>& output);
+inline bool ConvertUTF8ToUTF16(const unsigned char* first, const unsigned char* last, simple_buffer<char16_t>& output) {
     return ConvertUTF8ToUTF16(reinterpret_cast<const char*>(first), reinterpret_cast<const char*>(last), output);
 }
 
-inline bool ConvertToUTF16(const char* first, const char* last, std::basic_string<char16_t>& output) {
+inline bool ConvertToUTF16(const char* first, const char* last, simple_buffer<char16_t>& output) {
     return ConvertUTF8ToUTF16(first, last, output);
 }
 
-inline bool ConvertToUTF16(const char16_t* first, const char16_t* last, std::basic_string<char16_t>& output) {
+inline bool ConvertToUTF16(const char16_t* first, const char16_t* last, simple_buffer<char16_t>& output) {
     output.append(first, last);
     return true;
 }
 
-inline bool ConvertToUTF16(const char32_t* first, const char32_t* last, std::basic_string<char16_t>& output) {
+inline bool ConvertToUTF16(const char32_t* first, const char32_t* last, simple_buffer<char16_t>& output) {
     for (auto it = first; it < last; it++)
         AppendUTF16Value(*it, output);
     return true;
