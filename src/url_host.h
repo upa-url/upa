@@ -89,6 +89,51 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     if (!isSpecial)
         return parse_opaque_host(first, last, dest);
 
+#if 1
+    //TODO: klaidø nustatymas pagal standartà
+
+    // Let buff_uc be the result of running UTF-8 decode (to UTF-16) without BOM
+    // on the percent decoding of UTF-8 encode on input
+    simple_buffer<char16_t> buff_uc;
+    for (auto it = first; it < last;) {
+        UCharT uch = static_cast<UCharT>(*it++);
+        if (uch < 0x80) {
+            if (uch != '%') {
+                buff_uc.push_back(static_cast<char16_t>(uch));
+                continue;
+            }
+            // uch == '%'
+            unsigned char uc8;
+            if (detail::DecodeEscaped(it, last, uc8)) {
+                if (uc8 < 0x80) {
+                    buff_uc.push_back(static_cast<char16_t>(uc8));
+                    continue;
+                }
+                // percent encoded utf-8 sequence
+                // TODO: gal po vienà code_point, tuomet uþtektø utf-8 buferio vienam simboliui
+                simple_buffer<unsigned char> buff_utf8;
+                buff_utf8.push_back(uc8);
+                while (it < last && *it == '%') {
+                    it++; // skip '%'
+                    if (!detail::DecodeEscaped(it, last, uc8))
+                        uc8 = '%';
+                    buff_utf8.push_back(uc8);
+                }
+                detail::ConvertUTF8ToUTF16(buff_utf8.data(), buff_utf8.data() + buff_utf8.size(), buff_uc);
+                //buff_utf8.clear();
+                continue;
+            }
+            // detected invalid percent encode
+            buff_uc.push_back('%');
+        } else { // uch >= 0x80
+            uint32_t code_point;
+            it--;
+            url_util::read_utf_char(it, last, code_point);
+            detail::AppendUTF16Value(code_point, buff_uc);
+        }
+    }
+
+#else
     // check if host has non ascii characters or percent sign
     bool has_no_ascii = false;
     bool has_escaped = false;
@@ -154,6 +199,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
             buff_uc.append(first, last);
         }
     }
+#endif
 
     // domain to ASCII
     simple_buffer<char16_t> buff_ascii;
