@@ -1366,13 +1366,14 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     }
 
     if (state == port_state) {
-        auto end_of_authority = urls.is_special_scheme() ?
-            std::find_if(pointer, last, detail::is_special_authority_end_char<CharT>) :
-            std::find_if(pointer, last, detail::is_authority_end_char<CharT>);
+        auto end_of_digits = std::find_if_not(pointer, last, detail::is_ascii_digit<CharT>);
 
-        auto end_of_digits = std::find_if_not(pointer, end_of_authority, detail::is_ascii_digit<CharT>);
+        const bool is_end_of_authority =
+            end_of_digits == last || // EOF
+            detail::is_authority_end_char(end_of_digits[0]) ||
+            (end_of_digits[0] == '\\' && urls.is_special_scheme());
 
-        if (end_of_digits == end_of_authority || state_override) {
+        if (is_end_of_authority || state_override) {
             if (pointer < end_of_digits) {
                 // is port
                 int port = 0;
@@ -1393,7 +1394,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             if (state_override)
                 return url_result::Ok; // (2-2)
             state = path_start_state;
-            pointer = end_of_authority;
+            pointer = end_of_digits;
         } else {
             // TODO-ERR: (3) validation error, failure (contains non-digit)
             return url_result::InvalidPort;
