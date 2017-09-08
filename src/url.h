@@ -30,6 +30,10 @@
 #include <vector>
 
 
+// https://github.com/whatwg/url/issues/303
+// https://github.com/whatwg/url/issues/303#issuecomment-298084064
+#define WHATWG_URL_SPEC_ISSUE_303 1
+
 namespace whatwg {
 
 // URL class
@@ -1465,7 +1469,15 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             break;
 
         default:
+#if WHATWG_URL_SPEC_ISSUE_303
+            if (base && base->is_file_scheme() &&
+                // pointer[0] and remaining isn't the windows drive letter
+                !((last - pointer == 2 || (last - pointer > 2 && detail::is_special_authority_end_char(pointer[2]))) &&
+                detail::is_Windows_drive(pointer[0], pointer[1]))
+                ) {
+#else
             if (base && base->is_file_scheme()) {
+#endif
                 url::str_view_type base_path = base->get_path_first_string(2);
                 // if base’s path[0] is a normalized Windows drive letter
                 if (base_path.length() == 2 &&
