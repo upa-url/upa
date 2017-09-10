@@ -656,6 +656,22 @@ inline bool is_special_authority_end_char(CharT c) {
     return c == '/' || c == '?' || c == '#' || c == '\\';
 }
 
+// Windows drive
+
+template <typename CharT>
+inline bool starts_with_Windows_drive(const CharT* pointer, const CharT* last) {
+#if 1
+    return
+        (last - pointer == 2 || (last - pointer > 2 && detail::is_special_authority_end_char(pointer[2]))) &&
+        detail::is_Windows_drive(pointer[0], pointer[1]);
+#else
+    return
+        last - pointer >= 2 &&
+        detail::is_Windows_drive(pointer[0], pointer[1]) &&
+        (last - pointer == 2 || detail::is_special_authority_end_char(pointer[2]));
+#endif
+}
+
 } // namespace detail
 
 
@@ -1425,31 +1441,27 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     urls.append_parts(*base, url::HOST, url::QUERY);
                     return url_result::Ok; // EOF
                 } else {
-                    const CharT ch = *(pointer++);
-                    switch (ch) {
+                    switch (*pointer) {
                     case '?':
                         // Set url's host to base's host, url's path to base's path, url's query to the empty string
                         urls.append_parts(*base, url::HOST, url::PATH);
                         state = query_state; // sets query to the empty string
+                        pointer++;
                         break;
                     case '#':
                         // Set url's host to base's host, url's path to base's path, url's query to base's query, url's fragment to the empty string
                         urls.append_parts(*base, url::HOST, url::QUERY);
                         state = fragment_state; // sets fragment to the empty string
+                        pointer++;
                         break;
                     default:
-                        // pointer points to remaining
-                        if (pointer == last // remaining consists of zero code points
-                            || !detail::is_Windows_drive(ch, pointer[0])
-                            || (pointer + 2 <= last && !detail::is_special_authority_end_char(pointer[1]))
-                            ) {
+                        if (!detail::starts_with_Windows_drive(pointer, last)) {
                             // set url’s host to base’s host, url’s path to base’s path, and then shorten url’s path
                             urls.append_parts(*base, url::HOST, url::PATH, &url::get_shorten_path);
                             // Note: This is a (platform-independent) Windows drive letter quirk.
                         }
                         //else // TODO-WARN: validation error
                         state = path_state;
-                        pointer--;
                     }
                 }
             } else {
@@ -1471,10 +1483,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         default:
 #if WHATWG_URL_SPEC_ISSUE_303
             if (base && base->is_file_scheme() &&
-                // pointer[0] and remaining isn't the windows drive letter
-                !((last - pointer == 2 || (last - pointer > 2 && detail::is_special_authority_end_char(pointer[2]))) &&
-                detail::is_Windows_drive(pointer[0], pointer[1]))
-                ) {
+                !detail::starts_with_Windows_drive(pointer, last)) {
 #else
             if (base && base->is_file_scheme()) {
 #endif
