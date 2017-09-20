@@ -205,9 +205,8 @@ int main(int argc, char** argv)
     err |= test_from_file(run_setter_tests, "w3c-tests/setters_tests.json");
 
 
-#if WHATWG_URL_SPEC_ISSUE_303
+    // more tests
     err |= test_from_file(run_parser_tests, "w3c-tests/urltestdata--issue-303.json");
-#endif
 
     return err;
 }
