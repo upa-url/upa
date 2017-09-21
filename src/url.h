@@ -625,16 +625,6 @@ inline bool is_ascii_alpha(CharT ch) {
     return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
 }
 
-template <typename CharT>
-inline bool is_Windows_drive(CharT c1, CharT c2) {
-    return is_ascii_alpha(c1) && (c2 == ':' || c2 == '|');
-}
-
-template <typename CharT>
-inline bool is_normalized_Windows_drive(CharT c1, CharT c2) {
-    return is_ascii_alpha(c1) && c2 == ':';
-}
-
 // Scheme chars
 
 template <typename CharT>
@@ -652,19 +642,33 @@ inline bool is_special_authority_end_char(CharT c) {
     return c == '/' || c == '?' || c == '#' || c == '\\';
 }
 
-// Windows drive
+// Windows drive letter
+
+// https://url.spec.whatwg.org/#windows-drive-letter
 
 template <typename CharT>
+inline bool is_Windows_drive(CharT c1, CharT c2) {
+    return is_ascii_alpha(c1) && (c2 == ':' || c2 == '|');
+}
+
+template <typename CharT>
+inline bool is_normalized_Windows_drive(CharT c1, CharT c2) {
+    return is_ascii_alpha(c1) && c2 == ':';
+}
+
+// https://url.spec.whatwg.org/#start-with-a-windows-drive-letter
+template <typename CharT>
 inline bool starts_with_Windows_drive(const CharT* pointer, const CharT* last) {
+    const auto length = last - pointer;
 #if 1
     return
-        (last - pointer == 2 || (last - pointer > 2 && detail::is_special_authority_end_char(pointer[2]))) &&
+        (length == 2 || (length > 2 && detail::is_special_authority_end_char(pointer[2]))) &&
         detail::is_Windows_drive(pointer[0], pointer[1]);
 #else
     return
-        last - pointer >= 2 &&
+        length >= 2 &&
         detail::is_Windows_drive(pointer[0], pointer[1]) &&
-        (last - pointer == 2 || detail::is_special_authority_end_char(pointer[2]));
+        (length == 2 || detail::is_special_authority_end_char(pointer[2]));
 #endif
 }
 
