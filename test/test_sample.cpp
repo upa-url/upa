@@ -115,12 +115,16 @@ void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
 template <typename CharT>
 void url_testas(const CharT* str_url, const CharT* str_base)
 {
-    whatwg::url url_base;
-    if (whatwg::success(url_base.parse(str_base, nullptr))) {
-        url_testas(str_url, &url_base);
+    if (str_base) {
+        whatwg::url url_base;
+        if (whatwg::success(url_base.parse(str_base, nullptr))) {
+            url_testas(str_url, &url_base);
+        } else {
+            cout_str(str_base);  std::wcout << "\n";
+            std::wcout << " ^-BASE-PARSE-FAILURE\n";
+        }
     } else {
-        cout_str(str_base);  std::wcout << "\n";
-        std::wcout << " ^-BASE-PARSE-FAILURE\n";
+        url_testas(str_url);
     }
 }
 
@@ -391,7 +395,7 @@ void read_samples(const char* file_name) {
 
 // Main
 
-void test_interactive();
+void test_interactive(const char* szBaseUrl);
 void test_parser();
 void test_setters();
 void run_unit_tests();
@@ -406,7 +410,7 @@ int main(int argc, char *argv[])
         if (flag[0] == '-') {
             switch (flag[1]) {
             case 'i':
-                test_interactive();
+                test_interactive(argc > 2 ? argv[2] : nullptr);
                 return 0;
             case 'g':
                 if (argc > 2) {
@@ -422,7 +426,7 @@ int main(int argc, char *argv[])
             }
         }
         std::cerr
-            << "test_sample [-i]\n"
+            << "test_sample [-i [<base URL>]]\n"
             << "test_sample -g <samples file>\n"
             << "test_sample -t <samples file>"
             << std::endl;
@@ -435,14 +439,14 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-void test_interactive()
+void test_interactive(const char* szBaseUrl)
 {
     std::cout << "Enter URL; enter empty line to exit\n";
 
     std::string str;
     while (std::getline(std::cin, str)) {
         if (str.empty()) break;
-        url_testas(str.c_str());
+        url_testas(str.c_str(), szBaseUrl);
     }
 }
 
