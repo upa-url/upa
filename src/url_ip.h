@@ -37,7 +37,6 @@ inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
 template <typename CharT>
 static inline url_result ipv4_parse_number(const CharT* first, const CharT* last, uint32_t& number) {
     // Figure out the base
-    detail::SharedCharTypes base;
     uint32_t radix;
     if (first < last && first[0] == '0') {
         const std::size_t len = last - first;
@@ -47,11 +46,9 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
         } else {
             // len >= 2
             if (first[1] == 'X' || first[1] == 'x') {
-                base = detail::CHAR_HEX;
                 radix = 16;
                 first += 2;
             } else {
-                base = detail::CHAR_OCT;
                 radix = 8;
                 first += 1;
             }
@@ -60,7 +57,6 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
         while (first < last && first[0] == '0')
             first++;
     } else {
-        base = detail::CHAR_DEC;
         radix = 10;
     }
     // if all characters '0' (*) OR
@@ -71,10 +67,17 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
     }
 
     // check if valid digits (we known all chars are ASCII)
-    for (auto it = first; it != last; it++) {
-        const unsigned char uc = static_cast<unsigned char>(*it);
-        if (!IsCharOfType(uc, base))
-            return url_result::False;
+    if (radix <= 10) {
+        const CharT chmax = '0' - 1 + radix;
+        for (auto it = first; it != last; it++) {
+            if (*it > chmax || *it < '0')
+                return url_result::False;
+        }
+    } else {
+        for (auto it = first; it != last; it++) {
+            if (!detail::IsHexChar(static_cast<unsigned char>(*it)))
+                return url_result::False;
+        }
     }
 
     // convert to integer
