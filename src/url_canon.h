@@ -28,12 +28,6 @@ enum SharedCharTypes {
   // Valid in an ASCII-representation of a hex digit (as in %-escaped).
   CHAR_HEX = 8,
 
-  // Valid in an ASCII-representation of a decimal digit.
-  CHAR_DEC = 16,
-
-  // Valid in an ASCII-representation of an octal digit.
-  CHAR_OCT = 32,
-
   // Characters that do not require escaping in path (not path percent-encode set)
   CHAR_PATH = 64,
 
