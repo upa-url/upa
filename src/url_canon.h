@@ -28,6 +28,9 @@ enum SharedCharTypes {
   // Valid in an ASCII-representation of a hex digit (as in %-escaped).
   CHAR_HEX = 8,
 
+  // Characters that do not require escaping in fragment (not fragment percent-encode set)
+  CHAR_FRAG = 32,
+
   // Characters that do not require escaping in path (not path percent-encode set)
   CHAR_PATH = 64,
 

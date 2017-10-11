@@ -1669,21 +1669,22 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     }
 
     if (state == fragment_state) {
-        // pagal: https://cs.chromium.org/chromium/src/url/url_canon_etc.cc : DoCanonicalizeRef(..)
+        // https://url.spec.whatwg.org/#fragment-state
         std::string& str_frag = urls.start_part(url::FRAGMENT);
         while (pointer < last) {
-            // UTF-8 percent encode c using the C0 control percent-encode set (U+0000 ... U+001F and >U+007E)
+            // UTF-8 percent encode c using the fragment percent-encode set
             // and ignore '\0'
             UCharT uch = static_cast<UCharT>(*pointer);
-            if (uch >= 0x7f) {
+            if (uch >= 0x80) {
                 // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
                 detail::AppendUTF8EscapedChar(pointer, last, str_frag);
             } else {
-                if (uch >= 0x20) {
-                    // Normal ASCII characters are just appended
-                    str_frag.push_back(static_cast<unsigned char>(uch));
+                // Just append the 7-bit character, possibly escaping it.
+                unsigned char uc = static_cast<unsigned char>(uch);
+                if (IsCharOfType(uc, detail::CHAR_FRAG)) {
+                    str_frag.push_back(uc);
                 } else if (uch) {
-                    // C0 control characters (except '\0') are escaped
+                    // other characters (except '\0') are escaped
                     detail::AppendEscapedChar(uch, str_frag);
                 } else { // uch == 0
                     // TODO-WARN: validation error
