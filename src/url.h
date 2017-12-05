@@ -545,17 +545,14 @@ inline bool is_removable_char(CharT ch) {
     return ch == '\r' || ch == '\n' || ch == '\t';
 }
 
-template <class InputIt>
-inline void do_trim(InputIt& first, InputIt& last) {
+template <typename CharT>
+inline void do_trim(const CharT*& first, const CharT*& last) {
     // remove leading C0 controls and space
     while (first < last && is_trim_char(*first))
-        first++;
+        ++first;
     // remove trailing C0 controls and space
-    auto rit = std::reverse_iterator<InputIt>(last);
-    auto rend = std::reverse_iterator<InputIt>(first);
-    while (rit < rend && is_trim_char(*rit))
-        rit++;
-    last = rit.base();
+    while (first < last && is_trim_char(*(last-1)))
+        --last;
 }
 
 // DoRemoveURLWhitespace
