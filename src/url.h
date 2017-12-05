@@ -518,22 +518,6 @@ extern const char kSchemeCanonical[0x80];
 // part start
 extern const uint8_t kPartStart[url::PART_COUNT];
 
-// Lowercase the ASCII character
-template <typename CharT>
-inline CharT AsciiToLower(CharT c) {
-    return (c <= 'Z' && c >= 'A') ? (c | 0x20) : c;
-}
-
-// strz must be in lower case
-template <typename CharT>
-inline bool AsciiEqualNoCase(const CharT* first, const CharT* last, const char* strz) {
-    for (const CharT* it = first; it < last; it++) {
-        if (*strz == 0 || AsciiToLower(*it) != *strz) return false;
-        strz++;
-    }
-    return *strz == 0;
-}
-
 inline int port_from_str(const char* first, const char* last) {
     int port = 0;
     for (auto it = first; it != last; it++) {
