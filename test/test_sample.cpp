@@ -470,7 +470,7 @@ void test_parser()
     // https://connect.microsoft.com/VisualStudio/feedback/details/1348277/link-error-when-using-std-codecvt-utf8-utf16-char16-t
     // https://connect.microsoft.com/VisualStudio/feedback/details/1403302/unresolved-external-when-using-codecvt-utf8
 
-    const char* szUrl = "http://user:pass@klausimėlis.lt/?key=ąče#frag";
+    const char* szUrl = "http://user:pass@klausimėlis.lt/?key=ąče&uni=🙂#frag";
     url_testas(szUrl);
     // char16_t
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv16;
