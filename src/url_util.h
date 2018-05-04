@@ -16,62 +16,78 @@ protected:
     static bool read_code_point(const char*& first, const char* last, uint32_t& code_point);
     static bool read_code_point(const char16_t*& first, const char16_t* last, uint32_t& code_point);
     static bool read_code_point(const char32_t*& first, const char32_t* last, uint32_t& code_point);
+private:
+    const static uint8_t k_U8_LEAD3_T1_BITS[16];
+    const static uint8_t k_U8_LEAD4_T1_BITS[16];
 };
 
-// https://cs.chromium.org/chromium/src/base/strings/utf_string_conversion_utils.cc
-// ReadUnicodeCharacter(..) --> url_util::read_code_point(..)
 
-inline bool IsValidCodepoint(uint32_t code_point) {
-    // Excludes the surrogate code points ([0xD800, 0xDFFF]) and
-    // codepoints larger than 0x10FFFF (the highest codepoint allowed).
-    // Non-characters and unassigned codepoints are allowed.
-    return code_point < 0xD800u ||
-        (code_point >= 0xE000u && code_point <= 0x10FFFFu);
-}
+//
+// © 2016 and later: Unicode, Inc. and others.
+// License & terms of use: http://www.unicode.org/copyright.html
+//
 
-inline bool IsValidCharacter(uint32_t code_point) {
-    // Excludes non-characters (U+FDD0..U+FDEF, and all codepoints ending in
-    // 0xFFFE or 0xFFFF) from the set of valid code points.
-    return code_point < 0xD800u || (code_point >= 0xE000u &&
-        code_point < 0xFDD0u) || (code_point > 0xFDEFu &&
-        code_point <= 0x10FFFFu && (code_point & 0xFFFEu) != 0xFFFEu);
-}
+// This function is a modified version of the ICU 61.1 library's
+// U8_INTERNAL_NEXT_OR_SUB macro from include\unicode\utf8.h file.
 
 inline 
-bool url_util::read_code_point(const char*& first, const char* last, uint32_t& code_point) {
-    int32_t i = 0;
-    int32_t length = last - first;
-    U8_NEXT(first, i, length, code_point);
-    first += i;
-    return IsValidCodepoint(code_point);
-}
-
-inline
-bool url_util::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& code_point) {
-    if (U16_IS_SURROGATE(first[0])) {
-        if (!U16_IS_SURROGATE_LEAD(first[0]) ||
-            first + 1 >= last ||
-            !U16_IS_TRAIL(first[1])) {
-            // Invalid surrogate pair.
-            first++; // MANO: paimam vienà
+bool url_util::read_code_point(const char*& first, const char* last, uint32_t& c) {
+    c = static_cast<uint8_t>(*first++);
+    if (c & 0x80) {
+        uint8_t __t = 0;
+        if (first != last &&
+            // fetch/validate/assemble all but last trail byte
+            (c >= 0xE0 ?
+                (c < 0xF0 ? // U+0800..U+FFFF except surrogates
+                    k_U8_LEAD3_T1_BITS[c &= 0xF] & (1 << ((__t = static_cast<uint8_t>(*first)) >> 5)) &&
+                    (__t &= 0x3F, 1)
+                    : // U+10000..U+10FFFF
+                    (c -= 0xF0) <= 4 &&
+                    k_U8_LEAD4_T1_BITS[(__t = static_cast<uint8_t>(*first)) >> 4] & (1 << c) &&
+                    (c = (c << 6) | (__t & 0x3F), ++first != last) &&
+                    (__t = static_cast<uint8_t>(*first) - 0x80) <= 0x3F) &&
+                // valid second-to-last trail byte
+                (c = (c << 6) | __t, ++first != last)
+                : // U+0080..U+07FF
+                c >= 0xC2 && (c &= 0x1F, 1)) &&
+            // last trail byte
+            (__t = static_cast<uint8_t>(*first) - 0x80) <= 0x3F &&
+            (c = (c << 6) | __t, ++first, 1)) {
+            // valid utf-8
+        } else {
+            // ill-formed
+            // c = 0xfffd;
             return false;
         }
-        // Valid surrogate pair.
-        code_point = U16_GET_SUPPLEMENTARY(first[0], first[1]);
-        first += 2;
-    } else {
-        // Not a surrogate, just one 16-bit word.
-        code_point = first[0];
-        first++;
     }
-    return IsValidCodepoint(code_point);
+    return true;
+}
+
+// This function is a modified version of the ICU 61.1 library's
+// U16_NEXT_OR_FFFD macro from include\unicode\utf16.h file.
+
+inline
+bool url_util::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) {
+    c = *first++;
+    if (U16_IS_SURROGATE(c)) {
+        uint16_t __c2;
+        if (U16_IS_SURROGATE_LEAD(c) && first != last && U16_IS_TRAIL(__c2 = *first)) {
+            ++first;
+            c = U16_GET_SUPPLEMENTARY(c, __c2);
+        } else {
+            // c = 0xfffd;
+            return false;
+        }
+    }
+    return true;
 }
 
 inline
-bool url_util::read_code_point(const char32_t*& first, const char32_t*, uint32_t& code_point) {
+bool url_util::read_code_point(const char32_t*& first, const char32_t*, uint32_t& c) {
     // no conversion
-    code_point = *(first++);
-    return IsValidCodepoint(code_point);
+    c = *(first++);
+    // don't allow surogates (U+D800..U+DFFF) and too high values
+    return c < 0xD800u || (c > 0xDFFFu && c <= 0x10FFFFu);
 }
 
 // https://cs.chromium.org/chromium/src/url/url_canon_internal.h
@@ -89,9 +105,7 @@ bool url_util::read_code_point(const char32_t*& first, const char32_t*, uint32_t
 
 template <typename CharT>
 inline bool url_util::read_utf_char(const CharT*& first, const CharT* last, uint32_t& code_point) {
-    if (!read_code_point(first, last, code_point) ||
-        !IsValidCharacter(code_point))
-    {
+    if (!read_code_point(first, last, code_point)) {
         code_point = kUnicodeReplacementCharacter;
         return false;
     }
