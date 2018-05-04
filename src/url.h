@@ -21,7 +21,7 @@
 #include "url_host.h"
 #include "url_idna.h"
 #include "url_result.h"
-#include "url_util.h"
+#include "url_utf.h"
 #include <algorithm>
 #include <array>
 #include <cassert>

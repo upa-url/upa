@@ -1,5 +1,5 @@
-#ifndef WHATWG_URL_UTIL_H
-#define WHATWG_URL_UTIL_H
+#ifndef WHATWG_URL_UTF_H
+#define WHATWG_URL_UTF_H
 
 #include <cstdint> // uint32_t, [char16_t, char32_t]
 // ICU
@@ -30,7 +30,7 @@ private:
 // This function is a modified version of the ICU 61.1 library's
 // U8_INTERNAL_NEXT_OR_SUB macro from include\unicode\utf8.h file.
 
-inline 
+inline
 bool url_util::read_code_point(const char*& first, const char* last, uint32_t& c) {
     c = static_cast<uint8_t>(*first++);
     if (c & 0x80) {
@@ -115,4 +115,4 @@ inline bool url_util::read_utf_char(const CharT*& first, const CharT* last, uint
 
 } // namespace whatwg
 
-#endif // WHATWG_URL_UTIL_H
+#endif // WHATWG_URL_UTF_H

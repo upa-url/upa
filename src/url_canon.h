@@ -2,7 +2,7 @@
 #define WHATWG_URLCANON_H
 
 #include "buffer.h"
-#include "url_util.h"
+#include "url_utf.h"
 #include <string>
 
 namespace whatwg {
