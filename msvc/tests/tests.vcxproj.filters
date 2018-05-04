@@ -33,7 +33,10 @@
     <ClCompile Include="..\..\src\url_ip.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\url_util.cpp">
+    <ClCompile Include="..\..\src\url_utf.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\url_icu_lib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -68,11 +71,11 @@
     <ClInclude Include="..\..\src\url_result.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\url_util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\deps\ddt\DataDrivenTest.hpp">
       <Filter>Header Files\ddt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\url_utf.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

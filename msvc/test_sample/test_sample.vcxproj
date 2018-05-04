@@ -83,15 +83,16 @@
     <ClInclude Include="..\..\src\url_result.h" />
     <ClInclude Include="..\..\src\url_idna.h" />
     <ClInclude Include="..\..\src\url_ip.h" />
-    <ClInclude Include="..\..\src\url_util.h" />
+    <ClInclude Include="..\..\src\url_utf.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\url_utf.cpp" />
     <ClCompile Include="..\..\test\test_sample.cpp" />
     <ClCompile Include="..\..\src\url.cpp" />
     <ClCompile Include="..\..\src\url_canon.cpp" />
     <ClCompile Include="..\..\src\url_idna.cpp" />
     <ClCompile Include="..\..\src\url_ip.cpp" />
-    <ClCompile Include="..\..\src\url_util.cpp" />
+    <ClCompile Include="..\..\src\url_icu_lib.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
