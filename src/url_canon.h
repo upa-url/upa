@@ -228,7 +228,7 @@ inline bool AppendUTF8EscapedChar(const CharT*& first, const CharT* last, std::s
     // us the kUnicodeReplacementCharacter, so we don't have to do special
     // checking after failure, just pass through the failure to the caller.
     uint32_t code_point;
-    bool success = url_util::read_utf_char(first, last, code_point);
+    bool success = url_utf::read_utf_char(first, last, code_point);
     AppendUTF8EscapedValue(code_point, output);
     return success;
 }

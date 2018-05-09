@@ -7,7 +7,7 @@
 
 namespace whatwg {
 
-class url_util {
+class url_utf {
 public:
     template <typename CharT>
     static bool read_utf_char(const CharT*& first, const CharT* last, uint32_t& code_point);
@@ -31,7 +31,7 @@ private:
 // U8_INTERNAL_NEXT_OR_SUB macro from include\unicode\utf8.h file.
 
 inline
-bool url_util::read_code_point(const char*& first, const char* last, uint32_t& c) {
+bool url_utf::read_code_point(const char*& first, const char* last, uint32_t& c) {
     c = static_cast<uint8_t>(*first++);
     if (c & 0x80) {
         uint8_t __t = 0;
@@ -67,7 +67,7 @@ bool url_util::read_code_point(const char*& first, const char* last, uint32_t& c
 // U16_NEXT_OR_FFFD macro from include\unicode\utf16.h file.
 
 inline
-bool url_util::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) {
+bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) {
     c = *first++;
     if (U16_IS_SURROGATE(c)) {
         uint16_t __c2;
@@ -83,7 +83,7 @@ bool url_util::read_code_point(const char16_t*& first, const char16_t* last, uin
 }
 
 inline
-bool url_util::read_code_point(const char32_t*& first, const char32_t*, uint32_t& c) {
+bool url_utf::read_code_point(const char32_t*& first, const char32_t*, uint32_t& c) {
     // no conversion
     c = *(first++);
     // don't allow surogates (U+D800..U+DFFF) and too high values
@@ -104,7 +104,7 @@ bool url_util::read_code_point(const char32_t*& first, const char32_t*, uint32_t
 // |first| will be updated to point to the next character
 
 template <typename CharT>
-inline bool url_util::read_utf_char(const CharT*& first, const CharT* last, uint32_t& code_point) {
+inline bool url_utf::read_utf_char(const CharT*& first, const CharT* last, uint32_t& code_point) {
     if (!read_code_point(first, last, code_point)) {
         code_point = kUnicodeReplacementCharacter;
         return false;

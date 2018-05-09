@@ -128,7 +128,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
         } else { // uch >= 0x80
             uint32_t code_point;
             it--;
-            url_util::read_utf_char(it, last, code_point);
+            url_utf::read_utf_char(it, last, code_point);
             detail::AppendUTF16Value(code_point, buff_uc);
         }
     }

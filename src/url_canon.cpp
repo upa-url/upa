@@ -16,7 +16,7 @@ void DoAppendStringOfType(const CharT* first, const CharT* last, SharedCharTypes
             // ReadChar will fill the code point with kUnicodeReplacementCharacter
             // when the input is invalid, which is what we want.
             uint32_t code_point;
-            url_util::read_utf_char(it, last, code_point);
+            url_utf::read_utf_char(it, last, code_point);
             AppendUTF8EscapedValue(code_point, output);//TODO
         } else {
             // Just append the 7-bit character, possibly escaping it.
@@ -181,7 +181,7 @@ bool ConvertUTF8ToUTF16(const char* first, const char* last, simple_buffer<char1
     bool success = true;
     for (auto it = first; it < last;) {
         uint32_t code_point;
-        success &= url_util::read_utf_char(it, last, code_point);
+        success &= url_utf::read_utf_char(it, last, code_point);
         AppendUTF16Value(code_point, output);
     }
     return success;
