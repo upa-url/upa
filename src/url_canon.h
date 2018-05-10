@@ -140,46 +140,6 @@ inline void AppendEscapedChar(UINCHAR ch, std::basic_string<OUTCHAR>& output) {
 
 // UTF-8 functions ------------------------------------------------------------
 
-// Generic To-UTF-8 converter. This will call the given append method for each
-// character that should be appended, with the given output method. Wrappers
-// are provided below for escaped and non-escaped versions of this.
-//
-// The char_value must have already been checked that it's a valid Unicode
-// character.
-template<class Output, void Appender(unsigned char, Output&)>
-inline void DoAppendUTF8(unsigned char_value, Output& output) {
-    if (char_value <= 0x7f) {
-        Appender(static_cast<unsigned char>(char_value), output);
-    } else if (char_value <= 0x7ff) {
-        // 110xxxxx 10xxxxxx
-        Appender(static_cast<unsigned char>(0xC0 | (char_value >> 6)),
-            output);
-        Appender(static_cast<unsigned char>(0x80 | (char_value & 0x3f)),
-            output);
-    } else if (char_value <= 0xffff) {
-        // 1110xxxx 10xxxxxx 10xxxxxx
-        Appender(static_cast<unsigned char>(0xe0 | (char_value >> 12)),
-            output);
-        Appender(static_cast<unsigned char>(0x80 | ((char_value >> 6) & 0x3f)),
-            output);
-        Appender(static_cast<unsigned char>(0x80 | (char_value & 0x3f)),
-            output);
-    } else if (char_value <= 0x10FFFF) {  // Max Unicode code point.
-        // 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
-        Appender(static_cast<unsigned char>(0xf0 | (char_value >> 18)),
-            output);
-        Appender(static_cast<unsigned char>(0x80 | ((char_value >> 12) & 0x3f)),
-            output);
-        Appender(static_cast<unsigned char>(0x80 | ((char_value >> 6) & 0x3f)),
-            output);
-        Appender(static_cast<unsigned char>(0x80 | (char_value & 0x3f)),
-            output);
-    } else {
-        // Invalid UTF-8 character (>20 bits).
-        //TODO: NOTREACHED();
-    }
-}
-
 // Helper used by AppendUTF8Value below. We use an unsigned parameter so there
 // are no funny sign problems with the input, but then have to convert it to
 // a regular char for appending.
@@ -191,7 +151,7 @@ inline void AppendCharToOutput(unsigned char ch, std::string& output) {
 // of the validity of the Unicode characters; the caller should ensure that
 // the value it is appending is valid to append.
 inline void AppendUTF8Value(unsigned char_value, std::string& output) {
-    DoAppendUTF8<std::string, AppendCharToOutput>(char_value, output);
+    url_utf::append_utf8<std::string, AppendCharToOutput>(char_value, output);
 }
 
 // Writes the given character to the output as UTF-8, escaping ALL
@@ -199,7 +159,7 @@ inline void AppendUTF8Value(unsigned char_value, std::string& output) {
 // validity of the Unicode characters; the caller should ensure that the value
 // it is appending is valid to append.
 inline void AppendUTF8EscapedValue(unsigned char_value, std::string& output) {
-    DoAppendUTF8<std::string, AppendEscapedChar>(char_value, output);
+    url_utf::append_utf8<std::string, AppendEscapedChar>(char_value, output);
 }
 
 // UTF-16 functions -----------------------------------------------------------
