@@ -132,17 +132,17 @@ inline void url_utf::append_utf8(uint32_t code_point, Output& output) {
         appendByte(static_cast<uint8_t>(code_point), output);
     } else {
         if (code_point <= 0x7ff) {
-            appendByte(static_cast<uint8_t>((code_point >> 6) | 0xc0));
+            appendByte(static_cast<uint8_t>((code_point >> 6) | 0xc0), output);
         } else {
             if (code_point <= 0xffff) {
-                appendByte(static_cast<uint8_t>((code_point >> 12) | 0xe0));
+                appendByte(static_cast<uint8_t>((code_point >> 12) | 0xe0), output);
             } else {
-                appendByte(static_cast<uint8_t>((code_point >> 18) | 0xf0));
-                appendByte(static_cast<uint8_t>(((code_point >> 12) & 0x3f) | 0x80));
+                appendByte(static_cast<uint8_t>((code_point >> 18) | 0xf0), output);
+                appendByte(static_cast<uint8_t>(((code_point >> 12) & 0x3f) | 0x80), output);
             }
-            appendByte(static_cast<uint8_t>(((code_point >> 6) & 0x3f) | 0x80));
+            appendByte(static_cast<uint8_t>(((code_point >> 6) & 0x3f) | 0x80), output);
         }
-        appendByte(static_cast<uint8_t>((code_point & 0x3f) | 0x80));
+        appendByte(static_cast<uint8_t>((code_point & 0x3f) | 0x80), output);
     }
 }
 
