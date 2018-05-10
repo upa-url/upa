@@ -11,6 +11,10 @@ class url_utf {
 public:
     template <typename CharT>
     static bool read_utf_char(const CharT*& first, const CharT* last, uint32_t& code_point);
+
+    template <class Output, void appendByte(unsigned char, Output&)>
+    static void append_utf8(uint32_t code_point, Output& output);
+
 protected:
     // low level
     static bool read_code_point(const char*& first, const char* last, uint32_t& code_point);
@@ -110,6 +114,32 @@ inline bool url_utf::read_utf_char(const CharT*& first, const CharT* last, uint3
         return false;
     }
     return true;
+}
+
+// This function is a modified version of the ICU 61.1 library's
+// U8_APPEND_UNSAFE macro from include\unicode\utf8.h file.
+//
+// It converts code_point to UTF-8 bytes sequence and calls appendByte function for each byte.
+// It assumes a valid code point (scalar value - https://infra.spec.whatwg.org/#scalar-value).
+
+template <class Output, void appendByte(uint8_t, Output&)>
+inline void url_utf::append_utf8(uint32_t code_point, Output& output) {
+    if (code_point <= 0x7f) {
+        appendByte(static_cast<uint8_t>(code_point), output);
+    } else {
+        if (code_point <= 0x7ff) {
+            appendByte(static_cast<uint8_t>((code_point >> 6) | 0xc0));
+        } else {
+            if (code_point <= 0xffff) {
+                appendByte(static_cast<uint8_t>((code_point >> 12) | 0xe0));
+            } else {
+                appendByte(static_cast<uint8_t>((code_point >> 18) | 0xf0));
+                appendByte(static_cast<uint8_t>(((code_point >> 12) & 0x3f) | 0x80));
+            }
+            appendByte(static_cast<uint8_t>(((code_point >> 6) & 0x3f) | 0x80));
+        }
+        appendByte(static_cast<uint8_t>((code_point & 0x3f) | 0x80));
+    }
 }
 
 
