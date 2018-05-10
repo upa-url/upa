@@ -1,7 +1,10 @@
 #ifndef WHATWG_URL_UTF_H
 #define WHATWG_URL_UTF_H
 
+#include "buffer.h"
 #include <cstdint> // uint32_t, [char16_t, char32_t]
+#include <string>
+
 // ICU
 #include "unicode/utf.h"
 
@@ -15,6 +18,7 @@ public:
     template <class Output, void appendByte(unsigned char, Output&)>
     static void append_utf8(uint32_t code_point, Output& output);
 
+    static void append_utf16(uint32_t code_point, simple_buffer<char16_t>& output);
 protected:
     // low level
     static bool read_code_point(const char*& first, const char* last, uint32_t& code_point);
@@ -120,7 +124,7 @@ inline bool url_utf::read_utf_char(const CharT*& first, const CharT* last, uint3
 // U8_APPEND_UNSAFE macro from include\unicode\utf8.h file.
 //
 // It converts code_point to UTF-8 bytes sequence and calls appendByte function for each byte.
-// It assumes a valid code point (scalar value - https://infra.spec.whatwg.org/#scalar-value).
+// It assumes a valid code point (https://infra.spec.whatwg.org/#scalar-value).
 
 template <class Output, void appendByte(uint8_t, Output&)>
 inline void url_utf::append_utf8(uint32_t code_point, Output& output) {
@@ -139,6 +143,21 @@ inline void url_utf::append_utf8(uint32_t code_point, Output& output) {
             appendByte(static_cast<uint8_t>(((code_point >> 6) & 0x3f) | 0x80));
         }
         appendByte(static_cast<uint8_t>((code_point & 0x3f) | 0x80));
+    }
+}
+
+// This function is a modified version of the ICU 61.1 library's
+// U16_APPEND_UNSAFE macro from include\unicode\utf8.h file.
+//
+// It converts code_point to UTF-16 code units sequence and appends to output.
+// It assumes a valid code point (https://infra.spec.whatwg.org/#scalar-value).
+
+inline void url_utf::append_utf16(uint32_t code_point, simple_buffer<char16_t>& output) {
+    if (code_point <= 0xffff) {
+        output.push_back(static_cast<char16_t>(code_point));
+    } else {
+        output.push_back(static_cast<char16_t>((code_point >> 10) + 0xd7c0));
+        output.push_back(static_cast<char16_t>((code_point & 0x3ff) | 0xdc00));
     }
 }
 
