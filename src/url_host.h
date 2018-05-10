@@ -129,7 +129,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
             uint32_t code_point;
             it--;
             url_utf::read_utf_char(it, last, code_point);
-            detail::AppendUTF16Value(code_point, buff_uc);
+            url_utf::append_utf16(code_point, buff_uc);
         }
     }
 
@@ -174,10 +174,10 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
                         detail::ConvertUTF8ToUTF16(buff_utf8.data(), buff_utf8.data() + buff_utf8.size(), buff_uc);
                         buff_utf8.clear();
                     } else {
-                        detail::AppendUTF16Value(code_point, buff_uc);
+                        url_utf::append_utf16(code_point, buff_uc);
                     }
                 } else {
-                    detail::AppendUTF16Value(code_point, buff_uc);
+                    url_utf::append_utf16(code_point, buff_uc);
                 }
             }
         } else {

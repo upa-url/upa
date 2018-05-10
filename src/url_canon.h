@@ -162,18 +162,6 @@ inline void AppendUTF8EscapedValue(unsigned char_value, std::string& output) {
     url_utf::append_utf8<std::string, AppendEscapedChar>(char_value, output);
 }
 
-// UTF-16 functions -----------------------------------------------------------
-
-// Equivalent to U16_APPEND_UNSAFE in ICU but uses our output method.
-inline void AppendUTF16Value(unsigned code_point, simple_buffer<char16_t>& output) {
-    if (code_point > 0xffff) {
-        output.push_back(static_cast<char16_t>((code_point >> 10) + 0xd7c0));
-        output.push_back(static_cast<char16_t>((code_point & 0x3ff) | 0xdc00));
-    } else {
-        output.push_back(static_cast<char16_t>(code_point));
-    }
-}
-
 // Escaping functions ---------------------------------------------------------
 
 // Writes the given character to the output as UTF-8, escaped. Call this
@@ -250,7 +238,7 @@ inline bool ConvertToUTF16(const char16_t* first, const char16_t* last, simple_b
 
 inline bool ConvertToUTF16(const char32_t* first, const char32_t* last, simple_buffer<char16_t>& output) {
     for (auto it = first; it < last; it++)
-        AppendUTF16Value(*it, output);
+        url_utf::append_utf16(*it, output);
     return true;
 }
 

@@ -182,7 +182,7 @@ bool ConvertUTF8ToUTF16(const char* first, const char* last, simple_buffer<char1
     for (auto it = first; it < last;) {
         uint32_t code_point;
         success &= url_utf::read_utf_char(it, last, code_point);
-        AppendUTF16Value(code_point, output);
+        url_utf::append_utf16(code_point, output);
     }
     return success;
 }
