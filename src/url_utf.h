@@ -30,13 +30,45 @@ private:
 };
 
 
+// The URL class (https://url.spec.whatwg.org/#url-class) in URL Standard uses
+// USVString for text data. The USVString is sequence of Unicode scalar values
+// (https://heycam.github.io/webidl/#idl-USVString). The Infra Standard defines
+// how to convert into it: "To convert a JavaScript string into a scalar value
+// string, replace any surrogates with U+FFFD"
+// (https://infra.spec.whatwg.org/#javascript-string-convert).
+//
+// The url_utf::read_utf_char(..) function follows this conversion when reads UTF-16
+// text (CharT = char16_t). When it reads UTF-32 text (CharT = char32_t) it additionally
+// replaces code units > 0x10FFFF with U+FFFD.
+//
+// When it reads UTF-8 text (CharT = char) it replaces bytes in invalid UTF-8 sequences
+// with U+FFFD. This corresponds to UTF-8 decode without BOM
+// (https://encoding.spec.whatwg.org/#utf-8-decode-without-bom).
+//
+// This function reads one charcter from [first, last), places it's value to `code_point`
+// and advances `first` to point to the next character.
+
+template <typename CharT>
+inline bool url_utf::read_utf_char(const CharT*& first, const CharT* last, uint32_t& code_point) {
+    if (!read_code_point(first, last, code_point)) {
+        code_point = 0xFFFD; // REPLACEMENT CHARACTER
+        return false;
+    }
+    return true;
+}
+
+
+// ------------------------------------------------------------------------
+// The code bellow is based on the ICU 61.1 library's UTF macros in
+// utf8.h and utf16.h files.
 //
 // © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 //
 
-// This function is a modified version of the ICU 61.1 library's
-// U8_INTERNAL_NEXT_OR_SUB macro from include\unicode\utf8.h file.
+// Decoding UTF-8, UTF-16, UTF-32
+
+// Modified version of the U8_INTERNAL_NEXT_OR_SUB macro in utf8.h from ICU
 
 inline
 bool url_utf::read_code_point(const char*& first, const char* last, uint32_t& c) {
@@ -71,8 +103,7 @@ bool url_utf::read_code_point(const char*& first, const char* last, uint32_t& c)
     return true;
 }
 
-// This function is a modified version of the ICU 61.1 library's
-// U16_NEXT_OR_FFFD macro from include\unicode\utf16.h file.
+// Modified version of the U16_NEXT_OR_FFFD macro in utf16.h from ICU
 
 inline
 bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) {
@@ -98,30 +129,10 @@ bool url_utf::read_code_point(const char32_t*& first, const char32_t*, uint32_t&
     return c < 0xD800u || (c > 0xDFFFu && c <= 0x10FFFFu);
 }
 
-// https://cs.chromium.org/chromium/src/url/url_canon_internal.h
-// https://cs.chromium.org/chromium/src/url/url_canon_internal.cc
-// ReadUTFChar(..)
 
-#define kUnicodeReplacementCharacter 0xfffd
+// Encoding to UTF-8, UTF-16
 
-// Reads one character in UTF-8 / UTF-16 in |first| and places
-// the decoded value into |code_point|. If the character is valid, we will
-// return true. If invalid, we'll return false and put the
-// kUnicodeReplacementCharacter into |code_point|.
-//
-// |first| will be updated to point to the next character
-
-template <typename CharT>
-inline bool url_utf::read_utf_char(const CharT*& first, const CharT* last, uint32_t& code_point) {
-    if (!read_code_point(first, last, code_point)) {
-        code_point = kUnicodeReplacementCharacter;
-        return false;
-    }
-    return true;
-}
-
-// This function is a modified version of the ICU 61.1 library's
-// U8_APPEND_UNSAFE macro from include\unicode\utf8.h file.
+// Modified version of the U8_APPEND_UNSAFE macro in utf8.h from ICU
 //
 // It converts code_point to UTF-8 bytes sequence and calls appendByte function for each byte.
 // It assumes a valid code point (https://infra.spec.whatwg.org/#scalar-value).
@@ -146,8 +157,7 @@ inline void url_utf::append_utf8(uint32_t code_point, Output& output) {
     }
 }
 
-// This function is a modified version of the ICU 61.1 library's
-// U16_APPEND_UNSAFE macro from include\unicode\utf8.h file.
+// Modified version of the U16_APPEND_UNSAFE macro in utf8.h from ICU
 //
 // It converts code_point to UTF-16 code units sequence and appends to output.
 // It assumes a valid code point (https://infra.spec.whatwg.org/#scalar-value).
