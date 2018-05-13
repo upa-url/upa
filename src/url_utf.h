@@ -68,8 +68,7 @@ inline bool url_utf::read_utf_char(const CharT*& first, const CharT* last, uint3
 
 // Modified version of the U8_INTERNAL_NEXT_OR_SUB macro in utf8.h from ICU
 
-inline
-bool url_utf::read_code_point(const char*& first, const char* last, uint32_t& c) {
+inline bool url_utf::read_code_point(const char*& first, const char* last, uint32_t& c) {
     c = static_cast<uint8_t>(*first++);
     if (c & 0x80) {
         uint8_t __t = 0;
@@ -137,8 +136,7 @@ namespace {
 
 // Modified version of the U16_NEXT_OR_FFFD macro in utf16.h from ICU
 
-inline
-bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) {
+inline bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) {
     c = *first++;
     if (u16_is_surrogate(c)) {
         uint16_t __c2;
@@ -153,8 +151,7 @@ bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint
     return true;
 }
 
-inline
-bool url_utf::read_code_point(const char32_t*& first, const char32_t*, uint32_t& c) {
+inline bool url_utf::read_code_point(const char32_t*& first, const char32_t*, uint32_t& c) {
     // no conversion
     c = *(first++);
     // don't allow surogates (U+D800..U+DFFF) and too high values
