@@ -5,8 +5,6 @@
 #include <cstdint> // uint32_t, [char16_t, char32_t]
 #include <string>
 
-// ICU
-#include "unicode/utf.h"
 
 namespace whatwg {
 
@@ -60,7 +58,7 @@ inline bool url_utf::read_utf_char(const CharT*& first, const CharT* last, uint3
 
 // ------------------------------------------------------------------------
 // The code bellow is based on the ICU 61.1 library's UTF macros in
-// utf8.h and utf16.h files.
+// utf8.h, utf16.h and utf.h files.
 //
 // © 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
@@ -103,16 +101,50 @@ bool url_utf::read_code_point(const char*& first, const char* last, uint32_t& c)
     return true;
 }
 
+namespace {
+    // UTF-16
+
+    // Is this code unit/point a surrogate (U+d800..U+dfff)?
+    // Based on U_IS_SURROGATE in utf.h from ICU
+    template <typename T>
+    inline bool u16_is_surrogate(T c) {
+        return (c & 0xfffff800) == 0xd800;
+    }
+
+    // Assuming c is a surrogate code point (u16_is_surrogate(c)),
+    // is it a lead surrogate?
+    // Based on U16_IS_SURROGATE_LEAD in utf16.h from ICU
+    template <typename T>
+    inline bool u16_is_surrogate_lead(T c) {
+        return (c & 0x400) == 0;
+    }
+
+    // Is this code unit a trail surrogate (U+dc00..U+dfff)?
+    // Based on U16_IS_TRAIL in utf16.h from ICU
+    template <typename T>
+    inline bool u16_is_trail(T c) {
+        return (c & 0xfffffc00) == 0xdc00;
+    }
+
+    // Get a supplementary code point value (U+10000..U+10ffff)
+    // from its lead and trail surrogates.
+    // Based on U16_GET_SUPPLEMENTARY in utf16.h from ICU
+    inline uint32_t u16_get_supplementary(uint32_t lead, uint32_t trail) {
+        const uint32_t u16_surrogate_offset = (0xd800 << 10UL) + 0xdc00 - 0x10000;
+        return (lead << 10UL) + trail - u16_surrogate_offset;
+    }
+}
+
 // Modified version of the U16_NEXT_OR_FFFD macro in utf16.h from ICU
 
 inline
 bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) {
     c = *first++;
-    if (U16_IS_SURROGATE(c)) {
+    if (u16_is_surrogate(c)) {
         uint16_t __c2;
-        if (U16_IS_SURROGATE_LEAD(c) && first != last && U16_IS_TRAIL(__c2 = *first)) {
+        if (u16_is_surrogate_lead(c) && first != last && u16_is_trail(__c2 = *first)) {
             ++first;
-            c = U16_GET_SUPPLEMENTARY(c, __c2);
+            c = u16_get_supplementary(c, __c2);
         } else {
             // c = 0xfffd;
             return false;
