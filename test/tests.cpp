@@ -65,8 +65,9 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
 
 void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
 {
-    // Test file format:
-    // https://github.com/w3c/web-platform-tests/pull/5976
+    // Test file format (toascii.json):
+    // https://github.com/web-platform-tests/wpt/tree/master/url#toasciijson
+    // https://github.com/web-platform-tests/wpt/pull/5976
     static const auto make_url = [](const std::string& host)->std::string {
         std::string str_url("http://");
         str_url += host;

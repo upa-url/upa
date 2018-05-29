@@ -673,7 +673,7 @@ void test_parser()
     // https://url.spec.whatwg.org/#concept-ipv4-parser
     url_testas("https://0..0x300/");
 
-    // https://github.com/w3c/web-platform-tests/pull/4504#issuecomment-270771165
+    // https://github.com/web-platform-tests/wpt/pull/4504#issuecomment-270771165
     url_testas("https://\u001Fx");
     url_testas("https://xn--\u001Fx-");
 }
