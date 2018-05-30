@@ -24,8 +24,11 @@ public:
 
 void test_parser(DataDrivenTest& ddt, ParserObj& obj)
 {
-    const std::string& input = obj["input"];
+    // https://github.com/web-platform-tests/wpt/blob/master/url/README.md
+    // `base`: an absolute URL as a string whose parsing without a base of its own must succeed.
+    // `input`: an URL as a string to be parsed with `base` as its base URL.
     const std::string& base = obj["base"];
+    const std::string& input = obj["input"];
 
     std::string str_case("<" + input + "> BASE: <" + base + ">");
 
@@ -59,6 +62,15 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
             tc.assert_equal(obj["pathname"], url.pathname(), "pathname");
             tc.assert_equal(obj["search"], url.search(), "search");
             tc.assert_equal(obj["hash"], url.hash(), "hash");
+        }
+
+        // https://github.com/web-platform-tests/wpt/pull/10955
+        // If a URL fails to parse with any valid base, it must also fail to parse with no base,
+        // i.e. when used as a base URL itself.
+        if (obj.failure && !base.empty()) {
+            parse_success = url.parse(input, nullptr) == whatwg::url_result::Ok;
+            // check "failure"
+            tc.assert_equal(obj.failure, !parse_success, "parse failure WITH NO BASE");
         }
     });
 }
