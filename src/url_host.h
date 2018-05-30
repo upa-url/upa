@@ -34,7 +34,7 @@ public:
 class host_parser {
 public:
     template <typename CharT>
-    static url_result parse_host(const CharT* first, const CharT* last, bool isSpecial, host_output& dest);
+    static url_result parse_host(const CharT* first, const CharT* last, bool isNotSpecial, host_output& dest);
 
     template <typename CharT>
     static url_result parse_opaque_host(const CharT* first, const CharT* last, host_output& dest);
@@ -59,7 +59,7 @@ static inline bool is_valid_opaque_host_chars(const CharT* first, const CharT* l
 }
 
 template <typename CharT>
-inline url_result host_parser::parse_host(const CharT* first, const CharT* last, bool isSpecial, host_output& dest) {
+inline url_result host_parser::parse_host(const CharT* first, const CharT* last, bool isNotSpecial, host_output& dest) {
     using UCharT = typename std::make_unsigned<CharT>::type;
 
     // 1. Non-"file" special URL's cannot have an empty host.
@@ -86,7 +86,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
         }
     }
 
-    if (!isSpecial)
+    if (isNotSpecial)
         return parse_opaque_host(first, last, dest);
 
 #if 1

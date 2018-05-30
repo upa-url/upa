@@ -1687,7 +1687,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
 template <typename CharT>
 inline url_result url_parser::parse_host(url_serializer& urls, const CharT* first, const CharT* last) {
-    return host_parser::parse_host(first, last, urls.is_special_scheme(), urls);
+    return host_parser::parse_host(first, last, !urls.is_special_scheme(), urls);
 }
 
 template <typename CharT>
