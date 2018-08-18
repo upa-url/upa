@@ -1636,7 +1636,29 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         // TODO: dabar palaiko tik encoding = "UTF-8"; kitų palaikymą galima padaryti pagal:
         // https://cs.chromium.org/chromium/src/url/url_canon_query.cc?rcl=1479817139&l=93
         std::string& str_query = urls.start_part(url::QUERY);
-        detail::AppendStringOfType(pointer, end_of_query, detail::CHAR_QUERY, str_query);
+        //detail::AppendStringOfType(pointer, end_of_query, detail::CHAR_QUERY, str_query);
+        const bool is_special = urls.is_special_scheme();
+        while (pointer != end_of_query) {
+            // UTF-8 percent encode c using the fragment percent-encode set
+            // and ignore '\0'
+            UCharT uch = static_cast<UCharT>(*pointer);
+            if (uch >= 0x80) {
+                // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
+                detail::AppendUTF8EscapedChar(pointer, end_of_query, str_query);
+            } else {
+                // Just append the 7-bit character, possibly escaping it.
+                unsigned char uc = static_cast<unsigned char>(uch);
+                if (!IsCharOfType(uc, detail::CHAR_QUERY) || (uc == 0x27 && is_special))
+                    detail::AppendEscapedChar(uch, str_query);
+                else
+                    str_query.push_back(uc);
+                pointer++;
+            }
+            // TODO-WARN:
+            // If c is not a URL code point and not "%", validation error.
+            // If c is "%" and remaining does not start with two ASCII hex digits, validation error.
+            // Let bytes be the result of encoding c using encoding ...
+        }
         urls.save_part();
         urls.set_flag(url::QUERY_FLAG);
 
