@@ -1,4 +1,5 @@
 #include "url.h"
+#include "url_search_params.h"
 #include <fstream>
 #include <iostream>
 // conversion
@@ -398,6 +399,7 @@ void read_samples(const char* file_name) {
 void test_interactive(const char* szBaseUrl);
 void test_parser();
 void test_setters();
+void test_search_params();
 void run_unit_tests();
 
 int main(int argc, char *argv[])
@@ -434,6 +436,7 @@ int main(int argc, char *argv[])
     } else {
         test_parser();
         test_setters();
+        test_search_params();
         run_unit_tests();
     }
     return 0;
@@ -751,6 +754,47 @@ void test_setters()
     url.hash("#frag");
     cout_url_eol(url);
 }
+
+void test_search_params()
+{
+    whatwg::url_search_params params("w=321&q=123=9&=&a=a=value&&");
+
+    params.append("1", "111-value");
+    params.append("a", "aa-value");
+    params.append("b", std::string("b-value"));
+    params.append(std::string("c"), std::string("c-value"));
+    params.append("a", "aaa-value");
+    params.append("d", "del-value");
+    params.append("0", "0-value");
+    params.append("1", "11-value");
+
+    params.del("d");
+
+    const std::string* pa = params.get("a");
+    const std::string* pd = params.get("d");
+
+    auto lst_a = params.getAll("a");
+
+    if (params.has("1"))
+        params.set("1", "1-value");
+
+    std::string query;
+    whatwg::url_search_params::urlencode(query, *pa);
+
+    query.clear();
+    params.serialize(query);
+
+    params.sort();
+
+    query.clear();
+    params.serialize(query);
+
+    // iterator
+    for (const auto& p : params) {
+        std::cout << p.first << " = " << p.second << '\n';
+    }
+}
+
 
 #include "buffer.h"
 
