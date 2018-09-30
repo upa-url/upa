@@ -23,6 +23,9 @@ public:
     template <class T>
     url_search_params(const T& query);
 
+    template <class T>
+    void parse(const T& query);
+
     template <class T, class TV>
     void append(T&& name, TV&& value);
 
@@ -59,7 +62,7 @@ public:
     // utils
 
     template <class T>
-    static key_value_list parse(const T& query);
+    static key_value_list do_parse(const T& query);
 
     template <class T>
     static void urlencode(std::string& encoded, const T& value);
@@ -101,9 +104,15 @@ inline url_search_params::url_search_params()
 
 template <class T>
 inline url_search_params::url_search_params(const T& query)
-    : params_(parse(query))
+    : params_(do_parse(query))
     , is_sorted_(false)
 {}
+
+template <class T>
+inline void url_search_params::parse(const T& query) {
+    params_ = do_parse(query);
+    is_sorted_ = false;
+}
 
 template <class T, class TV>
 inline void url_search_params::append(T&& name, TV&& value) {
@@ -177,7 +186,7 @@ inline void url_search_params::sort() {
 }
 
 template <class T>
-inline static url_search_params::key_value_list url_search_params::parse(const T& query) {
+inline static url_search_params::key_value_list url_search_params::do_parse(const T& query) {
     key_value_list lst;
     auto b = str_begin(query);
     auto e = str_end(query);
