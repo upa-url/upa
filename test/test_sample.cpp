@@ -793,6 +793,15 @@ void test_search_params()
     for (const auto& p : params) {
         std::cout << p.first << " = " << p.second << '\n';
     }
+
+    // empty key, value, or both
+    whatwg::url_search_params params2("=&=tuscia&&a");
+
+    query.clear();
+    params2.serialize(query);
+
+    for (const auto& p : params2)
+        std::cout << p.first << " = " << p.second << '\n';
 }
 
 
