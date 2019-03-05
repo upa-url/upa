@@ -190,7 +190,11 @@ inline static url_search_params::key_value_list url_search_params::do_parse(cons
     key_value_list lst;
     auto b = str_begin(query);
     auto e = str_end(query);
-    
+
+    // https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
+    if (b != e && *b == '?')
+        ++b;
+
     key_value_pair p;
     std::string* pval = &p.first;
     auto start = b;
