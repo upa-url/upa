@@ -17,7 +17,7 @@ enum class url_result {
     InvalidDomainCharacter,        // invalid domain character
     RelativeUrlWithoutBase,        // relative URL without a base
     RelativeUrlWithCannotBeABase,  // relative URL with a cannot-be-a-base base
-    SetHostOnCannotBeABaseUrl,     // a cannot-be-a-base URL doesn’t have a host to set
+    SetHostOnCannotBeABaseUrl,     // a cannot-be-a-base URL doesn't have a host to set
     Overflow,                      // URLs is too long
 };
 

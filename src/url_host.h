@@ -90,7 +90,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
         return parse_opaque_host(first, last, dest);
 
 #if 1
-    //TODO: klaidø nustatymas pagal standartà
+    //TODO: klaidÅ³ nustatymas pagal standartÄ…
 
     // Let buff_uc be the result of running UTF-8 decode (to UTF-16) without BOM
     // on the percent decoding of UTF-8 encode on input
@@ -110,7 +110,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
                     continue;
                 }
                 // percent encoded utf-8 sequence
-                // TODO: gal po vienà code_point, tuomet uştektø utf-8 buferio vienam simboliui
+                // TODO: gal po vienÄ… code_point, tuomet uÅ¾tektÅ³ utf-8 buferio vienam simboliui
                 simple_buffer<unsigned char> buff_utf8;
                 buff_utf8.push_back(uc8);
                 while (it < last && *it == '%') {
@@ -150,7 +150,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
         }
     }
 
-    //TODO: klaidø nustatymas pagal standartà
+    //TODO: klaidÅ³ nustatymas pagal standartÄ…
 
     simple_buffer<char16_t> buff_uc;
     if (has_no_ascii) {
@@ -185,9 +185,9 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
         }
     } else {
         // (first,last) has only ASCII characters
-        // Net ir ASCII turi praeiti IDNToASCII patikrinimà;
-        // taèiau şr.: https://github.com/jsdom/whatwg-url/issues/50
-        //  ^-- kad korektiğkai veiktø reikia Unicode 9 palaikymo
+        // Net ir ASCII turi praeiti IDNToASCII patikrinimÄ…;
+        // taÄiau Å¾r.: https://github.com/jsdom/whatwg-url/issues/50
+        //  ^-- kad korektiÅ¡kai veiktÅ³ reikia Unicode 9 palaikymo
         if (has_escaped) {
             for (auto it = first; it < last;) {
                 unsigned char uc8 = static_cast<unsigned char>(*it++);

@@ -60,7 +60,7 @@ inline bool url_utf::read_utf_char(const CharT*& first, const CharT* last, uint3
 // The code bellow is based on the ICU 61.1 library's UTF macros in
 // utf8.h, utf16.h and utf.h files.
 //
-// © 2016 and later: Unicode, Inc. and others.
+// (c) 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html
 //
 
