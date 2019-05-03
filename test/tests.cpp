@@ -13,6 +13,54 @@
 #include <map>
 #include <string>
 
+
+// Test runner
+
+bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file);
+bool run_host_parser_tests(DataDrivenTest& ddt, std::ifstream& file);
+bool run_setter_tests(DataDrivenTest& ddt, std::ifstream& file);
+
+typedef bool(*RunTests)(DataDrivenTest& ddt, std::ifstream& file);
+int test_from_file(RunTests run_tests, const char* file_name);
+
+int main(int argc, char** argv)
+{
+    int err = 0;
+
+    err |= test_from_file(run_parser_tests, "wpt/urltestdata.json");
+    err |= test_from_file(run_parser_tests, "wpt/urltestdata--mano.json");
+    //  err |= test_from_file(run_parser_tests, "wpt/urltestdata--mano-bandymai.json");
+
+    err |= test_from_file(run_host_parser_tests, "wpt/toascii.json");
+
+    err |= test_from_file(run_setter_tests, "wpt/setters_tests.json");
+
+
+    // more tests
+    err |= test_from_file(run_parser_tests, "wpt/urltestdata--issue-303.json");
+
+    return err;
+}
+
+int test_from_file(RunTests run_tests, const char* file_name)
+{
+    DataDrivenTest ddt;
+    ddt.config_show_passed(false);
+    ddt.config_debug_break(true);
+
+    std::cout << "========== " << file_name << " ==========\n";
+    std::ifstream file(file_name, std::ios_base::in | std::ios_base::binary);
+    if (!file.is_open()) {
+        std::cerr << "Can't open tests file: " << file_name << std::endl;
+        return 4;
+    }
+
+    if (!run_tests(ddt, file))
+        return 2; // JSON error
+
+    return ddt.result();
+}
+
 // URL parser test
 
 class ParserObj : public std::map<std::string, std::string> {
@@ -177,52 +225,6 @@ void test_setter(DataDrivenTest& ddt, SetterObj& obj)
     });
 }
 
-
-// Test runner
-
-bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file);
-bool run_host_parser_tests(DataDrivenTest& ddt, std::ifstream& file);
-bool run_setter_tests(DataDrivenTest& ddt, std::ifstream& file);
-
-typedef bool(*RunTests)(DataDrivenTest& ddt, std::ifstream& file);
-
-int test_from_file(RunTests run_tests, const char* file_name)
-{
-    DataDrivenTest ddt;
-    ddt.config_show_passed(false);
-    ddt.config_debug_break(true);
-
-    std::cout << "========== " << file_name << " ==========\n";
-    std::ifstream file(file_name, std::ios_base::in | std::ios_base::binary);
-    if (!file.is_open()) {
-        std::cerr << "Can't open tests file: " << file_name << std::endl;
-        return 4;
-    }
-
-    if (!run_tests(ddt, file))
-        return 2; // JSON error
-
-    return ddt.result();
-}
-
-int main(int argc, char** argv)
-{
-    int err = 0;
-
-    err |= test_from_file(run_parser_tests, "wpt/urltestdata.json");
-    err |= test_from_file(run_parser_tests, "wpt/urltestdata--mano.json");
-//  err |= test_from_file(run_parser_tests, "wpt/urltestdata--mano-bandymai.json");
-
-    err |= test_from_file(run_host_parser_tests, "wpt/toascii.json");
-
-    err |= test_from_file(run_setter_tests, "wpt/setters_tests.json");
-
-
-    // more tests
-    err |= test_from_file(run_parser_tests, "wpt/urltestdata--issue-303.json");
-
-    return err;
-}
 
 // Read tests in JSON format
 
