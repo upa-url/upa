@@ -65,15 +65,14 @@ inline bool Is8BitChar(CharT c) {
 inline bool IsCharOfType(unsigned char c, SharedCharTypes type) {
   return !!(kSharedCharTypeTable[c] & type);
 }
-inline bool IsQueryChar(unsigned char c) {
-  return IsCharOfType(c, CHAR_QUERY);
-}
+
 inline bool IsIPv4Char(unsigned char c) {
   return IsCharOfType(c, CHAR_IPV4);
 }
 inline bool IsHexChar(unsigned char c) {
     return IsCharOfType(c, CHAR_HEX);
 }
+
 // IsInvalidHostChar supports >8bit charcters
 template <typename CharT>
 inline bool IsInvalidHostChar(CharT c) {
