@@ -47,13 +47,13 @@ public:
 };
 
 template <typename CharT>
-static inline bool is_valid_host_chars(const CharT* first, const CharT* last) {
-    return std::none_of(first, last, detail::IsInvalidHostChar<CharT>);
+static inline bool contains_forbidden_host_char(const CharT* first, const CharT* last) {
+    return std::any_of(first, last, detail::IsInvalidHostChar<CharT>);
 }
 
 template <typename CharT>
-static inline bool is_valid_opaque_host_chars(const CharT* first, const CharT* last) {
-    return std::none_of(first, last, [](CharT c) {
+static inline bool contains_forbidden_opaque_host_char(const CharT* first, const CharT* last) {
+    return std::any_of(first, last, [](CharT c) {
         return detail::IsInvalidHostChar(c) && c != '%';
     });
 }
@@ -207,7 +207,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     url_result res = IDNToASCII(buff_uc.data(), buff_uc.size(), buff_ascii);
     if (res != url_result::Ok)
         return res;
-    if (!is_valid_host_chars(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
+    if (contains_forbidden_host_char(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
         //TODO-ERR: validation error
         return url_result::InvalidDomainCharacter;
     }
@@ -224,7 +224,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
 
 template <typename CharT>
 inline url_result host_parser::parse_opaque_host(const CharT* first, const CharT* last, host_output& dest) {
-    if (!is_valid_opaque_host_chars(first, last))
+    if (contains_forbidden_opaque_host_char(first, last))
         return url_result::InvalidDomainCharacter; //TODO-ERR: failure
 
     std::string& str_host = dest.hostStart();
