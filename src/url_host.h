@@ -48,13 +48,13 @@ public:
 
 template <typename CharT>
 static inline bool contains_forbidden_host_char(const CharT* first, const CharT* last) {
-    return std::any_of(first, last, detail::IsInvalidHostChar<CharT>);
+    return std::any_of(first, last, detail::isForbiddenHostChar<CharT>);
 }
 
 template <typename CharT>
 static inline bool contains_forbidden_opaque_host_char(const CharT* first, const CharT* last) {
     return std::any_of(first, last, [](CharT c) {
-        return detail::IsInvalidHostChar(c) && c != '%';
+        return detail::isForbiddenHostChar(c) && c != '%';
     });
 }
 

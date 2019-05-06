@@ -1,7 +1,7 @@
 #ifndef WHATWG_URL_SEARCH_PARAMS_H
 #define WHATWG_URL_SEARCH_PARAMS_H
 
-#include "url_canon.h"
+#include "url_percent_encode.h"
 #include <list>
 #include <string>
 
@@ -224,7 +224,7 @@ inline static url_search_params::key_value_list url_search_params::do_parse(cons
                 auto itc = it;
                 unsigned char uc1 = static_cast<unsigned char>(*(++itc));
                 unsigned char uc2 = static_cast<unsigned char>(*(++itc));
-                if (detail::IsHexChar(uc1) && detail::IsHexChar(uc2)) {
+                if (detail::isHexChar(uc1) && detail::isHexChar(uc2)) {
                     char c = static_cast<char>((detail::HexCharToValue(uc1) << 4) + detail::HexCharToValue(uc2));
                     pval->push_back(c);
                     it = itc;

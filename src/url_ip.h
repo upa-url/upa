@@ -1,7 +1,7 @@
 ﻿#ifndef WHATWG_URL_IP_H
 #define WHATWG_URL_IP_H
 
-#include "url_canon.h"
+#include "url_percent_encode.h"
 #include "url_result.h"
 #include <cassert>
 #include <cstdint> // uint32_t
@@ -75,7 +75,7 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
         }
     } else {
         for (auto it = first; it != last; it++) {
-            if (!detail::IsHexChar(static_cast<unsigned char>(*it)))
+            if (!detail::isHexChar(static_cast<unsigned char>(*it)))
                 return url_result::False;
         }
     }
@@ -129,7 +129,7 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
             if (part[dot_count] == it)
                 return url_result::False; // 6.1. If part is the empty string, return input
             part[++dot_count] = it + 1; // skip '.'
-        } else if (uc >= 0x80 || !detail::IsIPv4Char(static_cast<unsigned char>(uc))) {
+        } else if (uc >= 0x80 || !detail::isIPv4Char(static_cast<unsigned char>(uc))) {
             // not IPv4 character
             return url_result::False;
         }
@@ -187,9 +187,9 @@ void ipv4_serialize(uint32_t ipv4, std::string& output);
 template <typename CharT, typename IntT>
 inline void get_hex_number(const CharT*& pointer, const CharT* last, IntT& value) {
     value = 0;
-    while (pointer != last && detail::Is8BitChar(*pointer)) {
+    while (pointer != last && detail::is8BitChar(*pointer)) {
         unsigned char uc = static_cast<unsigned char>(*pointer);
-        if (!detail::IsHexChar(uc)) break;
+        if (!detail::isHexChar(uc)) break;
         // HEX
         value = value * 0x10 + detail::HexCharToValue(uc);
         pointer++;

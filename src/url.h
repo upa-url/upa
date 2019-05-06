@@ -17,9 +17,9 @@
 #include "int_cast.h"
 #include "str_arg.h"
 #include "str_view.h"
-#include "url_canon.h"
 #include "url_host.h"
 #include "url_idna.h"
+#include "url_percent_encode.h"
 #include "url_result.h"
 #include "url_utf.h"
 #include <algorithm>
@@ -1648,7 +1648,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             } else {
                 // Just append the 7-bit character, possibly escaping it.
                 unsigned char uc = static_cast<unsigned char>(uch);
-                if (!IsCharOfType(uc, detail::CHAR_QUERY) || (uc == 0x27 && is_special))
+                if (!isCharInSet(uc, detail::CHAR_QUERY) || (uc == 0x27 && is_special))
                     detail::AppendEscapedChar(uch, str_query);
                 else
                     str_query.push_back(uc);
@@ -1684,7 +1684,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             } else {
                 // Just append the 7-bit character, possibly escaping it.
                 unsigned char uc = static_cast<unsigned char>(uch);
-                if (IsCharOfType(uc, detail::CHAR_FRAG)) {
+                if (isCharInSet(uc, detail::CHAR_FRAGMENT)) {
                     str_frag.push_back(uc);
                 } else if (uch) {
                     // other characters (except '\0') are escaped
@@ -1807,7 +1807,7 @@ inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last,
         } else {
             // Just append the 7-bit character, possibly escaping it.
             unsigned char uc = static_cast<unsigned char>(uch);
-            if (!IsCharOfType(uc, detail::CHAR_PATH))
+            if (!isCharInSet(uc, detail::CHAR_PATH))
                 detail::AppendEscapedChar(uc, output);
             else
                 output.push_back(uc);
