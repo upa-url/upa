@@ -1,7 +1,11 @@
-// Copyright 2016 Rimas Misevičius
-// Distributed under the Boost Software License, Version 1.0.
-// (See accompanying file LICENSE_1_0.txt or copy at
-// http://www.boost.org/LICENSE_1_0.txt)
+// Copyright 2016-2019 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+// This file contains portions of modified code from:
+// https://cs.chromium.org/chromium/src/url/url_canon_etc.cc
+// Copyright 2013 The Chromium Authors. All rights reserved.
+//
 
 // URL Standard
 // https://url.spec.whatwg.org/

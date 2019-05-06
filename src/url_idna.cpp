@@ -1,3 +1,11 @@
+// Copyright 2016-2019 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+// This file contains portions of modified code from:
+// https://cs.chromium.org/chromium/src/url/url_idna_icu.cc
+// Copyright 2013 The Chromium Authors. All rights reserved.
+//
 
 #include "url_idna.h"
 #include "int_cast.h"

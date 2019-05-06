@@ -1,3 +1,12 @@
+// Copyright 2016-2019 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+// This file contains portions of modified code from:
+// https://cs.chromium.org/chromium/src/url/url_canon.h
+// Copyright 2013 The Chromium Authors. All rights reserved.
+//
+
 #ifndef WHATWG_BUFFER_H
 #define WHATWG_BUFFER_H
 
