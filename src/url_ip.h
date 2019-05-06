@@ -187,10 +187,8 @@ void ipv4_serialize(uint32_t ipv4, std::string& output);
 template <typename CharT, typename IntT>
 inline void get_hex_number(const CharT*& pointer, const CharT* last, IntT& value) {
     value = 0;
-    while (pointer != last && detail::is8BitChar(*pointer)) {
-        unsigned char uc = static_cast<unsigned char>(*pointer);
-        if (!detail::isHexChar(uc)) break;
-        // HEX
+    while (pointer != last && detail::isHexChar(*pointer)) {
+        const unsigned char uc = static_cast<unsigned char>(*pointer);
         value = value * 0x10 + detail::HexCharToValue(uc);
         pointer++;
     }
