@@ -194,37 +194,6 @@ inline bool DecodeEscaped(const CharT*& first, const CharT* last, unsigned char&
     return true;
 }
 
-// Misc canonicalization helpers ----------------------------------------------
-
-// Converts between UTF-8 and UTF-16, returning true on successful conversion.
-// The output will be appended to the given canonicalizer output (so make sure
-// it's empty if you want to replace).
-//
-// On invalid input, this will still write as much output as possible,
-// replacing the invalid characters with the "invalid character". It will
-// return false in the failure case, and the caller should not continue as
-// normal.
-
-bool ConvertUTF8ToUTF16(const char* first, const char* last, simple_buffer<char16_t>& output);
-inline bool ConvertUTF8ToUTF16(const unsigned char* first, const unsigned char* last, simple_buffer<char16_t>& output) {
-    return ConvertUTF8ToUTF16(reinterpret_cast<const char*>(first), reinterpret_cast<const char*>(last), output);
-}
-
-inline bool ConvertToUTF16(const char* first, const char* last, simple_buffer<char16_t>& output) {
-    return ConvertUTF8ToUTF16(first, last, output);
-}
-
-inline bool ConvertToUTF16(const char16_t* first, const char16_t* last, simple_buffer<char16_t>& output) {
-    output.append(first, last);
-    return true;
-}
-
-inline bool ConvertToUTF16(const char32_t* first, const char32_t* last, simple_buffer<char16_t>& output) {
-    for (auto it = first; it < last; it++)
-        url_utf::append_utf16(*it, output);
-    return true;
-}
-
 
 } // namespace detail
 } // namespace whatwg
