@@ -2,6 +2,16 @@
 
 namespace whatwg {
 
+bool url_utf::convert_utf8_to_utf16(const char* first, const char* last, simple_buffer<char16_t>& output) {
+    bool success = true;
+    for (auto it = first; it < last;) {
+        uint32_t code_point;
+        success &= read_utf_char(it, last, code_point);
+        append_utf16(code_point, output);
+    }
+    return success;
+}
+
 //
 // (c) 2016 and later: Unicode, Inc. and others.
 // License & terms of use: http://www.unicode.org/copyright.html

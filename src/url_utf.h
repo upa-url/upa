@@ -17,6 +17,12 @@ public:
     static void append_utf8(uint32_t code_point, Output& output);
 
     static void append_utf16(uint32_t code_point, simple_buffer<char16_t>& output);
+
+    // returns false if encounters invalid utf-8 bytes sequence
+    static bool convert_utf8_to_utf16(const char* first, const char* last, simple_buffer<char16_t>& output);
+    static bool convert_utf8_to_utf16(const unsigned char* first, const unsigned char* last, simple_buffer<char16_t>& output) {
+        return convert_utf8_to_utf16(reinterpret_cast<const char*>(first), reinterpret_cast<const char*>(last), output);
+    }
 protected:
     // low level
     static bool read_code_point(const char*& first, const char* last, uint32_t& code_point);

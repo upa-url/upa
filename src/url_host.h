@@ -2,10 +2,10 @@
 #define WHATWG_URL_HOST_H
 
 #include "buffer.h"
-#include "url_canon.h"
 #include "url_idna.h"
 #include "url_ip.h"
 #include "url_result.h"
+#include "url_utf.h"
 #include <cassert>
 #include <cstdint> // uint32_t
 #include <string>
@@ -119,7 +119,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
                         uc8 = '%';
                     buff_utf8.push_back(uc8);
                 }
-                detail::ConvertUTF8ToUTF16(buff_utf8.data(), buff_utf8.data() + buff_utf8.size(), buff_uc);
+                url_utf::convert_utf8_to_utf16(buff_utf8.data(), buff_utf8.data() + buff_utf8.size(), buff_uc);
                 //buff_utf8.clear();
                 continue;
             }
