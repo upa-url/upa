@@ -18,7 +18,9 @@ public:
 
     static void append_utf16(uint32_t code_point, simple_buffer<char16_t>& output);
 
-    // returns false if encounters invalid utf-8 bytes sequence
+    // Invalid utf-8 bytes sequences are replaced with 0xFFFD character.
+    // Returns false if input contains invalid utf-8 byte sequence, or
+    // true otherwise.
     static bool convert_utf8_to_utf16(const char* first, const char* last, simple_buffer<char16_t>& output);
     static bool convert_utf8_to_utf16(const unsigned char* first, const unsigned char* last, simple_buffer<char16_t>& output) {
         return convert_utf8_to_utf16(reinterpret_cast<const char*>(first), reinterpret_cast<const char*>(last), output);
