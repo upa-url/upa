@@ -78,7 +78,7 @@
     <ClInclude Include="..\..\src\str_arg.h" />
     <ClInclude Include="..\..\src\str_view.h" />
     <ClInclude Include="..\..\src\url.h" />
-    <ClInclude Include="..\..\src\url_canon.h" />
+    <ClInclude Include="..\..\src\url_percent_encode.h" />
     <ClInclude Include="..\..\src\url_host.h" />
     <ClInclude Include="..\..\src\url_result.h" />
     <ClInclude Include="..\..\src\url_idna.h" />
@@ -91,7 +91,7 @@
     <ClCompile Include="..\..\src\url_utf.cpp" />
     <ClCompile Include="..\..\test\test_sample.cpp" />
     <ClCompile Include="..\..\src\url.cpp" />
-    <ClCompile Include="..\..\src\url_canon.cpp" />
+    <ClCompile Include="..\..\src\url_percent_encode.cpp" />
     <ClCompile Include="..\..\src\url_idna.cpp" />
     <ClCompile Include="..\..\src\url_ip.cpp" />
     <ClCompile Include="..\..\src\url_icu_lib.cpp" />

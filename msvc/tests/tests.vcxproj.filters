@@ -24,7 +24,7 @@
     <ClCompile Include="..\..\src\url.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\url_canon.cpp">
+    <ClCompile Include="..\..\src\url_percent_encode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\url_idna.cpp">
@@ -56,7 +56,7 @@
     <ClInclude Include="..\..\src\url.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\url_canon.h">
+    <ClInclude Include="..\..\src\url_percent_encode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\url_host.h">
