@@ -89,7 +89,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     if (isNotSpecial)
         return parse_opaque_host(first, last, dest);
 
-#if 1
+
     //TODO: klaidų nustatymas pagal standartą
 
     // Let buff_uc be the result of running UTF-8 decode (to UTF-16) without BOM
@@ -133,73 +133,6 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
         }
     }
 
-#else
-    // check if host has non ascii characters or percent sign
-    bool has_no_ascii = false;
-    bool has_escaped = false;
-    for (auto it = first; it < last;) {
-        UCharT uch = static_cast<UCharT>(*it++);
-        if (uch >= 0x80) {
-            has_no_ascii = true;
-        } else {
-            unsigned char uc8;
-            if (uch == '%' && detail::DecodeEscaped(it, last, uc8)) {
-                has_escaped = true;
-                if ((has_no_ascii = has_no_ascii || (uc8 >= 0x80))) break;
-            }
-        }
-    }
-
-    //TODO: klaidų nustatymas pagal standartą
-
-    simple_buffer<char16_t> buff_uc;
-    if (has_no_ascii) {
-        if (has_escaped) {
-            simple_buffer<unsigned char> buff_utf8;
-
-            uint32_t code_point;
-            for (auto it = first; it < last;) {
-                url_util::read_utf_char(it, last, code_point);
-                if (code_point == '%') {
-                    // unescape until escaped
-                    unsigned char uc8;
-                    if (detail::DecodeEscaped(it, last, uc8)) {
-                        buff_utf8.push_back(uc8);
-                        while (it < last && *it == '%') {
-                            it++; // skip '%'
-                            if (!detail::DecodeEscaped(it, last, uc8))
-                                uc8 = '%';
-                            buff_utf8.push_back(uc8);
-                        }
-                        detail::ConvertUTF8ToUTF16(buff_utf8.data(), buff_utf8.data() + buff_utf8.size(), buff_uc);
-                        buff_utf8.clear();
-                    } else {
-                        url_utf::append_utf16(code_point, buff_uc);
-                    }
-                } else {
-                    url_utf::append_utf16(code_point, buff_uc);
-                }
-            }
-        } else {
-            detail::ConvertToUTF16(first, last, buff_uc);
-        }
-    } else {
-        // (first,last) has only ASCII characters
-        // Net ir ASCII turi praeiti IDNToASCII patikrinimą;
-        // tačiau žr.: https://github.com/jsdom/whatwg-url/issues/50
-        //  ^-- kad korektiškai veiktų reikia Unicode 9 palaikymo
-        if (has_escaped) {
-            for (auto it = first; it < last;) {
-                unsigned char uc8 = static_cast<unsigned char>(*it++);
-                if (uc8 == '%')
-                    detail::DecodeEscaped(it, last, uc8);
-                buff_uc.push_back(uc8);
-            }
-        } else {
-            buff_uc.append(first, last);
-        }
-    }
-#endif
 
     // domain to ASCII
     simple_buffer<char16_t> buff_ascii;
