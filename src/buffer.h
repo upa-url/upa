@@ -100,13 +100,14 @@ public:
     }
 
     void append(const value_type* first, const value_type* last) {
-        auto ncopy = std::distance(first, last);
-        if (size_ + ncopy > capacity_)
-            grow(size_ + ncopy);
+        const auto ncopy = std::distance(first, last);
+        const size_type new_size = add_sizes(size_, ncopy);
+        if (new_size > capacity_)
+            grow(new_size);
         // copy
         traits_type::copy(data_ + size_, first, ncopy);
-        // add size
-        size_ += ncopy;
+        // new size
+        size_ = new_size;
     }
 
     void push_back(const value_type& value) {
@@ -116,7 +117,7 @@ public:
             return;
         }
         // grow buffer capacity
-        grow(size_ + 1);
+        grow(add_sizes(size_, 1));
         data_[size_] = value;
         size_++;
     }
@@ -158,6 +159,12 @@ protected:
         reserve(new_cap);
     }
 
+    // add without overflow
+    size_type add_sizes(size_type n1, size_type n2) {
+        if (max_size() - n1 >= n2)
+            return n1 + n2;
+        throw std::bad_alloc();
+    }
 private:
     allocator_type allocator_;
     value_type* data_;
