@@ -23,6 +23,8 @@ struct unsigned_limit {
     }
 };
 
+// Returns difference between a and b (a - b), if result is not representable
+// by the type Out - throws exception.
 template <typename Out, typename T,
     typename UT = typename std::make_unsigned<T>::type,
     typename = typename std::enable_if<std::is_integral<T>::value>::type>
