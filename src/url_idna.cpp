@@ -16,9 +16,6 @@
 
 namespace whatwg {
 
-// https://cs.chromium.org/chromium/src/url/url_canon_icu.cc
-// https://cs.chromium.org/chromium/src/url/url_canon_icu.h
-
 namespace {
 
 // Return UTS46 ICU handler opened with uidna_openUTS46()
