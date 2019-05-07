@@ -1,4 +1,9 @@
-﻿#include "url_ip.h"
+// Copyright 2016-2019 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+
+#include "url_ip.h"
 
 namespace whatwg {
 

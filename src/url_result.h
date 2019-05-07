@@ -1,3 +1,8 @@
+// Copyright 2016-2019 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+
 #ifndef URL_RESULT_H
 #define URL_RESULT_H
 

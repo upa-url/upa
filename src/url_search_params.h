@@ -1,3 +1,8 @@
+// Copyright 2016-2019 Rimas Misevièius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+
 #ifndef WHATWG_URL_SEARCH_PARAMS_H
 #define WHATWG_URL_SEARCH_PARAMS_H
 
