@@ -32,17 +32,10 @@ int main(int argc, char** argv)
 {
     int err = 0;
 
+    // URL web-platform-tests
     err |= test_from_file(run_parser_tests, "wpt/urltestdata.json");
-    err |= test_from_file(run_parser_tests, "wpt/urltestdata--mano.json");
-    //  err |= test_from_file(run_parser_tests, "wpt/urltestdata--mano-bandymai.json");
-
     err |= test_from_file(run_host_parser_tests, "wpt/toascii.json");
-
     err |= test_from_file(run_setter_tests, "wpt/setters_tests.json");
-
-
-    // more tests
-    err |= test_from_file(run_parser_tests, "wpt/urltestdata--issue-303.json");
 
     return err;
 }
