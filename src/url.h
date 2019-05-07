@@ -563,7 +563,7 @@ inline void do_trim(const CharT*& first, const CharT*& last) {
 // https://cs.chromium.org/chromium/src/url/url_canon_etc.cc
 template <typename CharT>
 inline void do_remove_whitespace(const CharT*& first, const CharT*& last, simple_buffer<CharT>& buff) {
-    // Fast verification that there’s nothing that needs removal. This is the 99%
+    // Fast verification that there's nothing that needs removal. This is the 99%
     // case, so we want it to be fast and don't care about impacting the speed
     // when we do find whitespace.
     for (auto it = first; it < last; it++) {
@@ -1006,12 +1006,12 @@ inline bool url::search(const CharT* first, const CharT* last) {
     url_setter urls(*this);
     if (first == last) {
         urls.clear_part(url::QUERY);
-        //todo: empty context object’s query object’s list
+        //todo: empty context object's query object's list
         return true;
     }
     if (*first == '?') first++;
     return url_parser::url_parse(urls, first, last, nullptr, url_parser::query_state) == url_result::Ok;
-    //todo: set context object’s query object’s list to the result of parsing input
+    //todo: set context object's query object's list to the result of parsing input
 }
 
 template <typename CharT, typename>
@@ -1098,14 +1098,14 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     if (urls.is_file_scheme() && urls.is_empty(url::HOST)) return url_result::False;
                     // OR ursl.is_empty(url::HOST) && scheme_inf->no_empty_host
 
-                    // set url’s scheme
+                    // set url's scheme
                     urls.save_scheme();
 
                     // https://github.com/whatwg/url/pull/328
                     // optimization: compare ports if scheme has the default port
                     if (scheme_inf && scheme_inf->default_port >= 0 &&
                         urls.port_int() == scheme_inf->default_port) {
-                        // set url’s port to null
+                        // set url's port to null
                         urls.clear_part(url::PORT);
                     }
 
@@ -1120,7 +1120,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 } else {
                     if (urls.is_special_scheme()) {
                         if (base && urls.get_part_view(url::SCHEME).equal(base->get_part_view(url::SCHEME))) {
-                            // NOTE: This means that base’s cannot-be-a-base-URL flag is unset
+                            // NOTE: This means that base's cannot-be-a-base-URL flag is unset
                             state = special_relative_or_authority_state;
                         } else {
                             state = special_authority_slashes_state;
@@ -1130,7 +1130,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                         pointer++;
                     } else {
                         urls.set_cannot_be_base();
-                        // append an empty string to url’s path
+                        // append an empty string to url's path
                         // urls.append_to_path();
                         urls.start_path_string(); // ne start_path_segment()
                         urls.save_path_string();
@@ -1157,7 +1157,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     urls.set_cannot_be_base();
                     urls.set_scheme(*base);
                     urls.append_parts(*base, url::PATH, url::QUERY);
-                    //TODO: url’s fragment to the empty string
+                    //TODO: url's fragment to the empty string
                     state = fragment_state;
                     pointer++;
                 } else {
@@ -1197,8 +1197,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         urls.set_scheme(*base);
         if (pointer == last) {
             // EOF code point
-            // Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
-            // url’s port to base’s port, url’s path to base’s path, and url’s query to base’s query
+            // Set url's username to base's username, url's password to base's password, url's host to base's host,
+            // url's port to base's port, url's path to base's path, and url's query to base's query
             urls.append_parts(*base, url::USERNAME, url::QUERY);
             return url_result::Ok; // EOF
         } else {
@@ -1208,14 +1208,14 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 state = relative_slash_state;
                 break;
             case '?':
-                // Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
-                // url’s port to base’s port, url’s path to base’s path, url’s query to the empty string, and state to query state.
+                // Set url's username to base's username, url's password to base's password, url's host to base's host,
+                // url's port to base's port, url's path to base's path, url's query to the empty string, and state to query state.
                 urls.append_parts(*base, url::USERNAME, url::PATH);
                 state = query_state;    // sets query to the empty string
                 break;
             case '#':
-                // Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
-                // url’s port to base’s port, url’s path to base’s path, url’s query to base’s query, url’s fragment to the empty string
+                // Set url's username to base's username, url's password to base's password, url's host to base's host,
+                // url's port to base's port, url's path to base's path, url's query to base's query, url's fragment to the empty string
                 urls.append_parts(*base, url::USERNAME, url::QUERY);
                 state = fragment_state; // sets fragment to the empty string
                 break;
@@ -1226,8 +1226,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     break;
                 }
             default:
-                // Set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
-                // url’s port to base’s port, url’s path to base’s path, and then remove url’s path’s last entry, if any
+                // Set url's username to base's username, url's password to base's password, url's host to base's host,
+                // url's port to base's port, url's path to base's path, and then remove url's path's last entry, if any
                 urls.append_parts(*base, url::USERNAME, url::PATH, &url::get_path_rem_last);
                 state = path_state;
                 pointer--;
@@ -1253,8 +1253,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 break;
             }
         default:
-            // set url’s username to base’s username, url’s password to base’s password, url’s host to base’s host,
-            // url’s port to base’s port
+            // set url's username to base's username, url's password to base's password, url's host to base's host,
+            // url's port to base's port
             urls.append_parts(*base, url::USERNAME, url::PORT);
             state = path_state;
         }
@@ -1392,7 +1392,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     urls.save_part();
                     urls.set_flag(url::PORT_FLAG);
                 } else {
-                    // (2-1-3) Set url’s port to null
+                    // (2-1-3) Set url's port to null
                     urls.clear_part(url::PORT);
                 }
             }
@@ -1441,7 +1441,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                         break;
                     default:
                         if (!detail::starts_with_Windows_drive(pointer, last)) {
-                            // set url’s host to base’s host, url’s path to base’s path, and then shorten url’s path
+                            // set url's host to base's host, url's path to base's path, and then shorten url's path
                             urls.append_parts(*base, url::HOST, url::PATH, &url::get_shorten_path);
                             // Note: This is a (platform-independent) Windows drive letter quirk.
                         }
@@ -1469,17 +1469,17 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             if (base && base->is_file_scheme() &&
                 !detail::starts_with_Windows_drive(pointer, last)) {
                 url::str_view_type base_path = base->get_path_first_string(2);
-                // if base’s path[0] is a normalized Windows drive letter
+                // if base's path[0] is a normalized Windows drive letter
                 if (base_path.length() == 2 &&
                     detail::is_normalized_Windows_drive(base_path[0], base_path[1])) {
-                    // append base’s path[0] to url’s path
+                    // append base's path[0] to url's path
                     std::string& str_path = urls.start_path_segment();
                     str_path.append(base_path.data(), 2); // "C:"
                     urls.save_path_segment();
                     // Note: This is a (platform - independent) Windows drive letter quirk.
-                    // Both url’s and base’s host are null under these conditions and therefore not copied.
+                    // Both url's and base's host are null under these conditions and therefore not copied.
                 } else {
-                    // set url’s host to base’s host
+                    // set url's host to base's host
                     urls.append_parts(*base, url::HOST, url::HOST);
                 }
             }
@@ -1541,12 +1541,12 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             if (!state_override) {
                 switch (pointer[0]) {
                 case '?':
-                    // TODO: set url’s query to the empty string
+                    // TODO: set url's query to the empty string
                     state = query_state;
                     pointer++;
                     break;
                 case '#':
-                    // TODO: set url’s fragment to the empty string
+                    // TODO: set url's fragment to the empty string
                     state = fragment_state;
                     pointer++;
                     break;
@@ -1585,11 +1585,11 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         } else {
             const CharT ch = *pointer++;
             if (ch == '?') {
-                // TODO: set url’s query to the empty string
+                // TODO: set url's query to the empty string
                 state = query_state;
             } else {
                 // ch == '#'
-                // TODO: set url’s fragment to the empty string
+                // TODO: set url's fragment to the empty string
                 state = fragment_state;
             }
         }
@@ -1600,7 +1600,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             std::find_if(pointer, last, [](CharT c) { return c == '?' || c == '#'; });
 
         // UTF-8 percent encode using the C0 control percent-encode set,
-        // and append the result to url’s path[0]
+        // and append the result to url's path[0]
         std::string& str_path = urls.start_path_string(); // ne start_path_segment()
         do_simple_path(pointer, end_of_path, str_path);
         urls.save_path_string();
@@ -1611,11 +1611,11 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         } else {
             const CharT ch = *pointer++;
             if (ch == '?') {
-                // TODO: set url’s query to the empty string
+                // TODO: set url's query to the empty string
                 state = query_state;
             } else {
                 // ch == '#'
-                // TODO: set url’s fragment to the empty string
+                // TODO: set url's fragment to the empty string
                 state = fragment_state;
             }
         }
@@ -1670,7 +1670,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         if (pointer == last)
             return url_result::Ok; // EOF
         // *pointer == '#'
-        //TODO: set url’s fragment to the empty string
+        //TODO: set url's fragment to the empty string
         state = fragment_state;
         pointer++; // skip '#'
     }
@@ -1771,9 +1771,9 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
                 detail::is_Windows_drive(pointer[0], pointer[1]))
             {
                 if (!urls.is_empty(url::HOST)) {
-                    // 1. If url’s host is not the empty string, validation error
+                    // 1. If url's host is not the empty string, validation error
                     // TODO-WARN: validation error
-                    // 2. Set url’s host to the empty string
+                    // 2. Set url's host to the empty string
                     urls.empty_host();
                 }
                 // and replace the second code point in buffer with ":"
@@ -1867,7 +1867,7 @@ inline url::str_view_type url::get_path_first_string(std::size_t len) const {
 
 inline bool url::get_path_rem_last(std::size_t& path_end, unsigned& path_segment_count) const {
     if (path_segment_count_ > 0) {
-        // Remove path’s last item
+        // Remove path's last item
         const char* first = norm_url_.data() + part_end_[url::PATH-1];
         const char* last = norm_url_.data() + part_end_[url::PATH];
         const char* it = detail::find_last(first, last, '/');
@@ -1924,7 +1924,7 @@ inline std::size_t url_serializer::remove_leading_path_slashes() {
 inline url_serializer::~url_serializer() {
     switch (last_pt_) {
     case url::SCHEME:
-        // if url’s host is null and url’s scheme is "file"
+        // if url's host is null and url's scheme is "file"
         if (url_.is_file_scheme())
             url_.norm_url_.append("//");
         break;
