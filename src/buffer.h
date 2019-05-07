@@ -11,17 +11,21 @@
 #define WHATWG_BUFFER_H
 
 #include <memory>
+#include <string>
 #include <type_traits>
 
 namespace whatwg {
 
-template <class T, std::size_t fixed_capacity = 1024, class Allocator = std::allocator<T>>
+template <
+    class T,
+    std::size_t fixed_capacity = 1024,
+    class Traits = std::char_traits<T>,
+    class Allocator = std::allocator<T>
+>
 class simple_buffer {
-    static_assert(std::is_trivially_copyable<T>::value,
-        "simple_buffer supports only trivially copyable elements");
-
 public:
     typedef T value_type;
+    typedef Traits traits_type;
     typedef Allocator allocator_type;
     typedef std::allocator_traits<allocator_type> allocator_traits;
     typedef std::size_t size_type;
@@ -95,13 +99,12 @@ public:
         size_ = 0;
     }
 
-    template<class InputIt>
-    void append(InputIt first, InputIt last) {
+    void append(const value_type* first, const value_type* last) {
         auto ncopy = std::distance(first, last);
         if (size_ + ncopy > capacity_)
             grow(size_ + ncopy);
         // copy
-        std::uninitialized_copy(first, last, data_ + size_);
+        traits_type::copy(data_ + size_, first, ncopy);
         // add size
         size_ += ncopy;
     }
@@ -133,7 +136,7 @@ protected:
     void grow_capacity(size_type new_cap) {
         value_type* new_data = allocator_traits::allocate(allocator_, new_cap);
         // copy data
-        std::uninitialized_copy(data(), data() + size(), new_data);
+        traits_type::copy(new_data, data(), size());
         // deallocate old data & assign new
         if (data_ != fixed_buffer_)
             allocator_traits::deallocate(allocator_, data_, capacity_);
