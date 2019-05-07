@@ -261,11 +261,11 @@ void AppendStringOfType(const CharT* first, const CharT* last, CharsType charsTy
     for (auto it = first; it < last; ) {
         const UCharT ch = static_cast<UCharT>(*it);
         if (ch >= 0x80) {
-            // ReadChar will fill the code point with kUnicodeReplacementCharacter
+            // read_utf_char will fill the code point with kUnicodeReplacementCharacter
             // when the input is invalid, which is what we want.
             uint32_t code_point;
             url_utf::read_utf_char(it, last, code_point);
-            AppendUTF8EscapedValue(code_point, output);//TODO
+            AppendUTF8EscapedValue(code_point, output);
         }
         else {
             // Just append the 7-bit character, possibly escaping it.
