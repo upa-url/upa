@@ -196,8 +196,6 @@ public:
 
     // ASCII serialized origin
     std::string origin() const;
-    // Unicode serialized origin in utf-8
-    std::string origin_unicode() const;
 
     str_view_type protocol() const;
 
@@ -684,36 +682,6 @@ inline std::string url::origin() const {
         url u;
         if (u.parse(get_part_view(PATH), nullptr) == url_result::Ok)
             return u.origin();
-    }
-    return "null"; // opaque origin
-}
-
-// Unicode serialization of an origin
-// https://html.spec.whatwg.org/multipage/browsers.html#unicode-serialisation-of-an-origin
-inline std::string url::origin_unicode() const {
-    if (is_special_scheme()) {
-        if (is_file_scheme())
-            return "null"; // opaque origin
-        // "scheme://"
-        std::string str_origin(norm_url_, 0, part_end_[SCHEME_SEP]);
-        
-        // if host is a domain, then apply domain to Unicode
-        auto hostv = get_part_view(HOST);
-        if (host_type() == HostType::Domain) {
-            simple_buffer<char> buff;
-            IDNToUnicode(hostv.data(), hostv.length(), buff);
-            str_origin.append(buff.begin(), buff.end());
-        } else {
-            str_origin.append(hostv.data(), hostv.length());
-        }
-
-        if (!is_null(PORT))
-            str_origin.append(norm_url_.data() + part_end_[HOST], norm_url_.data() + part_end_[PORT]);
-        return str_origin;
-    } else if (get_part_view(SCHEME).equal({ "blob", 4 })) {
-        url u;
-        if (u.parse(get_part_view(PATH), nullptr) == url_result::Ok)
-            return u.origin_unicode();
     }
     return "null"; // opaque origin
 }
