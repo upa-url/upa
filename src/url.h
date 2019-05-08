@@ -679,6 +679,8 @@ inline std::string url::origin() const {
         str_origin.append(norm_url_.data() + part_end_[HOST_START], norm_url_.data() + part_end_[PORT]);
         return str_origin;
     } else if (get_part_view(SCHEME).equal({ "blob", 4 })) {
+        // Warning: this library does not support blob URL store, so it allways assumes
+        // URL's blob URL entry is null and retrieves origin from the URL's path.
         url u;
         if (u.parse(get_part_view(PATH), nullptr) == url_result::Ok)
             return u.origin();
