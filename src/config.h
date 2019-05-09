@@ -6,10 +6,9 @@
 #ifndef WHATWG_CONFIG_H
 #define WHATWG_CONFIG_H
 
+// Define WHATWG__CPP_17 if compiler supports C++17 or later standard
 // https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
-#if defined(_MSVC_LANG) && (_MSVC_LANG >= 201703)
-#define WHATWG__CPP_17
-#elif (__cplusplus >= 201703)
+#if defined(_MSVC_LANG) ? (_MSVC_LANG >= 201703) : (__cplusplus >= 201703)
 #define WHATWG__CPP_17
 #endif
 
