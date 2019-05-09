@@ -823,9 +823,9 @@ void run_unit_tests() {
     std::strcpy(buff.data(), "ABC");
     //buff.shrink_to_fit();
     buff.push_back('Z');
-    buff.append(aaa.cbegin(), aaa.cend());
-    buff.append(bbb.cbegin(), bbb.cend());
-    buff.append(bbb.cbegin(), bbb.cend());
+    buff.append(aaa.data(), aaa.data() + aaa.length());
+    buff.append(bbb.data(), bbb.data() + bbb.length());
+    buff.append(bbb.data(), bbb.data() + bbb.length());
     buff.push_back('\0');
 
     std::cout << buff.data();
