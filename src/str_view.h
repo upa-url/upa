@@ -10,6 +10,7 @@
 #include <string>
 #include <type_traits>
 
+namespace whatwg {
 
 template<typename CharT, typename Traits = std::char_traits<CharT>>
 class str_view {
@@ -125,5 +126,8 @@ std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>&
     // TODO FormattedOutputFunction
     return os.write(v.data(), v.length());
 }
+
+
+} // namespace whatwg
 
 #endif // STR_VIEW_H
