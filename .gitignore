@@ -1,3 +1,5 @@
 /build/
+# downloadable dependances
+/deps/doctest/
 # downloadable tests dir
 /test/wpt/
