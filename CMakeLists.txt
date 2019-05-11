@@ -26,14 +26,21 @@ add_library(cppurl STATIC
   src/url_utf.cpp)
 target_include_directories(cppurl PRIVATE ${ICU_INCLUDE_DIR})
 
-# target test-url
-add_executable(test-url test/test-url.cpp)
-target_link_libraries(test-url cppurl ICU::i18n ICU::uc)
-
-# Testing
+# Compile test targets
 
 enable_testing()
 
-add_test(NAME test-url
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
-  COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test-url)
+set(test_files
+  test/test-url.cpp
+  test/test-url-port.cpp
+)
+foreach(file ${test_files})
+  get_filename_component(test_name ${file} NAME_WLE)
+
+  add_executable(${test_name} ${file})
+  target_link_libraries(${test_name} cppurl ICU::i18n ICU::uc)
+
+  add_test(NAME ${test_name}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
+    COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
+endforeach()
