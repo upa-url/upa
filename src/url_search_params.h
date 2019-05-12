@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevièius
+// Copyright 2016-2019 Rimas MiseviÄius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -214,7 +214,7 @@ inline static url_search_params::key_value_list url_search_params::do_parse(cons
         case '&':
             if (start != it) {
                 lst.push_back(std::move(p));
-                // TODO: ar gerai èia:
+                // TODO: ar gerai Äia:
                 p.first.clear();
                 p.second.clear();
             }
