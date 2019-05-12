@@ -38,6 +38,7 @@ import json
 import os
 import re
 import sys
+import io
 
 class Amalgamation(object):
 	
@@ -93,7 +94,7 @@ class Amalgamation(object):
 			t = TranslationUnit(file_path, self, True)
 			amalgamation += t.content
 		
-		with open(self.target, 'w') as f:
+		with io.open(self.target, mode="w", encoding="utf-8") as f:
 			f.write(amalgamation)
 		
 		print("...done!\n")
@@ -259,7 +260,7 @@ class TranslationUnit(object):
 		actual_path = self.amalgamation.actual_path(file_path)
 		if not os.path.isfile(actual_path):
 			raise IOError("File not found: \"{0}\"".format(file_path))
-		with open(actual_path, 'r') as f:
+		with io.open(actual_path, mode="r", encoding="utf-8") as f:
 			self.content = f.read()
 			self._process()
 
