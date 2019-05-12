@@ -33,6 +33,7 @@ enable_testing()
 set(test_files
   test/test-url.cpp
   test/test-url-port.cpp
+  test/test-buffer.cpp
 )
 foreach(file ${test_files})
   get_filename_component(test_name ${file} NAME_WLE)
