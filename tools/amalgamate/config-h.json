@@ -1,0 +1,10 @@
+{
+  "project": "WHATWG URL C++",
+  "target": "url/url.h",
+  "sources": [
+    "src/url.h"
+  ],
+  "include_paths": [
+    "src"
+  ]
+}
