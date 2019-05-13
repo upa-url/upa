@@ -63,6 +63,8 @@ class Amalgamation(object):
 	
 	def __init__(self, args):
 		with open(args.config, 'r') as f:
+			self.head = [] # default
+			self.ingnore_includes = False
 			config = json.loads(f.read())
 			for key in config:
 				setattr(self, key, config[key])
@@ -86,6 +88,10 @@ class Amalgamation(object):
 			print(" working_dir   = {0}".format(os.getcwd()))
 			print(" include_paths = {0}".format(self.include_paths))
 		print("Creating amalgamation:")
+		for file_path in self.head:
+			actual_path = self.actual_path(file_path)
+			with io.open(actual_path, mode="r", encoding="utf-8") as f:
+				amalgamation += f.read()
 		for file_path in self.sources:
 			# Do not check the include paths while processing the source
 			# list, all given source paths must be correct.
@@ -234,7 +240,7 @@ class TranslationUnit(object):
 			include_match, found_included_path = include
 			tmp_content += self.content[prev_end:include_match.start()]
 			tmp_content += "// {0}\n".format(include_match.group(0))
-			if not found_included_path in self.amalgamation.included_files:
+			if not self.amalgamation.ingnore_includes and not found_included_path in self.amalgamation.included_files:
 				t = TranslationUnit(found_included_path, self.amalgamation, False)
 				tmp_content += t.content
 			prev_end = include_match.end()
