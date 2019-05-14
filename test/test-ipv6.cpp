@@ -64,6 +64,10 @@ TEST_CASE("IPv6 parser test with valid addresses") {
     CHECK(ipv6_parse("0:f:0:0:f:f:0:0", ipv6addr));
     CHECK(is_equal(ipv6addr, { 0, 0xf, 0, 0, 0xf, 0xf, 0, 0 }));
     CHECK(ipv6_serialize(ipv6addr) == "0:f::f:f:0:0");
+
+    CHECK(ipv6_parse("12:0:0::34", ipv6addr));
+    CHECK(is_equal(ipv6addr, { 0x12, 0, 0, 0, 0, 0, 0, 0x34 }));
+    CHECK(ipv6_serialize(ipv6addr) == "12::34");
 }
 
 TEST_CASE("IPv4 in IPv6 test") {
@@ -73,9 +77,14 @@ TEST_CASE("IPv4 in IPv6 test") {
     CHECK(is_equal(ipv6addr, { 0, 0, 0, 0, 0, 0, 0x0102, 0x0304 }));
     CHECK(ipv6_serialize(ipv6addr) == "::102:304");
 
+    CHECK(ipv6_parse("1:2:3:4:5:6:1.2.3.4", ipv6addr));
+    CHECK(is_equal(ipv6addr, { 1, 2, 3, 4, 5, 6, 0x0102, 0x0304 }));
+    CHECK(ipv6_serialize(ipv6addr) == "1:2:3:4:5:6:102:304");
+
     // bounds checking
     CHECK_FALSE(ipv6_parse("::1.2.3.4.5", ipv6addr));
     CHECK_FALSE(ipv6_parse("1:2:3:4:5:6:1.2.3.4.5", ipv6addr));
+    CHECK_FALSE(ipv6_parse("1:2:3:4:5:6:7:1.2.3.4", ipv6addr));
 
     // https://github.com/whatwg/url/issues/195
     CHECK_FALSE(ipv6_parse("::1.2.3.4x", ipv6addr));
