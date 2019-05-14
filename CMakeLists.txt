@@ -35,6 +35,7 @@ set(test_files
   test/test-url-port.cpp
   test/test-buffer.cpp
   test/test-ipv4.cpp
+  test/test-ipv6.cpp
 )
 foreach(file ${test_files})
   get_filename_component(test_name ${file} NAME_WLE)
