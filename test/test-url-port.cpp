@@ -29,3 +29,16 @@ TEST_CASE("non-special scheme 123 port") {
     CHECK(url.port_int() == 123);
     CHECK(url.real_port_int() == 123);
 }
+
+TEST_CASE("port overflow") {
+    whatwg::url url;
+
+    // https://github.com/whatwg/url/issues/257#issuecomment-285553590
+    CHECK(whatwg::success(url.parse("http://example.net:65535", nullptr)));
+    CHECK(url.port_int() == 65535);
+    CHECK_FALSE(whatwg::success(url.parse("http://example.net:65536", nullptr)));
+
+    CHECK(whatwg::success(url.parse("asdf://host:65535", nullptr)));
+    CHECK(url.port_int() == 65535);
+    CHECK_FALSE(whatwg::success(url.parse("asdf://host:65536", nullptr)));
+}
