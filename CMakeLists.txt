@@ -23,10 +23,11 @@ add_library(cppurl STATIC
   src/url_idna.cpp
   src/url_ip.cpp
   src/url_percent_encode.cpp
+  src/url_search_params.cpp
   src/url_utf.cpp)
 target_include_directories(cppurl PRIVATE ${ICU_INCLUDE_DIR})
 
-# Compile test targets
+# Test targets
 
 enable_testing()
 
@@ -47,3 +48,8 @@ foreach(file ${test_files})
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
     COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
 endforeach()
+
+# Example's targets
+
+add_executable(urlparse examples/urlparse.cpp)
+target_link_libraries(urlparse cppurl ICU::i18n ICU::uc)
