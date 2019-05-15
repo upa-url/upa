@@ -33,7 +33,7 @@ TEST_CASE("Test setters with special URL's") {
         CHECK_EQ(url.host(), "example.net:88");
         CHECK_EQ(url.port_int(), 88);
 
-        CHECK(url.port("")); //TODO
+        CHECK(url.port(""));
         CHECK_EQ(url.host(), "example.net");
 
         CHECK(url.pathname("/path"));
@@ -63,5 +63,28 @@ TEST_CASE("Test setters with special URL's") {
         // windows drive letters
         CHECK(url.pathname("/c|/../path"));
         CHECK_EQ(url.pathname(), "/c:/path");
+    }
+}
+
+TEST_CASE("Test setters with non-special URL's") {
+    whatwg::url url;
+
+    SUBCASE("non-special: protocol") {
+        REQUIRE(whatwg::success(url.parse("non-special:/path", nullptr)));
+        CHECK_EQ(url.href(), "non-special:/path");
+
+        CHECK(url.hostname("example.net"));
+        CHECK_EQ(url.href(), "non-special://example.net/path");
+
+        CHECK(url.hostname(""));
+        CHECK_EQ(url.href(), "non-special:///path");
+    }
+
+    SUBCASE("javascript: protocol") {
+        REQUIRE(whatwg::success(url.parse("JavaScript:alert(1)", nullptr)));
+        CHECK_EQ(url.href(), "javascript:alert(1)");
+
+        CHECK(url.hash("#frag"));
+        CHECK_EQ(url.href(), "javascript:alert(1)#frag");
     }
 }
