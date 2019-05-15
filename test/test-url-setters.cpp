@@ -1,0 +1,67 @@
+#include "url.h"
+#include "doctest-main.h"
+
+
+TEST_CASE("Test setters with special URL's") {
+    whatwg::url url;
+
+    REQUIRE(whatwg::success(url.parse("ws://example.org/foo/bar", nullptr)));
+    CHECK_FALSE(url.href("wss://%00/foo/bar"));
+    CHECK_EQ(url.href(), "ws://example.org/foo/bar");
+    CHECK_EQ(url.protocol(), "ws:");
+    CHECK_EQ(url.host(), "example.org");
+    CHECK_EQ(url.pathname(), "/foo/bar");
+
+    SUBCASE("switch to http: protocol") {
+        // if setter sets value, then returns true
+        CHECK(url.protocol("http:"));
+        CHECK_EQ(url.protocol(), "http:");
+
+        url.username("user01");
+        url.password("pass@01");
+        CHECK_EQ(url.username(), "user01");
+        CHECK_EQ(url.password(), "pass%4001");
+
+        CHECK(url.host("example.org:81"));
+        CHECK_EQ(url.host(), "example.org:81");
+
+        CHECK(url.hostname("example.net"));
+        CHECK_EQ(url.host(), "example.net:81");
+        CHECK_EQ(url.hostname(), "example.net");
+
+        CHECK(url.port("88"));
+        CHECK_EQ(url.host(), "example.net:88");
+        CHECK_EQ(url.port_int(), 88);
+
+        CHECK(url.port("")); //TODO
+        CHECK_EQ(url.host(), "example.net");
+
+        CHECK(url.pathname("/path"));
+        CHECK_EQ(url.pathname(), "/path");
+
+        CHECK(url.hash("#frag"));
+        CHECK_EQ(url.hash(), "#frag");
+
+        url.search("?a=3");
+        CHECK_EQ(url.search(), "?a=3");
+
+        // test path
+        CHECK(url.pathname("/other/path"));
+        CHECK_EQ(url.pathname(), "/other/path");
+    }
+
+    SUBCASE("switch to file: protocol") {
+        CHECK(url.protocol("file:"));
+        CHECK_EQ(url.protocol(), "file:");
+
+        CHECK(url.hostname("localhost"));
+        CHECK_EQ(url.hostname(), "");
+
+        CHECK(url.hostname("example.org"));
+        CHECK_EQ(url.hostname(), "example.org");
+
+        // windows drive letters
+        CHECK(url.pathname("/c|/../path"));
+        CHECK_EQ(url.pathname(), "/c:/path");
+    }
+}

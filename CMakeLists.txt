@@ -34,6 +34,7 @@ enable_testing()
 set(test_files
   test/test-url.cpp
   test/test-url-port.cpp
+  test/test-url-setters.cpp
   test/test-buffer.cpp
   test/test-ipv4.cpp
   test/test-ipv6.cpp
