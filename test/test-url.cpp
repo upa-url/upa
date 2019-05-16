@@ -232,7 +232,7 @@ namespace {
         HostParser
     };
 
-    // parses urltestdata.json
+    // parses urltestdata.json, toascii.json
     class root_context : public picojson::deny_parse_context {
     protected:
         DataDrivenTest& m_ddt;
