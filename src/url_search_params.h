@@ -53,6 +53,8 @@ public:
 
     void serialize(std::string& query);
 
+    std::string to_string();
+
     // iterable
 
     const_iterator begin() const { return params_.begin(); }
@@ -275,6 +277,12 @@ inline void url_search_params::serialize(std::string& query) {
             query.push_back('&');
         }
     }
+}
+
+inline std::string url_search_params::to_string() {
+    std::string query;
+    serialize(query);
+    return query;
 }
 
 
