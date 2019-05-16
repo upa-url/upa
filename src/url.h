@@ -338,7 +338,7 @@ public:
     virtual std::string& start_part(url::PartType new_pt);
     virtual void save_part();
 
-    // TODO: galima naudoti vietoj clear_host():
+    // TODO: can be used instead of clear_host():
     virtual void clear_part(const url::PartType pt) {}
 
     virtual void clear_host();
@@ -1007,9 +1007,9 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     detail::do_remove_whitespace(first, last, buff_no_ws);
     //TODO-WARN: validation error if removed
 
-    // reserve size (TODO: bet jei bus naudojama base?)
+    // reserve size (TODO: But what if `base` is used?)
     auto length = std::distance(first, last);
-    urls.reserve(length + 32); // žr.: GURL::InitCanonical(..)
+    urls.reserve(length + 32);
 
     const char* encoding = "UTF-8";
     // TODO: If encoding override is given, set encoding to the result of getting an output encoding from encoding override. 
@@ -1122,8 +1122,9 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         if (base) {
             if (base->cannot_be_base()) {
                 if (pointer < last && *pointer == '#') {
-                    // SVARBU: set_cannot_be_base() turi būti prieš append_parts(..),
-                    // kad pastarasis teisingai vykdytų serializavimą
+                    // IMPORTANT: set_cannot_be_base() must be called before append_parts(..),
+                    // because the cannot_be_base flag can be used when serializing in
+                    // append_parts(..)
                     urls.set_cannot_be_base();
                     urls.set_scheme(*base);
                     urls.append_parts(*base, url::PATH, url::QUERY);
@@ -1607,8 +1608,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
         // Set buffer to the result of encoding buffer using encoding
         // percent encode: (c < 0x21 || c > 0x7E || c == 0x22 || c == 0x23 || c == 0x3C || c == 0x3E)
-        // TODO: dabar palaiko tik encoding = "UTF-8"; kitų palaikymą galima padaryti pagal:
-        // https://cs.chromium.org/chromium/src/url/url_canon_query.cc?rcl=1479817139&l=93
+        // TODO: now supports UTF-8 encoding only, maybe later to add other encodings support
         std::string& str_query = urls.start_part(url::QUERY);
         //detail::AppendStringOfType(pointer, end_of_query, detail::CHAR_QUERY, str_query);
         const bool is_special = urls.is_special_scheme();
@@ -1841,7 +1841,7 @@ inline bool url::get_path_rem_last(std::size_t& path_end, unsigned& path_segment
         const char* first = norm_url_.data() + part_end_[url::PATH-1];
         const char* last = norm_url_.data() + part_end_[url::PATH];
         const char* it = detail::find_last(first, last, '/');
-        if (it == last) it = first; // jei nebuvo '/' išmesim visą kelią
+        if (it == last) it = first; // remove full path if '/' not found
         // shorten
         path_end = it - norm_url_.data();
         path_segment_count = path_segment_count_ - 1;
@@ -1926,7 +1926,7 @@ inline void url_serializer::fill_parts_offset(url::PartType t1, url::PartType t2
 }
 
 inline std::string& url_serializer::start_part(url::PartType new_pt) {
-    // užpido ir tuščių dalių (iki new_pt) offset-ą
+    // offsets of empty parts (until new_pt) are also filled
     url::PartType fill_start_pt = static_cast<url::PartType>(static_cast<int>(last_pt_)+1);
     switch (last_pt_) {
     case url::SCHEME:
@@ -1974,7 +1974,7 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
     }
 
     assert(last_pt_ < new_pt);
-    // value to url_.part_end_[new_pt] will be assigned in save_part()
+    // value to url_.part_end_[new_pt] will be assigned in the save_part()
     last_pt_ = new_pt;
     return url_.norm_url_;
 }
@@ -1983,7 +1983,7 @@ inline void url_serializer::save_part() {
     url_.part_end_[last_pt_] = url_.norm_url_.length();
 }
 
-// append_empty_to_path() kviečiamas trijose vietose:
+// The append_empty_to_path() is called from these places:
 // 1) scheme_state -> [2.9.] -> cannot_be_base_URL_path_state
 // 2) path_state -> [1.2. ".." ]
 // 3) path_state -> [1.3. "." ]
@@ -2106,7 +2106,7 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             norm_url.append(first, last);
             // adjust url_.part_end_
             for (int ind = ifirst; ind < ilast; ind++) {
-                // if (src.part_end_[ind]) // nebereikia tikrinti, nes užpildyta
+                // if (src.part_end_[ind]) // it is known, that src.part_end_[ind] has value, so check isn't needed
                 url_.part_end_[ind] = src.part_end_[ind] + delta;
             }
             // ilast part from lastp
@@ -2127,7 +2127,7 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
 // url_setter class
 
 inline url_setter::~url_setter() {
-    //todo: kad ~url_serializer() nieko nedarytų:
+    //todo: ~url_serializer() must do nothing
     last_pt_ = url::FRAGMENT;
 }
 
