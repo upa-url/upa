@@ -36,6 +36,7 @@ set(test_files
   test/test-url-port.cpp
   test/test-url-setters.cpp
   test/test-url_search_params.cpp
+  test/test-urlencoded-parser.cpp
   test/test-buffer.cpp
   test/test-ipv4.cpp
   test/test-ipv6.cpp
