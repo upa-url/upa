@@ -234,6 +234,9 @@ public:
     // URL includes credentials?
     bool has_credentials() const;
 
+    // stringify
+    std::string to_string() const;
+
 protected:
     struct scheme_info {
         str_view_type scheme;
@@ -661,6 +664,10 @@ inline bool starts_with_Windows_drive(const CharT* pointer, const CharT* last) {
 // url class
 
 inline url::str_view_type url::href() const {
+    return norm_url_;
+}
+
+inline std::string url::to_string() const {
     return norm_url_;
 }
 
