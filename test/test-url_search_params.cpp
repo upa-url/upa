@@ -1,5 +1,6 @@
 #include "url_search_params.h"
 #include "doctest-main.h"
+#include <algorithm>
 
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
@@ -8,6 +9,18 @@ template <class T>
 static bool param_eq(const std::string* pval, const T& value) {
     return pval != nullptr && *pval == value;
 }
+
+template <class List, class T>
+static bool list_eq(const List& val, std::initializer_list<T> lst) {
+#if 0 // TODO: if >= C++14
+    return std::equal(std::begin(val), std::end(val), std::begin(lst), std::end(lst))
+#else
+    return
+        std::size(val) == std::size(lst) &&
+        std::equal(std::begin(val), std::end(val), std::begin(lst));
+#endif
+}
+
 
 //
 // https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-append.any.js
@@ -381,5 +394,41 @@ TEST_CASE("urlsearchparams-get.any.js") {
         CHECK_MESSAGE(param_eq(params.get("first"), "second"), "Search params object has name \"first\" with value \"second\"");
         CHECK_MESSAGE(param_eq(params.get("third"), ""), "Search params object has name \"third\" with the empty value.");
         CHECK_MESSAGE(params.get("fourth") == nullptr, "Search params object has no \"fourth\" name and value.");
+    }
+}
+
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-getall.any.js
+//
+TEST_CASE("urlsearchparams-getall.any.js") {
+    SUBCASE("getAll() basics") {
+        {
+            whatwg::url_search_params params("a=b&c=d");
+            CHECK(list_eq(params.getAll("a"), { "b" }));
+            CHECK(list_eq(params.getAll("c"), { "d" }));
+            CHECK(params.getAll("e").empty()); // empty list
+        } {
+            whatwg::url_search_params params("a=b&c=d&a=e");
+            CHECK(list_eq(params.getAll("a"), { "b", "e" }));
+        } {
+            whatwg::url_search_params params("=b&c=d");
+            CHECK(list_eq(params.getAll(""), { "b" }));
+        } {
+            whatwg::url_search_params params("a=&c=d&a=e");
+            CHECK(list_eq(params.getAll("a"), { "", "e" }));
+        }
+    }
+
+    SUBCASE("getAll() multiples") {
+        whatwg::url_search_params params("a=1&a=2&a=3&a");
+        CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
+        auto matches = params.getAll("a");
+        CHECK_MESSAGE(matches.size() == 4, "Search params object has values for name \"a\"");
+        CHECK_MESSAGE(list_eq(matches, { "1", "2", "3", "" }), "Search params object has expected name \"a\" values");
+        params.set("a", "one");
+        CHECK_MESSAGE(param_eq(params.get("a"), "one"), "Search params object has name \"a\" with value \"one\"");
+        matches = params.getAll("a");
+        CHECK_MESSAGE(matches.size() == 1, "Search params object has values for name \"a\"");
+        CHECK_MESSAGE(list_eq(matches, { "one" }), "Search params object has expected name \"a\" values");
     }
 }
