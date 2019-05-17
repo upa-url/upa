@@ -20,12 +20,12 @@ bool url_utf::convert_utf8_to_utf16(const char* first, const char* last, simple_
 int url_utf::compare_by_code_units(const char* first1, const char* last1, const char* first2, const char* last2) {
     auto it1 = first1, it2 = first2;
     while (it1 != last1 && it2 != last2) {
-        if (unsigned char(*it1) < 0x80 || unsigned char(*it2) < 0x80) {
+        if (static_cast<unsigned char>(*it1) < 0x80 || static_cast<unsigned char>(*it2) < 0x80) {
             if (*it1 == *it2) {
                 ++it1, ++it2;
                 continue;
             }
-            return int(unsigned char(*it1)) - int(unsigned char(*it2));
+            return int(static_cast<unsigned char>(*it1)) - int(static_cast<unsigned char>(*it2));
         }
 
         // read code points
