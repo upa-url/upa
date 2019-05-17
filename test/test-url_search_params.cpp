@@ -415,3 +415,38 @@ TEST_CASE("urlsearchparams-getall.any.js") {
         CHECK_MESSAGE(list_eq(matches, { "one" }), "Search params object has expected name \"a\" values");
     }
 }
+
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-has.any.js
+//
+TEST_CASE("urlsearchparams-has.any.js") {
+    SUBCASE("Has basics") {
+        {
+            whatwg::url_search_params params("a=b&c=d");
+            CHECK(params.has("a"));
+            CHECK(params.has("c"));
+            CHECK_FALSE(params.has("e"));
+        } {
+            whatwg::url_search_params params("a=b&c=d&a=e");
+            CHECK(params.has("a"));
+        } {
+            whatwg::url_search_params params("=b&c=d");
+            CHECK(params.has(""));
+        } {
+            whatwg::url_search_params params("null=a");
+            CHECK(params.has("null")); // todo: nullptr
+        }
+    }
+
+    SUBCASE("has() following delete()") {
+        whatwg::url_search_params params("a=b&c=d&&");
+        params.append("first", "1"); // TODO: 1
+        params.append("first", "2"); // TODO: 2
+        CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
+        CHECK_MESSAGE(params.has("c"), "Search params object has name \"c\"");
+        CHECK_MESSAGE(params.has("first"), "Search params object has name \"first\"");
+        CHECK_FALSE_MESSAGE(params.has("d"), "Search params object has no name \"d\"");
+        params.del("first");
+        CHECK_FALSE_MESSAGE(params.has("first"), "Search params object has no name \"first\"");
+    }
+}
