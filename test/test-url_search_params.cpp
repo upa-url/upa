@@ -283,3 +283,67 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
 #endif
     // TODO: other tests
 }
+
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-delete.any.js
+//
+TEST_CASE("urlsearchparams-delete.any.js") {
+    SUBCASE("Delete basics") {
+        {
+            whatwg::url_search_params params("a=b&c=d");
+            params.del("a");
+            CHECK_EQ(params.to_string(), "c=d");
+        }
+        {
+            whatwg::url_search_params params("a=a&b=b&a=a&c=c");
+            params.del("a");
+            CHECK_EQ(params.to_string(), "b=b&c=c");
+        }
+        {
+            whatwg::url_search_params params("a=a&=&b=b&c=c");
+            params.del("");
+            CHECK_EQ(params.to_string(), "a=a&b=b&c=c");
+        }
+        {
+            whatwg::url_search_params params("a=a&null=null&b=b");
+            params.del("null"); // TODO: nullptr
+            CHECK_EQ(params.to_string(), "a=a&b=b");
+        }
+        {
+            whatwg::url_search_params params("a=a&undefined=undefined&b=b");
+            params.del("undefined"); // TODO: undefined
+            CHECK_EQ(params.to_string(), "a=a&b=b");
+        }
+    }
+
+    SUBCASE("Deleting appended multiple") {
+        whatwg::url_search_params params;
+        params.append("first", "1"); // TODO: 1
+        CHECK_MESSAGE(params.has("first"), "Search params object has name \"first\"");
+        CHECK_MESSAGE(param_eq(params.get("first"), "1"), "Search params object has name \"first\" with value \"1\"");
+        params.del("first");
+        CHECK_FALSE_MESSAGE(params.has("first"), "Search params object has no \"first\" name");
+        params.append("first", "1"); // TODO: 1
+        params.append("first", "10"); // TODO: 10
+        params.del("first");
+        CHECK_FALSE_MESSAGE(params.has("first"), "Search params object has no \"first\" name");
+    }
+
+#if 0
+    // TODO: integrate url_search_params in to URL
+    SUBCASE("Deleting all params removes ? from URL") {
+        whatwg::URL url("http://example.com/?param1&param2");
+        url.searchParams.del("param1");
+        url.searchParams.del("param2");
+        CHECK_MESSAGE(url.href() == "http://example.com/", "url.href does not have ?");
+        CHECK_MESSAGE(url.search() == "", "url.search does not have ?");
+    }
+
+    SUBCASE("Removing non-existent param removes ? from URL") {
+        whatwg::URL url("http://example.com/?");
+        url.searchParams.del("param1");
+        CHECK_MESSAGE(url.href() == "http://example.com/", "url.href does not have ?");
+        CHECK_MESSAGE(url.search() == "", "url.search does not have ?");
+    }
+#endif
+}
