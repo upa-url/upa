@@ -17,7 +17,7 @@ static bool list_eq(const List& val, std::initializer_list<T> lst) {
     return std::equal(std::begin(val), std::end(val), std::begin(lst), std::end(lst))
 #else
     return
-        std::size(val) == std::size(lst) &&
+        val.size() == lst.size() &&
         std::equal(std::begin(val), std::end(val), std::begin(lst));
 #endif
 }
