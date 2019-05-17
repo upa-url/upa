@@ -16,15 +16,17 @@
 //
 // Testing code and data based on
 // https://github.com/web-platform-tests/wpt/blob/master/url/urlencoded-parser.any.js
+// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-sort.any.js
 //
 
-int test_from_file(const char* file_name);
+int test_from_file(const char* file_name, bool sort = false);
 
 int main(int argc, char** argv)
 {
     int err = 0;
 
     err |= test_from_file("data/urlencoded-parser.json");
+    err |= test_from_file("data/urlsearchparams-sort.json", true);
 
     return err;
 }
@@ -34,6 +36,7 @@ int main(int argc, char** argv)
 struct TestObj {
     std::string m_input;
     whatwg::url_search_params::key_value_list m_output;
+    bool m_sort;
 };
 
 // key_value_pair output function for DataDrivenTest
@@ -51,6 +54,8 @@ void test_urlencoded_parser(DataDrivenTest& ddt, const TestObj& obj) {
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         whatwg::url_search_params sparams(obj.m_input);
+
+        if (obj.m_sort) sparams.sort();
 
         const size_t n_sparams = std::distance(sparams.begin(), sparams.end());
         const size_t n_expected = obj.m_output.size();
@@ -71,9 +76,11 @@ void test_urlencoded_parser(DataDrivenTest& ddt, const TestObj& obj) {
 class root_context : public picojson::deny_parse_context {
 protected:
     DataDrivenTest& m_ddt;
+    bool m_sort;
 public:
-    root_context(DataDrivenTest& ddt)
+    root_context(DataDrivenTest& ddt, bool sort)
         : m_ddt(ddt)
+        , m_sort(sort)
     {}
 
     // array only as root
@@ -99,6 +106,7 @@ public:
                 const picojson::array& pair = it->get<picojson::array>();
                 obj.m_output.emplace_back(pair[0].get<std::string>(), pair[1].get<std::string>());
             }
+            obj.m_sort = m_sort;
             test_urlencoded_parser(m_ddt, obj);
         } else if (item.is<std::string>()) {
             // comment
@@ -113,7 +121,7 @@ public:
 
 // Read data file and run tests from it
 
-int test_from_file(const char* file_name)
+int test_from_file(const char* file_name, bool sort)
 {
     DataDrivenTest ddt;
     ddt.config_show_passed(false);
@@ -129,7 +137,7 @@ int test_from_file(const char* file_name)
     std::string err;
     // for unformatted reading use std::istreambuf_iterator
     // http://stackoverflow.com/a/17776228/3908097
-    root_context ctx(ddt);
+    root_context ctx(ddt, sort);
     picojson::_parse(ctx, std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), &err);
     if (!err.empty()) {
         std::cerr << err << std::endl;
