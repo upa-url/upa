@@ -201,7 +201,7 @@ inline void url_search_params::sort() {
 }
 
 template <class T>
-inline static url_search_params::key_value_list url_search_params::do_parse(const T& query) {
+inline url_search_params::key_value_list url_search_params::do_parse(const T& query) {
     key_value_list lst;
     auto b = str_begin(query);
     auto e = str_end(query);
@@ -258,7 +258,7 @@ inline static url_search_params::key_value_list url_search_params::do_parse(cons
 }
 
 template <class T>
-inline static void url_search_params::urlencode(std::string& encoded, const T& value) {
+inline void url_search_params::urlencode(std::string& encoded, const T& value) {
     auto b = str_begin(value);
     auto e = str_end(value);
 
