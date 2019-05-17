@@ -31,6 +31,8 @@ public:
     static bool convert_utf8_to_utf16(const unsigned char* first, const unsigned char* last, simple_buffer<char16_t>& output) {
         return convert_utf8_to_utf16(reinterpret_cast<const char*>(first), reinterpret_cast<const char*>(last), output);
     }
+
+    static int compare_by_code_units(const char* first1, const char* last1, const char* first2, const char* last2);
 protected:
     // low level
     static bool read_code_point(const char*& first, const char* last, uint32_t& code_point);
