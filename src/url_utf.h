@@ -21,7 +21,8 @@ public:
     template <class Output, void appendByte(unsigned char, Output&)>
     static void append_utf8(uint32_t code_point, Output& output);
 
-    static void append_utf16(uint32_t code_point, simple_buffer<char16_t>& output);
+    template <std::size_t N>
+    static void append_utf16(uint32_t code_point, simple_buffer<char16_t, N>& output);
 
     // Invalid utf-8 bytes sequences are replaced with 0xFFFD character.
     // Returns false if input contains invalid utf-8 byte sequence, or
@@ -204,7 +205,8 @@ inline void url_utf::append_utf8(uint32_t code_point, Output& output) {
 // It converts code_point to UTF-16 code units sequence and appends to output.
 // It assumes a valid code point (https://infra.spec.whatwg.org/#scalar-value).
 
-inline void url_utf::append_utf16(uint32_t code_point, simple_buffer<char16_t>& output) {
+template <std::size_t N>
+inline void url_utf::append_utf16(uint32_t code_point, simple_buffer<char16_t, N>& output) {
     if (code_point <= 0xffff) {
         output.push_back(static_cast<char16_t>(code_point));
     } else {
