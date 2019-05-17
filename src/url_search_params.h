@@ -184,9 +184,14 @@ inline void url_search_params::set(T&& name, TV&& value) {
 }
 
 inline void url_search_params::sort() {
+    // https://url.spec.whatwg.org/#dom-urlsearchparams-sort
+    // Sorting must be done by comparison of code units.
     if (!is_sorted_) {
         params_.sort([](const key_value_pair& a, const key_value_pair& b) {
-            return a.first < b.first;
+            //return a.first < b.first;
+            return url_utf::compare_by_code_units(
+                a.first.data(), a.first.data() + a.first.size(),
+                b.first.data(), b.first.data() + b.first.size()) < 0;
         });
         is_sorted_ = true;
     }
