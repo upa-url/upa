@@ -13,8 +13,8 @@ static bool param_eq(const std::string* pval, const T& value) {
 
 template <class List, class T>
 static bool list_eq(const List& val, std::initializer_list<T> lst) {
-#if 0 // TODO: if >= C++14
-    return std::equal(std::begin(val), std::end(val), std::begin(lst), std::end(lst))
+#ifdef WHATWG__CPP_14
+    return std::equal(std::begin(val), std::end(val), std::begin(lst), std::end(lst));
 #else
     return
         val.size() == lst.size() &&
