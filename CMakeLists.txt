@@ -42,7 +42,7 @@ set(test_files
   test/test-ipv6.cpp
 )
 foreach(file ${test_files})
-  get_filename_component(test_name ${file} NAME_WLE)
+  get_filename_component(test_name ${file} NAME_WE)
 
   add_executable(${test_name} ${file})
   target_link_libraries(${test_name} cppurl ICU::i18n ICU::uc)
