@@ -450,3 +450,34 @@ TEST_CASE("urlsearchparams-has.any.js") {
         CHECK_FALSE_MESSAGE(params.has("first"), "Search params object has no name \"first\"");
     }
 }
+
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-set.any.js
+//
+TEST_CASE("urlsearchparams-set.any.js") {
+    SUBCASE("Set basics") {
+        {
+            whatwg::url_search_params params("a=b&c=d");
+            params.set("a", "B");
+            CHECK_EQ(params.to_string(), "a=B&c=d");
+        } {
+            whatwg::url_search_params params("a=b&c=d&a=e");
+            params.set("a", "B");
+            CHECK_EQ(params.to_string(), "a=B&c=d");
+            params.set("e", "f");
+            CHECK_EQ(params.to_string(), "a=B&c=d&e=f");
+        }
+    }
+
+    SUBCASE("URLSearchParams.set") {
+        whatwg::url_search_params params("a=1&a=2&a=3");
+        CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
+        CHECK_MESSAGE(param_eq(params.get("a"), "1"), "Search params object has name \"a\" with value \"1\"");
+        params.set("first", "4"); // TODO: 4
+        CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
+        CHECK_MESSAGE(param_eq(params.get("a"), "1"), "Search params object has name \"a\" with value \"1\"");
+        params.set("a", "4"); // TODO: 4
+        CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
+        CHECK_MESSAGE(param_eq(params.get("a"), "4"), "Search params object has name \"a\" with value \"4\"");
+    }
+}
