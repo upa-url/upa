@@ -89,12 +89,10 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         {
             whatwg::url_search_params params;
             CHECK_EQ(params.to_string(), "");
-        }
-        {
+        } {
             whatwg::url_search_params params("");
             CHECK_EQ(params.to_string(), "");
-        }
-        {
+        } {
             whatwg::url_search_params params("a=b");
             CHECK_EQ(params.to_string(), "a=b");
 
@@ -129,13 +127,11 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
             whatwg::url_search_params params("a=b");
             CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
             CHECK_FALSE_MESSAGE(params.has("b"), "Search params object has not got name \"b\"");
-        }
-        {
+        } {
             whatwg::url_search_params params("a=b&c");
             CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
             CHECK_MESSAGE(params.has("c"), "Search params object has name \"c\"");
-        }
-        {
+        } {
             whatwg::url_search_params params("&a&&& &&&&&a+b=& c&m%c3%b8%c3%b8");
             CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
             CHECK_MESSAGE(params.has("a b"), "Search params object has name \"a b\"");
@@ -164,8 +160,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         {
             whatwg::url_search_params params("a=b+c");
             CHECK(param_eq(params.get("a"), "b c"));
-        }
-        {
+        } {
             whatwg::url_search_params params("a+b=c");
             CHECK(param_eq(params.get("a b"), "c"));
         }
@@ -187,8 +182,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         {
             whatwg::url_search_params params("a=b c");
             CHECK(param_eq(params.get("a"), "b c"));
-        }
-        {
+        } {
             whatwg::url_search_params params("a b=c");
             CHECK(param_eq(params.get("a b"), "c"));
         }
@@ -198,8 +192,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         {
             whatwg::url_search_params params("a=b%20c");
             CHECK(param_eq(params.get("a"), "b c"));
-        }
-        {
+        } {
             whatwg::url_search_params params("a%20b=c");
             CHECK(param_eq(params.get("a b"), "c"));
         }
@@ -214,8 +207,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         {
             whatwg::url_search_params params(std::string("a=b\0c", 5));
             CHECK(param_eq(params.get("a"), std::string("b\0c", 3)));
-        }
-        {
+        } {
             whatwg::url_search_params params(std::string("a\0b=c", 5));
             CHECK(param_eq(params.get(std::string("a\0b", 3)), "c"));
         }
@@ -225,8 +217,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         {
             whatwg::url_search_params params("a=b%00c");
             CHECK(param_eq(params.get("a"), std::string("b\0c", 3)));
-        }
-        {
+        } {
             whatwg::url_search_params params("a%00b=c");
             CHECK(param_eq(params.get(std::string("a\0b", 3)), "c"));
         }
@@ -237,8 +228,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         {
             whatwg::url_search_params params(u8"a=b\u2384");
             CHECK(param_eq(params.get("a"), u8"b\u2384"));
-        }
-        {
+        } {
             whatwg::url_search_params params(u8"a\u2384b=c");
             CHECK(param_eq(params.get(u8"a\u2384b"), "c"));
         }
@@ -249,8 +239,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         {
             whatwg::url_search_params params("a=b%e2%8e%84");
             CHECK(param_eq(params.get("a"), u8"b\u2384"));
-        }
-        {
+        } {
             whatwg::url_search_params params("a%e2%8e%84b=c");
             CHECK(param_eq(params.get(u8"a\u2384b"), "c"));
         }
@@ -261,8 +250,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         {
             whatwg::url_search_params params(u8"a=b\U0001F4A9");
             CHECK(param_eq(params.get("a"), u8"b\U0001F4A9"));
-        }
-        {
+        } {
             whatwg::url_search_params params(u8"a\U0001F4A9b=c");
             CHECK(param_eq(params.get(u8"a\U0001F4A9b"), "c"));
         }
@@ -273,8 +261,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         {
             whatwg::url_search_params params("a=b%f0%9f%92%a9c");
             CHECK(param_eq(params.get("a"), u8"b\U0001F4A9c"));
-        }
-        {
+        } {
             whatwg::url_search_params params("a%f0%9f%92%a9b=c");
             CHECK(param_eq(params.get(u8"a\U0001F4A9b"), "c"));
         }
@@ -306,23 +293,19 @@ TEST_CASE("urlsearchparams-delete.any.js") {
             whatwg::url_search_params params("a=b&c=d");
             params.del("a");
             CHECK_EQ(params.to_string(), "c=d");
-        }
-        {
+        } {
             whatwg::url_search_params params("a=a&b=b&a=a&c=c");
             params.del("a");
             CHECK_EQ(params.to_string(), "b=b&c=c");
-        }
-        {
+        } {
             whatwg::url_search_params params("a=a&=&b=b&c=c");
             params.del("");
             CHECK_EQ(params.to_string(), "a=a&b=b&c=c");
-        }
-        {
+        } {
             whatwg::url_search_params params("a=a&null=null&b=b");
             params.del("null"); // TODO: nullptr
             CHECK_EQ(params.to_string(), "a=a&b=b");
-        }
-        {
+        } {
             whatwg::url_search_params params("a=a&undefined=undefined&b=b");
             params.del("undefined"); // TODO: undefined
             CHECK_EQ(params.to_string(), "a=a&b=b");
