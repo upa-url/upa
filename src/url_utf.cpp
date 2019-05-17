@@ -27,12 +27,14 @@ int url_utf::compare_by_code_units(const char* first1, const char* last1, const 
             }
             return int(unsigned char(*it1)) - int(unsigned char(*it2));
         }
+
+        // read code points
         uint32_t cp1, cp2;
         read_utf_char(it1, last1, cp1);
         read_utf_char(it2, last2, cp2);
         if (cp1 == cp2) continue;
 
-        // not equal - compare code units
+        // code points not equal - compare code units
         uint32_t cu1 = cp1 <= 0xffff ? cp1 : (cp1 >> 10);// +0xd7c0;
         uint32_t cu2 = cp2 <= 0xffff ? cp2 : (cp2 >> 10);// +0xd7c0;
         if (cu1 == cu2) {

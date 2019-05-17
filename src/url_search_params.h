@@ -185,8 +185,11 @@ inline void url_search_params::set(T&& name, TV&& value) {
 
 inline void url_search_params::sort() {
     // https://url.spec.whatwg.org/#dom-urlsearchparams-sort
-    // Sorting must be done by comparison of code units.
+    // Sorting must be done by comparison of code units. The relative order
+    // between name-value pairs with equal names must be preserved.
     if (!is_sorted_) {
+        // https://en.cppreference.com/w/cpp/container/list/sort
+        // std::list::sort preserves the order of equal elements.
         params_.sort([](const key_value_pair& a, const key_value_pair& b) {
             //return a.first < b.first;
             return url_utf::compare_by_code_units(
