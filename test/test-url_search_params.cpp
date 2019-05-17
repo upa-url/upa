@@ -347,3 +347,39 @@ TEST_CASE("urlsearchparams-delete.any.js") {
     }
 #endif
 }
+
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-foreach.any.js
+//
+// TODO
+
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-get.any.js
+//
+TEST_CASE("urlsearchparams-get.any.js") {
+    SUBCASE("Get basics") {
+        {
+            whatwg::url_search_params params("a=b&c=d");
+            CHECK(param_eq(params.get("a"), "b"));
+            CHECK(param_eq(params.get("c"), "d"));
+            CHECK(params.get("e") == nullptr);
+        } {
+            whatwg::url_search_params params("a=b&c=d&a=e");
+            CHECK(param_eq(params.get("a"), "b"));
+        } {
+            whatwg::url_search_params params("=b&c=d");
+            CHECK(param_eq(params.get(""), "b"));
+        } {
+            whatwg::url_search_params params("a=&c=d&a=e");
+            CHECK(param_eq(params.get("a"), ""));
+        }
+    }
+
+    SUBCASE("More get() basics") {
+        whatwg::url_search_params params("first=second&third&&");
+        CHECK_MESSAGE(params.has("first"), "Search params object has name \"first\"");
+        CHECK_MESSAGE(param_eq(params.get("first"), "second"), "Search params object has name \"first\" with value \"second\"");
+        CHECK_MESSAGE(param_eq(params.get("third"), ""), "Search params object has name \"third\" with the empty value.");
+        CHECK_MESSAGE(params.get("fourth") == nullptr, "Search params object has no \"fourth\" name and value.");
+    }
+}
