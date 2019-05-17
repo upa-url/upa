@@ -18,8 +18,9 @@ bool url_utf::convert_utf8_to_utf16(const char* first, const char* last, simple_
 }
 
 int url_utf::compare_by_code_units(const char* first1, const char* last1, const char* first2, const char* last2) {
-    for (auto it1 = first1, it2 = first2; it1 != last1 && it2 != last2;) {
-        if (*it1 < 0x80 || *it2 < 0x80) {
+    auto it1 = first1, it2 = first2;
+    while (it1 != last1 && it2 != last2) {
+        if (unsigned char(*it1) < 0x80 || unsigned char(*it2) < 0x80) {
             if (*it1 == *it2) {
                 ++it1, ++it2;
                 continue;
@@ -40,6 +41,8 @@ int url_utf::compare_by_code_units(const char* first1, const char* last1, const 
         }
         return int(cu1) - int(cu2);
     }
+    if (it1 != last1) return 1;
+    if (it2 != last2) return -1;
     return 0;
 }
 
