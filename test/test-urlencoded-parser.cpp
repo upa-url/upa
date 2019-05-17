@@ -4,7 +4,6 @@
 //
 
 #include "url_search_params.h"
-#include "ddt/DataDrivenTest.hpp"
 
 // https://github.com/kazuho/picojson
 # include "picojson/picojson.h"
@@ -12,6 +11,10 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+
+// for DataDrivenTest
+const std::string vout(const whatwg::url_search_params::key_value_pair& v);
+#include "ddt/DataDrivenTest.hpp"
 
 //
 // Testing code and data based on
