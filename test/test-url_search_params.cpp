@@ -1,3 +1,4 @@
+#include "url.h"
 #include "url_search_params.h"
 #include "doctest-main.h"
 #include <algorithm>
@@ -479,5 +480,154 @@ TEST_CASE("urlsearchparams-set.any.js") {
         params.set("a", "4"); // TODO: 4
         CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
         CHECK_MESSAGE(param_eq(params.get("a"), "4"), "Search params object has name \"a\" with value \"4\"");
+    }
+}
+
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-stringifier.any.js
+//
+TEST_CASE("urlsearchparams-stringifier.any.js") {
+    SUBCASE("Serialize space") {
+        whatwg::url_search_params params;
+        params.append("a", "b c");
+        CHECK_EQ(params.to_string(), "a=b+c");
+        params.del("a");
+        params.append("a b", "c");
+        CHECK_EQ(params.to_string(), "a+b=c");
+    }
+
+    SUBCASE("Serialize empty value") {
+        whatwg::url_search_params params;
+        params.append("a", "");
+        CHECK_EQ(params.to_string(), "a=");
+        params.append("a", "");
+        CHECK_EQ(params.to_string(), "a=&a=");
+        params.append("", "b");
+        CHECK_EQ(params.to_string(), "a=&a=&=b");
+        params.append("", "");
+        CHECK_EQ(params.to_string(), "a=&a=&=b&=");
+        params.append("", "");
+        CHECK_EQ(params.to_string(), "a=&a=&=b&=&=");
+    }
+
+    SUBCASE("Serialize empty name") {
+        whatwg::url_search_params params;
+        params.append("", "b");
+        CHECK_EQ(params.to_string(), "=b");
+        params.append("", "b");
+        CHECK_EQ(params.to_string(), "=b&=b");
+    }
+
+    SUBCASE("Serialize empty name and value") {
+        whatwg::url_search_params params;
+        params.append("", "");
+        CHECK_EQ(params.to_string(), "=");
+        params.append("", "");
+        CHECK_EQ(params.to_string(), "=&=");
+    }
+
+    SUBCASE("Serialize +") {
+        whatwg::url_search_params params;
+        params.append("a", "b+c");
+        CHECK_EQ(params.to_string(), "a=b%2Bc");
+        params.del("a");
+        params.append("a+b", "c");
+        CHECK_EQ(params.to_string(), "a%2Bb=c");
+    }
+
+    SUBCASE("Serialize =") {
+        whatwg::url_search_params params;
+        params.append("=", "a");
+        CHECK_EQ(params.to_string(), "%3D=a");
+        params.append("b", "=");
+        CHECK_EQ(params.to_string(), "%3D=a&b=%3D");
+    }
+
+    SUBCASE("Serialize &") {
+        whatwg::url_search_params params;
+        params.append("&", "a");
+        CHECK_EQ(params.to_string(), "%26=a");
+        params.append("b", "&");
+        CHECK_EQ(params.to_string(), "%26=a&b=%26");
+    }
+
+    SUBCASE("Serialize *-._") {
+        whatwg::url_search_params params;
+        params.append("a", "*-._");
+        CHECK_EQ(params.to_string(), "a=*-._");
+        params.del("a");
+        params.append("*-._", "c");
+        CHECK_EQ(params.to_string(), "*-._=c");
+    }
+
+    SUBCASE("Serialize %") {
+        whatwg::url_search_params params;
+        params.append("a", "b%c");
+        CHECK_EQ(params.to_string(), "a=b%25c");
+        params.del("a");
+        params.append("a%b", "c");
+        CHECK_EQ(params.to_string(), "a%25b=c");
+    }
+
+    SUBCASE("Serialize \\0") {
+        whatwg::url_search_params params;
+        params.append("a", std::string("b\0c", 3));
+        CHECK_EQ(params.to_string(), "a=b%00c");
+        params.del("a");
+        params.append(std::string("a\0b", 3), "c");
+        CHECK_EQ(params.to_string(), "a%00b=c");
+    }
+
+    // Unicode Character 'PILE OF POO' (U+1F4A9)
+    SUBCASE(u8"Serialize \U0001F4A9") {
+        whatwg::url_search_params params;
+        params.append("a", u8"b\U0001F4A9c");
+        CHECK_EQ(params.to_string(), "a=b%F0%9F%92%A9c");
+        params.del("a");
+        params.append(u8"a\U0001F4A9b", "c");
+        CHECK_EQ(params.to_string(), "a%F0%9F%92%A9b=c");
+    }
+
+    SUBCASE("URLSearchParams.toString") {
+        {
+            whatwg::url_search_params params("a=b&c=d&&e&&");
+            CHECK_EQ(params.to_string(), "a=b&c=d&e=");
+        } {
+            whatwg::url_search_params params("a = b &a=b&c=d%20");
+            CHECK_EQ(params.to_string(), "a+=+b+&a=b&c=d+");
+        } {
+            // The lone "=" _does_ survive the roundtrip.
+            whatwg::url_search_params params("a=&a=b");
+            CHECK_EQ(params.to_string(), "a=&a=b");
+        }
+    }
+
+    SUBCASE("URLSearchParams connected to URL") {
+#if 0
+        // TODO: URL with searchParams
+        whatwg::URL url("http://www.example.com/?a=b,c");
+        auto& params = url.searchParams;
+
+        CHECK_EQ(url.to_string(), "http://www.example.com/?a=b,c");
+        CHECK_EQ(params.to_string(), "a=b%2Cc");
+
+        params.append("x", "y");
+
+        CHECK_EQ(url.to_string(), "http://www.example.com/?a=b%2Cc&x=y");
+        CHECK_EQ(params.to_string(), "a=b%2Cc&x=y");
+#else
+        whatwg::url url;
+        REQUIRE(whatwg::success(url.parse("http://www.example.com/?a=b,c", nullptr)));
+        whatwg::url_search_params params(url.search());
+
+        CHECK_EQ(url.to_string(), "http://www.example.com/?a=b,c");
+        CHECK_EQ(params.to_string(), "a=b%2Cc");
+
+        params.append("x", "y");
+        url.search(params.to_string());
+
+        CHECK_EQ(url.to_string(), "http://www.example.com/?a=b%2Cc&x=y");
+        CHECK_EQ(params.to_string(), "a=b%2Cc&x=y");
+#endif
     }
 }
