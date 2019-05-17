@@ -12,4 +12,9 @@
 #define WHATWG__CPP_17
 #endif
 
+// Define WHATWG__CPP_14 if compiler supports C++14 or later
+#if defined(_MSVC_LANG) ? (_MSVC_LANG >= 201402) : (__cplusplus >= 201402)
+#define WHATWG__CPP_14
+#endif
+
 #endif // WHATWG_CONFIG_H
