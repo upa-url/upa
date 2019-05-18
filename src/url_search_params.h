@@ -7,10 +7,31 @@
 #define WHATWG_URL_SEARCH_PARAMS_H
 
 #include "url_percent_encode.h"
+#include <iterator>
 #include <list>
 #include <string>
+#include <type_traits>
 
 namespace whatwg {
+
+
+namespace {
+
+// supported string types
+template<class StrT>
+struct is_char_str : std::integral_constant<bool,
+    std::is_same<typename StrT::value_type, char>::value &&
+    std::is_base_of<std::forward_iterator_tag, typename std::iterator_traits<typename StrT::const_iterator>::iterator_category>::value
+> {};
+
+template<size_t N>
+struct is_char_str<char[N]> : std::true_type {};
+
+template<>
+struct is_char_str<char*> : std::true_type {};
+
+}
+
 
 class url_search_params
 {
@@ -22,12 +43,13 @@ public:
     using const_reverse_iterator = key_value_list::const_reverse_iterator;
     using iterator = const_iterator;
     using reverse_iterator = const_reverse_iterator;
+    using value_type = key_value_pair;
 
     // constructors
     url_search_params();
 
-    template <class T>
-    url_search_params(const T& query);
+    template<class StrT, typename std::enable_if<is_char_str<StrT>::value, int>::type = 0>
+    url_search_params(const StrT& query);
 
     // operations
     template <class T>
@@ -110,8 +132,8 @@ inline auto str_end(const T& s) -> decltype(std::end(s)) {
 inline url_search_params::url_search_params()
 {}
 
-template <class T>
-inline url_search_params::url_search_params(const T& query)
+template<class StrT, typename std::enable_if<is_char_str<StrT>::value, int>::type>
+inline url_search_params::url_search_params(const StrT& query)
     : params_(do_parse(query))
 {}
 
