@@ -23,11 +23,13 @@ public:
     using iterator = const_iterator;
     using reverse_iterator = const_reverse_iterator;
 
-    // ops
+    // constructors
     url_search_params();
+
     template <class T>
     url_search_params(const T& query);
 
+    // operations
     template <class T>
     void parse(const T& query);
 
@@ -76,7 +78,7 @@ public:
 
 private:
     key_value_list params_;
-    bool is_sorted_;
+    bool is_sorted_ = false;
 
     static const char kEncByte[0x100];
 };
@@ -106,14 +108,14 @@ inline auto str_end(const T& s) -> decltype(std::end(s)) {
 // url_search_params inline
 
 inline url_search_params::url_search_params()
-    : is_sorted_(false)
 {}
 
 template <class T>
 inline url_search_params::url_search_params(const T& query)
     : params_(do_parse(query))
-    , is_sorted_(false)
 {}
+
+// operations
 
 template <class T>
 inline void url_search_params::parse(const T& query) {
