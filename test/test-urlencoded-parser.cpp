@@ -13,7 +13,10 @@
 #include <string>
 
 // for DataDrivenTest
-const std::string vout(const whatwg::url_search_params::key_value_pair& v);
+template <class CharT, class Traits>
+std::basic_ostream<CharT, Traits>& operator<<(
+    std::basic_ostream<CharT, Traits>& os,
+    const whatwg::url_search_params::key_value_pair& v);
 #include "ddt/DataDrivenTest.hpp"
 
 //
@@ -42,14 +45,13 @@ struct TestObj {
     bool m_sort;
 };
 
-// key_value_pair output function for DataDrivenTest
-const std::string vout(const whatwg::url_search_params::key_value_pair& v) {
-    std::string str("[\"");
-    str.append(v.first);
-    str.append("\", \"");
-    str.append(v.second);
-    str.append("\"]");
-    return str;
+// key_value_pair stream output function for DataDrivenTest
+template <class CharT, class Traits>
+std::basic_ostream<CharT, Traits>& operator<<(
+    std::basic_ostream<CharT, Traits>& os,
+    const whatwg::url_search_params::key_value_pair& v)
+{
+    return os << "[\"" << v.first << "\", \"" << v.second << "\"]";
 }
 
 void test_urlencoded_parser(DataDrivenTest& ddt, const TestObj& obj) {
