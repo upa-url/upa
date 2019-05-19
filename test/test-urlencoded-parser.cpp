@@ -130,21 +130,27 @@ int test_from_file(const char* file_name, bool sort)
     ddt.config_show_passed(false);
     ddt.config_debug_break(false);
 
-    std::cout << "========== " << file_name << " ==========\n";
-    std::ifstream file(file_name, std::ios_base::in | std::ios_base::binary);
-    if (!file.is_open()) {
-        std::cerr << "Can't open tests file: " << file_name << std::endl;
-        return 4;
-    }
+    try {
+        std::cout << "========== " << file_name << " ==========\n";
+        std::ifstream file(file_name, std::ios_base::in | std::ios_base::binary);
+        if (!file.is_open()) {
+            std::cerr << "Can't open tests file: " << file_name << std::endl;
+            return 4;
+        }
 
-    std::string err;
-    // for unformatted reading use std::istreambuf_iterator
-    // http://stackoverflow.com/a/17776228/3908097
-    root_context ctx(ddt, sort);
-    picojson::_parse(ctx, std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), &err);
-    if (!err.empty()) {
-        std::cerr << err << std::endl;
-        return 2; // JSON error
+        std::string err;
+        // for unformatted reading use std::istreambuf_iterator
+        // http://stackoverflow.com/a/17776228/3908097
+        root_context ctx(ddt, sort);
+        picojson::_parse(ctx, std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), &err);
+        if (!err.empty()) {
+            std::cerr << err << std::endl;
+            return 2; // JSON error
+        }
+    }
+    catch (std::exception& ex) {
+        std::cerr << "ERROR: " << ex.what() << std::endl;
+        return 3;
     }
 
     return ddt.result();
