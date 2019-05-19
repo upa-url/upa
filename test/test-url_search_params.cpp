@@ -2,6 +2,7 @@
 #include "url_search_params.h"
 #include "doctest-main.h"
 #include <algorithm>
+#include <map>
 
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
@@ -121,7 +122,12 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
     // Skip JavaScript specific tests:
     // 1) new URLSearchParams(DOMException)
     // 2) assert_equals(params.__proto__, URLSearchParams.prototype, ...)
-    // 3) new URLSearchParams({}); TODO: maybe empty initializer_list?
+
+    SUBCASE("URLSearchParams constructor, {} as argument") {
+        // {} - JS object; use std::map in C++
+        whatwg::url_search_params params(std::map<std::string, std::string>{});
+        CHECK_EQ(params.to_string(), "");
+    }
 
     SUBCASE("URLSearchParams constructor, string.") {
         {
@@ -268,20 +274,24 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         }
     }
 
-#if 0
-    // TODO
     SUBCASE("Constructor with sequence of sequences of strings") {
         {
+            using init_list_t = std::initializer_list<std::pair<const char*, const char*>>;
+            {
+                whatwg::url_search_params params(init_list_t{}); // []
+                //JS: assert_true(params != null, 'constructor returned non-null value.');
+                CHECK_EQ(params.to_string(), "");
+            } {
+                whatwg::url_search_params params(init_list_t{ {"a", "b"}, {"c", "d"} });
+                CHECK(param_eq(params.get("a"), "b"));
+                CHECK(param_eq(params.get("c"), "d"));
+            }
             // TODO
-            //whatwg::url_search_params params([]);
-            whatwg::url_search_params params([["a", "b"], ["c", "d"]]);
-            CHECK(param_eq(params.get("a"), "b"));
-            CHECK(param_eq(params.get("c"), "d"));
             //assert_throws(new TypeError(), function(){ new URLSearchParams([[1]]); });
             //assert_throws(new TypeError(), function(){ new URLSearchParams([[1,2,3]]); });
         }
     }
-#endif
+
     // TODO: other tests
 }
 
