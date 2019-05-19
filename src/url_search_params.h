@@ -30,6 +30,13 @@ struct is_char_str<char[N]> : std::true_type {};
 template<>
 struct is_char_str<char*> : std::true_type {};
 
+// is key value pair
+template <typename>
+struct is_pair : std::false_type {};
+
+template<class T1, class T2>
+struct is_pair<std::pair<T1, T2>> : std::true_type {};
+
 }
 
 
@@ -50,6 +57,9 @@ public:
 
     template<class StrT, typename std::enable_if<is_char_str<StrT>::value, int>::type = 0>
     url_search_params(const StrT& query);
+
+    template<class ConT, typename std::enable_if<is_pair<typename ConT::value_type>::value, int>::type = 0>
+    url_search_params(const ConT& cont);
 
     // operations
     template <class T>
@@ -136,6 +146,13 @@ template<class StrT, typename std::enable_if<is_char_str<StrT>::value, int>::typ
 inline url_search_params::url_search_params(const StrT& query)
     : params_(do_parse(query))
 {}
+
+template<class ConT, typename std::enable_if<is_pair<typename ConT::value_type>::value, int>::type>
+inline url_search_params::url_search_params(const ConT& cont) {
+    for (auto p : cont) {
+        params_.emplace_back(p.first, p.second);
+    }
+}
 
 // operations
 
