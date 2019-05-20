@@ -399,9 +399,20 @@ void read_samples(const char* file_name) {
     }
 }
 
-// Main
+// interactive url parsing
 
-void test_interactive(const char* szBaseUrl);
+void test_interactive(const char* szBaseUrl)
+{
+    std::cout << "Enter URL; enter empty line to exit\n";
+
+    std::string str;
+    while (std::getline(std::cin, str)) {
+        if (str.empty()) break;
+        url_testas(str.c_str(), szBaseUrl);
+    }
+}
+
+// Main
 
 int main(int argc, char *argv[])
 {
@@ -412,9 +423,6 @@ int main(int argc, char *argv[])
         const char* flag = argv[1];
         if (flag[0] == '-') {
             switch (flag[1]) {
-            case 'i':
-                test_interactive(argc > 2 ? argv[2] : nullptr);
-                return 0;
             case 'g':
                 if (argc > 2) {
                     read_samples(argv[2]);
@@ -427,23 +435,21 @@ int main(int argc, char *argv[])
                     return 0;
                 }
             }
+        } else if (argc == 2) {
+            test_interactive(argv[1]);
+            return 0;
         }
+    } else {
+        test_interactive(nullptr);
+        return 0;
     }
-    std::cerr
-        << "test_sample [-i [<base URL>]]\n"
-        << "test_sample -g <samples file>\n"
-        << "test_sample -t <samples file>"
-        << std::endl;
+    std::cerr <<
+        "urlparse [<base URL>]\n"
+        "urlparse -g <samples file>\n"
+        "urlparse -t <samples file>\n"
+        "\n"
+        " Without options - read URL samples form console and output to console\n"
+        " -g  Read samples and output to the same name file with .json extension\n"
+        " -t  Read samples and output to console\n";
     return 0;
-}
-
-void test_interactive(const char* szBaseUrl)
-{
-    std::cout << "Enter URL; enter empty line to exit\n";
-
-    std::string str;
-    while (std::getline(std::cin, str)) {
-        if (str.empty()) break;
-        url_testas(str.c_str(), szBaseUrl);
-    }
 }
