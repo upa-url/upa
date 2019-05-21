@@ -46,51 +46,57 @@ void cout_name_str(const char* name, T&& str) {
     }
 }
 
-void cout_url(const whatwg::url& url) {
-    static const char* part_name[whatwg::url::PART_COUNT] = {
-        "SCHEME",
-        nullptr,
-        "USERNAME",
-        "PASSWORD",
-        nullptr,
-        "HOST",
-        "PORT",
-        "PATH",
-        "QUERY",
-        "FRAGMENT"
-    };
+void cout_host_type(const whatwg::url& url){
+    const char* szHostType;
+    if (url.is_null(whatwg::url::HOST)) {
+        szHostType = "null";
+    } else {
+        switch (url.host_type()) {
+        case whatwg::HostType::Empty: szHostType = "Empty"; break;
+        case whatwg::HostType::Opaque: szHostType = "Opaque"; break;
+        case whatwg::HostType::Domain: szHostType = "Domain"; break;
+        case whatwg::HostType::IPv4: szHostType = "IPv4"; break;
+        case whatwg::HostType::IPv6: szHostType = "IPv6"; break;
+        }
+    }
+    std::wcout << "host_type: " << szHostType << "\n";
+}
 
+void cout_url(const whatwg::url& url) {
+#if 1
     cout_name_str("HREF", url.href());
     cout_name_str("origin", url.origin());
 
-    // print parts
-    for (int part = whatwg::url::SCHEME; part < whatwg::url::PART_COUNT; part++) {
-        if (!part_name[part]) continue;
+    cout_name_str("protocol", url.protocol());
+    cout_name_str("username", url.username());
+    cout_name_str("password", url.password());
+    cout_host_type(url);
+    cout_name_str("host", url.host());
+    cout_name_str("hostname", url.hostname());
+    cout_name_str("port", url.port());
+    cout_name_str("path", url.path());
+    cout_name_str("pathname", url.pathname());
+    cout_name_str("search", url.search());
+    cout_name_str("hash", url.hash());
+#else
+    static const std::initializer_list<std::pair<whatwg::url::PartType, const char*>> parts{
+        { whatwg::url::SCHEME, "SCHEME" },
+        { whatwg::url::USERNAME, "USERNAME" },
+        { whatwg::url::PASSWORD, "PASSWORD" },
+        { whatwg::url::HOST, "HOST" },
+        { whatwg::url::PORT, "PORT" },
+        { whatwg::url::PATH, "PATH" },
+        { whatwg::url::QUERY, "QUERY" },
+        { whatwg::url::FRAGMENT, "FRAGMENT" }
+    };
 
-        if (part == whatwg::url::PATH) {
-            cout_name_str("path", url.path());
-            cout_name_str("pathname", url.pathname());
-            continue;
-        }
-
-        if (part == whatwg::url::HOST) {
-            const char* szHostType;
-            if (url.is_null(static_cast<whatwg::url::PartType>(part))) {
-                szHostType = "null";
-            } else {
-                switch (url.host_type()) {
-                case whatwg::HostType::Empty: szHostType = "Empty"; break;
-                case whatwg::HostType::Opaque: szHostType = "Opaque"; break;
-                case whatwg::HostType::Domain: szHostType = "Domain"; break;
-                case whatwg::HostType::IPv4: szHostType = "IPv4"; break;
-                case whatwg::HostType::IPv6: szHostType = "IPv6"; break;
-                }
-            }
-            std::wcout << "host_type: " << szHostType << "\n";
-        }
-
-        cout_name_str(part_name[part], url.get_part_view(static_cast<whatwg::url::PartType>(part)));
+    cout_name_str("HREF", url.href());
+    for (const auto& part : parts) {
+        if (part.first == whatwg::url::HOST)
+            cout_host_type(url);
+        cout_name_str(part.second, url.get_part_view(part.first));
     }
+#endif
 }
 
 void cout_url_eol(const whatwg::url& url) {
