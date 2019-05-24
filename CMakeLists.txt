@@ -38,6 +38,7 @@ set(test_files
   test/test-url_search_params.cpp
   test/test-urlencoded-parser.cpp
   test/test-buffer.cpp
+  test/test-int_cast.cpp
   test/test-ipv4.cpp
   test/test-ipv6.cpp
 )
