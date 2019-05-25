@@ -13,5 +13,5 @@ HASH=8553d30dd590715a63273e90da1951b8b0b37672
 
 for f in setters_tests.json toascii.json urltestdata.json
 do
-  curl -o $p/wpt/$f https://raw.githubusercontent.com/web-platform-tests/wpt/${HASH}/url/resources/$f
+  curl -fsS -o $p/wpt/$f https://raw.githubusercontent.com/web-platform-tests/wpt/${HASH}/url/resources/$f
 done
