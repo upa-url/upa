@@ -9,6 +9,10 @@
 namespace whatwg {
 
 
+// The percent encoding/mapping table of URL search parameter bytes. If
+// corresponding entry is '%', then byte must be percent encoded, otherwise -
+// replaced with table value (for example, replace ' ' with '+').
+// The table is based on:
 // https://url.spec.whatwg.org/#concept-urlencoded-byte-serializer
 
 const char url_search_params::kEncByte[0x100] = {
