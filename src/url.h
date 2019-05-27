@@ -119,72 +119,72 @@ public:
 
     // setters
 
-    template <typename CharT, typename = enable_if_char_t<CharT>>
+    template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool href(const CharT* first, const CharT* last);
-    template <class ...Args, typename = enable_if_str_arg_t<Args...>>
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     inline bool href(const Args& ...args) {
         return href(str_arg::begin(args...), str_arg::end(args...));
     }
 
-    template <typename CharT, typename = enable_if_char_t<CharT>>
+    template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool protocol(const CharT* first, const CharT* last);
-    template <class ...Args, typename = enable_if_str_arg_t<Args...>>
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     inline bool protocol(const Args& ...args) {
         return protocol(str_arg::begin(args...), str_arg::end(args...));
     }
 
-    template <typename CharT, typename = enable_if_char_t<CharT>>
+    template <typename CharT, enable_if_char_t<CharT, int> = 0>
     void username(const CharT* first, const CharT* last);
-    template <class ...Args, typename = enable_if_str_arg_t<Args...>>
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     inline void username(const Args& ...args) {
         username(str_arg::begin(args...), str_arg::end(args...));
     }
 
-    template <typename CharT, typename = enable_if_char_t<CharT>>
+    template <typename CharT, enable_if_char_t<CharT, int> = 0>
     void password(const CharT* first, const CharT* last);
-    template <class ...Args, typename = enable_if_str_arg_t<Args...>>
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     inline void password(const Args& ...args) {
         password(str_arg::begin(args...), str_arg::end(args...));
     }
 
-    template <typename CharT, typename = enable_if_char_t<CharT>>
+    template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool host(const CharT* first, const CharT* last);
-    template <class ...Args, typename = enable_if_str_arg_t<Args...>>
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     inline bool host(const Args& ...args) {
         return host(str_arg::begin(args...), str_arg::end(args...));
     }
 
-    template <typename CharT, typename = enable_if_char_t<CharT>>
+    template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool hostname(const CharT* first, const CharT* last);
-    template <class ...Args, typename = enable_if_str_arg_t<Args...>>
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     inline bool hostname(const Args& ...args) {
         return hostname(str_arg::begin(args...), str_arg::end(args...));
     }
 
-    template <typename CharT, typename = enable_if_char_t<CharT>>
+    template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool port(const CharT* first, const CharT* last);
-    template <class ...Args, typename = enable_if_str_arg_t<Args...>>
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     inline bool port(const Args& ...args) {
         return port(str_arg::begin(args...), str_arg::end(args...));
     }
 
-    template <typename CharT, typename = enable_if_char_t<CharT>>
+    template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool pathname(const CharT* first, const CharT* last);
-    template <class ...Args, typename = enable_if_str_arg_t<Args...>>
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     inline bool pathname(const Args& ...args) {
         return pathname(str_arg::begin(args...), str_arg::end(args...));
     }
 
-    template <typename CharT, typename = enable_if_char_t<CharT>>
+    template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool search(const CharT* first, const CharT* last);
-    template <class ...Args, typename = enable_if_str_arg_t<Args...>>
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     inline bool search(const Args& ...args) {
         return search(str_arg::begin(args...), str_arg::end(args...));
     }
 
-    template <typename CharT, typename = enable_if_char_t<CharT>>
+    template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool hash(const CharT* first, const CharT* last);
-    template <class ...Args, typename = enable_if_str_arg_t<Args...>>
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     inline bool hash(const Args& ...args) {
         return hash(str_arg::begin(args...), str_arg::end(args...));
     }
@@ -889,7 +889,7 @@ inline url_result url::parse(const CharT* first, const CharT* last, const url* b
     return url_parser::url_parse(urls, first, last, base);
 }
 
-template <typename CharT, typename>
+template <typename CharT, enable_if_char_t<CharT, int>>
 inline bool url::href(const CharT* first, const CharT* last) {
     url u; // parsedURL
 
@@ -900,14 +900,14 @@ inline bool url::href(const CharT* first, const CharT* last) {
     return false;
 }
 
-template <typename CharT, typename>
+template <typename CharT, enable_if_char_t<CharT, int>>
 inline bool url::protocol(const CharT* first, const CharT* last) {
     url_setter urls(*this);
 
     return url_parser::url_parse(urls, first, last, nullptr, url_parser::scheme_start_state) == url_result::Ok;
 }
 
-template <typename CharT, typename>
+template <typename CharT, enable_if_char_t<CharT, int>>
 inline void url::username(const CharT* first, const CharT* last) {
     if (canHaveUsernamePasswordPort()) {
         url_setter urls(*this);
@@ -919,7 +919,7 @@ inline void url::username(const CharT* first, const CharT* last) {
     }
 }
 
-template <typename CharT, typename>
+template <typename CharT, enable_if_char_t<CharT, int>>
 inline void url::password(const CharT* first, const CharT* last) {
     if (canHaveUsernamePasswordPort()) {
         url_setter urls(*this);
@@ -931,7 +931,7 @@ inline void url::password(const CharT* first, const CharT* last) {
     }
 }
 
-template <typename CharT, typename>
+template <typename CharT, enable_if_char_t<CharT, int>>
 inline bool url::host(const CharT* first, const CharT* last) {
     if (!cannot_be_base()) {
         url_setter urls(*this);
@@ -941,7 +941,7 @@ inline bool url::host(const CharT* first, const CharT* last) {
     return false;
 }
 
-template <typename CharT, typename>
+template <typename CharT, enable_if_char_t<CharT, int>>
 inline bool url::hostname(const CharT* first, const CharT* last) {
     if (!cannot_be_base()) {
         url_setter urls(*this);
@@ -951,7 +951,7 @@ inline bool url::hostname(const CharT* first, const CharT* last) {
     return false;
 }
 
-template <typename CharT, typename>
+template <typename CharT, enable_if_char_t<CharT, int>>
 inline bool url::port(const CharT* first, const CharT* last) {
     if (canHaveUsernamePasswordPort()) {
         url_setter urls(*this);
@@ -965,7 +965,7 @@ inline bool url::port(const CharT* first, const CharT* last) {
     return false;
 }
 
-template <typename CharT, typename>
+template <typename CharT, enable_if_char_t<CharT, int>>
 inline bool url::pathname(const CharT* first, const CharT* last) {
     if (!cannot_be_base()) {
         url_setter urls(*this);
@@ -978,7 +978,7 @@ inline bool url::pathname(const CharT* first, const CharT* last) {
     return false;
 }
 
-template <typename CharT, typename>
+template <typename CharT, enable_if_char_t<CharT, int>>
 inline bool url::search(const CharT* first, const CharT* last) {
     url_setter urls(*this);
     if (first == last) {
@@ -991,7 +991,7 @@ inline bool url::search(const CharT* first, const CharT* last) {
     //todo: set context object's query object's list to the result of parsing input
 }
 
-template <typename CharT, typename>
+template <typename CharT, enable_if_char_t<CharT, int>>
 inline bool url::hash(const CharT* first, const CharT* last) {
     url_setter urls(*this);
     if (first == last) {
