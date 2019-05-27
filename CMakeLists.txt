@@ -41,6 +41,7 @@ set(test_files
   test/test-int_cast.cpp
   test/test-ipv4.cpp
   test/test-ipv6.cpp
+  test/test-str_arg.cpp
 )
 foreach(file ${test_files})
   get_filename_component(test_name ${file} NAME_WE)
