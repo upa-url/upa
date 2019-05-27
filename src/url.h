@@ -121,72 +121,112 @@ public:
 
     template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool href(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    inline bool href(const Args& ...args) {
+    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
+    inline bool href(Args... args) {
         return href(str_arg::begin(args...), str_arg::end(args...));
+    }
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    inline bool href(const StrT& str) {
+        return href(str_arg::begin(str), str_arg::end(str));
     }
 
     template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool protocol(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    inline bool protocol(const Args& ...args) {
+    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
+    inline bool protocol(Args... args) {
         return protocol(str_arg::begin(args...), str_arg::end(args...));
+    }
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    inline bool protocol(const StrT& str) {
+        return protocol(str_arg::begin(str), str_arg::end(str));
     }
 
     template <typename CharT, enable_if_char_t<CharT, int> = 0>
     void username(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    inline void username(const Args& ...args) {
+    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
+    inline void username(Args... args) {
         username(str_arg::begin(args...), str_arg::end(args...));
+    }
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    inline void username(const StrT& str) {
+        username(str_arg::begin(str), str_arg::end(str));
     }
 
     template <typename CharT, enable_if_char_t<CharT, int> = 0>
     void password(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    inline void password(const Args& ...args) {
+    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
+    inline void password(Args... args) {
         password(str_arg::begin(args...), str_arg::end(args...));
+    }
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    inline void password(const StrT& str) {
+        password(str_arg::begin(str), str_arg::end(str));
     }
 
     template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool host(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    inline bool host(const Args& ...args) {
+    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
+    inline bool host(Args... args) {
         return host(str_arg::begin(args...), str_arg::end(args...));
+    }
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    inline bool host(const StrT& str) {
+        return host(str_arg::begin(str), str_arg::end(str));
     }
 
     template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool hostname(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    inline bool hostname(const Args& ...args) {
+    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
+    inline bool hostname(Args... args) {
         return hostname(str_arg::begin(args...), str_arg::end(args...));
+    }
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    inline bool hostname(const StrT& str) {
+        return hostname(str_arg::begin(str), str_arg::end(str));
     }
 
     template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool port(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    inline bool port(const Args& ...args) {
+    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
+    inline bool port(Args... args) {
         return port(str_arg::begin(args...), str_arg::end(args...));
+    }
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    inline bool port(const StrT& str) {
+        return port(str_arg::begin(str), str_arg::end(str));
     }
 
     template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool pathname(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    inline bool pathname(const Args& ...args) {
+    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
+    inline bool pathname(Args... args) {
         return pathname(str_arg::begin(args...), str_arg::end(args...));
+    }
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    inline bool pathname(const StrT& str) {
+        return pathname(str_arg::begin(str), str_arg::end(str));
     }
 
     template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool search(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    inline bool search(const Args& ...args) {
+    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
+    inline bool search(Args... args) {
         return search(str_arg::begin(args...), str_arg::end(args...));
+    }
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    inline bool search(const StrT& str) {
+        return search(str_arg::begin(str), str_arg::end(str));
     }
 
     template <typename CharT, enable_if_char_t<CharT, int> = 0>
     bool hash(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    inline bool hash(const Args& ...args) {
+    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
+    inline bool hash(Args... args) {
         return hash(str_arg::begin(args...), str_arg::end(args...));
+    }
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    inline bool hash(const StrT& str) {
+        return hash(str_arg::begin(str), str_arg::end(str));
     }
 
     // getters

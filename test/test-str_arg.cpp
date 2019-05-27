@@ -12,9 +12,14 @@ inline std::size_t procfn(const CharT* first, const CharT* last) {
     return last - first;
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-inline std::size_t procfn(const Args&... args) {
+template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
+inline std::size_t procfn(Args... args) {
     return procfn(str_arg::begin(args...), str_arg::end(args...));
+}
+
+template <class StrT, enable_if_str_arg_t<StrT> = 0>
+inline std::size_t procfn(const StrT& str) {
+    return procfn(str_arg::begin(str), str_arg::end(str));
 }
 
 
@@ -25,19 +30,27 @@ inline void test_char() {
     const CharT carr[] = { '1', '2', '3', 0 };
     CharT* ptr = arr;
     const CharT* cptr = arr;
+    const CharT* volatile vptr = arr;
 
     procfn(arr);
     procfn(carr);
     procfn(ptr);
     procfn(cptr);
+    procfn(vptr);
 
     procfn(arr, N);
     procfn(carr, N);
     procfn(ptr, N);
     procfn(cptr, N);
+    procfn(vptr, N);
+
+    // int size
+    procfn(arr, int(N));
+    procfn(cptr, int(N));
 
     procfn(ptr, ptr + N);
     procfn(cptr, cptr + N);
+    procfn(vptr, vptr + N);
 
     procfn(std::basic_string<CharT>(arr));
 }
@@ -47,13 +60,6 @@ int main() {
     test_char<wchar_t>();
     test_char<char16_t>();
     test_char<char32_t>();
-
-#if 1
-    const char* volatile ptr = "VL";
-    //procfn(ptr);
-    //procfn(ptr, 2);
-    procfn(ptr, ptr + 2);
-#endif
 
     return 0;
 }

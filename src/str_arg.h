@@ -11,9 +11,14 @@ inline bool procfn(const CharT* first, const CharT* last) {
     // do something with first ... last
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-inline bool procfn(const Args&... args) {
+template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
+inline bool procfn(Args... args) {
     return procfn(str_arg::begin(args...), str_arg::end(args...));
+}
+
+template <class StrT, enable_if_str_arg_t<StrT> = 0>
+inline bool procfn(const StrT& str) {
+    return procfn(str_arg::begin(str), str_arg::end(str));
 }
 
 **************************************************************/
@@ -44,50 +49,41 @@ struct is_char_type : std::integral_constant<bool,
 
 template<class SizeT>
 struct is_size_type : std::integral_constant<bool,
-    std::is_same<SizeT, std::size_t>::value ||
-    std::is_same<SizeT, std::ptrdiff_t>::value
+    std::is_convertible<SizeT, std::size_t>::value ||
+    std::is_convertible<SizeT, std::ptrdiff_t>::value
 > {};
 
 
 // Requirements for arguments
 template<class ...Args>
-struct is_str_arg : std::false_type {};
+struct is_pstr_arg : std::false_type {};
 
 // two arguments
 template<class T1, class T2>
-struct is_str_arg<T1*, T2*> : std::integral_constant<bool,
+struct is_pstr_arg<T1*, T2*> : std::integral_constant<bool,
     std::is_same<typename std::remove_cv<T1>::type, wchar_t>::value &&
     std::is_same<typename std::remove_cv<T2>::type, wchar_t>::value
 > {};
 
 template<class CharT, class SizeT>
-struct is_str_arg<CharT*, SizeT> : std::integral_constant<bool,
+struct is_pstr_arg<CharT*, SizeT> : std::integral_constant<bool,
     is_char_type<typename std::remove_cv<CharT>::type>::value &&
-    is_size_type<SizeT>::value
-> {};
-
-template<class CharT, class SizeT, size_t N>
-struct is_str_arg<CharT[N], SizeT> : std::integral_constant<bool,
-    is_char_type<CharT>::value &&
     is_size_type<SizeT>::value
 > {};
 
 // one argument
 template<class CharT>
-struct is_str_arg<CharT*> : is_char_type<typename std::remove_cv<CharT>::type> {};
+struct is_pstr_arg<CharT*> : is_char_type<typename std::remove_cv<CharT>::type> {};
 
-template<class CharT, size_t N>
-struct is_str_arg<CharT[N]> : is_char_type<CharT> {};
+// string arguments helper types
+template<class ...Args>
+using enable_if_pstr_arg_t = typename std::enable_if<is_pstr_arg<Args...>::value, int>::type;
 
 template<class StrT>
-struct is_str_arg<StrT> : std::integral_constant<bool,
+using enable_if_str_arg_t = typename std::enable_if<
     is_char_type<typename StrT::value_type>::value &&
-    std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<typename StrT::const_iterator>::iterator_category>::value
-> {};
-
-// string arguments helper type
-template<class ...Args>
-using enable_if_str_arg_t = typename std::enable_if<is_str_arg<Args...>::value, int>::type;
+    std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<typename StrT::const_iterator>::iterator_category>::value,
+    int>::type;
 
 
 // Alias of char16_t or char32_t type equivalent to wchar_t type by size
@@ -105,23 +101,13 @@ inline const wchar_char_t* end(const wchar_t*, const wchar_t* ptr) {
     return reinterpret_cast<const wchar_char_t*>(ptr);
 }
 
-// character sequence with unsigned length
-template<typename CharT>
-inline const CharT* begin(const CharT* ptr, std::size_t) {
+// character sequence with length
+template<typename CharT, typename SizeT, typename std::enable_if<is_size_type<SizeT>::value, int>::type = 0>
+inline const CharT* begin(const CharT* ptr, SizeT) {
     return ptr;
 }
-template<typename CharT>
-inline const CharT* end(const CharT* ptr, std::size_t len) {
-    return ptr + len;
-}
-
-// character sequence with signed length
-template<typename CharT>
-inline const CharT* begin(const CharT* ptr, std::ptrdiff_t) {
-    return ptr;
-}
-template<typename CharT>
-inline const CharT* end(const CharT* ptr, std::ptrdiff_t len) {
+template<typename CharT, typename SizeT, typename std::enable_if<is_size_type<SizeT>::value, int>::type = 0>
+inline const CharT* end(const CharT* ptr, SizeT len) {
     return ptr + len;
 }
 
