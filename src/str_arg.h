@@ -59,11 +59,8 @@ template<class ...Args>
 struct is_pstr_arg : std::false_type {};
 
 // two arguments
-template<class T1, class T2>
-struct is_pstr_arg<T1*, T2*> : std::integral_constant<bool,
-    std::is_same<typename std::remove_cv<T1>::type, wchar_t>::value &&
-    std::is_same<typename std::remove_cv<T2>::type, wchar_t>::value
-> {};
+template<class CharT>
+struct is_pstr_arg<CharT*, CharT*> : std::is_same<typename std::remove_cv<CharT>::type, wchar_t> {};
 
 template<class CharT, class SizeT>
 struct is_pstr_arg<CharT*, SizeT> : std::integral_constant<bool,
