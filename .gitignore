@@ -1,5 +1,6 @@
 /build/
 # downloadable dependances
 /deps/doctest/
+/deps/picojson/
 # downloadable tests dir
 /test/wpt/
