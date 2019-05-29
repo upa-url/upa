@@ -17,9 +17,10 @@ TEST_CASE("Test setters with special URL's") {
         CHECK(url.protocol("http:"));
         CHECK_EQ(url.protocol(), "http:");
 
-        url.username("user01");
-        url.password("pass@01");
+        CHECK(url.username("user01"));
         CHECK_EQ(url.username(), "user01");
+
+        CHECK(url.password("pass@01"));
         CHECK_EQ(url.password(), "pass%4001");
 
         CHECK(url.host("example.org:81"));
@@ -42,7 +43,7 @@ TEST_CASE("Test setters with special URL's") {
         CHECK(url.hash("#frag"));
         CHECK_EQ(url.hash(), "#frag");
 
-        url.search("?a=3");
+        CHECK(url.search("?a=3"));
         CHECK_EQ(url.search(), "?a=3");
 
         // test path
