@@ -77,7 +77,6 @@ endif()
 # Tool's targets
 
 if (URL_BUILD_TOOLS)
-  set(CMAKE_CXX_STANDARD 17)
-
   add_executable(dumpCharBitSets tools/dumpCharBitSets.cpp)
+  set_property(TARGET dumpCharBitSets PROPERTY CXX_STANDARD 17)
 endif()
