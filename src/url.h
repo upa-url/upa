@@ -142,25 +142,25 @@ public:
     }
 
     template <typename CharT, enable_if_char_t<CharT, int> = 0>
-    void username(const CharT* first, const CharT* last);
+    bool username(const CharT* first, const CharT* last);
     template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-    inline void username(Args... args) {
-        username(str_arg::begin(args...), str_arg::end(args...));
+    inline bool username(Args... args) {
+        return username(str_arg::begin(args...), str_arg::end(args...));
     }
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    inline void username(const StrT& str) {
-        username(str_arg::begin(str), str_arg::end(str));
+    inline bool username(const StrT& str) {
+        return username(str_arg::begin(str), str_arg::end(str));
     }
 
     template <typename CharT, enable_if_char_t<CharT, int> = 0>
-    void password(const CharT* first, const CharT* last);
+    bool password(const CharT* first, const CharT* last);
     template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-    inline void password(Args... args) {
-        password(str_arg::begin(args...), str_arg::end(args...));
+    inline bool password(Args... args) {
+        return password(str_arg::begin(args...), str_arg::end(args...));
     }
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    inline void password(const StrT& str) {
-        password(str_arg::begin(str), str_arg::end(str));
+    inline bool password(const StrT& str) {
+        return password(str_arg::begin(str), str_arg::end(str));
     }
 
     template <typename CharT, enable_if_char_t<CharT, int> = 0>
@@ -948,7 +948,7 @@ inline bool url::protocol(const CharT* first, const CharT* last) {
 }
 
 template <typename CharT, enable_if_char_t<CharT, int>>
-inline void url::username(const CharT* first, const CharT* last) {
+inline bool url::username(const CharT* first, const CharT* last) {
     if (canHaveUsernamePasswordPort()) {
         url_setter urls(*this);
 
@@ -956,11 +956,13 @@ inline void url::username(const CharT* first, const CharT* last) {
         // UTF-8 percent encode it using the userinfo encode set
         detail::AppendStringOfType(first, last, detail::CHAR_USERINFO, str_username);
         urls.save_part();
+        return true;
     }
+    return false;
 }
 
 template <typename CharT, enable_if_char_t<CharT, int>>
-inline void url::password(const CharT* first, const CharT* last) {
+inline bool url::password(const CharT* first, const CharT* last) {
     if (canHaveUsernamePasswordPort()) {
         url_setter urls(*this);
 
@@ -968,7 +970,9 @@ inline void url::password(const CharT* first, const CharT* last) {
         // UTF-8 percent encode it using the userinfo encode set
         detail::AppendStringOfType(first, last, detail::CHAR_USERINFO, str_password);
         urls.save_part();
+        return true;
     }
+    return false;
 }
 
 template <typename CharT, enable_if_char_t<CharT, int>>
