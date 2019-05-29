@@ -34,6 +34,11 @@ enum CharsType : uint8_t {
 
 #ifdef WHATWG__CPP_17
 
+// If you edit this class, then please compile tools/dumpCharBitSets.cpp program
+// with C++17 compiler, run it and copy output (the kCharBitSets array) to the
+// url_percent_encode.cpp file.
+// This is required to support C++11, C++14 compilers.
+
 class CodePointSets {
 public:
     constexpr CodePointSets() {

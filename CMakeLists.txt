@@ -14,22 +14,29 @@ set(CMAKE_CXX_STANDARD 11)
 
 option(URL_BUILD_TESTS "Build the URL tests." ON)
 option(URL_BUILD_EXAMPLES "Build the URL examples." OFF)
+option(URL_BUILD_TOOLS "Build tools." OFF)
 
-
-find_package(ICU REQUIRED COMPONENTS i18n uc)
+# are URL and ICU libraries needed
+if (URL_BUILD_TESTS OR URL_BUILD_EXAMPLES)
+  set(URL_USE_LIBS ON)
+endif()
 
 include_directories(
   deps
   src)
 
-add_library(cppurl STATIC
-  src/url.cpp
-  src/url_idna.cpp
-  src/url_ip.cpp
-  src/url_percent_encode.cpp
-  src/url_search_params.cpp
-  src/url_utf.cpp)
-target_include_directories(cppurl PRIVATE ${ICU_INCLUDE_DIR})
+if (URL_USE_LIBS)
+  find_package(ICU REQUIRED COMPONENTS i18n uc)
+
+  add_library(cppurl STATIC
+    src/url.cpp
+    src/url_idna.cpp
+    src/url_ip.cpp
+    src/url_percent_encode.cpp
+    src/url_search_params.cpp
+    src/url_utf.cpp)
+  target_include_directories(cppurl PRIVATE ${ICU_INCLUDE_DIR})
+endif()
 
 # Test targets
 
@@ -65,4 +72,12 @@ endif()
 if (URL_BUILD_EXAMPLES)
   add_executable(urlparse examples/urlparse.cpp)
   target_link_libraries(urlparse cppurl ICU::i18n ICU::uc)
+endif()
+
+# Tool's targets
+
+if (URL_BUILD_TOOLS)
+  set(CMAKE_CXX_STANDARD 17)
+
+  add_executable(dumpCharBitSets tools/dumpCharBitSets.cpp)
 endif()
