@@ -382,7 +382,7 @@ public:
     virtual void save_part();
 
     // TODO: can be used instead of clear_host():
-    virtual void clear_part(const url::PartType pt) {}
+    virtual void clear_part(const url::PartType /*pt*/) {}
 
     virtual void clear_host();
     virtual void empty_host();
