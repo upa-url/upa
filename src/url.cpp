@@ -65,6 +65,8 @@ const url::scheme_info url::kSchemes[] = {
     { { "gopher", 6 },   70,          1,       0,     0 },
 };
 
+static const std::size_t max_scheme_length = 6; // "gopher"
+
 // scheme length to url::kSchemes index
 static const unsigned char kLengthToSchemesInd[] = {
     0,  // 0
@@ -79,11 +81,10 @@ static const unsigned char kLengthToSchemesInd[] = {
 
 const url::scheme_info* url::get_scheme_info(const str_view_type src) {
     const std::size_t len = src.length();
-    // max scheme length = 6 ("gopher")
-    if (len <= 6) {
+    if (len <= max_scheme_length) {
         const int end = kLengthToSchemesInd[len + 1];
         for (int ind = kLengthToSchemesInd[len]; ind < end; ind++) {
-            // src == kSchemes[ind].scheme, but length is the same and equal to the len
+            // The src and kSchemes[ind].scheme lengths are the same, so compare data only
             if (str_view_type::traits_type::compare(src.data(), kSchemes[ind].scheme.data(), len) == 0)
                 return &kSchemes[ind];
         }
