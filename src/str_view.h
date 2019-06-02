@@ -73,7 +73,7 @@ public:
     }
 
 
-    // non-standart
+    // non-standard
     bool equal(str_view x) const {
         return len_ == x.len_ && Traits::compare(ptr_, x.ptr_, len_) == 0;
     }

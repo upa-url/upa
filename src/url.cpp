@@ -53,7 +53,7 @@ const uint8_t kPartStart[url::PART_COUNT] = {
 } // namespace detail
 
 
-// MUST by sorted by length
+// MUST be sorted by length
 const url::scheme_info url::kSchemes[] = {
     // scheme,         port, is_special, is_file, is_ws
     { { "ws", 2 },       80,          1,       0,     1 },
