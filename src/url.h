@@ -725,7 +725,7 @@ inline std::string url::origin() const {
         // "host:port"
         str_origin.append(norm_url_.data() + part_end_[HOST_START], norm_url_.data() + part_end_[PORT]);
         return str_origin;
-    } else if (get_part_view(SCHEME).equal({ "blob", 4 })) {
+    } else if (get_part_view(SCHEME) == url::str_view_type{ "blob", 4 }) {
         // Warning: this library does not support blob URL store, so it allways assumes
         // URL's blob URL entry is null and retrieves origin from the URL's path.
         url u;
@@ -1140,7 +1140,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     state = file_state;
                 } else {
                     if (urls.is_special_scheme()) {
-                        if (base && urls.get_part_view(url::SCHEME).equal(base->get_part_view(url::SCHEME))) {
+                        if (base && urls.get_part_view(url::SCHEME) == base->get_part_view(url::SCHEME)) {
                             // NOTE: This means that base's cannot-be-a-base-URL flag is unset
                             state = special_relative_or_authority_state;
                         } else {
@@ -1536,7 +1536,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             if (res != url_result::Ok)
                 return res; // TODO-ERR: failure
             // if host is "localhost", then set host to the empty string
-            if (urls.get_part_view(url::HOST).equal({ "localhost", 9 })) {
+            if (urls.get_part_view(url::HOST) == url::str_view_type{ "localhost", 9 }) {
                 // set empty host
                 urls.empty_host();
             }
