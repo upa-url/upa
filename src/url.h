@@ -1949,6 +1949,7 @@ inline url_serializer::~url_serializer() {
         if (url_.is_file_scheme())
             url_.norm_url_.append("//");
         break;
+    default: break;
     }
 }
 
@@ -2011,6 +2012,7 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
         if (new_pt == url::PATH) // continue on path
             return url_.norm_url_;
         break;
+    default: break;
     }
 
     fill_parts_offset(fill_start_pt, new_pt, url_.norm_url_.length());
@@ -2022,6 +2024,7 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
     case url::FRAGMENT:
         url_.norm_url_ += '#';
         break;
+    default: break;
     }
 
     assert(last_pt_ < new_pt);
