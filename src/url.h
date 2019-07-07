@@ -1094,7 +1094,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             // start of scheme
             std::string& str_scheme = urls.start_scheme();
             // first char
-            str_scheme.push_back(detail::kSchemeCanonical[*pointer]);
+            str_scheme.push_back(detail::kSchemeCanonical[static_cast<UCharT>(*pointer)]);
             // other chars
             for (auto it = pointer + 1; it < it_colon; it++) {
                 UCharT ch = static_cast<UCharT>(*it);
@@ -1308,7 +1308,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             std::find_if(pointer, last, detail::is_special_authority_end_char<CharT>) :
             std::find_if(pointer, last, detail::is_authority_end_char<CharT>);
 
-        auto it_eta = detail::find_last(pointer, end_of_authority, '@');
+        auto it_eta = detail::find_last(pointer, end_of_authority, CharT('@'));
         if (it_eta != end_of_authority) {
             if (std::distance(it_eta, end_of_authority) == 1) {
                 // disallow empty host, example: "http://u:p@/"
