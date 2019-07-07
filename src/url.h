@@ -33,6 +33,8 @@
 #include <utility>
 #include <vector>
 
+// not yet
+#define WHATWG_URL_USE_ENCODING 0
 
 namespace whatwg {
 
@@ -1062,8 +1064,10 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     auto length = std::distance(first, last);
     urls.reserve(length + 32);
 
+#if WHATWG_URL_USE_ENCODING
     const char* encoding = "UTF-8";
     // TODO: If encoding override is given, set encoding to the result of getting an output encoding from encoding override. 
+#endif
 
     auto pointer = first;
     State state = state_override ? state_override : scheme_start_state;
@@ -1653,9 +1657,11 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         //  // 2. If c is "%" and remaining does not start with two ASCII hex digits, validation error.
         //}
 
+#if WHATWG_URL_USE_ENCODING
         // scheme_inf_ == nullptr, if unknown scheme
         if (!urls.scheme_inf() || !urls.scheme_inf()->is_special || urls.scheme_inf()->is_ws)
             encoding = "UTF-8";
+#endif
 
         // Set buffer to the result of encoding buffer using encoding
         // percent encode: (c < 0x21 || c > 0x7E || c == 0x22 || c == 0x23 || c == 0x3C || c == 0x3E)
