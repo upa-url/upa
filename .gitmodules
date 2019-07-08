@@ -1,0 +1,6 @@
+[submodule "deps/ddt"]
+	path = deps/ddt
+	url = https://github.com/rmisev/ddt.git
+[submodule "deps/json_writer"]
+	path = deps/json_writer
+	url = https://github.com/rmisev/json_writer.git
