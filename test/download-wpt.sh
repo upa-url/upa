@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # the directory path of this file
 # https://stackoverflow.com/q/59895
