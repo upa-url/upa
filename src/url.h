@@ -82,25 +82,8 @@ public:
     url& operator=(const url& src) = default;
 
     // Move constructor & assignment
-    // NOTE: the VS2013 doesn't support defaulted move constructors and
-    // move assignment operators; see:
-    // https://msdn.microsoft.com/en-us/library/hh567368.aspx
-    // https://stackoverflow.com/questions/24573963
-    url(url&& src)
-        : norm_url_(std::move(src.norm_url_))
-        , part_end_(src.part_end_)
-        , scheme_inf_(src.scheme_inf_)
-        , flags_(src.flags_)
-        , path_segment_count_(src.path_segment_count_)
-    {}
-    url& operator=(url&& src) {
-        norm_url_ = std::move(src.norm_url_);
-        part_end_ = src.part_end_;
-        scheme_inf_ = src.scheme_inf_;
-        flags_ = src.flags_;
-        path_segment_count_ = src.path_segment_count_;
-        return *this;
-    }
+    url(url&& src) = default;
+    url& operator=(url&& src) = default;
 
     void clear();
 
