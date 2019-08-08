@@ -11,6 +11,7 @@
 #include "url_ip.h"
 #include "url_result.h"
 #include "url_utf.h"
+#include <algorithm> // any_of
 #include <cassert>
 #include <cstdint> // uint32_t
 #include <string>
