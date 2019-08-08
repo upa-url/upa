@@ -74,7 +74,7 @@ public:
         : scheme_inf_(nullptr)
         , flags_(INITIAL_FLAGS)
         , path_segment_count_(0)
-        //TODO??: part_end_.fill(0)
+        , part_end_({})
     {}
 
     // Copy constructor & assignment
