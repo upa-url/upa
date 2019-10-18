@@ -62,10 +62,9 @@ const url::scheme_info url::kSchemes[] = {
     { { "http", 4 },     80,          1,       0,     0 },
     { { "file", 4 },     -1,          1,       1,     0 },
     { { "https", 5 },   443,          1,       0,     0 },
-    { { "gopher", 6 },   70,          1,       0,     0 },
 };
 
-static const std::size_t max_scheme_length = 6; // "gopher"
+static const std::size_t max_scheme_length = 5; // "https"
 
 // scheme length to url::kSchemes index
 static const unsigned char kLengthToSchemesInd[] = {
@@ -75,8 +74,7 @@ static const unsigned char kLengthToSchemesInd[] = {
     1,  // 3
     3,  // 4
     5,  // 5
-    6,  // 6
-    7,  // the end
+    6,  // the end
 };
 
 const url::scheme_info* url::get_scheme_info(const str_view_type src) {
