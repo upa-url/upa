@@ -6,6 +6,9 @@
 
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
+//
+// Last checked for updates: 2020-04-27
+//
 
 template <class T>
 static bool param_eq(const std::string* pval, const T& value) {
