@@ -260,25 +260,23 @@ inline bool AppendUTF8EscapedChar(const CharT*& first, const CharT* last, std::s
 // match the given |charsType| in CharsType.
 
 template<typename CharT>
-void AppendStringOfType(const CharT* first, const CharT* last, CharsType charsType, std::string& output) {
+void AppendStringOfType(const CharT* first, const CharT* last, const CharsType charsType, std::string& output) {
     using UCharT = typename std::make_unsigned<CharT>::type;
 
     for (auto it = first; it < last; ) {
         const UCharT ch = static_cast<UCharT>(*it);
         if (ch >= 0x80) {
-            // read_utf_char will fill the code point with kUnicodeReplacementCharacter
-            // when the input is invalid, which is what we want.
-            uint32_t code_point;
-            url_utf::read_utf_char(it, last, code_point);
-            AppendUTF8EscapedValue(code_point, output);
-        }
-        else {
+            // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
+            AppendUTF8EscapedChar(it, last, output);
+        } else {
             // Just append the 7-bit character, possibly escaping it.
             const unsigned char uch = static_cast<unsigned char>(ch);
-            if (!isCharInSet(uch, charsType))
-                AppendEscapedChar(uch, output);
-            else
+            if (isCharInSet(uch, charsType)) {
                 output.push_back(uch);
+            } else {
+                // other characters are escaped
+                AppendEscapedChar(uch, output);
+            }
             ++it;
         }
     }
