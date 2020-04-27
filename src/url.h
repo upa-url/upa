@@ -1697,7 +1697,6 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         std::string& str_frag = urls.start_part(url::FRAGMENT);
         while (pointer < last) {
             // UTF-8 percent encode c using the fragment percent-encode set
-            // and ignore '\0'
             UCharT uch = static_cast<UCharT>(*pointer);
             if (uch >= 0x80) {
                 // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
@@ -1707,11 +1706,9 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 unsigned char uc = static_cast<unsigned char>(uch);
                 if (isCharInSet(uc, detail::CHAR_FRAGMENT)) {
                     str_frag.push_back(uc);
-                } else if (uch) {
-                    // other characters (except '\0') are escaped
+                } else {
+                    // other characters are escaped
                     detail::AppendEscapedChar(uch, str_frag);
-                } else { // uch == 0
-                    // TODO-WARN: validation error
                 }
                 pointer++;
             }
