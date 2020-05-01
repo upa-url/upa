@@ -264,8 +264,10 @@ inline url_search_params::key_value_list url_search_params::do_parse(const T& qu
             break;
         case '&':
             if (start != it) {
+                url_utf::check_fix_utf8(p.first);
+                url_utf::check_fix_utf8(p.second);
                 lst.push_back(std::move(p));
-                // TODO: ar gerai čia:
+                // clear after move
                 p.first.clear();
                 p.second.clear();
             }
@@ -293,8 +295,11 @@ inline url_search_params::key_value_list url_search_params::do_parse(const T& qu
             break;
         }
     }
-    if (start != e)
+    if (start != e) {
+        url_utf::check_fix_utf8(p.first);
+        url_utf::check_fix_utf8(p.second);
         lst.push_back(std::move(p));
+    }
     return lst;
 }
 
