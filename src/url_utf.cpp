@@ -17,6 +17,39 @@ bool url_utf::convert_utf8_to_utf16(const char* first, const char* last, simple_
     return success;
 }
 
+void url_utf::check_fix_utf8(std::string& str) {
+    const char* first = str.data();
+    const char* last = str.data() + str.length();
+
+    uint32_t code_point;
+    const char* ptr = first;
+    const char* it = first;
+    while (it != last && read_code_point(it, last, code_point))
+        ptr = it;
+
+    if (ptr != last) {
+        // replace invalid UTF-8 byte sequences with replacement char
+        std::string buff;
+        buff.append(first, ptr);
+        buff.append(kReplacementCharUtf8);
+
+        const char* bgn = it;
+        ptr = it;
+        while (it != last) {
+            if (read_code_point(it, last, code_point)) {
+                ptr = it;
+            } else {
+                buff.append(bgn, ptr);
+                buff.append(kReplacementCharUtf8);
+                bgn = it;
+                ptr = it;
+            }
+        }
+        buff.append(bgn, ptr);
+        str = std::move(buff);
+    }
+}
+
 int url_utf::compare_by_code_units(const char* first1, const char* last1, const char* first2, const char* last2) {
     auto it1 = first1, it2 = first2;
     while (it1 != last1 && it2 != last2) {
@@ -47,6 +80,9 @@ int url_utf::compare_by_code_units(const char* first1, const char* last1, const 
     if (it2 != last2) return -1;
     return 0;
 }
+
+// Replacement character
+const char url_utf::kReplacementCharUtf8[] = "\xEF\xBF\xBD";
 
 //
 // (c) 2016 and later: Unicode, Inc. and others.

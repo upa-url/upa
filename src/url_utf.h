@@ -32,6 +32,9 @@ public:
         return convert_utf8_to_utf16(reinterpret_cast<const char*>(first), reinterpret_cast<const char*>(last), output);
     }
 
+    // Invalid utf-8 bytes sequences are replaced with 0xFFFD character.
+    static void check_fix_utf8(std::string& str);
+
     static int compare_by_code_units(const char* first1, const char* last1, const char* first2, const char* last2);
 protected:
     // low level
@@ -39,6 +42,7 @@ protected:
     static bool read_code_point(const char16_t*& first, const char16_t* last, uint32_t& code_point);
     static bool read_code_point(const char32_t*& first, const char32_t* last, uint32_t& code_point);
 private:
+    const static char kReplacementCharUtf8[];
     const static uint8_t k_U8_LEAD3_T1_BITS[16];
     const static uint8_t k_U8_LEAD4_T1_BITS[16];
 };
@@ -59,7 +63,7 @@ private:
 // with U+FFFD. This corresponds to UTF-8 decode without BOM
 // (https://encoding.spec.whatwg.org/#utf-8-decode-without-bom).
 //
-// This function reads one charcter from [first, last), places it's value to `code_point`
+// This function reads one character from [first, last), places it's value to `code_point`
 // and advances `first` to point to the next character.
 
 template <typename CharT>
