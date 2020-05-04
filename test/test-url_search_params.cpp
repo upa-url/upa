@@ -7,7 +7,7 @@
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2020-04-27
+// Last checked for updates: 2020-05-04
 //
 
 template <class T>
@@ -165,6 +165,10 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         params.append("g", "h");
         CHECK_FALSE(seed.has("g"));
     }
+
+    // Skip browsers specific test:
+    // "URLSearchParams constructor, FormData."
+    // See: https://github.com/web-platform-tests/wpt/pull/23382
 
     SUBCASE("Parse +") {
         {
