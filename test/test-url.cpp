@@ -121,6 +121,9 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
     });
 }
 
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/toascii.window.js
+//
 void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
 {
     // Test file format (toascii.json):
@@ -134,10 +137,10 @@ void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
     };
     
     const std::string& input = obj["input"];
-    std::string str_case("URLHost(\"" + input + "\")");
+    std::string str_case("Parse URL with host: \"" + input + "\"");
 
-    ddt.test_case(str_case.c_str(), [&](DataDrivenTest::TestCase& tc) {
-        std::string input_url(make_url(input));
+    ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
+        const std::string input_url(make_url(input));
 
         whatwg::url url;
         bool parse_success = url.parse(input_url, nullptr) == whatwg::url_result::Ok;
@@ -147,12 +150,39 @@ void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
 
         // attributes
         if (parse_success && !obj.failure) {
-            const auto itOutput = obj.find("output");
-            const std::string& output = itOutput != obj.end() ? itOutput->second : input;
-            std::string output_url(make_url(output));
+            const std::string& output = obj["output"];
+            const std::string output_url(make_url(output));
 
             tc.assert_equal(output_url, url.href(), "href");
+            tc.assert_equal(output, url.host(), "host");
             tc.assert_equal(output, url.hostname(), "hostname");
+            tc.assert_equal("/x", url.pathname(), "pathname");
+        }
+    });
+
+    str_case = "Set URL.host to: \"" + input + "\"";
+    ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
+        whatwg::url url;
+        url.parse(make_url("x"), nullptr);
+        url.host(input);
+        if (!obj.failure) {
+            const std::string& output = obj["output"];
+            tc.assert_equal(output, url.host(), "host");
+        } else {
+            tc.assert_equal("x", url.host(), "host");
+        }
+    });
+
+    str_case = "Set URL.hostname to: \"" + input + "\"";
+    ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
+        whatwg::url url;
+        url.parse(make_url("x"), nullptr);
+        url.hostname(input);
+        if (!obj.failure) {
+            const std::string& output = obj["output"];
+            tc.assert_equal(output, url.hostname(), "hostname");
+        } else {
+            tc.assert_equal("x", url.hostname(), "hostname");
         }
     });
 }
