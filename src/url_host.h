@@ -64,6 +64,9 @@ static inline bool contains_forbidden_opaque_host_char(const CharT* first, const
     });
 }
 
+// The host parser
+// https://whatpr.org/url/494.html#concept-host-parser
+
 template <typename CharT>
 inline url_result host_parser::parse_host(const CharT* first, const CharT* last, bool isNotSpecial, host_output& dest) {
     using UCharT = typename std::make_unsigned<CharT>::type;
@@ -161,10 +164,17 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     return res;
 }
 
+// The opaque-host parser
+// https://url.spec.whatwg.org/#concept-opaque-host-parser
+
 template <typename CharT>
 inline url_result host_parser::parse_opaque_host(const CharT* first, const CharT* last, host_output& dest) {
     if (contains_forbidden_opaque_host_char(first, last))
         return url_result::InvalidDomainCharacter; //TODO-ERR: failure
+
+    // TODO-WARN:
+    // 2. If input contains a code point that is not a URL code point and not U+0025 (%), validation error.
+    // 3. If input contains a U+0025 (%) and the two code points following it are not ASCII hex digits, validation error.
 
     std::string& str_host = dest.hostStart();
 
