@@ -38,7 +38,7 @@ inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
 
 // IPv4 parser
 
-// TODO-WARN: validationErrorFlag
+// TODO-WARN: validationError
 template <typename CharT>
 static inline url_result ipv4_parse_number(const CharT* first, const CharT* last, uint32_t& number) {
     // Figure out the base
@@ -116,7 +116,7 @@ template <typename CharT>
 inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ipv4) {
     using UCharT = typename std::make_unsigned<CharT>::type;
 
-    // Comes from: 6.1. If part is the empty string, return input
+    // Comes from: 6.1. If part is the empty string, then return input.
     if (first == last)
         return url_result::False;
 
@@ -130,9 +130,9 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
         UCharT uc = static_cast<UCharT>(*it);
         if (uc == '.') {
             if (dot_count == 4)
-                return url_result::False; // 4. If parts has more than four items, return input
+                return url_result::False; // 4. If parts’s size is greater than 4, then return input.
             if (part[dot_count] == it)
-                return url_result::False; // 6.1. If part is the empty string, return input
+                return url_result::False; // 6.1. If part is the empty string, then return input.
             part[++dot_count] = it + 1; // skip '.'
         } else if (uc >= 0x80 || !detail::isIPv4Char(static_cast<unsigned char>(uc))) {
             // not IPv4 character
@@ -141,8 +141,8 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
     }
 
     // 3. If the last item in parts is the empty string, then:
-    //    1. set validationErrorFlag.
-    //    2. If parts has more than one item, then remove the last item from parts.
+    //    1. Set validationError to true.
+    //    2. If parts’s size is greater than 1, then remove the last item from parts.
     int part_count;
     if (dot_count > 0 && part[dot_count] == last) {
         part_count = dot_count;
@@ -150,7 +150,7 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
         part_count = dot_count + 1;
         part[part_count] = last + 1; // bus -1
     }
-    // 4. If parts has more than four items, return input
+    // 4. If parts’s size is greater than 4, then return input.
     if (part_count > 4)
         return url_result::False;
 
@@ -161,15 +161,15 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
         if (res != url_result::Ok) return res;
     }
     // TODO-WARN:
-    // 7. If validationErrorFlag is set, validation error
-    // 8. If any item in numbers is greater than 255, validation error
+    // 7. If validationError is true, validation error.
+    // 8. If any item in numbers is greater than 255, validation error.
 
-    // 9. If any but the last item in numbers is greater than 255, return failure
+    // 9. If any but the last item in numbers is greater than 255, then return failure.
     for (int ind = 0; ind < part_count - 1; ind++) {
         if (number[ind] > 255) return url_result::InvalidIpv4Address;
     }
-    // 10. If the last item in numbers is greater than or equal to 256**(5 - the number of items in numbers),
-    // validation error, return failure
+    // 10. If the last item in numbers is greater than or equal to 256**(5 - numbers’s size),
+    // validation error, return failure.
     ipv4 = number[part_count - 1];
     if (ipv4 > (std::numeric_limits<uint32_t>::max() >> (8 * (part_count - 1))))
         return url_result::InvalidIpv4Address;
