@@ -62,6 +62,9 @@ const UIDNA* getUIDNA() {
 // version with StringByteSink. That way, we can avoid C wrappers and additional
 // string conversion.
 
+// https://url.spec.whatwg.org/#concept-domain-to-ascii
+// with beStrict = false
+
 static_assert(sizeof(char16_t) == sizeof(UChar), "");
 
 url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<char16_t>& output) {
@@ -94,6 +97,11 @@ url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<ch
             &info, &err);
         if (U_SUCCESS(err) && (info.errors & UIDNA_ERR_MASK) == 0) {
             output.resize(output_length);
+            // Result of uidna_nameToASCII can be the empty string if input:
+            // 1) consists entirely of IDNA ignored code points;
+            // 2) is "xn--".
+            if (output_length == 0)
+                return url_result::EmptyHost;
             return url_result::Ok;
         }
 
