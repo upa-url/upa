@@ -78,11 +78,13 @@ public:
             { 0x20, 0x22, 0x23, 0x3C, 0x3E });
 
         // Forbidden host code points: U+0000 NULL, U+0009 TAB, U+000A LF, U+000D CR,
-        // U+0020 SPACE, U+0023 (#), U+0025 (%), U+002F (/), U+003A (:), U+003F (?),
-        // U+0040 (@), U+005B ([), U+005C (\), or U+005D (]).
+        // U+0020 SPACE, U+0023 (#), U+0025 (%), U+002F (/), U+003A (:), U+003C (<),
+        // U+003E (>), U+003F (?), U+0040 (@), U+005B ([), U+005C (\), U+005D (]), or
+        // U+005E (^).
         // https://url.spec.whatwg.org/#forbidden-host-code-point
-        doSetBits(CHAR_HOST_FORBIDDEN,
-            { 0x00, 0x09, 0x0A, 0x0D, 0x20, 0x23, 0x25, 0x2F, 0x3A, 0x3F, 0x40, 0x5B, 0x5C, 0x5D });
+        doSetBits(CHAR_HOST_FORBIDDEN, {
+            0x00, 0x09, 0x0A, 0x0D, 0x20, 0x23, 0x25, 0x2F, 0x3A, 0x3C, 0x3E, 0x3F, 0x40, 0x5B,
+            0x5C, 0x5D, 0x5E });
 
         // Hex digits (also allowed in IPv4)
         doSetBits(CHAR_HEX | CHAR_IPV4, '0', '9');
