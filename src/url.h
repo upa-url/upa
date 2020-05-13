@@ -54,6 +54,7 @@ public:
         HOST_START,
         HOST,
         PORT,
+        PATH_PREFIX,    // "/."
         PATH,
         QUERY,
         FRAGMENT,

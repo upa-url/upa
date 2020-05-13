@@ -50,7 +50,7 @@ const uint8_t kPartStart[url::PART_COUNT] = {
     1,   // ':' PASSWORD
     0, 0,
     1,   // ':' PORT
-    0,
+    0, 0,
     1,   // '?' QUERY
     1    // '#' FRAGMENT
 };
