@@ -1894,6 +1894,8 @@ inline bool url::get_path_rem_last(std::size_t& path_end, unsigned& path_segment
     return false;
 }
 
+// https://url.spec.whatwg.org/#shorten-a-urls-path
+
 inline bool url::get_shorten_path(std::size_t& path_end, unsigned& path_segment_count) const {
     if (path_segment_count_ == 0)
         return false;
@@ -2305,6 +2307,8 @@ inline void url_setter::commit_path() {
     replace_part(url::PATH, strp_.data(), strp_.length());
     url_.path_segment_count_ = path_seg_end_.size();
 }
+
+// https://url.spec.whatwg.org/#shorten-a-urls-path
 
 inline void url_setter::shorten_path() {
     if (path_seg_end_.size() == 1) {
