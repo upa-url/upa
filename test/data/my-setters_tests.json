@@ -1,0 +1,24 @@
+{
+    "pathname": [
+        {
+            "comment": "url_setter::shorten_path()",
+            "href": "file:///",
+            "new_value": "/a/..",
+            "expected": {
+                "href": "file:///",
+                "pathname": "/"
+            }
+        },
+        {
+            "comment": "url_setter::shorten_path()",
+            "href": "file:///",
+            "new_value": "/a:/..",
+            "expected": {
+                "href": "file:///a:/",
+                "pathname": "/a:/"
+            }
+        }
+    ],
+
+    "comment": [ "END OF TESTS" ]
+}

@@ -37,6 +37,9 @@ int main(int argc, char** argv)
     err |= test_from_file(run_host_parser_tests, "wpt/toascii.json");
     err |= test_from_file(run_setter_tests, "wpt/setters_tests.json");
 
+    // additional tests
+    err |= test_from_file(run_setter_tests, "data/my-setters_tests.json");
+
     return err;
 }
 
