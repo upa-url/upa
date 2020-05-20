@@ -380,6 +380,7 @@ public:
     void append_to_path();
     virtual std::string& start_path_segment();
     virtual void save_path_segment();
+    virtual void commit_path();
     // if '/' not required:
     std::string& start_path_string();
     void save_path_string();
@@ -467,7 +468,8 @@ public:
     // path
     std::string& start_path_segment() override;
     void save_path_segment() override;
-    void commit_path();
+    void commit_path() override;
+
     void shorten_path() override;
     // retunrs how many slashes are removed
     std::size_t remove_leading_path_slashes() override;
@@ -1067,10 +1069,7 @@ inline bool url::pathname(Args&&... args) {
         url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<Args>(args)...);
-        if (url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::path_start_state) == url_result::Ok) {
-            urls.commit_path();
-            return true;
-        }
+        return url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::path_start_state) == url_result::Ok;
     }
     return false;
 }
@@ -1659,6 +1658,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             }
         } else {
             // EOF
+            urls.commit_path(); // path is empty
             return url_result::Ok;
         }
     }
@@ -1675,6 +1675,9 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             urls.remove_leading_path_slashes();
             // if (urls.remove_leading_path_slashes() > 0) // TODO-WARN: validation error
         }
+
+        // the end of path parse
+        urls.commit_path();
 
         if (pointer == last) {
             return url_result::Ok; // EOF
@@ -2131,6 +2134,10 @@ inline std::string& url_serializer::start_path_segment() {
 inline void url_serializer::save_path_segment() {
     save_part();
     url_.path_segment_count_++;
+}
+
+inline void url_serializer::commit_path() {
+
 }
 
 inline std::string& url_serializer::start_path_string() {
