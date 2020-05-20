@@ -432,6 +432,13 @@ public:
 #endif
 
 protected:
+    std::size_t get_part_pos(const url::PartType pt) const;
+    std::size_t get_part_len(const url::PartType pt) const;
+    void replace_part(const url::PartType new_pt, const char* str, const std::size_t len);
+    void replace_part(const url::PartType last_pt, const char* str, const std::size_t len,
+        const url::PartType first_pt, const std::size_t len0);
+
+protected:
     url& url_;
     url::PartType last_pt_;
 };
@@ -476,12 +483,6 @@ public:
     bool is_empty_path() const override;
 
 protected:
-    std::size_t get_part_pos(const url::PartType pt) const;
-    std::size_t get_part_len(const url::PartType pt) const;
-    void replace_part(const url::PartType new_pt, const char* str, const std::size_t len);
-    void replace_part(const url::PartType last_pt, const char* str, const std::size_t len,
-        const url::PartType first_pt, const std::size_t len0);
-
     url::PartType find_last_part(url::PartType pt) const;
 
 #if 0
@@ -2259,6 +2260,38 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
     url_.flags_ = (url_.flags_ & ~mask) | (src.flags_ & mask);
 }
 
+// replace part in url
+
+inline std::size_t url_serializer::get_part_pos(const url::PartType pt) const {
+    return pt > url::SCHEME ? url_.part_end_[pt - 1] : 0;
+}
+
+inline std::size_t url_serializer::get_part_len(const url::PartType pt) const {
+    return url_.part_end_[pt] - url_.part_end_[pt - 1];
+}
+
+inline void url_serializer::replace_part(const url::PartType new_pt, const char* str, const std::size_t len) {
+    replace_part(new_pt, str, len, new_pt, 0);
+}
+
+inline void url_serializer::replace_part(const url::PartType last_pt, const char* str, const std::size_t len,
+    const url::PartType first_pt, const std::size_t len0)
+{
+    const std::size_t b = get_part_pos(first_pt);
+    const std::size_t l = url_.part_end_[last_pt] - b;
+    url_.norm_url_.replace(b, l, str, len);
+    std::fill(std::begin(url_.part_end_) + first_pt, std::begin(url_.part_end_) + last_pt, b + len0);
+    // adjust positions
+    const std::ptrdiff_t diff = checked_diff<std::ptrdiff_t>(len, l);
+    if (diff) {
+        for (auto it = std::begin(url_.part_end_) + last_pt; it != std::end(url_.part_end_); ++it) {
+            if (*it == 0) break;
+            // perform arithmetics using signed type ptrdiff_t, because diff can be negative
+            *it = static_cast<std::ptrdiff_t>(*it) + diff;
+        }
+    }
+}
+
 
 // url_setter class
 
@@ -2423,36 +2456,6 @@ inline std::size_t url_setter::remove_leading_path_slashes() {
 
 inline bool url_setter::is_empty_path() const {
     return path_seg_end_.empty();
-}
-
-inline std::size_t url_setter::get_part_pos(const url::PartType pt) const {
-    return pt > url::SCHEME ? url_.part_end_[pt - 1] : 0;
-}
-
-inline std::size_t url_setter::get_part_len(const url::PartType pt) const {
-    return url_.part_end_[pt] - url_.part_end_[pt - 1];
-}
-
-inline void url_setter::replace_part(const url::PartType new_pt, const char* str, const std::size_t len) {
-    replace_part(new_pt, str, len, new_pt, 0);
-}
-
-inline void url_setter::replace_part(const url::PartType last_pt, const char* str, const std::size_t len,
-    const url::PartType first_pt, const std::size_t len0)
-{
-    const std::size_t b = get_part_pos(first_pt);
-    const std::size_t l = url_.part_end_[last_pt] - b;
-    url_.norm_url_.replace(b, l, str, len);
-    std::fill(std::begin(url_.part_end_) + first_pt, std::begin(url_.part_end_) + last_pt, b + len0);
-    // adjust positions
-    const std::ptrdiff_t diff = checked_diff<std::ptrdiff_t>(len, l);
-    if (diff) {
-        for (auto it = std::begin(url_.part_end_) + last_pt; it != std::end(url_.part_end_); ++it) {
-            if (*it == 0) break;
-            // perform arithmetics using signed type ptrdiff_t, because diff can be negative
-            *it = static_cast<std::ptrdiff_t>(*it) + diff;
-        }
-    }
 }
 
 inline url::PartType url_setter::find_last_part(url::PartType pt) const {
