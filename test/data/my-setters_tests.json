@@ -1,7 +1,7 @@
 {
     "pathname": [
         {
-            "comment": "url_setter::shorten_path()",
+            "comment": "shorten path",
             "href": "file:///",
             "new_value": "/a/..",
             "expected": {
@@ -10,12 +10,77 @@
             }
         },
         {
-            "comment": "url_setter::shorten_path()",
             "href": "file:///",
             "new_value": "/a:/..",
             "expected": {
                 "href": "file:///a:/",
                 "pathname": "/a:/"
+            }
+        },
+        {
+            "comment": "set empty path",
+            "href": "http://example.org/abc",
+            "new_value": "",
+            "expected": {
+                "href": "http://example.org/",
+                "pathname": "/"
+            }
+        },
+        {
+            "href": "non-spec://example.org/abc",
+            "new_value": "",
+            "expected": {
+                "href": "non-spec://example.org",
+                "pathname": ""
+            }
+        },
+        {
+            "href": "non-spec:/abc",
+            "new_value": "",
+            "expected": {
+                "href": "non-spec:",
+                "pathname": ""
+            }
+        },
+        {
+            "comment": "set path without /",
+            "href": "http://example.org",
+            "new_value": "cba",
+            "expected": {
+                "href": "http://example.org/cba",
+                "pathname": "/cba"
+            }
+        },
+        {
+            "href": "http://example.org/abc",
+            "new_value": "cba",
+            "expected": {
+                "href": "http://example.org/cba",
+                "pathname": "/cba"
+            }
+        },
+        {
+            "href": "non-spec://example.org",
+            "new_value": "cba",
+            "expected": {
+                "href": "non-spec://example.org/cba",
+                "pathname": "/cba"
+            }
+        },
+        {
+            "href": "non-spec://example.org/abc",
+            "new_value": "cba",
+            "expected": {
+                "href": "non-spec://example.org/cba",
+                "pathname": "/cba"
+            }
+        },
+        {
+            "href": "non-spec:/abc",
+            "new_value": "cba",
+            "expected": {
+                "href": "non-spec:/cba",
+                "pathname": "/cba"
             }
         }
     ],
