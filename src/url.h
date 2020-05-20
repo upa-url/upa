@@ -2139,7 +2139,16 @@ inline void url_serializer::save_path_segment() {
 }
 
 inline void url_serializer::commit_path() {
-
+    // "/." path prefix
+    // https://url.spec.whatwg.org/#url-serializing (5.1.)
+    if (is_null(url::HOST) && url_.path_segment_count_ > 1) {
+        const auto pathname = get_part_view(url::PATH);
+        if (pathname.length() > 1 && pathname[0] == '/' && pathname[1] == '/') {
+            if (is_empty(url::PATH_PREFIX)) {
+                replace_part(url::PATH_PREFIX, "/.", 2);
+            }
+        }
+    }
 }
 
 inline std::string& url_serializer::start_path_string() {
@@ -2188,6 +2197,12 @@ inline std::string& url_serializer::hostStart() {
 inline void url_serializer::hostDone(HostType ht) {
     save_part();
     set_host_type(ht);
+
+    // non-null host
+    if (!is_empty(url::PATH_PREFIX)) {
+        // remove '/.' path prefix
+        replace_part(url::PATH_PREFIX, nullptr, 0);
+    }
 }
 
 // append parts from other url
@@ -2204,7 +2219,7 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             else
                 ifirst = url::HOST;
         } else {
-            ifirst = url::PATH;
+            ifirst = url::PATH_PREFIX;
         }
     } else {
         // t1 == PATH
@@ -2427,6 +2442,18 @@ inline void url_setter::commit_path() {
     // replace path part
     replace_part(url::PATH, strp_.data(), strp_.length());
     url_.path_segment_count_ = path_seg_end_.size();
+
+    // "/." path prefix
+    // https://url.spec.whatwg.org/#url-serializing (5.1.)
+    const bool no_prefix = is_empty(url::PATH_PREFIX);
+    str_view_type new_prefix;
+    if (is_null(url::HOST) && url_.path_segment_count_ > 1) {
+        const auto pathname = get_part_view(url::PATH);
+        if (pathname.length() > 1 && pathname[0] == '/' && pathname[1] == '/')
+            new_prefix = { "/.", 2 };
+    }
+    if (no_prefix != new_prefix.empty())
+        replace_part(url::PATH_PREFIX, new_prefix.data(), new_prefix.length());
 }
 
 // https://url.spec.whatwg.org/#shorten-a-urls-path
