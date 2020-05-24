@@ -60,6 +60,8 @@ static std::string get_url_property(const whatwg::url& url, const std::string& p
         return url.hash();
     else if (property == "href")
         return url.href();
+    // invalid property
+    return "";
 }
 
 static void set_url_property(whatwg::url& url, const std::string& property, const std::string& value) {
