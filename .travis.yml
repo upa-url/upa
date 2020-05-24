@@ -1,0 +1,16 @@
+# Enable C++ support
+language: cpp
+
+# Compiler selection
+matrix:
+  include:
+    - os: linux
+      compiler: gcc
+
+# Build steps
+script:
+  - ./init.sh
+  - mkdir build
+  - cd build
+  - cmake .. && cmake --build . --config Release
+  - ctest -C Release -V
