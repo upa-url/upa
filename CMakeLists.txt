@@ -10,8 +10,9 @@ endif()
 
 # Project settings
 project(tests LANGUAGES CXX)
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ standard")
 
+# Options
 option(URL_BUILD_TESTS "Build the URL tests." ON)
 option(URL_BUILD_EXAMPLES "Build the URL examples." OFF)
 option(URL_BUILD_TOOLS "Build tools." OFF)
