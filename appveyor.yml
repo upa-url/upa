@@ -1,5 +1,12 @@
-image:
-  - Visual Studio 2019
+environment:
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      GENERATOR: Visual Studio 16 2019
+      CXX_STANDARD: 17
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      GENERATOR: Visual Studio 14 2015
+      CXX_STANDARD: 11
 
 install:
   - cd C:\Tools\vcpkg
@@ -13,7 +20,7 @@ before_build:
   - init.bat
   - mkdir build
   - cd build
-  - cmake .. -A x64 -DCMAKE_TOOLCHAIN_FILE=C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake
+  - cmake .. -G "%GENERATOR%" -A x64 -DCMAKE_CXX_STANDARD="%CXX_STANDARD%" -DCMAKE_TOOLCHAIN_FILE=C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake
 
 build_script:
   - cmake --build . --config Release
