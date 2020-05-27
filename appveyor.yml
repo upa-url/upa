@@ -1,0 +1,24 @@
+image:
+  - Visual Studio 2019
+
+install:
+  - cd C:\Tools\vcpkg
+  - git pull
+  - .\bootstrap-vcpkg.bat
+  - vcpkg install icu --triplet x64-windows
+  - vcpkg integrate install
+  - cd %APPVEYOR_BUILD_FOLDER%
+
+before_build:
+  - init.bat
+  - mkdir build
+  - cd build
+  - cmake .. -A x64 -DCMAKE_TOOLCHAIN_FILE=C:\Tools\vcpkg\scripts\buildsystems\vcpkg.cmake
+
+build_script:
+  - cmake --build . --config Release
+
+test_script:
+  - ctest -C Release -V
+
+cache: C:\Tools\vcpkg\installed\
