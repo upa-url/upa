@@ -316,8 +316,8 @@ protected:
     // path util
     str_view_type get_path_first_string(std::size_t len) const;
     // path shortening
-    bool get_path_rem_last(std::size_t& path_end, unsigned& path_segment_count) const;
-    bool get_shorten_path(std::size_t& path_end, unsigned& path_segment_count) const;
+    bool get_path_rem_last(std::size_t& path_end, std::size_t& path_segment_count) const;
+    bool get_shorten_path(std::size_t& path_end, std::size_t& path_segment_count) const;
     
     // flags
     void set_flag(const UrlFlag flag);
@@ -335,7 +335,7 @@ private:
     std::array<std::size_t, PART_COUNT> part_end_;
     const scheme_info* scheme_inf_;
     unsigned flags_;
-    unsigned path_segment_count_;
+    std::size_t path_segment_count_;
 
     friend class url_serializer;
     friend class url_setter;
@@ -396,7 +396,7 @@ public:
     // retunrs how many slashes are removed
     virtual std::size_t remove_leading_path_slashes();
 
-    typedef bool (url::*PathOpFn)(std::size_t& path_end, unsigned& segment_count) const;
+    typedef bool (url::*PathOpFn)(std::size_t& path_end, std::size_t& segment_count) const;
     void append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn = nullptr);
 
     // flags
@@ -1879,7 +1879,7 @@ inline url::str_view_type url::get_path_first_string(std::size_t len) const {
 
 // path shortening
 
-inline bool url::get_path_rem_last(std::size_t& path_end, unsigned& path_segment_count) const {
+inline bool url::get_path_rem_last(std::size_t& path_end, std::size_t& path_segment_count) const {
     if (path_segment_count_ > 0) {
         // Remove path's last item
         const char* first = norm_url_.data() + part_end_[url::PATH-1];
@@ -1896,7 +1896,7 @@ inline bool url::get_path_rem_last(std::size_t& path_end, unsigned& path_segment
 
 // https://url.spec.whatwg.org/#shorten-a-urls-path
 
-inline bool url::get_shorten_path(std::size_t& path_end, unsigned& path_segment_count) const {
+inline bool url::get_shorten_path(std::size_t& path_end, std::size_t& path_segment_count) const {
     if (path_segment_count_ == 0)
         return false;
     if (is_file_scheme() && path_segment_count_ == 1) {
@@ -2137,7 +2137,7 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             // last part and url_.path_segment_count_
             std::size_t lastp_end = src.part_end_[ilast];
             if (pathOpFn && ilast == url::PATH) {
-                unsigned segment_count = src.path_segment_count_;
+                std::size_t segment_count = src.path_segment_count_;
                 // https://isocpp.org/wiki/faq/pointers-to-members
                 // todo: use std::invoke (c++17)
                 (src.*pathOpFn)(lastp_end, segment_count);

@@ -19,16 +19,16 @@ void ipv4_serialize(uint32_t ipv4, std::string& output) {
 
 // IPv6
 
-static int longest_zero_sequence(
+static std::size_t longest_zero_sequence(
     const uint16_t* first, const uint16_t* last,
     const uint16_t*& compress, const uint16_t*& compress_end)
 {
-    int last_count = 0;
-    for (auto it = first; it != last; it++) {
+    std::size_t last_count = 0;
+    for (auto it = first; it != last; ++it) {
         if (*it == 0) {
             auto ite = it + 1;
-            while (ite != last && *ite == 0) ite++;
-            const int count = ite - it;
+            while (ite != last && *ite == 0) ++ite;
+            const std::size_t count = ite - it;
             if (last_count < count) {
                 last_count = count;
                 compress = it;
