@@ -238,7 +238,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
     }
 
     // Unicode Character 'COMPOSITION SYMBOL' (U+2384)
-    SUBCASE(u8"Parse \u2384") {
+    SUBCASE("Parse 'COMPOSITION SYMBOL' (U+2384)") {
         {
             whatwg::url_search_params params(u8"a=b\u2384");
             CHECK(param_eq(params.get("a"), u8"b\u2384"));
@@ -260,7 +260,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
     }
 
     // Unicode Character 'PILE OF POO' (U+1F4A9)
-    SUBCASE(u8"Parse \U0001F4A9") {
+    SUBCASE("Parse 'PILE OF POO' (U+1F4A9)") {
         {
             whatwg::url_search_params params(u8"a=b\U0001F4A9");
             CHECK(param_eq(params.get("a"), u8"b\U0001F4A9"));
@@ -596,7 +596,7 @@ TEST_CASE("urlsearchparams-stringifier.any.js") {
     }
 
     // Unicode Character 'PILE OF POO' (U+1F4A9)
-    SUBCASE(u8"Serialize \U0001F4A9") {
+    SUBCASE("Serialize 'PILE OF POO' (U+1F4A9)") {
         whatwg::url_search_params params;
         params.append("a", u8"b\U0001F4A9c");
         CHECK_EQ(params.to_string(), "a=b%F0%9F%92%A9c");
