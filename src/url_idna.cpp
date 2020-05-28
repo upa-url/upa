@@ -86,14 +86,17 @@ url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<ch
     if (src_len > unsigned_limit<int32_t>::max())
         return url_result::Overflow; // too long
 
+    // The static_cast<int32_t>(output.capacity()) must be safe:
+    assert(output.capacity() <= unsigned_limit<int32_t>::max());
+
     const UIDNA* uidna = getUIDNA();
     assert(uidna != nullptr);
     while (true) {
         UErrorCode err = U_ZERO_ERROR;
         UIDNAInfo info = UIDNA_INFO_INITIALIZER;
-        int output_length = uidna_nameToASCII(uidna,
+        const int32_t output_length = uidna_nameToASCII(uidna,
             (const UChar*)src, static_cast<int32_t>(src_len),
-            (UChar*)output.data(), output.capacity(),
+            (UChar*)output.data(), static_cast<int32_t>(output.capacity()),
             &info, &err);
         if (U_SUCCESS(err) && (info.errors & UIDNA_ERR_MASK) == 0) {
             output.resize(output_length);
@@ -121,14 +124,17 @@ url_result IDNToUnicode(const char* src, std::size_t src_len, simple_buffer<char
     if (src_len > unsigned_limit<int32_t>::max())
         return url_result::Overflow; // too long
 
+    // The static_cast<int32_t>(output.capacity()) must be safe:
+    assert(output.capacity() <= unsigned_limit<int32_t>::max());
+
     const UIDNA* uidna = getUIDNA();
     assert(uidna != nullptr);
     while (true) {
         UErrorCode err = U_ZERO_ERROR;
         UIDNAInfo info = UIDNA_INFO_INITIALIZER;
-        int output_length = uidna_nameToUnicodeUTF8(uidna,
+        const int32_t output_length = uidna_nameToUnicodeUTF8(uidna,
             src, static_cast<int32_t>(src_len),
-            output.data(), output.capacity(),
+            output.data(), static_cast<int32_t>(output.capacity()),
             &info, &err);
         if (U_SUCCESS(err)) {
             output.resize(output_length);
