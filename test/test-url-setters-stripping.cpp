@@ -40,28 +40,29 @@ static whatwg::url urlRecord(std::string scheme) {
 }
 
 static std::string get_url_property(const whatwg::url& url, const std::string& property) {
+    // empty value, if property is invalid
+    std::string value;
     if (property == "prtocol")
-        return url.protocol();
+        value = url.protocol();
     else if (property == "username")
-        return url.username();
+        value = url.username();
     else if (property == "password")
-        return url.password();
+        value = url.password();
     else if (property == "host")
-        return url.host();
+        value = url.host();
     else if (property == "hostname")
-        return url.hostname();
+        value = url.hostname();
     else if (property == "port")
-        return url.port();
+        value = url.port();
     else if (property == "pathname")
-        return url.pathname();
+        value = url.pathname();
     else if (property == "search")
-        return url.search();
+        value = url.search();
     else if (property == "hash")
-        return url.hash();
+        value = url.hash();
     else if (property == "href")
-        return url.href();
-    // invalid property
-    return "";
+        value = url.href();
+    return value;
 }
 
 static void set_url_property(whatwg::url& url, const std::string& property, const std::string& value) {
