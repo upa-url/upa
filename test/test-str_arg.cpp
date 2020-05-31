@@ -7,19 +7,10 @@
 
 using namespace whatwg;
 
-template <class CharT, enable_if_char_t<CharT, int> = 0>
-inline std::size_t procfn(const CharT* first, const CharT* last) {
-    return last - first;
-}
-
-template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-inline std::size_t procfn(Args... args) {
-    return procfn(str_arg::begin(args...), str_arg::end(args...));
-}
-
-template <class StrT, enable_if_str_arg_t<StrT> = 0>
-inline std::size_t procfn(const StrT& str) {
-    return procfn(str_arg::begin(str), str_arg::end(str));
+template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+inline std::size_t procfn(Args&&... args) {
+    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    return std::distance(inp.begin(), inp.end());
 }
 
 
@@ -48,11 +39,18 @@ inline void test_char() {
     procfn(arr, int(N));
     procfn(cptr, int(N));
 
+    procfn(arr, arr + N);
+    //procfn(carr, carr + N);
     procfn(ptr, ptr + N);
     procfn(cptr, cptr + N);
     procfn(vptr, vptr + N);
 
+    const std::basic_string<CharT> str(arr);
+    procfn(str);
     procfn(std::basic_string<CharT>(arr));
+
+    whatwg::str_arg<CharT> arg(arr);
+    procfn(arg);
 }
 
 int main() {
@@ -60,6 +58,9 @@ int main() {
     test_char<wchar_t>();
     test_char<char16_t>();
     test_char<char32_t>();
+#ifdef __cpp_char8_t
+    test_char<char8_t>();
+#endif
 
     return 0;
 }

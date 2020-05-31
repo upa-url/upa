@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2020 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -6,42 +6,33 @@
 /**************************************************************
 // Usage example:
 
-template <class CharT, enable_if_char_t<CharT, int> = 0>
-inline bool procfn(const CharT* first, const CharT* last) {
+template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+inline void procfn(Args&&... args) {
+    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    const auto* first = inp.begin();
+    const auto* last = inp.end();
     // do something with first ... last
-}
-
-template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-inline bool procfn(Args... args) {
-    return procfn(str_arg::begin(args...), str_arg::end(args...));
-}
-
-template <class StrT, enable_if_str_arg_t<StrT> = 0>
-inline bool procfn(const StrT& str) {
-    return procfn(str_arg::begin(str), str_arg::end(str));
 }
 
 **************************************************************/
 #ifndef WHATWG_STR_ARG_H
 #define WHATWG_STR_ARG_H
 
+#include <cassert>
 #include <string>
 #include <type_traits>
 
 namespace whatwg {
 
-// Enabled processing char types (char, char16_t, char32_t)
-template<class CharT, class T = void>
-using enable_if_char_t = typename std::enable_if<
-    std::is_same<CharT, char>::value ||
-    std::is_same<CharT, char16_t>::value ||
-    std::is_same<CharT, char32_t>::value,
-    T>::type;
 
-// supported char and size types
+// Supported char and size types
+
 template<class CharT>
 struct is_char_type : std::integral_constant<bool,
     std::is_same<CharT, char>::value ||
+#ifdef __cpp_char8_t
+    std::is_same<CharT, char8_t>::value ||
+#endif
     std::is_same<CharT, char16_t>::value ||
     std::is_same<CharT, char32_t>::value ||
     std::is_same<CharT, wchar_t>::value
@@ -54,82 +45,135 @@ struct is_size_type : std::integral_constant<bool,
 > {};
 
 
+// string args helper class
+
+template <typename CharT>
+class str_arg {
+public:
+    using input_type = CharT;
+    using traits_type = std::char_traits<input_type>;
+    // output value type
+    using value_type =
+        // wchar_t type will be converted to char16_t or char32_t type equivalent by size
+        typename std::conditional<std::is_same<CharT, wchar_t>::value, std::conditional<sizeof(wchar_t) == sizeof(char16_t), char16_t, char32_t>::type,
+#ifdef __cpp_char8_t
+        // char8_t type will be converted to char type
+        typename std::conditional<std::is_same<CharT, char8_t>::value, char, input_type>::type
+#else
+        input_type
+#endif
+        >::type;
+
+    // constructors
+    str_arg(const str_arg&) = default;
+
+    str_arg(const CharT* s)
+        : first_(s)
+        , last_(s + traits_type::length(s))
+    {}
+    str_arg(const CharT* s, std::size_t length)
+        : first_(s)
+        , last_(s + length)
+    {}
+    str_arg(const CharT* first, const CharT* last)
+        : first_(first)
+        , last_(last)
+    {}
+
+    // output
+    constexpr const value_type* begin() const {
+        return reinterpret_cast<const value_type*>(first_);
+    }
+    constexpr const value_type* end() const {
+        return reinterpret_cast<const value_type*>(last_);
+    }
+protected:
+    const input_type* first_;
+    const input_type* last_;
+};
+
+
 // Requirements for arguments
 template<class ...Args>
-struct is_pstr_arg : std::false_type {};
+struct is_str_arg : std::false_type {};
 
-// two arguments
+// two pointers
 template<class CharT>
-struct is_pstr_arg<CharT*, CharT*> : std::is_same<typename std::remove_cv<CharT>::type, wchar_t> {};
+struct is_str_arg<CharT*, CharT*> : is_char_type<typename std::remove_cv<CharT>::type> {};
 
+template<class CharT, std::size_t N>
+struct is_str_arg<CharT[N], CharT*> : is_char_type<typename std::remove_cv<CharT>::type> {};
+
+// pointer and size
 template<class CharT, class SizeT>
-struct is_pstr_arg<CharT*, SizeT> : std::integral_constant<bool,
+struct is_str_arg<CharT*, SizeT> : std::integral_constant<bool,
     is_char_type<typename std::remove_cv<CharT>::type>::value &&
     is_size_type<SizeT>::value
 > {};
 
-// one argument
+template<class CharT, std::size_t N, class SizeT>
+struct is_str_arg<CharT[N], SizeT> : std::integral_constant<bool,
+    is_char_type<typename std::remove_cv<CharT>::type>::value &&
+    is_size_type<SizeT>::value
+> {};
+
+// one pointer (null terminated string)
 template<class CharT>
-struct is_pstr_arg<CharT*> : is_char_type<typename std::remove_cv<CharT>::type> {};
+struct is_str_arg<CharT*> : is_char_type<typename std::remove_cv<CharT>::type> {};
 
-// string arguments helper types
-template<class ...Args>
-using enable_if_pstr_arg_t = typename std::enable_if<is_pstr_arg<Args...>::value, int>::type;
+template<class CharT, std::size_t N>
+struct is_str_arg<CharT[N]> : is_char_type<typename std::remove_cv<CharT>::type> {};
 
+// one string class argument
 template<class StrT>
-using enable_if_str_arg_t = typename std::enable_if<
+struct is_str_arg<StrT> : std::integral_constant<bool,
     is_char_type<typename StrT::value_type>::value &&
-    std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<typename StrT::const_iterator>::iterator_category>::value,
+    std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<typename StrT::const_iterator>::iterator_category>::value
+> {};
+
+template<class CharT>
+struct is_str_arg<str_arg<CharT>> : is_char_type<CharT>::type {};
+
+
+// string argument helper type
+template<class T>
+using remove_cvref_t = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+
+template<class ...Args>
+using enable_if_str_arg_t = typename std::enable_if<
+    is_str_arg<remove_cvref_t<Args>...>::value,
     int>::type;
 
 
-// Alias of char16_t or char32_t type equivalent to wchar_t type by size
-using wchar_char_t = std::conditional<sizeof(wchar_t) == sizeof(char16_t), char16_t, char32_t>::type;
+// String args helper functions
 
-
-// Helpers to get the starting and ending pointers of various string args
-namespace str_arg {
-
-// converts wchar_t* to wchar_char_t*
-inline const wchar_char_t* begin(const wchar_t* ptr, const wchar_t*) {
-    return reinterpret_cast<const wchar_char_t*>(ptr);
-}
-inline const wchar_char_t* end(const wchar_t*, const wchar_t* ptr) {
-    return reinterpret_cast<const wchar_char_t*>(ptr);
+template <typename CharT>
+inline str_arg<CharT> make_str_arg(const CharT* s) {
+    return s;
 }
 
-// character sequence with length
-template<typename CharT, typename SizeT, typename std::enable_if<is_size_type<SizeT>::value, int>::type = 0>
-inline const CharT* begin(const CharT* ptr, SizeT) {
-    return ptr;
-}
-template<typename CharT, typename SizeT, typename std::enable_if<is_size_type<SizeT>::value, int>::type = 0>
-inline const CharT* end(const CharT* ptr, SizeT len) {
-    return ptr + len;
+template <typename CharT>
+inline str_arg<CharT> make_str_arg(const CharT* s, std::size_t length) {
+    return { s, length };
 }
 
-// null terminated character sequence
-template<typename CharT>
-inline const CharT* begin(const CharT* ptr) {
-    return ptr;
-}
-template<typename CharT>
-inline const CharT* end(const CharT* ptr) {
-    return ptr + std::char_traits<CharT>::length(ptr);
+template <typename CharT>
+inline str_arg<CharT> make_str_arg(const CharT* first, const CharT* last) {
+    assert(first <= last);
+    return { first, last };
 }
 
-// string class with data() and length() member functions
 template<class StrT, typename CharT = typename StrT::value_type>
-inline const CharT* begin(const StrT& str) {
-    return str.data();
+inline str_arg<CharT> make_str_arg(const StrT& str) {
+    return { str.data(), str.length() };
 }
-template<class StrT, typename CharT = typename StrT::value_type>
-inline const CharT* end(const StrT& str) {
-    return str.data() + str.length();
+
+template <typename CharT>
+inline str_arg<CharT> make_str_arg(const str_arg<CharT>& arg) {
+    return arg;
 }
 
 
-} // namespace str_arg
 } // namespace whatwg
 
 #endif // WHATWG_STR_ARG_H

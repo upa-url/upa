@@ -111,115 +111,35 @@ public:
 
     // setters
 
-    template <typename CharT, enable_if_char_t<CharT, int> = 0>
-    bool href(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-    inline bool href(Args... args) {
-        return href(str_arg::begin(args...), str_arg::end(args...));
-    }
-    template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    inline bool href(const StrT& str) {
-        return href(str_arg::begin(str), str_arg::end(str));
-    }
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    bool href(Args&&... args);
 
-    template <typename CharT, enable_if_char_t<CharT, int> = 0>
-    bool protocol(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-    inline bool protocol(Args... args) {
-        return protocol(str_arg::begin(args...), str_arg::end(args...));
-    }
-    template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    inline bool protocol(const StrT& str) {
-        return protocol(str_arg::begin(str), str_arg::end(str));
-    }
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    bool protocol(Args&&... args);
 
-    template <typename CharT, enable_if_char_t<CharT, int> = 0>
-    bool username(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-    inline bool username(Args... args) {
-        return username(str_arg::begin(args...), str_arg::end(args...));
-    }
-    template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    inline bool username(const StrT& str) {
-        return username(str_arg::begin(str), str_arg::end(str));
-    }
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    bool username(Args&&... args);
 
-    template <typename CharT, enable_if_char_t<CharT, int> = 0>
-    bool password(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-    inline bool password(Args... args) {
-        return password(str_arg::begin(args...), str_arg::end(args...));
-    }
-    template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    inline bool password(const StrT& str) {
-        return password(str_arg::begin(str), str_arg::end(str));
-    }
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    bool password(Args&&... args);
 
-    template <typename CharT, enable_if_char_t<CharT, int> = 0>
-    bool host(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-    inline bool host(Args... args) {
-        return host(str_arg::begin(args...), str_arg::end(args...));
-    }
-    template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    inline bool host(const StrT& str) {
-        return host(str_arg::begin(str), str_arg::end(str));
-    }
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    bool host(Args&&... args);
 
-    template <typename CharT, enable_if_char_t<CharT, int> = 0>
-    bool hostname(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-    inline bool hostname(Args... args) {
-        return hostname(str_arg::begin(args...), str_arg::end(args...));
-    }
-    template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    inline bool hostname(const StrT& str) {
-        return hostname(str_arg::begin(str), str_arg::end(str));
-    }
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    bool hostname(Args&&... args);
 
-    template <typename CharT, enable_if_char_t<CharT, int> = 0>
-    bool port(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-    inline bool port(Args... args) {
-        return port(str_arg::begin(args...), str_arg::end(args...));
-    }
-    template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    inline bool port(const StrT& str) {
-        return port(str_arg::begin(str), str_arg::end(str));
-    }
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    bool port(Args&&... args);
 
-    template <typename CharT, enable_if_char_t<CharT, int> = 0>
-    bool pathname(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-    inline bool pathname(Args... args) {
-        return pathname(str_arg::begin(args...), str_arg::end(args...));
-    }
-    template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    inline bool pathname(const StrT& str) {
-        return pathname(str_arg::begin(str), str_arg::end(str));
-    }
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    bool pathname(Args&&... args);
 
-    template <typename CharT, enable_if_char_t<CharT, int> = 0>
-    bool search(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-    inline bool search(Args... args) {
-        return search(str_arg::begin(args...), str_arg::end(args...));
-    }
-    template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    inline bool search(const StrT& str) {
-        return search(str_arg::begin(str), str_arg::end(str));
-    }
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    bool search(Args&&... args);
 
-    template <typename CharT, enable_if_char_t<CharT, int> = 0>
-    bool hash(const CharT* first, const CharT* last);
-    template <class ...Args, enable_if_pstr_arg_t<Args...> = 0>
-    inline bool hash(Args... args) {
-        return hash(str_arg::begin(args...), str_arg::end(args...));
-    }
-    template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    inline bool hash(const StrT& str) {
-        return hash(str_arg::begin(str), str_arg::end(str));
-    }
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    bool hash(Args&&... args);
 
     // getters
 
@@ -921,76 +841,89 @@ inline url_result url::parse(const CharT* first, const CharT* last, const url* b
     return url_parser::url_parse(urls, first, last, base);
 }
 
-template <typename CharT, enable_if_char_t<CharT, int>>
-inline bool url::href(const CharT* first, const CharT* last) {
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline bool url::href(Args&&... args) {
     url u; // parsedURL
 
-    if (u.parse(first, last, nullptr) == url_result::Ok) {
+    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    if (u.parse(inp.begin(), inp.end(), nullptr) == url_result::Ok) {
         *this = std::move(u);
         return true;
     }
     return false;
 }
 
-template <typename CharT, enable_if_char_t<CharT, int>>
-inline bool url::protocol(const CharT* first, const CharT* last) {
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline bool url::protocol(Args&&... args) {
     url_setter urls(*this);
 
-    return url_parser::url_parse(urls, first, last, nullptr, url_parser::scheme_start_state) == url_result::Ok;
+    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    return url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::scheme_start_state) == url_result::Ok;
 }
 
-template <typename CharT, enable_if_char_t<CharT, int>>
-inline bool url::username(const CharT* first, const CharT* last) {
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline bool url::username(Args&&... args) {
     if (canHaveUsernamePasswordPort()) {
         url_setter urls(*this);
+
+        const auto inp = make_str_arg(std::forward<Args>(args)...);
 
         std::string& str_username = urls.start_part(url::USERNAME);
         // UTF-8 percent encode it using the userinfo encode set
-        detail::AppendStringOfType(first, last, detail::CHAR_USERINFO, str_username);
+        detail::AppendStringOfType(inp.begin(), inp.end(), detail::CHAR_USERINFO, str_username);
         urls.save_part();
         return true;
     }
     return false;
 }
 
-template <typename CharT, enable_if_char_t<CharT, int>>
-inline bool url::password(const CharT* first, const CharT* last) {
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline bool url::password(Args&&... args) {
     if (canHaveUsernamePasswordPort()) {
         url_setter urls(*this);
+
+        const auto inp = make_str_arg(std::forward<Args>(args)...);
 
         std::string& str_password = urls.start_part(url::PASSWORD);
         // UTF-8 percent encode it using the userinfo encode set
-        detail::AppendStringOfType(first, last, detail::CHAR_USERINFO, str_password);
+        detail::AppendStringOfType(inp.begin(), inp.end(), detail::CHAR_USERINFO, str_password);
         urls.save_part();
         return true;
     }
     return false;
 }
 
-template <typename CharT, enable_if_char_t<CharT, int>>
-inline bool url::host(const CharT* first, const CharT* last) {
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline bool url::host(Args&&... args) {
     if (!cannot_be_base()) {
         url_setter urls(*this);
 
-        return url_parser::url_parse(urls, first, last, nullptr, url_parser::host_state) == url_result::Ok;
+        const auto inp = make_str_arg(std::forward<Args>(args)...);
+        return url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::host_state) == url_result::Ok;
     }
     return false;
 }
 
-template <typename CharT, enable_if_char_t<CharT, int>>
-inline bool url::hostname(const CharT* first, const CharT* last) {
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline bool url::hostname(Args&&... args) {
     if (!cannot_be_base()) {
         url_setter urls(*this);
 
-        return url_parser::url_parse(urls, first, last, nullptr, url_parser::hostname_state) == url_result::Ok;
+        const auto inp = make_str_arg(std::forward<Args>(args)...);
+        return url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::hostname_state) == url_result::Ok;
     }
     return false;
 }
 
-template <typename CharT, enable_if_char_t<CharT, int>>
-inline bool url::port(const CharT* first, const CharT* last) {
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline bool url::port(Args&&... args) {
     if (canHaveUsernamePasswordPort()) {
         url_setter urls(*this);
+
+        const auto inp = make_str_arg(std::forward<Args>(args)...);
+        const auto* first = inp.begin();
+        const auto* last = inp.end();
+
         if (first == last) {
             urls.clear_part(url::PORT);
             return true;
@@ -1001,12 +934,13 @@ inline bool url::port(const CharT* first, const CharT* last) {
     return false;
 }
 
-template <typename CharT, enable_if_char_t<CharT, int>>
-inline bool url::pathname(const CharT* first, const CharT* last) {
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline bool url::pathname(Args&&... args) {
     if (!cannot_be_base()) {
         url_setter urls(*this);
 
-        if (url_parser::url_parse(urls, first, last, nullptr, url_parser::path_start_state) == url_result::Ok) {
+        const auto inp = make_str_arg(std::forward<Args>(args)...);
+        if (url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::path_start_state) == url_result::Ok) {
             urls.commit_path();
             return true;
         }
@@ -1014,9 +948,14 @@ inline bool url::pathname(const CharT* first, const CharT* last) {
     return false;
 }
 
-template <typename CharT, enable_if_char_t<CharT, int>>
-inline bool url::search(const CharT* first, const CharT* last) {
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline bool url::search(Args&&... args) {
     url_setter urls(*this);
+
+    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    const auto* first = inp.begin();
+    const auto* last = inp.end();
+
     if (first == last) {
         urls.clear_part(url::QUERY);
         //todo: empty context object's query object's list
@@ -1027,9 +966,14 @@ inline bool url::search(const CharT* first, const CharT* last) {
     //todo: set context object's query object's list to the result of parsing input
 }
 
-template <typename CharT, enable_if_char_t<CharT, int>>
-inline bool url::hash(const CharT* first, const CharT* last) {
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline bool url::hash(Args&&... args) {
     url_setter urls(*this);
+
+    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    const auto* first = inp.begin();
+    const auto* last = inp.end();
+
     if (first == last) {
         urls.clear_part(url::FRAGMENT);
         return true;
