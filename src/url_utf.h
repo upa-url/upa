@@ -32,6 +32,10 @@ public:
         return convert_utf8_to_utf16(reinterpret_cast<const char*>(first), reinterpret_cast<const char*>(last), output);
     }
 
+    // Convert to utf-8 string
+    static std::string to_utf8_string(const char16_t* first, const char16_t* last);
+    static std::string to_utf8_string(const char32_t* first, const char32_t* last);
+
     // Invalid utf-8 bytes sequences are replaced with 0xFFFD character.
     static void check_fix_utf8(std::string& str);
 

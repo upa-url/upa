@@ -17,6 +17,27 @@ bool url_utf::convert_utf8_to_utf16(const char* first, const char* last, simple_
     return success;
 }
 
+static inline void append_to_string(uint8_t c, std::string& str) {
+    str.push_back(c);
+};
+
+template <typename CharT>
+inline std::string to_utf8_stringT(const CharT* first, const CharT* last) {
+    std::string output;
+    for (auto it = first; it < last;) {
+        uint32_t code_point;
+        url_utf::read_utf_char(it, last, code_point);
+        url_utf::append_utf8<std::string, append_to_string>(code_point, output);
+    }
+    return output;
+}
+std::string url_utf::to_utf8_string(const char16_t* first, const char16_t* last) {
+    return to_utf8_stringT(first, last);
+}
+std::string url_utf::to_utf8_string(const char32_t* first, const char32_t* last) {
+    return to_utf8_stringT(first, last);
+}
+
 void url_utf::check_fix_utf8(std::string& str) {
     const char* first = str.data();
     const char* last = str.data() + str.length();
