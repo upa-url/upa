@@ -93,59 +93,64 @@ protected:
 };
 
 
-// Requirements for arguments
+// Requirements for string arguments
+
 template<class ...Args>
-struct is_str_arg : std::false_type {};
+struct str_arg_char {};
 
 // two pointers
 template<class CharT>
-struct is_str_arg<CharT*, CharT*> : is_char_type<typename std::remove_cv<CharT>::type> {};
+struct str_arg_char<CharT*, CharT*> : std::remove_cv<CharT> {};
 
 template<class CharT, std::size_t N>
-struct is_str_arg<CharT[N], CharT*> : is_char_type<typename std::remove_cv<CharT>::type> {};
+struct str_arg_char<CharT[N], CharT*> : std::remove_cv<CharT> {};
 
 // pointer and size
 template<class CharT, class SizeT>
-struct is_str_arg<CharT*, SizeT> : std::integral_constant<bool,
-    is_char_type<typename std::remove_cv<CharT>::type>::value &&
-    is_size_type<SizeT>::value
-> {};
+struct str_arg_char<CharT*, SizeT> : std::enable_if<
+    is_size_type<SizeT>::value,
+    typename std::remove_cv<CharT>::type> {};
 
 template<class CharT, std::size_t N, class SizeT>
-struct is_str_arg<CharT[N], SizeT> : std::integral_constant<bool,
-    is_char_type<typename std::remove_cv<CharT>::type>::value &&
-    is_size_type<SizeT>::value
-> {};
+struct str_arg_char<CharT[N], SizeT> : std::enable_if<
+    is_size_type<SizeT>::value,
+    typename std::remove_cv<CharT>::type> {};
 
 // one pointer (null terminated string)
 template<class CharT>
-struct is_str_arg<CharT*> : is_char_type<typename std::remove_cv<CharT>::type> {};
+struct str_arg_char<CharT*> : std::remove_cv<CharT> {};
 
 template<class CharT, std::size_t N>
-struct is_str_arg<CharT[N]> : is_char_type<typename std::remove_cv<CharT>::type> {};
+struct str_arg_char<CharT[N]> : std::remove_cv<CharT> {};
 
 // one string class argument
 template<class StrT>
-struct is_str_arg<StrT> : std::integral_constant<bool,
-    is_char_type<typename StrT::value_type>::value &&
-    std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<typename StrT::const_iterator>::iterator_category>::value
-> {};
+struct str_arg_char<StrT> : std::enable_if<
+    std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<typename StrT::const_iterator>::iterator_category>::value,
+    typename StrT::value_type> {};
 
 template<class CharT>
-struct is_str_arg<str_arg<CharT>> : is_char_type<CharT>::type {};
+struct str_arg_char<str_arg<CharT>> {
+    using type = CharT;
+};
 
 
-// string argument helper type
+// String arguments helper types
+
 template<class T>
 using remove_cvref_t = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
 
 template<class ...Args>
+using str_arg_char_t = typename str_arg_char<remove_cvref_t<Args>...>::type;
+
+
+template<class ...Args>
 using enable_if_str_arg_t = typename std::enable_if<
-    is_str_arg<remove_cvref_t<Args>...>::value,
+    is_char_type<str_arg_char_t<Args...>>::value,
     int>::type;
 
 
-// String args helper functions
+// String arguments helper functions
 
 template <typename CharT>
 inline str_arg<CharT> make_str_arg(const CharT* s) {
