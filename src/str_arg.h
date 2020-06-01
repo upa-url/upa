@@ -22,6 +22,7 @@ inline void procfn(Args&&... args) {
 #include <string>
 #include <type_traits>
 #include "config.h"
+#include "url_utf.h"
 
 #ifdef WHATWG__CPP_17
 # include <string_view>
@@ -99,6 +100,16 @@ public:
     constexpr const value_type* end() const {
         return reinterpret_cast<const value_type*>(last_);
     }
+    constexpr const value_type* data() const {
+        return begin();
+    }
+    constexpr const std::size_t length() const {
+        return end() - begin();
+    }
+    constexpr const std::size_t size() const {
+        return length();
+    }
+
 protected:
     const input_type* first_;
     const input_type* last_;
@@ -188,6 +199,51 @@ inline str_arg<CharT> make_str_arg(const StrT& str) {
 template <typename CharT>
 inline str_arg<CharT> make_str_arg(const str_arg<CharT>& arg) {
     return arg;
+}
+
+
+// Convert to std::string or string_view
+
+template<class CharT>
+struct is_char8_type : std::integral_constant<bool,
+    std::is_same<CharT, char>::value
+#ifdef __cpp_char8_t
+    || std::is_same<CharT, char8_t>::value
+#endif
+> {};
+
+template<class ...Args>
+using enable_if_str_arg_to_char8_t = typename std::enable_if<
+    is_char8_type<str_arg_char_t<Args...>>::value,
+    int>::type;
+
+template<class CharT>
+struct is_charW_type : std::integral_constant<bool,
+    std::is_same<CharT, char16_t>::value ||
+    std::is_same<CharT, char32_t>::value ||
+    std::is_same<CharT, wchar_t>::value
+> {};
+
+template<class ...Args>
+using enable_if_str_arg_to_charW_t = typename std::enable_if<
+    is_charW_type<str_arg_char_t<Args...>>::value,
+    int>::type;
+
+
+inline std::string&& make_string(std::string&& str) {
+    return std::move(str);
+}
+
+template <class ...Args, enable_if_str_arg_to_char8_t<Args...> = 0>
+inline url_str_view_t make_string(Args&&... args) {
+    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    return { inp.data(), inp.length() };
+}
+
+template <class ...Args, enable_if_str_arg_to_charW_t<Args...> = 0>
+inline std::string make_string(Args&&... args) {
+    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    return url_utf::to_utf8_string(inp.begin(), inp.end());
 }
 
 
