@@ -6,11 +6,12 @@
 #ifndef WHATWG_URL_SEARCH_PARAMS_H
 #define WHATWG_URL_SEARCH_PARAMS_H
 
-#include "url_percent_encode.h"
 #include <iterator>
 #include <list>
 #include <string>
 #include <type_traits>
+#include "str_arg.h"
+#include "url_percent_encode.h"
 
 namespace whatwg {
 
@@ -164,7 +165,10 @@ inline void url_search_params::parse(const T& query) {
 
 template <class T, class TV>
 inline void url_search_params::append(T&& name, TV&& value) {
-    params_.emplace_back(std::forward<T>(name), std::forward<TV>(value));
+    params_.emplace_back(
+        make_string(std::forward<T>(name)),
+        make_string(std::forward<TV>(value))
+    );
     is_sorted_ = false;
 }
 
@@ -208,20 +212,23 @@ inline bool url_search_params::has(const T& name) const {
 
 template <class T, class TV>
 inline void url_search_params::set(T&& name, TV&& value) {
+    auto str_name = make_string(std::forward<T>(name));
+    auto str_value = make_string(std::forward<TV>(value));
+
     bool is_match = false;
     for (auto it = params_.begin(); it != params_.end(); ) {
-        if (it->first == name) {
+        if (it->first == str_name) {
             if (is_match) {
                 it = params_.erase(it);
                 continue;
             }
-            it->second = std::forward<TV>(value);
+            it->second = std::move(str_value);
             is_match = true;
         }
         ++it;
     }
     if (!is_match)
-        append(std::forward<T>(name), std::forward<TV>(value));
+        append(std::move(str_name), std::move(str_value));
 }
 
 inline void url_search_params::sort() {
