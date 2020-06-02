@@ -6,7 +6,6 @@
 #ifndef WHATWG_URL_SEARCH_PARAMS_H
 #define WHATWG_URL_SEARCH_PARAMS_H
 
-#include <iterator>
 #include <list>
 #include <string>
 #include <type_traits>
@@ -17,19 +16,6 @@ namespace whatwg {
 
 
 namespace {
-
-// supported string types
-template<class StrT>
-struct is_char_str : std::integral_constant<bool,
-    std::is_same<typename StrT::value_type, char>::value &&
-    std::is_base_of<std::forward_iterator_tag, typename std::iterator_traits<typename StrT::const_iterator>::iterator_category>::value
-> {};
-
-template<size_t N>
-struct is_char_str<char[N]> : std::true_type {};
-
-template<>
-struct is_char_str<char*> : std::true_type {};
 
 // is key value pair
 template <typename>
@@ -56,15 +42,15 @@ public:
     // constructors
     url_search_params();
 
-    template<class StrT, typename std::enable_if<is_char_str<StrT>::value, int>::type = 0>
-    url_search_params(const StrT& query);
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    url_search_params(Args&&... query);
 
     template<class ConT, typename std::enable_if<is_pair<typename ConT::value_type>::value, int>::type = 0>
     url_search_params(const ConT& cont);
 
     // operations
-    template <class T>
-    void parse(const T& query);
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    void parse(Args&&... query);
 
     template <class T, class TV>
     void append(T&& name, TV&& value);
@@ -103,8 +89,8 @@ public:
 
     // utils
 
-    template <class T>
-    static key_value_list do_parse(const T& query);
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    static key_value_list do_parse(Args&&... query);
 
     template <class T>
     static void urlencode(std::string& encoded, const T& value);
@@ -143,9 +129,9 @@ inline auto str_end(const T& s) -> decltype(std::end(s)) {
 inline url_search_params::url_search_params()
 {}
 
-template<class StrT, typename std::enable_if<is_char_str<StrT>::value, int>::type>
-inline url_search_params::url_search_params(const StrT& query)
-    : params_(do_parse(query))
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline url_search_params::url_search_params(Args&&... query)
+    : params_(do_parse(std::forward<Args>(query)...))
 {}
 
 template<class ConT, typename std::enable_if<is_pair<typename ConT::value_type>::value, int>::type>
@@ -157,9 +143,9 @@ inline url_search_params::url_search_params(const ConT& cont) {
 
 // operations
 
-template <class T>
-inline void url_search_params::parse(const T& query) {
-    params_ = do_parse(query);
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline void url_search_params::parse(Args&&... query) {
+    params_ = do_parse(std::forward<Args>(query)...);
     is_sorted_ = false;
 }
 
@@ -248,11 +234,13 @@ inline void url_search_params::sort() {
     }
 }
 
-template <class T>
-inline url_search_params::key_value_list url_search_params::do_parse(const T& query) {
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline url_search_params::key_value_list url_search_params::do_parse(Args&&... query) {
     key_value_list lst;
-    auto b = str_begin(query);
-    auto e = str_end(query);
+
+    auto str_query = make_string(std::forward<Args>(query)...);
+    auto b = str_query.begin();
+    auto e = str_query.end();
 
     // https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
     if (b != e && *b == '?')

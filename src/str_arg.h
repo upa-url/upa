@@ -19,6 +19,7 @@ inline void procfn(Args&&... args) {
 #define WHATWG_STR_ARG_H
 
 #include <cassert>
+#include <iterator>
 #include <string>
 #include <type_traits>
 #include "config.h"
