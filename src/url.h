@@ -32,13 +32,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#ifdef WHATWG__CPP_17
-# include <string_view>
-# define WHATWG_URL_STR_VIEW_TYPE  std::string_view
-#else
-# include "str_view.h"
-# define WHATWG_URL_STR_VIEW_TYPE  whatwg::str_view<char>
-#endif
 
 // not yet
 #define WHATWG_URL_USE_ENCODING 0
@@ -50,7 +43,7 @@ namespace whatwg {
 class url {
 public:
     // types
-    using str_view_type = WHATWG_URL_STR_VIEW_TYPE;
+    using str_view_type = url_str_view_t;
 
     enum PartType {
         SCHEME = 0,

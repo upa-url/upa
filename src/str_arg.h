@@ -21,9 +21,21 @@ inline void procfn(Args&&... args) {
 #include <cassert>
 #include <string>
 #include <type_traits>
+#include "config.h"
+
+#ifdef WHATWG__CPP_17
+# include <string_view>
+# define WHATWG_URL_STR_VIEW_TYPE  std::string_view
+#else
+# include "str_view.h"
+# define WHATWG_URL_STR_VIEW_TYPE  whatwg::str_view<char>
+#endif
 
 namespace whatwg {
 
+// String view type
+
+using url_str_view_t = WHATWG_URL_STR_VIEW_TYPE;
 
 // Supported char and size types
 
