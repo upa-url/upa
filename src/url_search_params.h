@@ -116,7 +116,7 @@ inline url_search_params::url_search_params(Args&&... query)
 template<class ConT, typename std::enable_if<is_pair<typename ConT::value_type>::value, int>::type>
 inline url_search_params::url_search_params(const ConT& cont) {
     for (auto p : cont) {
-        params_.emplace_back(p.first, p.second);
+        params_.emplace_back(make_string(p.first), make_string(p.second));
     }
 }
 
