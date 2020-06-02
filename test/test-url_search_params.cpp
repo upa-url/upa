@@ -10,6 +10,14 @@
 // Last checked for updates: 2020-05-04
 //
 
+#ifdef __cpp_char8_t
+constexpr bool operator==(std::string_view lhs, std::u8string_view rhs) noexcept {
+    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
+        [](char a, char8_t b) { return a == char(b) && char8_t(a) == b; }
+    );
+}
+#endif
+
 template <class T>
 static bool param_eq(const std::string* pval, const T& value) {
     return pval != nullptr && *pval == value;
@@ -148,7 +156,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
             CHECK_MESSAGE(params.has(" "), "Search params object has name \" \"");
             CHECK_FALSE_MESSAGE(params.has("c"), "Search params object did not have the name \"c\"");
             CHECK_MESSAGE(params.has(" c"), "Search params object has name \" c\"");
-            CHECK_MESSAGE(params.has(u8"m\u00F8\u00F8"), u8"Search params object has name \"m\u00F8\u00F8\"");
+            CHECK_MESSAGE(params.has(u8"m\u00F8\u00F8"), "Search params object has name \"m\\u00F8\\u00F8\"");
         }
     }
 
