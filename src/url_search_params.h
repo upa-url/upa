@@ -139,8 +139,9 @@ inline void url_search_params::append(T&& name, TV&& value) {
 
 template <class T>
 inline void url_search_params::del(const T& name) {
+    const auto str_name = make_string(name);
     for (auto it = params_.begin(); it != params_.end();) {
-        if (it->first == name)
+        if (it->first == str_name)
             it = params_.erase(it);
         else
             ++it;
@@ -149,8 +150,9 @@ inline void url_search_params::del(const T& name) {
 
 template <class T>
 inline const std::string* url_search_params::get(const T& name) const {
+    const auto str_name = make_string(name);
     for (auto it = params_.begin(); it != params_.end(); ++it) {
-        if (it->first == name)
+        if (it->first == str_name)
             return &it->second;
     }
     return nullptr;
@@ -159,8 +161,9 @@ inline const std::string* url_search_params::get(const T& name) const {
 template <class T>
 std::list<std::string> url_search_params::getAll(const T& name) const {
     std::list<std::string> lst;
+    const auto str_name = make_string(name);
     for (auto it = params_.begin(); it != params_.end(); ++it) {
-        if (it->first == name)
+        if (it->first == str_name)
             lst.push_back(it->second);
     }
     return lst;
@@ -168,8 +171,9 @@ std::list<std::string> url_search_params::getAll(const T& name) const {
 
 template <class T>
 inline bool url_search_params::has(const T& name) const {
+    const auto str_name = make_string(name);
     for (auto it = params_.begin(); it != params_.end(); ++it) {
-        if (it->first == name)
+        if (it->first == str_name)
             return true;
     }
     return false;
