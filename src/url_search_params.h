@@ -92,8 +92,8 @@ public:
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     static key_value_list do_parse(Args&&... query);
 
-    template <class T>
-    static void urlencode(std::string& encoded, const T& value);
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    static void urlencode(std::string& encoded, Args&&... value);
 
 private:
     key_value_list params_;
@@ -102,27 +102,6 @@ private:
     static const char kEncByte[0x100];
 };
 
-// utilities
-
-namespace {
-
-inline const char* str_begin(const char* p) {
-    return p;
-}
-inline const char* str_end(const char* p) {
-    return p + std::char_traits<char>::length(p);
-}
-
-template <class T>
-inline auto str_begin(const T& s) -> decltype(std::begin(s)) {
-    return std::begin(s);
-}
-template <class T>
-inline auto str_end(const T& s) -> decltype(std::end(s)) {
-    return std::end(s);
-}
-
-}
 
 // url_search_params inline
 
@@ -298,10 +277,11 @@ inline url_search_params::key_value_list url_search_params::do_parse(Args&&... q
     return lst;
 }
 
-template <class T>
-inline void url_search_params::urlencode(std::string& encoded, const T& value) {
-    auto b = str_begin(value);
-    auto e = str_end(value);
+template <class ...Args, enable_if_str_arg_t<Args...>>
+inline void url_search_params::urlencode(std::string& encoded, Args&&... value) {
+    auto str_value = make_string(std::forward<Args>(value)...);
+    auto b = str_value.begin();
+    auto e = str_value.end();
 
     for (auto it = b; it != e; ++it) {
         unsigned char uc = static_cast<unsigned char>(*it);
