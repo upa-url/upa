@@ -37,6 +37,7 @@ public:
     using const_reverse_iterator = key_value_list::const_reverse_iterator;
     using iterator = const_iterator;
     using reverse_iterator = const_reverse_iterator;
+    using size_type = key_value_list::size_type;
     using value_type = key_value_pair;
 
     // constructors
@@ -86,6 +87,11 @@ public:
     const_reverse_iterator crbegin() const { return params_.crbegin(); }
     const_reverse_iterator rend() const { return params_.rend(); }
     const_reverse_iterator crend() const { return params_.crend(); }
+
+    // capacity
+
+    bool empty() const noexcept { return params_.empty(); }
+    size_type size() const noexcept { return params_.size(); }
 
     // utils
 
