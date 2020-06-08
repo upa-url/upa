@@ -7,8 +7,10 @@
 #define WHATWG_URL_SEARCH_PARAMS_H
 
 #include <list>
+#include <memory>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include "str_arg.h"
 #include "url_percent_encode.h"
 
@@ -110,7 +112,7 @@ private:
 
     void update();
 
-    friend class url;
+    friend class url_search_params_ptr;
 
 private:
     key_value_list params_;
@@ -118,6 +120,47 @@ private:
     url* url_ptr_ = nullptr;
 
     static const char kEncByte[0x100];
+};
+
+class url_search_params_ptr
+{
+public:
+    url_search_params_ptr() noexcept = default;
+    url_search_params_ptr(url_search_params_ptr&&) noexcept = default;
+
+    // move assignment
+    url_search_params_ptr& operator=(url_search_params_ptr&& other) noexcept {
+        ptr_ = std::move(other.ptr_);
+        return *this;
+    }
+
+    // copy constructor/assignment initializes to nullptr
+    url_search_params_ptr(const url_search_params_ptr&) noexcept {}
+    url_search_params_ptr& operator=(const url_search_params_ptr&) noexcept {
+        ptr_ = nullptr;
+        return *this;
+    }
+
+    void init(url* url_ptr) {
+        ptr_.reset(new url_search_params(url_ptr));
+    }
+
+    void parse_params(url_str_view_t query) {
+        assert(ptr_);
+        ptr_->parse(query);
+    }
+
+    explicit operator bool() const noexcept {
+        return bool(ptr_);
+    }
+    url_search_params& operator*() const {
+        return *ptr_;
+    }
+    url_search_params* operator->() const noexcept {
+        return ptr_.get();
+    }
+private:
+    std::unique_ptr<url_search_params> ptr_;
 };
 
 
