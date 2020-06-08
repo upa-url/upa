@@ -44,6 +44,8 @@ public:
 
     // constructors
     url_search_params();
+    url_search_params(const url_search_params& other);
+    url_search_params(url_search_params&&) = default;
 
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     url_search_params(Args&&... query);
@@ -104,7 +106,11 @@ public:
     static void urlencode(std::string& encoded, Args&&... value);
 
 private:
+    explicit url_search_params(url* url_ptr);
+
     void update();
+
+    friend class url;
 
 private:
     key_value_list params_;
@@ -118,6 +124,12 @@ private:
 // url_search_params inline
 
 inline url_search_params::url_search_params()
+{}
+
+inline url_search_params::url_search_params(const url_search_params& other)
+    : params_(other.params_)
+    , is_sorted_(other.is_sorted_)
+    , url_ptr_(nullptr)
 {}
 
 template <class ...Args, enable_if_str_arg_t<Args...>>

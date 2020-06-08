@@ -10,6 +10,11 @@
 namespace whatwg {
 
 
+url_search_params::url_search_params(url* url_ptr)
+    : params_(do_parse(url_ptr->get_part_view(url::QUERY)))
+    , url_ptr_(url_ptr)
+{}
+
 void url_search_params::update() {
     if (url_ptr_) {
         url_setter urls(*url_ptr_);
