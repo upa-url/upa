@@ -253,6 +253,7 @@ private:
     friend class url_serializer;
     friend class url_setter;
     friend class url_parser;
+    friend class url_search_params;
 };
 
 

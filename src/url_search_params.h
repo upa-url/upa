@@ -27,6 +27,8 @@ struct is_pair<std::pair<T1, T2>> : std::true_type {};
 }
 
 
+class url;
+
 class url_search_params
 {
 public:
@@ -102,8 +104,12 @@ public:
     static void urlencode(std::string& encoded, Args&&... value);
 
 private:
+    void update();
+
+private:
     key_value_list params_;
     bool is_sorted_ = false;
+    url* url_ptr_ = nullptr;
 
     static const char kEncByte[0x100];
 };
@@ -141,6 +147,7 @@ inline void url_search_params::append(T&& name, TV&& value) {
         make_string(std::forward<TV>(value))
     );
     is_sorted_ = false;
+    update();
 }
 
 template <class T>
@@ -152,6 +159,7 @@ inline void url_search_params::del(const T& name) {
         else
             ++it;
     }
+    update();
 }
 
 template <class T>
@@ -204,6 +212,8 @@ inline void url_search_params::set(T&& name, TV&& value) {
     }
     if (!is_match)
         append(std::move(str_name), std::move(str_value));
+    else
+        update();
 }
 
 inline void url_search_params::sort() {
@@ -221,6 +231,7 @@ inline void url_search_params::sort() {
         });
         is_sorted_ = true;
     }
+    update();
 }
 
 template <class ...Args, enable_if_str_arg_t<Args...>>
