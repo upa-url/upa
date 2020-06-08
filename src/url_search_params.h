@@ -110,6 +110,8 @@ public:
 private:
     explicit url_search_params(url* url_ptr);
 
+    void clear_params();
+
     void update();
 
     friend class url_search_params_ptr;
@@ -145,6 +147,10 @@ public:
         ptr_.reset(new url_search_params(url_ptr));
     }
 
+    void clear_params() {
+        assert(ptr_);
+        ptr_->clear_params();
+    }
     void parse_params(url_str_view_t query) {
         assert(ptr_);
         ptr_->parse(query);
@@ -188,6 +194,11 @@ inline url_search_params::url_search_params(const ConT& cont) {
 }
 
 // operations
+
+inline void url_search_params::clear_params() {
+    params_.clear();
+    is_sorted_ = true;
+}
 
 template <class ...Args, enable_if_str_arg_t<Args...>>
 inline void url_search_params::parse(Args&&... query) {
