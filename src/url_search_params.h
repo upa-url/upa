@@ -111,6 +111,7 @@ private:
     explicit url_search_params(url* url_ptr);
 
     void clear_params();
+    void parse_params(url_str_view_t query);
 
     void update();
 
@@ -153,7 +154,7 @@ public:
     }
     void parse_params(url_str_view_t query) {
         assert(ptr_);
-        ptr_->parse(query);
+        ptr_->parse_params(query);
     }
 
     explicit operator bool() const noexcept {
@@ -200,10 +201,16 @@ inline void url_search_params::clear_params() {
     is_sorted_ = true;
 }
 
+inline void url_search_params::parse_params(url_str_view_t query) {
+    params_ = do_parse(query);
+    is_sorted_ = false;
+}
+
 template <class ...Args, enable_if_str_arg_t<Args...>>
 inline void url_search_params::parse(Args&&... query) {
     params_ = do_parse(std::forward<Args>(query)...);
     is_sorted_ = false;
+    update();
 }
 
 template <class T, class TV>
