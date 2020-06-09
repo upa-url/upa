@@ -7,7 +7,7 @@
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2020-05-04
+// Last checked for updates: 2020-06-08
 //
 
 #ifdef __cpp_char8_t
@@ -629,7 +629,6 @@ TEST_CASE("urlsearchparams-stringifier.any.js") {
     }
 
     SUBCASE("URLSearchParams connected to URL") {
-        // URL with searchParams
         // whatwg::url url("http://www.example.com/?a=b,c");
         whatwg::url url;
         REQUIRE(whatwg::success(url.parse("http://www.example.com/?a=b,c", nullptr)));
@@ -642,5 +641,21 @@ TEST_CASE("urlsearchparams-stringifier.any.js") {
 
         CHECK_EQ(url.to_string(), "http://www.example.com/?a=b%2Cc&x=y");
         CHECK_EQ(params.to_string(), "a=b%2Cc&x=y");
+    }
+}
+
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-sort.any.js
+//
+TEST_CASE("urlsearchparams-sort.any.js") {
+
+    // Other sorting tests are in the test-urlencoded-parser.cpp
+
+    SUBCASE("Sorting non-existent params removes ? from URL") {
+        whatwg::url url;
+        REQUIRE(whatwg::success(url.parse("http://example.com/?", nullptr)));
+        url.searchParams().sort();
+        CHECK_EQ(url.href(), "http://example.com/");
+        CHECK_EQ(url.search(), "");
     }
 }

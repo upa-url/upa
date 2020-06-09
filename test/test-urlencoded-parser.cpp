@@ -24,7 +24,7 @@ std::basic_ostream<CharT, Traits>& operator<<(
 // https://github.com/web-platform-tests/wpt/blob/master/url/urlencoded-parser.any.js
 // https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-sort.any.js
 //
-// Last checked for updates: 2020-05-25
+// Last checked for updates: 2020-06-08
 //
 
 int test_from_file(const char* file_name, bool sort = false);
@@ -35,6 +35,9 @@ int main(int argc, char** argv)
 
     err |= test_from_file("data/urlencoded-parser.json");
     err |= test_from_file("data/urlsearchparams-sort.json", true);
+
+    // NOTE: "Sorting non-existent params removes ? from URL" test based on
+    // urlsearchparams-sort.any.js is in the test-url_search_params.cpp
 
     return err;
 }
