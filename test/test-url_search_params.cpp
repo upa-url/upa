@@ -7,7 +7,7 @@
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2020-05-04
+// Last checked for updates: 2020-06-08
 //
 
 #ifdef __cpp_char8_t
@@ -351,23 +351,24 @@ TEST_CASE("urlsearchparams-delete.any.js") {
         CHECK_FALSE_MESSAGE(params.has("first"), "Search params object has no \"first\" name");
     }
 
-#if 0
-    // TODO: integrate url_search_params in to URL
     SUBCASE("Deleting all params removes ? from URL") {
-        whatwg::URL url("http://example.com/?param1&param2");
-        url.searchParams.del("param1");
-        url.searchParams.del("param2");
+        // whatwg::url url("http://example.com/?param1&param2");
+        whatwg::url url;
+        REQUIRE(whatwg::success(url.parse("http://example.com/?param1&param2", nullptr)));
+        url.searchParams().del("param1");
+        url.searchParams().del("param2");
         CHECK_MESSAGE(url.href() == "http://example.com/", "url.href does not have ?");
         CHECK_MESSAGE(url.search() == "", "url.search does not have ?");
     }
 
     SUBCASE("Removing non-existent param removes ? from URL") {
-        whatwg::URL url("http://example.com/?");
-        url.searchParams.del("param1");
+        // whatwg::url url("http://example.com/?");
+        whatwg::url url;
+        REQUIRE(whatwg::success(url.parse("http://example.com/?", nullptr)));
+        url.searchParams().del("param1");
         CHECK_MESSAGE(url.href() == "http://example.com/", "url.href does not have ?");
         CHECK_MESSAGE(url.search() == "", "url.search does not have ?");
     }
-#endif
 }
 
 //
@@ -628,31 +629,33 @@ TEST_CASE("urlsearchparams-stringifier.any.js") {
     }
 
     SUBCASE("URLSearchParams connected to URL") {
-#if 0
-        // TODO: URL with searchParams
-        whatwg::URL url("http://www.example.com/?a=b,c");
-        auto& params = url.searchParams;
-
-        CHECK_EQ(url.to_string(), "http://www.example.com/?a=b,c");
-        CHECK_EQ(params.to_string(), "a=b%2Cc");
-
-        params.append("x", "y");
-
-        CHECK_EQ(url.to_string(), "http://www.example.com/?a=b%2Cc&x=y");
-        CHECK_EQ(params.to_string(), "a=b%2Cc&x=y");
-#else
+        // whatwg::url url("http://www.example.com/?a=b,c");
         whatwg::url url;
         REQUIRE(whatwg::success(url.parse("http://www.example.com/?a=b,c", nullptr)));
-        whatwg::url_search_params params(url.search());
+        auto& params = url.searchParams();
 
         CHECK_EQ(url.to_string(), "http://www.example.com/?a=b,c");
         CHECK_EQ(params.to_string(), "a=b%2Cc");
 
         params.append("x", "y");
-        url.search(params.to_string());
 
         CHECK_EQ(url.to_string(), "http://www.example.com/?a=b%2Cc&x=y");
         CHECK_EQ(params.to_string(), "a=b%2Cc&x=y");
-#endif
+    }
+}
+
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-sort.any.js
+//
+TEST_CASE("urlsearchparams-sort.any.js") {
+
+    // Other sorting tests are in the test-urlencoded-parser.cpp
+
+    SUBCASE("Sorting non-existent params removes ? from URL") {
+        whatwg::url url;
+        REQUIRE(whatwg::success(url.parse("http://example.com/?", nullptr)));
+        url.searchParams().sort();
+        CHECK_EQ(url.href(), "http://example.com/");
+        CHECK_EQ(url.search(), "");
     }
 }

@@ -7,8 +7,10 @@
 #define WHATWG_URL_SEARCH_PARAMS_H
 
 #include <list>
+#include <memory>
 #include <string>
 #include <type_traits>
+#include <utility>
 #include "str_arg.h"
 #include "url_percent_encode.h"
 
@@ -27,6 +29,8 @@ struct is_pair<std::pair<T1, T2>> : std::true_type {};
 }
 
 
+class url;
+
 class url_search_params
 {
 public:
@@ -37,10 +41,13 @@ public:
     using const_reverse_iterator = key_value_list::const_reverse_iterator;
     using iterator = const_iterator;
     using reverse_iterator = const_reverse_iterator;
+    using size_type = key_value_list::size_type;
     using value_type = key_value_pair;
 
     // constructors
     url_search_params();
+    url_search_params(const url_search_params& other);
+    url_search_params(url_search_params&&) = default;
 
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     url_search_params(Args&&... query);
@@ -87,6 +94,11 @@ public:
     const_reverse_iterator rend() const { return params_.rend(); }
     const_reverse_iterator crend() const { return params_.crend(); }
 
+    // capacity
+
+    bool empty() const noexcept { return params_.empty(); }
+    size_type size() const noexcept { return params_.size(); }
+
     // utils
 
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
@@ -96,16 +108,78 @@ public:
     static void urlencode(std::string& encoded, Args&&... value);
 
 private:
+    explicit url_search_params(url* url_ptr);
+
+    void clear_params();
+    void parse_params(url_str_view_t query);
+
+    void update();
+
+    friend class url_search_params_ptr;
+
+private:
     key_value_list params_;
     bool is_sorted_ = false;
+    url* url_ptr_ = nullptr;
 
     static const char kEncByte[0x100];
+};
+
+class url_search_params_ptr
+{
+public:
+    url_search_params_ptr() noexcept = default;
+    url_search_params_ptr(url_search_params_ptr&&) noexcept = default;
+
+    // move assignment
+    url_search_params_ptr& operator=(url_search_params_ptr&& other) noexcept {
+        ptr_ = std::move(other.ptr_);
+        return *this;
+    }
+
+    // copy constructor/assignment initializes to nullptr
+    url_search_params_ptr(const url_search_params_ptr&) noexcept {}
+    url_search_params_ptr& operator=(const url_search_params_ptr&) noexcept {
+        ptr_ = nullptr;
+        return *this;
+    }
+
+    void init(url* url_ptr) {
+        ptr_.reset(new url_search_params(url_ptr));
+    }
+
+    void clear_params() {
+        assert(ptr_);
+        ptr_->clear_params();
+    }
+    void parse_params(url_str_view_t query) {
+        assert(ptr_);
+        ptr_->parse_params(query);
+    }
+
+    explicit operator bool() const noexcept {
+        return bool(ptr_);
+    }
+    url_search_params& operator*() const {
+        return *ptr_;
+    }
+    url_search_params* operator->() const noexcept {
+        return ptr_.get();
+    }
+private:
+    std::unique_ptr<url_search_params> ptr_;
 };
 
 
 // url_search_params inline
 
 inline url_search_params::url_search_params()
+{}
+
+inline url_search_params::url_search_params(const url_search_params& other)
+    : params_(other.params_)
+    , is_sorted_(other.is_sorted_)
+    , url_ptr_(nullptr)
 {}
 
 template <class ...Args, enable_if_str_arg_t<Args...>>
@@ -122,10 +196,21 @@ inline url_search_params::url_search_params(const ConT& cont) {
 
 // operations
 
+inline void url_search_params::clear_params() {
+    params_.clear();
+    is_sorted_ = true;
+}
+
+inline void url_search_params::parse_params(url_str_view_t query) {
+    params_ = do_parse(query);
+    is_sorted_ = false;
+}
+
 template <class ...Args, enable_if_str_arg_t<Args...>>
 inline void url_search_params::parse(Args&&... query) {
     params_ = do_parse(std::forward<Args>(query)...);
     is_sorted_ = false;
+    update();
 }
 
 template <class T, class TV>
@@ -135,6 +220,7 @@ inline void url_search_params::append(T&& name, TV&& value) {
         make_string(std::forward<TV>(value))
     );
     is_sorted_ = false;
+    update();
 }
 
 template <class T>
@@ -146,6 +232,7 @@ inline void url_search_params::del(const T& name) {
         else
             ++it;
     }
+    update();
 }
 
 template <class T>
@@ -198,6 +285,8 @@ inline void url_search_params::set(T&& name, TV&& value) {
     }
     if (!is_match)
         append(std::move(str_name), std::move(str_value));
+    else
+        update();
 }
 
 inline void url_search_params::sort() {
@@ -215,6 +304,7 @@ inline void url_search_params::sort() {
         });
         is_sorted_ = true;
     }
+    update();
 }
 
 template <class ...Args, enable_if_str_arg_t<Args...>>
