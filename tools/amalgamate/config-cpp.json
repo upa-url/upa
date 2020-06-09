@@ -8,6 +8,7 @@
     "src/url_idna.cpp",
     "src/url_ip.cpp",
     "src/url_percent_encode.cpp",
+    "src/url_search_params.cpp",
     "src/url_utf.cpp"
   ],
   "include_paths": [],
