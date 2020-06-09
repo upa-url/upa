@@ -25,6 +25,7 @@
 #include "url_idna.h"
 #include "url_percent_encode.h"
 #include "url_result.h"
+#include "url_search_params.h"
 #include "url_utf.h"
 #include <algorithm>
 #include <array>
@@ -166,6 +167,9 @@ public:
 
     str_view_type hash() const;
 
+    // https://url.spec.whatwg.org/#dom-url-searchparams
+    url_search_params& searchParams();
+
     // get url info
     
     str_view_type get_part_view(PartType t) const;
@@ -243,16 +247,22 @@ protected:
     // info
     bool canHaveUsernamePasswordPort();
 
+    // search params
+    void clear_search_params();
+    void parse_search_params();
+
 private:
     std::string norm_url_;
     std::array<std::size_t, PART_COUNT> part_end_;
     const scheme_info* scheme_inf_;
     unsigned flags_;
     std::size_t path_segment_count_;
+    url_search_params_ptr search_params_ptr_;
 
     friend class url_serializer;
     friend class url_setter;
     friend class url_parser;
+    friend class url_search_params;
 };
 
 
@@ -720,6 +730,22 @@ inline url::str_view_type url::hash() const {
     return str_view_type(norm_url_.data() + b, e - b);
 }
 
+inline url_search_params& url::searchParams() {
+    if (!search_params_ptr_)
+        search_params_ptr_.init(this);
+    return *search_params_ptr_;
+}
+
+inline void url::clear_search_params() {
+    if (search_params_ptr_)
+        search_params_ptr_.clear_params();
+}
+
+inline void url::parse_search_params() {
+    if (search_params_ptr_)
+        search_params_ptr_.parse_params(get_part_view(QUERY));
+}
+
 // get url info
 
 inline url::str_view_type url::get_part_view(PartType t) const {
@@ -822,16 +848,21 @@ inline void url::clear() {
 
 template <typename CharT>
 inline url_result url::parse(const CharT* first, const CharT* last, const url* base) {
-    url_serializer urls(*this); // new URL
+    url_result res;
+    {
+        url_serializer urls(*this); // new URL
 
-    // reset URL
-    urls.new_url();
+        // reset URL
+        urls.new_url();
 
-    // remove any leading and trailing C0 control or space:
-    detail::do_trim(first, last);
-    //TODO-WARN: validation error if trimmed
+        // remove any leading and trailing C0 control or space:
+        detail::do_trim(first, last);
+        //TODO-WARN: validation error if trimmed
 
-    return url_parser::url_parse(urls, first, last, base);
+        res = url_parser::url_parse(urls, first, last, base);
+    }
+    parse_search_params();
+    return res;
 }
 
 template <class ...Args, enable_if_str_arg_t<Args...>>
@@ -943,20 +974,26 @@ inline bool url::pathname(Args&&... args) {
 
 template <class ...Args, enable_if_str_arg_t<Args...>>
 inline bool url::search(Args&&... args) {
-    url_setter urls(*this);
+    bool res;
+    {
+        url_setter urls(*this);
 
-    const auto inp = make_str_arg(std::forward<Args>(args)...);
-    const auto* first = inp.begin();
-    const auto* last = inp.end();
+        const auto inp = make_str_arg(std::forward<Args>(args)...);
+        const auto* first = inp.begin();
+        const auto* last = inp.end();
 
-    if (first == last) {
-        urls.clear_part(url::QUERY);
-        //todo: empty context object's query object's list
-        return true;
+        if (first == last) {
+            urls.clear_part(url::QUERY);
+            // empty context object's query object's list
+            clear_search_params();
+            return true;
+        }
+        if (*first == '?') first++;
+        res = url_parser::url_parse(urls, first, last, nullptr, url_parser::query_state) == url_result::Ok;
     }
-    if (*first == '?') first++;
-    return url_parser::url_parse(urls, first, last, nullptr, url_parser::query_state) == url_result::Ok;
-    //todo: set context object's query object's list to the result of parsing input
+    // set context object's query object's list to the result of parsing input
+    parse_search_params();
+    return res;
 }
 
 template <class ...Args, enable_if_str_arg_t<Args...>>

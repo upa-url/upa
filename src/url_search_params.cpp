@@ -3,10 +3,33 @@
 // found in the LICENSE file.
 //
 
+#include "url.h"
 #include "url_search_params.h"
 
 
 namespace whatwg {
+
+
+url_search_params::url_search_params(url* url_ptr)
+    : params_(do_parse(url_ptr->get_part_view(url::QUERY)))
+    , url_ptr_(url_ptr)
+{}
+
+void url_search_params::update() {
+    if (url_ptr_) {
+        url_setter urls(*url_ptr_);
+
+        if (empty()) {
+            // set query to null
+            urls.clear_part(url::QUERY);
+        } else {
+            std::string& str_query = urls.start_part(url::QUERY);
+            serialize(str_query);
+            urls.save_part();
+            urls.set_flag(url::QUERY_FLAG); // not null query
+        }
+    }
+}
 
 
 // The percent encoding/mapping table of URL search parameter bytes. If
