@@ -64,7 +64,7 @@ void test_urlencoded_parser(DataDrivenTest& ddt, const TestObj& obj) {
 
         if (obj.m_sort) sparams.sort();
 
-        const size_t n_sparams = std::distance(sparams.begin(), sparams.end());
+        const size_t n_sparams = sparams.size();
         const size_t n_expected = obj.m_output.size();
         tc.assert_equal(n_expected, n_sparams, "parameters count");
 
