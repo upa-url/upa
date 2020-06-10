@@ -76,7 +76,7 @@ public:
     url& operator=(const url& src) = default;
 
     // Move constructor & assignment
-    url(url&& src) = default;
+    url(url&& src) noexcept = default;
     url& operator=(url&& src) = default;
 
     void clear();

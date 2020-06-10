@@ -47,7 +47,7 @@ public:
     // constructors
     url_search_params();
     url_search_params(const url_search_params& other);
-    url_search_params(url_search_params&&) = default;
+    url_search_params(url_search_params&&) noexcept = default;
 
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     url_search_params(Args&&... query);
