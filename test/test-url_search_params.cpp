@@ -18,6 +18,12 @@ constexpr bool operator==(std::string_view lhs, std::u8string_view rhs) noexcept
 }
 #endif
 
+// to convert char8_t* literal to std::string
+template <class T>
+static std::string mk_string(T&& val) {
+    return std::string(whatwg::make_string(std::forward<T>(val)));
+}
+
 template <class T>
 static bool param_eq(const std::string* pval, const T& value) {
     return pval != nullptr && *pval == value;
@@ -34,6 +40,8 @@ static bool list_eq(const List& val, std::initializer_list<T> lst) {
 #endif
 }
 
+template <class T>
+using pairs_list_t = std::initializer_list<std::pair<T, T>>;;
 
 //
 // https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-append.any.js
@@ -307,7 +315,30 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         }
     }
 
-    // TODO: other tests
+    SUBCASE("Construct with ...") {
+        struct {
+            pairs_list_t<std::u16string> input;
+            pairs_list_t<std::string> output;
+            const char* name;
+        } lst[] = {
+            {{{u"+", u"%C2"}}, {{"+", "%C2"}}, "object with +"},
+            {{{u"c", u"x"}, {u"a", u"?"}}, {{"c", "x"}, {"a", "?"}}, "object/array with two keys" },
+            {
+                // C++ forbids invalid code points in string literals, so it uses initializer list
+                // to inject invalid 0xD83D code point (unpaired surrogate) into string
+                {{std::u16string(u"a\0b", 3), u"42"}, {std::u16string{{u'c', 0xD83D}}, u"23"}, {u"d\u1234", u"foo"}},
+                {{std::string("a\0b", 3), "42"}, {mk_string(u8"c\uFFFD"), "23"}, {mk_string(u8"d\u1234"), "foo"}},
+                "object with NULL, non-ASCII, and surrogate keys"
+            }
+        };
+        for (const auto& val : lst) {
+            INFO("Construct with: " << val.name);
+            whatwg::url_search_params params(val.input);
+            CHECK(list_eq(params, val.output));
+        }
+    }
+
+    // Skip test with yield
 }
 
 //
