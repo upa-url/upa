@@ -117,6 +117,34 @@ protected:
 };
 
 
+// String type helpers
+
+template<class T>
+using remove_cvptr_t = typename std::remove_cv<typename std::remove_pointer<T>::type>::type;
+
+namespace detail {
+    // See: https://stackoverflow.com/a/9154394
+
+    // test class has data() member
+    template<class T>
+    static auto test_data(int) -> decltype(std::declval<T>().data());
+    template<class>
+    static auto test_data(long) -> void;
+
+    // test class has length() member
+    template<class T>
+    static auto test_length(int) -> decltype(std::declval<T>().length());
+    template<class>
+    static auto test_length(long) -> void;
+
+    template<class T>
+    using data_member_t = decltype(detail::test_data<T>(0));
+
+    template<class T>
+    using length_member_t = decltype(detail::test_length<T>(0));
+} // namespace detail
+
+
 // Requirements for string arguments
 
 template<class ...Args>
@@ -150,8 +178,9 @@ struct str_arg_char<CharT[N]> : std::remove_cv<CharT> {};
 // one string class argument
 template<class StrT>
 struct str_arg_char<StrT> : std::enable_if<
-    std::is_base_of<std::random_access_iterator_tag, typename std::iterator_traits<typename StrT::const_iterator>::iterator_category>::value,
-    typename StrT::value_type> {};
+    std::is_pointer<detail::data_member_t<StrT>>::value &&
+    is_size_type<detail::length_member_t<StrT>>::value,
+    remove_cvptr_t<detail::data_member_t<StrT>>> {};
 
 template<class CharT>
 struct str_arg_char<str_arg<CharT>> {
