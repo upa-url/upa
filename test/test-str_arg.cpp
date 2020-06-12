@@ -5,6 +5,8 @@
 //#include "doctest-main.h"
 
 
+// Function to test
+
 using namespace whatwg;
 
 template <class ...Args, enable_if_str_arg_t<Args...> = 0>
@@ -13,6 +15,36 @@ inline std::size_t procfn(Args&&... args) {
     return std::distance(inp.begin(), inp.end());
 }
 
+
+// Custom string class and it's specialization
+
+template <typename CharT>
+class CustomString {
+public:
+    CustomString(const CharT* data, std::size_t length)
+        : data_(data), length_(length) {}
+    const CharT* GetData() const { return data_; }
+    std::size_t GetLength() const { return length_; }
+private:
+    const CharT* data_ = nullptr;
+    std::size_t length_ = 0;
+};
+
+namespace whatwg {
+
+template<typename CharT>
+struct str_arg_char<CustomString<CharT>> {
+    using type = CharT;
+
+    static str_arg<CharT> to_str_arg(const CustomString<CharT>& str) {
+        return { str.GetData(), str.GetLength() };
+    }
+};
+
+} // namespace whatwg
+
+
+// Test char type
 
 template <class CharT>
 inline void test_char() {
@@ -51,6 +83,9 @@ inline void test_char() {
 
     whatwg::str_arg<CharT> arg(arr);
     procfn(arg);
+
+    // test custom string
+    procfn(CustomString<CharT>{cptr, N});
 }
 
 int main() {
