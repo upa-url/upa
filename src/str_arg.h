@@ -154,26 +154,15 @@ struct str_arg_char {};
 template<class CharT>
 struct str_arg_char<CharT*, CharT*> : std::remove_cv<CharT> {};
 
-template<class CharT, std::size_t N>
-struct str_arg_char<CharT[N], CharT*> : std::remove_cv<CharT> {};
-
 // pointer and size
 template<class CharT, class SizeT>
 struct str_arg_char<CharT*, SizeT> : std::enable_if<
     is_size_type<SizeT>::value,
     typename std::remove_cv<CharT>::type> {};
 
-template<class CharT, std::size_t N, class SizeT>
-struct str_arg_char<CharT[N], SizeT> : std::enable_if<
-    is_size_type<SizeT>::value,
-    typename std::remove_cv<CharT>::type> {};
-
 // one pointer (null terminated string)
 template<class CharT>
 struct str_arg_char<CharT*> : std::remove_cv<CharT> {};
-
-template<class CharT, std::size_t N>
-struct str_arg_char<CharT[N]> : std::remove_cv<CharT> {};
 
 // one string class argument
 template<class StrT>
@@ -190,11 +179,8 @@ struct str_arg_char<str_arg<CharT>> {
 
 // String arguments helper types
 
-template<class T>
-using remove_cvref_t = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
-
 template<class ...Args>
-using str_arg_char_t = typename str_arg_char<remove_cvref_t<Args>...>::type;
+using str_arg_char_t = typename str_arg_char<typename std::decay<Args>::type...>::type;
 
 
 template<class ...Args>

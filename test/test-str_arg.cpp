@@ -40,7 +40,7 @@ inline void test_char() {
     procfn(cptr, int(N));
 
     procfn(arr, arr + N);
-    //procfn(carr, carr + N);
+    procfn(carr, carr + N);
     procfn(ptr, ptr + N);
     procfn(cptr, cptr + N);
     procfn(vptr, vptr + N);
