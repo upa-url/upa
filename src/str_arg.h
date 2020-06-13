@@ -89,6 +89,10 @@ public:
         : first_(s)
         , last_(s + length)
     {}
+    str_arg(const CharT* s, std::ptrdiff_t length)
+        : first_(s)
+        , last_(s + length)
+    {}
     str_arg(const CharT* first, const CharT* last)
         : first_(first)
         , last_(last)
@@ -152,35 +156,58 @@ struct str_arg_char {};
 
 // two pointers
 template<class CharT>
-struct str_arg_char<CharT*, CharT*> : std::remove_cv<CharT> {};
+struct str_arg_char<CharT*, CharT*> : std::remove_cv<CharT> {
+
+    template <typename T>
+    static str_arg<T> to_str_arg(const T* first, const T* last) {
+        assert(first <= last);
+        return { first, last };
+    }
+};
 
 // pointer and size
 template<class CharT, class SizeT>
 struct str_arg_char<CharT*, SizeT> : std::enable_if<
     is_size_type<SizeT>::value,
-    typename std::remove_cv<CharT>::type> {};
+    typename std::remove_cv<CharT>::type> {
+
+    template <typename T>
+    static str_arg<T> to_str_arg(const T* s, std::size_t length) {
+        return { s, length };
+    }
+};
 
 // one pointer (null terminated string)
 template<class CharT>
-struct str_arg_char<CharT*> : std::remove_cv<CharT> {};
+struct str_arg_char<CharT*> : std::remove_cv<CharT> {
+
+    template <typename T>
+    static str_arg<T> to_str_arg(const T* s) {
+        return s;
+    }
+};
 
 // one string class argument
 template<class StrT>
 struct str_arg_char<StrT> : std::enable_if<
     std::is_pointer<detail::data_member_t<StrT>>::value &&
     is_size_type<detail::length_member_t<StrT>>::value,
-    remove_cvptr_t<detail::data_member_t<StrT>>> {};
+    remove_cvptr_t<detail::data_member_t<StrT>>> {
 
-template<class CharT>
-struct str_arg_char<str_arg<CharT>> {
-    using type = CharT;
+    template <typename T = typename StrT::value_type>
+    static str_arg<T> to_str_arg(const StrT& str) {
+        return { str.data(), str.length() };
+    }
 };
 
 
 // String arguments helper types
 
 template<class ...Args>
-using str_arg_char_t = typename str_arg_char<typename std::decay<Args>::type...>::type;
+using str_arg_char_s = str_arg_char<typename std::decay<Args>::type...>;
+
+template<class ...Args>
+using str_arg_char_t = typename str_arg_char_s<Args...>::type;
 
 
 template<class ...Args>
@@ -189,32 +216,11 @@ using enable_if_str_arg_t = typename std::enable_if<
     int>::type;
 
 
-// String arguments helper functions
+// String arguments helper function
 
-template <typename CharT>
-inline str_arg<CharT> make_str_arg(const CharT* s) {
-    return s;
-}
-
-template <typename CharT>
-inline str_arg<CharT> make_str_arg(const CharT* s, std::size_t length) {
-    return { s, length };
-}
-
-template <typename CharT>
-inline str_arg<CharT> make_str_arg(const CharT* first, const CharT* last) {
-    assert(first <= last);
-    return { first, last };
-}
-
-template<class StrT, typename CharT = typename StrT::value_type>
-inline str_arg<CharT> make_str_arg(const StrT& str) {
-    return { str.data(), str.length() };
-}
-
-template <typename CharT>
-inline str_arg<CharT> make_str_arg(const str_arg<CharT>& arg) {
-    return arg;
+template <class ...Args>
+inline auto make_str_arg(Args&&... args) {
+    return str_arg_char_s<Args...>::to_str_arg(std::forward<Args>(args)...);
 }
 
 
