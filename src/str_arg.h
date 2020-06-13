@@ -219,7 +219,7 @@ using enable_if_str_arg_t = typename std::enable_if<
 // String arguments helper function
 
 template <class ...Args>
-inline auto make_str_arg(Args&&... args) {
+inline auto make_str_arg(Args&&... args) -> str_arg<str_arg_char_t<Args...>> {
     return str_arg_char_s<Args...>::to_str_arg(std::forward<Args>(args)...);
 }
 
