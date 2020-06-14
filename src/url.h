@@ -190,7 +190,7 @@ protected:
     struct scheme_info {
         str_view_type scheme;
         int default_port;           // -1 if none
-        unsigned is_special : 1;    // "ftp", "file", "gopher", "http", "https", "ws", "wss"
+        unsigned is_special : 1;    // "ftp", "file", "http", "https", "ws", "wss"
         unsigned is_file : 1;       // "file"
         unsigned is_ws : 1;         // "ws", "wss"
 
