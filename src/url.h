@@ -82,25 +82,17 @@ public:
     void clear();
 
     // parser
-    
-    template <typename CharT>
-    url_result parse(const CharT* first, const CharT* last, const url* base);
-    // wchar_t
-    url_result parse(const wchar_t* first, const wchar_t* last, const url* base) {
-        typedef std::conditional<sizeof(wchar_t) == sizeof(char16_t), char16_t, char32_t>::type CharT;
-        return parse(reinterpret_cast<const CharT*>(first), reinterpret_cast<const CharT*>(last), base);
+
+    template <class T, enable_if_str_arg_t<T> = 0>
+    url_result parse(T&& str, const url* base) {
+        const auto inp = make_str_arg(std::forward<T>(str));
+        return do_parse(inp.begin(), inp.end(), base);
     }
 
-    template <class BufferT>
-    url_result parse(const BufferT& str, const url* base) {
-        return parse(str.data(), str.data() + str.size(), base);
-    }
-
-    template <typename CharT>
-    url_result parse(const CharT* strz, const url* base) {
-        const CharT* last = strz;
-        while (*last) last++;
-        return parse(strz, last, base);
+    template <typename T1, typename T2, enable_if_str_arg_t<T1, T2> = 0>
+    url_result parse(T1&& arg1, T2&& arg2, const url* base) {
+        const auto inp = make_str_arg(std::forward<T1>(arg1), std::forward<T2>(arg2));
+        return do_parse(inp.begin(), inp.end(), base);
     }
 
     // setters
@@ -217,6 +209,10 @@ protected:
         // initial flags (empty (but not null) parts)
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
+
+    // parser
+    template <typename CharT>
+    url_result do_parse(const CharT* first, const CharT* last, const url* base);
 
     // get scheme info
     static const scheme_info kSchemes[];
@@ -847,7 +843,7 @@ inline void url::clear() {
 }
 
 template <typename CharT>
-inline url_result url::parse(const CharT* first, const CharT* last, const url* base) {
+inline url_result url::do_parse(const CharT* first, const CharT* last, const url* base) {
     url_result res;
     {
         url_serializer urls(*this); // new URL
