@@ -866,7 +866,7 @@ inline bool url::href(Args&&... args) {
     url u; // parsedURL
 
     const auto inp = make_str_arg(std::forward<Args>(args)...);
-    if (u.parse(inp.begin(), inp.end(), nullptr) == url_result::Ok) {
+    if (u.do_parse(inp.begin(), inp.end(), nullptr) == url_result::Ok) {
         *this = std::move(u);
         return true;
     }
