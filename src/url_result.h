@@ -6,7 +6,11 @@
 #ifndef URL_RESULT_H
 #define URL_RESULT_H
 
+#include <stdexcept>
+
 namespace whatwg {
+
+// URL error codes
 
 enum class url_result {
     // success
@@ -29,6 +33,23 @@ enum class url_result {
 inline bool success(url_result res) {
     return res == url_result::Ok;
 }
+
+// URL exception
+
+class url_error : public std::runtime_error {
+public:
+
+    explicit url_error(url_result res, const char* what_arg)
+        : std::runtime_error(what_arg)
+        , res_(res)
+    {}
+
+    url_result result() const {
+        return res_;
+    }
+private:
+    url_result res_;
+};
 
 }
 
