@@ -13,6 +13,11 @@
 namespace whatwg {
 namespace detail {
 
+// url_error exception what() values
+
+const char kURLParseError[] = "URL parse error";
+const char kBaseURLParseError[] = "Base URL parse error";
+
 // SCHEME
 
 // https://cs.chromium.org/chromium/src/url/url_canon_etc.cc

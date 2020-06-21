@@ -79,6 +79,16 @@ public:
     url(url&& src) noexcept = default;
     url& operator=(url&& src) = default;
 
+    // Parsing constructors
+    template <class T, enable_if_str_arg_t<T> = 0>
+    explicit url(T&& str_url);
+
+    template <class T, enable_if_str_arg_t<T> = 0>
+    explicit url(T&& str_url, const url& base);
+
+    template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
+    explicit url(T&& str_url, TB&& str_base);
+
     void clear();
 
     // parser
@@ -209,6 +219,10 @@ protected:
         // initial flags (empty (but not null) parts)
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
+
+    // parsing constructor    
+    template <class T, enable_if_str_arg_t<T> = 0>
+    explicit url(T&& str_url, const url* base, const char* what_arg);
 
     // parser
     template <typename CharT>
@@ -467,6 +481,10 @@ private:
 
 
 namespace detail {
+
+// url_error what() values
+extern const char kURLParseError[];
+extern const char kBaseURLParseError[];
 
 // canonical version of each possible input letter in the scheme
 extern const char kSchemeCanonical[0x80];
@@ -833,6 +851,29 @@ inline bool url::canHaveUsernamePasswordPort() {
 }
 
 // url parsing
+
+template <class T, enable_if_str_arg_t<T>>
+inline url::url(T&& str_url)
+    : url(std::forward<T>(str_url), nullptr, detail::kURLParseError)
+{}
+
+template <class T, enable_if_str_arg_t<T>>
+inline url::url(T&& str_url, const url& base)
+    : url(std::forward<T>(str_url), &base, detail::kURLParseError)
+{}
+
+template <class T, class TB, enable_if_str_arg_t<T>, enable_if_str_arg_t<TB>>
+inline url::url(T&& str_url, TB&& str_base)
+    : url(std::forward<T>(str_url), url(std::forward<TB>(str_base), nullptr, detail::kBaseURLParseError))
+{}
+
+template <class T, enable_if_str_arg_t<T>>
+inline url::url(T&& str_url, const url* base, const char* what_arg) {
+    const auto inp = make_str_arg(std::forward<T>(str_url));
+    const auto res = do_parse(inp.begin(), inp.end(), base);
+    if (res != url_result::Ok)
+        throw url_error(res, what_arg);
+}
 
 inline void url::clear() {
     norm_url_.resize(0);
@@ -1394,7 +1435,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
     if (state == file_state) {
         if (!urls.is_file_scheme())
-            urls.set_scheme({ "file", 4 });
+            urls.set_scheme(url::str_view_type{ "file", 4 });
         // EOF ==> 0 ==> default:
         switch (pointer != last ? *pointer : 0) {
         case '\\':
