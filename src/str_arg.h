@@ -194,8 +194,8 @@ struct str_arg_char<StrT> : std::enable_if<
     is_size_type<detail::length_member_t<StrT>>::value,
     remove_cvptr_t<detail::data_member_t<StrT>>> {
 
-    template <typename T = typename StrT::value_type>
-    static str_arg<T> to_str_arg(const StrT& str) {
+    template <class STR, typename T = typename STR::value_type>
+    static str_arg<T> to_str_arg(const STR& str) {
         return { str.data(), str.length() };
     }
 };
