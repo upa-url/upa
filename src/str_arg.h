@@ -129,21 +129,23 @@ using remove_cvptr_t = typename std::remove_cv<typename std::remove_pointer<T>::
 namespace detail {
     // See: https://stackoverflow.com/a/9154394
 
-    // test class has data() member
+    // test class T has data() member
     template<class T>
     static auto test_data(int) -> decltype(std::declval<T>().data());
     template<class>
     static auto test_data(long) -> void;
 
-    // test class has length() member
+    // test class T has length() member
     template<class T>
     static auto test_length(int) -> decltype(std::declval<T>().length());
     template<class>
     static auto test_length(long) -> void;
 
+    // T::data() return type (void - if no such member)
     template<class T>
     using data_member_t = decltype(detail::test_data<T>(0));
 
+    // T::length() return type (void - if no such member)
     template<class T>
     using length_member_t = decltype(detail::test_length<T>(0));
 } // namespace detail

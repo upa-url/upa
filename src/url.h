@@ -217,6 +217,7 @@ protected:
         HOST_TYPE_MASK = (7u << HOST_TYPE_SHIFT),
 
         // initial flags (empty (but not null) parts)
+        // https://url.spec.whatwg.org/#url-representation
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
 
