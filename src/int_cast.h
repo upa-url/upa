@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2020 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -32,7 +32,7 @@ struct unsigned_limit {
 // by the type Out - throws exception.
 template <typename Out, typename T,
     typename UT = typename std::make_unsigned<T>::type,
-    typename = typename std::enable_if<std::is_integral<T>::value>::type>
+    typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
 inline Out checked_diff(T a, T b) {
     if (a >= b) {
         const UT diff = static_cast<UT>(a) - static_cast<UT>(b);
