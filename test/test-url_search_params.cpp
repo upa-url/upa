@@ -7,7 +7,7 @@
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2020-06-08
+// Last checked for updates: 2020-06-26
 //
 
 #ifdef __cpp_char8_t
@@ -165,6 +165,24 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
             CHECK_FALSE_MESSAGE(params.has("c"), "Search params object did not have the name \"c\"");
             CHECK_MESSAGE(params.has(" c"), "Search params object has name \" c\"");
             CHECK_MESSAGE(params.has(u8"m\u00F8\u00F8"), "Search params object has name \"m\\u00F8\\u00F8\"");
+        } {
+            whatwg::url_search_params params("id=0&value=%");
+            CHECK_MESSAGE(params.has("id"), "Search params object has name \"id\"");
+            CHECK_MESSAGE(params.has("value"), "Search params object has name \"value\"");
+            CHECK(param_eq(params.get("id"), "0"));
+            CHECK(param_eq(params.get("value"), "%"));
+        } {
+            whatwg::url_search_params params("b=%2sf%2a");
+            CHECK_MESSAGE(params.has("b"), "Search params object has name \"b\"");
+            CHECK(param_eq(params.get("b"), "%2sf*"));
+        } {
+            whatwg::url_search_params params("b=%2%2af%2a");
+            CHECK_MESSAGE(params.has("b"), "Search params object has name \"b\"");
+            CHECK(param_eq(params.get("b"), "%2*f*"));
+        } {
+            whatwg::url_search_params params("b=%%2a");
+            CHECK_MESSAGE(params.has("b"), "Search params object has name \"b\"");
+            CHECK(param_eq(params.get("b"), "%*"));
         }
     }
 
@@ -618,12 +636,17 @@ TEST_CASE("urlsearchparams-stringifier.any.js") {
     }
 
     SUBCASE("Serialize %") {
-        whatwg::url_search_params params;
-        params.append("a", "b%c");
-        CHECK_EQ(params.to_string(), "a=b%25c");
-        params.del("a");
-        params.append("a%b", "c");
-        CHECK_EQ(params.to_string(), "a%25b=c");
+        {
+            whatwg::url_search_params params;
+            params.append("a", "b%c");
+            CHECK_EQ(params.to_string(), "a=b%25c");
+            params.del("a");
+            params.append("a%b", "c");
+            CHECK_EQ(params.to_string(), "a%25b=c");
+        } {
+            whatwg::url_search_params params("id=0&value=%");
+            CHECK_EQ(params.to_string(), "id=0&value=%25");
+        }
     }
 
     SUBCASE("Serialize \\0") {
@@ -656,6 +679,15 @@ TEST_CASE("urlsearchparams-stringifier.any.js") {
             // The lone "=" _does_ survive the roundtrip.
             whatwg::url_search_params params("a=&a=b");
             CHECK_EQ(params.to_string(), "a=&a=b");
+        } {
+            whatwg::url_search_params params("b=%2sf%2a");
+            CHECK_EQ(params.to_string(), "b=%252sf*");
+        } {
+            whatwg::url_search_params params("b=%2%2af%2a");
+            CHECK_EQ(params.to_string(), "b=%252*f*");
+        } {
+            whatwg::url_search_params params("b=%%2a");
+            CHECK_EQ(params.to_string(), "b=%25*");
         }
     }
 
