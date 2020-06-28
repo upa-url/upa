@@ -46,17 +46,17 @@ if (URL_BUILD_TESTS)
   enable_testing()
 
   set(test_files
-    test/test-url.cpp
-    test/test-url-port.cpp
-    test/test-url-setters.cpp
-    test/test-url-setters-stripping.cpp
-    test/test-url_search_params.cpp
-    test/test-urlencoded-parser.cpp
     test/test-buffer.cpp
     test/test-int_cast.cpp
     test/test-ipv4.cpp
     test/test-ipv6.cpp
     test/test-str_arg.cpp
+    test/test-url-port.cpp
+    test/test-url-setters.cpp
+    test/wpt-url.cpp
+    test/wpt-url-setters-stripping.cpp
+    test/wpt-url_search_params.cpp
+    test/wpt-urlencoded-parser.cpp
   )
   foreach(file ${test_files})
     get_filename_component(test_name ${file} NAME_WE)
