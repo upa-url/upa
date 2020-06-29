@@ -53,6 +53,7 @@ if (URL_BUILD_TESTS)
     test/test-str_arg.cpp
     test/test-url-port.cpp
     test/test-url-setters.cpp
+    test/test-url_search_params.cpp
     test/wpt-url.cpp
     test/wpt-url-setters-stripping.cpp
     test/wpt-url_search_params.cpp

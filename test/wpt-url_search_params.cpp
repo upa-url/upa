@@ -1,7 +1,7 @@
 #include "url.h"
 #include "url_search_params.h"
 #include "doctest-main.h"
-#include <algorithm>
+#include "test-utils.h"
 #include <map>
 
 // Tests based on "urlsearchparams-*.any.js" files from
@@ -10,38 +10,6 @@
 // Last checked for updates: 2020-06-26
 //
 
-#ifdef __cpp_char8_t
-constexpr bool operator==(std::string_view lhs, std::u8string_view rhs) noexcept {
-    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
-        [](char a, char8_t b) { return a == char(b) && char8_t(a) == b; }
-    );
-}
-#endif
-
-// to convert char8_t* literal to std::string
-template <class T>
-static std::string mk_string(T&& val) {
-    return std::string(whatwg::make_string(std::forward<T>(val)));
-}
-
-template <class T>
-static bool param_eq(const std::string* pval, const T& value) {
-    return pval != nullptr && *pval == value;
-}
-
-template <class List, class T>
-static bool list_eq(const List& val, std::initializer_list<T> lst) {
-#ifdef WHATWG__CPP_14
-    return std::equal(std::begin(val), std::end(val), std::begin(lst), std::end(lst));
-#else
-    return
-        val.size() == lst.size() &&
-        std::equal(std::begin(val), std::end(val), std::begin(lst));
-#endif
-}
-
-template <class T>
-using pairs_list_t = std::initializer_list<std::pair<T, T>>;;
 
 //
 // https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-append.any.js
