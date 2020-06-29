@@ -26,6 +26,26 @@ struct is_pair : std::false_type {};
 template<class T1, class T2>
 struct is_pair<std::pair<T1, T2>> : std::true_type {};
 
+// Get iterable's value type
+// https://stackoverflow.com/a/29634934
+template <typename T>
+auto iterable_value(int) -> decltype(
+    std::begin(std::declval<T&>()) != std::end(std::declval<T&>()), // begin/end and operator !=
+    ++std::declval<decltype(std::begin(std::declval<T&>()))&>(), // operator ++
+    *std::begin(std::declval<T&>()) // operator *
+);
+template <typename T>
+auto iterable_value(long) -> void;
+
+template<class T>
+using iterable_value_t = typename std::remove_cv<typename std::remove_reference<
+    decltype(iterable_value<T>(0))
+>::type>::type;
+
+// is iterable over the std::pair values
+template<class T>
+struct is_iterable_pairs : is_pair<iterable_value_t<T>> {};
+
 }
 
 
@@ -52,7 +72,7 @@ public:
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     url_search_params(Args&&... query);
 
-    template<class ConT, typename std::enable_if<is_pair<typename ConT::value_type>::value, int>::type = 0>
+    template<class ConT, typename std::enable_if<is_iterable_pairs<ConT>::value, int>::type = 0>
     url_search_params(const ConT& cont);
 
     // operations
@@ -187,7 +207,7 @@ inline url_search_params::url_search_params(Args&&... query)
     : params_(do_parse(std::forward<Args>(query)...))
 {}
 
-template<class ConT, typename std::enable_if<is_pair<typename ConT::value_type>::value, int>::type>
+template<class ConT, typename std::enable_if<is_iterable_pairs<ConT>::value, int>::type>
 inline url_search_params::url_search_params(const ConT& cont) {
     for (auto p : cont) {
         params_.emplace_back(make_string(p.first), make_string(p.second));

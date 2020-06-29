@@ -11,9 +11,17 @@ TEST_CASE("Various string pairs iterables") {
         { "b", "bb" }
     };
 
+    std::pair<std::string, std::string> arr_pairs[] = {
+        { "a", "aa" },
+        { "b", "bb" }
+    };
     std::map<std::string, std::string> map_pairs(output.begin(), output.end());
     std::vector<std::pair<std::string, std::string>> vec_pairs(output.begin(), output.end());
 
+    SUBCASE("array") {
+        whatwg::url_search_params params(arr_pairs);
+        CHECK(list_eq(params, output));
+    }
     SUBCASE("std::initializer_list") {
         whatwg::url_search_params params(output);
         CHECK(list_eq(params, output));
