@@ -4,6 +4,10 @@
 #include "test-utils.h"
 #include <map>
 
+#if defined(__cpp_impl_coroutine) || defined(__cpp_coroutines)
+#include <experimental/generator>
+#endif
+
 
 #define TEST_ITERABLES_DATA {    \
         {{ 'a' }, { 'a', 'a' }}, \
@@ -35,6 +39,19 @@ TEST_CASE_TEMPLATE_DEFINE("Various string pairs iterables", CharT, test_iterable
         whatwg::url_search_params params(vec_pairs);
         CHECK(list_eq(params, output));
     }
+
+#if defined(__cpp_impl_coroutine) || defined(__cpp_coroutines)
+    SUBCASE("std::experimental::generator") {
+        auto pairs_gen = []() -> std::experimental::generator<std::pair<string_t, string_t>> {
+            const pairs_list_t<string_t> lst_pairs = TEST_ITERABLES_DATA;
+            for (const auto& p : lst_pairs)
+                co_yield p;
+        };
+
+        whatwg::url_search_params params(pairs_gen());
+        CHECK(list_eq(params, output));
+    }
+#endif
 }
 
 TEST_CASE_TEMPLATE_INVOKE(test_iterables, char, wchar_t, char16_t, char32_t);
