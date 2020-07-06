@@ -72,7 +72,7 @@ const url::scheme_info url::kSchemes[] = {
 static const std::size_t max_scheme_length = 5; // "https"
 
 // scheme length to url::kSchemes index
-static const unsigned char kLengthToSchemesInd[] = {
+static const uint8_t kLengthToSchemesInd[] = {
     0,  // 0
     0,  // 1
     0,  // 2
