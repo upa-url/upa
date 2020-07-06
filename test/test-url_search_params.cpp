@@ -5,33 +5,39 @@
 #include <map>
 
 
-TEST_CASE("Various string pairs iterables") {
-    pairs_list_t<std::string> output = {
-        { "a", "aa" },
-        { "b", "bb" }
-    };
+#define TEST_ITERABLES_DATA {    \
+        {{ 'a' }, { 'a', 'a' }}, \
+        {{ 'b' }, { 'b', 'b' }}  \
+    }
 
-    std::pair<std::string, std::string> arr_pairs[] = {
-        { "a", "aa" },
-        { "b", "bb" }
-    };
-    std::map<std::string, std::string> map_pairs(output.begin(), output.end());
-    std::vector<std::pair<std::string, std::string>> vec_pairs(output.begin(), output.end());
+TEST_CASE_TEMPLATE_DEFINE("Various string pairs iterables", CharT, test_iterables) {
+    using string_t = std::basic_string<CharT>;
+
+    const pairs_list_t<std::string> output = TEST_ITERABLES_DATA;
 
     SUBCASE("array") {
+        const std::pair<string_t, string_t> arr_pairs[] = TEST_ITERABLES_DATA;
         whatwg::url_search_params params(arr_pairs);
         CHECK(list_eq(params, output));
     }
     SUBCASE("std::initializer_list") {
-        whatwg::url_search_params params(output);
+        const pairs_list_t<string_t> lst_pairs = TEST_ITERABLES_DATA;
+        whatwg::url_search_params params(lst_pairs);
         CHECK(list_eq(params, output));
     }
     SUBCASE("std::map") {
+        const std::map<string_t, string_t> map_pairs(TEST_ITERABLES_DATA);
         whatwg::url_search_params params(map_pairs);
         CHECK(list_eq(params, output));
     }
     SUBCASE("std::vector") {
+        const std::vector<std::pair<string_t, string_t>> vec_pairs(TEST_ITERABLES_DATA);
         whatwg::url_search_params params(vec_pairs);
         CHECK(list_eq(params, output));
     }
 }
+
+TEST_CASE_TEMPLATE_INVOKE(test_iterables, char, wchar_t, char16_t, char32_t);
+#ifdef __cpp_char8_t
+TEST_CASE_TEMPLATE_INVOKE(test_iterables, char8_t);
+#endif
