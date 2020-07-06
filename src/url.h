@@ -60,10 +60,9 @@ public:
         PART_COUNT
     };
 
-    /**
-    * \brief Default constructor.
-    * Constructs empty URL
-    */
+    /// Default constructor.
+    ///
+    /// Constructs empty URL.
     url()
         : scheme_inf_(nullptr)
         , flags_(INITIAL_FLAGS)
@@ -71,13 +70,29 @@ public:
         , part_end_({})
     {}
 
-    // Copy constructor & assignment
-    url(const url& src) = default;
-    url& operator=(const url& src) = default;
+    /// Copy constructor.
+    ///
+    /// @param[in] other  URL to copy from
+    url(const url& other) = default;
 
-    // Move constructor & assignment
-    url(url&& src) noexcept = default;
-    url& operator=(url&& src) = default;
+    /// Move constructor.
+    ///
+    /// Constructs the URL with the contents of @a other using move semantics.
+    ///
+    /// @param[in,out] other  URL to move to this object
+    url(url&& other) noexcept = default;
+
+    /// Copy assignment.
+    ///
+    /// @param[in] other  URL to copy from
+    url& operator=(const url& other) = default;
+
+    /// Move assignment.
+    ///
+    /// Replaces the contents with those of @a other using move semantics.
+    ///
+    /// @param other[in,out]  URL to move to this object
+    url& operator=(url&& other) = default;
 
     // Parsing constructors
     template <class T, enable_if_str_arg_t<T> = 0>
