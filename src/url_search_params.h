@@ -73,7 +73,7 @@ public:
     url_search_params(Args&&... query);
 
     template<class ConT, typename std::enable_if<is_iterable_pairs<ConT>::value, int>::type = 0>
-    url_search_params(const ConT& cont);
+    url_search_params(ConT&& cont);
 
     // operations
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
@@ -208,7 +208,7 @@ inline url_search_params::url_search_params(Args&&... query)
 {}
 
 template<class ConT, typename std::enable_if<is_iterable_pairs<ConT>::value, int>::type>
-inline url_search_params::url_search_params(const ConT& cont) {
+inline url_search_params::url_search_params(ConT&& cont) {
     for (auto p : cont) {
         params_.emplace_back(make_string(p.first), make_string(p.second));
     }
