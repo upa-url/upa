@@ -94,16 +94,27 @@ public:
     /// @param other[in,out]  URL to move to this object
     url& operator=(url&& other) = default;
 
-    // Parsing constructors
+    /// Parsing constructor.
+    ///
+    /// @param str_url[in]  URL string to parse
     template <class T, enable_if_str_arg_t<T> = 0>
     explicit url(T&& str_url);
 
+    /// Parsing constructor.
+    ///
+    /// @param str_url[in]  URL string to parse
+    /// @param base[in]  base URL
     template <class T, enable_if_str_arg_t<T> = 0>
     explicit url(T&& str_url, const url& base);
 
+    /// Parsing constructor.
+    ///
+    /// @param str_url[in]  URL string to parse
+    /// @param str_base[in]  base URL string
     template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
     explicit url(T&& str_url, TB&& str_base);
 
+    /// Clear URL - make it empty.
     void clear();
 
     // parser
