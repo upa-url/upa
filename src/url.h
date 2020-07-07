@@ -102,12 +102,16 @@ public:
 
     /// Parsing constructor.
     ///
+    /// Throws @a url_error exception on parse error.
+    ///
     /// @param str_url[in]  URL string to parse
     /// @param base[in]  base URL
     template <class T, enable_if_str_arg_t<T> = 0>
     explicit url(T&& str_url, const url& base);
 
     /// Parsing constructor.
+    ///
+    /// Throws @a url_error exception on parse error.
     ///
     /// @param str_url[in]  URL string to parse
     /// @param str_base[in]  base URL string
@@ -117,11 +121,16 @@ public:
     /// Clear URL - make it empty.
     void clear();
 
-    // parser
+    // Parser
 
+    /// Parses given URL string against base URL.
+    /// 
+    /// @param str_url  URL string to parse
+    /// @param base  pointer to base URL, may be nullptr
+    /// @returns  error code (url_result::Ok on success)
     template <class T, enable_if_str_arg_t<T> = 0>
-    url_result parse(T&& str, const url* base) {
-        const auto inp = make_str_arg(std::forward<T>(str));
+    url_result parse(T&& str_url, const url* base) {
+        const auto inp = make_str_arg(std::forward<T>(str_url));
         return do_parse(inp.begin(), inp.end(), base);
     }
 
