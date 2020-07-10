@@ -12,7 +12,7 @@
 
 
 #ifdef __cpp_char8_t
-constexpr bool operator==(std::string_view lhs, std::u8string_view rhs) noexcept {
+inline /* constexpr */ bool operator==(std::string_view lhs, std::u8string_view rhs) noexcept {
     return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
         [](char a, char8_t b) { return a == char(b) && char8_t(a) == b; }
     );
@@ -21,19 +21,19 @@ constexpr bool operator==(std::string_view lhs, std::u8string_view rhs) noexcept
 
 // to convert char8_t* literal to std::string
 template <class T>
-static std::string mk_string(T&& val) {
+inline std::string mk_string(T&& val) {
     return std::string(whatwg::make_string(std::forward<T>(val)));
 }
 
 // for url_search_params
 
 template <class T>
-static bool param_eq(const std::string* pval, const T& value) {
+inline bool param_eq(const std::string* pval, const T& value) {
     return pval != nullptr && *pval == value;
 }
 
 template <class List, class T>
-static bool list_eq(const List& val, std::initializer_list<T> lst) {
+inline bool list_eq(const List& val, std::initializer_list<T> lst) {
 #ifdef WHATWG__CPP_14
     return std::equal(std::begin(val), std::end(val), std::begin(lst), std::end(lst));
 #else
