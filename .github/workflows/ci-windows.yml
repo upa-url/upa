@@ -1,0 +1,31 @@
+name: CI on Windows
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: init dependances
+      run: init.bat
+      shell: cmd
+    - name: install ICU library
+      run: |
+        mkdir C:\LIB
+        mkdir C:\LIB\ICU
+        curl -fsSL -o C:\LIB\icu4c-bin.zip https://github.com/unicode-org/icu/releases/download/release-67-1/icu4c-67_1-Win64-MSVC2017.zip
+        7z x C:\LIB\icu4c-bin.zip -oC:\LIB\ICU
+      shell: cmd
+    - name: cmake
+      run: cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -DCMAKE_CXX_STANDARD=20 -DICU_ROOT=C:\LIB\ICU -DURL_ADD_COMPILE_OPTIONS=/await
+    - name: build
+      run: cmake --build build --config Release
+    - name: test
+      run: |
+        set PATH=%PATH%;C:\LIB\ICU\bin64
+        cd build
+        ctest -C Release -V
+      shell: cmd
