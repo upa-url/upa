@@ -17,6 +17,12 @@ option(URL_BUILD_TESTS "Build the URL tests." ON)
 option(URL_BUILD_EXAMPLES "Build the URL examples." OFF)
 option(URL_BUILD_TOOLS "Build tools." OFF)
 
+# add custom compile options
+if(DEFINED URL_ADD_COMPILE_OPTIONS)
+  separate_arguments(URL_ADD_COMPILE_OPTIONS)
+  add_compile_options(${URL_ADD_COMPILE_OPTIONS})
+endif()
+
 # are URL and ICU libraries needed
 if (URL_BUILD_TESTS OR URL_BUILD_EXAMPLES)
   set(URL_USE_LIBS ON)
