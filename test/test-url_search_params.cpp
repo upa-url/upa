@@ -82,9 +82,17 @@ TEST_CASE("url_search_params::sort()") {
             {{U"a\U00041104", U"2"}, {U"a\u0105", U"1"}},
             {{mk_string(u8"a\u0105"), "1"}, {mk_string(u8"a\U00041104"), "2"}},
         }, {
-            "Sort U+41104 before U+F104",
-            {{U"a\uF104", U"2"}, {U"a\U00041104", U"1"}},
-            {{mk_string(u8"a\U00041104"), "1"}, {mk_string(u8"a\uF104"), "2"}},
+            "Sort U+D7FF before U+10000",
+            {{U"a\U00010000", U"2"}, {U"a\uD7FF", U"1"}},
+            {{mk_string(u8"a\uD7FF"), "1"}, {mk_string(u8"a\U00010000"), "2"}},
+        }, {
+            "Sort U+10FFFF before U+E000",
+            {{U"a\uE000", U"2"}, {U"a\U0010FFFF", U"1"}},
+            {{mk_string(u8"a\U0010FFFF"), "1"}, {mk_string(u8"a\uE000"), "2"}},
+        }, {
+            "Sort U+10FFFE before U+10FFFF",
+            {{U"a\U0010FFFF", U"2"}, {U"a\U0010FFFE", U"1"}},
+            {{mk_string(u8"a\U0010FFFE"), "1"}, {mk_string(u8"a\U0010FFFF"), "2"}},
         }
     };
     for (const auto& val : lst) {
