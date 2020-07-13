@@ -4,6 +4,7 @@
 //
 
 #include "url_utf.h"
+#include <cassert>
 
 namespace whatwg {
 
@@ -91,8 +92,10 @@ int url_utf::compare_by_code_units(const char* first1, const char* last1, const 
         // code points not equal - compare code units
         uint32_t cu1 = cp1 <= 0xffff ? cp1 : ((cp1 >> 10) + 0xd7c0);
         uint32_t cu2 = cp2 <= 0xffff ? cp2 : ((cp2 >> 10) + 0xd7c0);
-        // cu1 can be equal to cu2 if they both are surrogates
+        // cu1 can be equal to cu2 if they both are lead surrogates
         if (cu1 == cu2) {
+            assert(detail::u16_is_lead(cu1));
+            // get trail surrogates
             cu1 = (cp1 & 0x3ff);// | 0xdc00;
             cu2 = (cp2 & 0x3ff);// | 0xdc00;
         }

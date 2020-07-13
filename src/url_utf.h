@@ -124,7 +124,7 @@ inline bool url_utf::read_code_point(const char*& first, const char* last, uint3
     return true;
 }
 
-namespace {
+namespace detail {
     // UTF-16
 
     // Is this code unit/point a surrogate (U+d800..U+dfff)?
@@ -140,6 +140,13 @@ namespace {
     template <typename T>
     inline bool u16_is_surrogate_lead(T c) {
         return (c & 0x400) == 0;
+    }
+
+    // Is this code unit a lead surrogate (U+d800..U+dbff)?
+    // Based on U16_IS_LEAD in utf16.h from ICU
+    template <typename T>
+    inline bool u16_is_lead(T c) {
+        return (c & 0xfffffc00) == 0xd800;
     }
 
     // Is this code unit a trail surrogate (U+dc00..U+dfff)?
@@ -162,11 +169,11 @@ namespace {
 
 inline bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) {
     c = *first++;
-    if (u16_is_surrogate(c)) {
+    if (detail::u16_is_surrogate(c)) {
         uint16_t __c2;
-        if (u16_is_surrogate_lead(c) && first != last && u16_is_trail(__c2 = *first)) {
+        if (detail::u16_is_surrogate_lead(c) && first != last && detail::u16_is_trail(__c2 = *first)) {
             ++first;
-            c = u16_get_supplementary(c, __c2);
+            c = detail::u16_get_supplementary(c, __c2);
         } else {
             // c = 0xfffd;
             return false;
