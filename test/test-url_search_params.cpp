@@ -9,7 +9,7 @@
 #if __has_include(<experimental/generator>)
 # include <experimental/generator>
 # define TEST_COROUTINE_GENERATOR
-namespace stdexp = std::experimental;
+using std::experimental::generator;
 #endif
 #endif
 
@@ -47,7 +47,7 @@ TEST_CASE_TEMPLATE_DEFINE("Various string pairs iterables", CharT, test_iterable
 
 #ifdef TEST_COROUTINE_GENERATOR
     SUBCASE("coroutine generator") {
-        auto pairs_gen = []() -> stdexp::generator<std::pair<string_t, string_t>> {
+        auto pairs_gen = []() -> generator<std::pair<string_t, string_t>> {
             const pairs_list_t<string_t> lst_pairs = TEST_ITERABLES_DATA;
             for (const auto& p : lst_pairs)
                 co_yield p;
