@@ -680,7 +680,7 @@ TEST_CASE("urlsearchparams-stringifier.any.js") {
 //
 TEST_CASE("urlsearchparams-sort.any.js") {
 
-    // Other sorting tests are in the test-urlencoded-parser.cpp
+    // Other sorting tests are in the wpt-urlencoded-parser.cpp
 
     SUBCASE("Sorting non-existent params removes ? from URL") {
         whatwg::url url;

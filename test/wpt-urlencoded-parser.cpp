@@ -38,7 +38,7 @@ int main(int argc, char** argv)
     err |= test_from_file("data/urlsearchparams-sort.json", true);
 
     // NOTE: "Sorting non-existent params removes ? from URL" test based on
-    // urlsearchparams-sort.any.js is in the test-url_search_params.cpp
+    // urlsearchparams-sort.any.js is in the wpt-url_search_params.cpp
 
     return err;
 }
