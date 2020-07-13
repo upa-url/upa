@@ -89,8 +89,9 @@ int url_utf::compare_by_code_units(const char* first1, const char* last1, const 
         if (cp1 == cp2) continue;
 
         // code points not equal - compare code units
-        uint32_t cu1 = cp1 <= 0xffff ? cp1 : (cp1 >> 10);// +0xd7c0;
-        uint32_t cu2 = cp2 <= 0xffff ? cp2 : (cp2 >> 10);// +0xd7c0;
+        uint32_t cu1 = cp1 <= 0xffff ? cp1 : ((cp1 >> 10) + 0xd7c0);
+        uint32_t cu2 = cp2 <= 0xffff ? cp2 : ((cp2 >> 10) + 0xd7c0);
+        // cu1 can be equal to cu2 if they both are surrogates
         if (cu1 == cu2) {
             cu1 = (cp1 & 0x3ff);// | 0xdc00;
             cu2 = (cp2 & 0x3ff);// | 0xdc00;

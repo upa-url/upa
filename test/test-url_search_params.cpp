@@ -63,3 +63,34 @@ TEST_CASE_TEMPLATE_INVOKE(test_iterables, char, wchar_t, char16_t, char32_t);
 #ifdef __cpp_char8_t
 TEST_CASE_TEMPLATE_INVOKE(test_iterables, char8_t);
 #endif
+
+
+// sort test
+
+TEST_CASE("url_search_params::sort()") {
+    struct {
+        const char* comment;
+        pairs_list_t<std::u32string> input;
+        pairs_list_t<std::string> output;
+    } lst[] = {
+        {
+            "Sort U+104 before U+41104",
+            {{U"a\U00041104", U"2"}, {U"a\u0104", U"1"}},
+            {{mk_string(u8"a\u0104"), "1"}, {mk_string(u8"a\U00041104"), "2"}},
+        }, {
+            "Sort U+105 before U+41104",
+            {{U"a\U00041104", U"2"}, {U"a\u0105", U"1"}},
+            {{mk_string(u8"a\u0105"), "1"}, {mk_string(u8"a\U00041104"), "2"}},
+        }, {
+            "Sort U+41104 before U+F104",
+            {{U"a\uF104", U"2"}, {U"a\U00041104", U"1"}},
+            {{mk_string(u8"a\U00041104"), "1"}, {mk_string(u8"a\uF104"), "2"}},
+        }
+    };
+    for (const auto& val : lst) {
+        INFO(val.comment);
+        whatwg::url_search_params params(val.input);
+        params.sort();
+        CHECK(list_eq(params, val.output));
+    }
+}
