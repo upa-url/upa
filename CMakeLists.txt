@@ -18,11 +18,20 @@ option(URL_BUILD_EXAMPLES "Build the URL examples." OFF)
 option(URL_BUILD_TOOLS "Build tools." OFF)
 # tests build options
 option(URL_TEST_COROUTINE "Build coroutine tests (MSVC)" OFF)
+option(URL_TEST_SANITIZER "Build tests with Clang sanitizer" OFF)
 
 # coroutine support
 if (URL_TEST_COROUTINE)
   if (MSVC)
     add_compile_options(/await)
+  endif()
+endif()
+
+# Clang sanitizer
+if (URL_TEST_SANITIZER)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-O1 -g -fsanitize=address -fno-omit-frame-pointer)
+    add_link_options(-g -fsanitize=address)
   endif()
 endif()
 
