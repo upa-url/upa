@@ -20,7 +20,7 @@ jobs:
         7z x C:\LIB\icu4c-bin.zip -oC:\LIB\ICU
       shell: cmd
     - name: cmake
-      run: cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -DCMAKE_CXX_STANDARD=20 -DICU_ROOT=C:\LIB\ICU -DURL_ADD_COMPILE_OPTIONS=/await
+      run: cmake -S . -B build -G "Visual Studio 16 2019" -A x64 -DCMAKE_CXX_STANDARD=20 -DICU_ROOT=C:\LIB\ICU -DURL_TEST_COROUTINE=ON
     - name: build
       run: cmake --build build --config Release
     - name: test

@@ -16,11 +16,14 @@ set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ standard")
 option(URL_BUILD_TESTS "Build the URL tests." ON)
 option(URL_BUILD_EXAMPLES "Build the URL examples." OFF)
 option(URL_BUILD_TOOLS "Build tools." OFF)
+# tests build options
+option(URL_TEST_COROUTINE "Build coroutine tests (MSVC)" OFF)
 
-# add custom compile options
-if(DEFINED URL_ADD_COMPILE_OPTIONS)
-  separate_arguments(URL_ADD_COMPILE_OPTIONS)
-  add_compile_options(${URL_ADD_COMPILE_OPTIONS})
+# coroutine support
+if (URL_TEST_COROUTINE)
+  if (MSVC)
+    add_compile_options(/await)
+  endif()
 endif()
 
 # are URL and ICU libraries needed
