@@ -6,13 +6,20 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: clang++ C++20
+            cxx_compiler: clang++
+            cxx_standard: 20
+            cmake_options: ""
 
     steps:
     - uses: actions/checkout@v2
     - name: init dependances
       run: ./init.sh
     - name: cmake
-      run: cmake -S . -B build -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=20
+      run: cmake -S . -B build -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
     - name: build
       run: cmake --build build --config Release
     - name: test
