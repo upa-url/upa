@@ -30,8 +30,8 @@ endif()
 # Clang sanitizer
 if (URL_TEST_SANITIZER)
   if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    add_compile_options(-O1 -g -fsanitize=address -fno-omit-frame-pointer)
-    add_link_options(-g -fsanitize=address)
+    add_compile_options(-O1 -g -fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer)
+    add_link_options(-g -fsanitize=address -fsanitize=undefined)
   endif()
 endif()
 
