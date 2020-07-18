@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -13,6 +13,11 @@ jobs:
             cxx_compiler: clang++
             cxx_standard: 20
             cmake_options: ""
+
+          - name: clang++ C++17 with sanitizer
+            cxx_compiler: clang++
+            cxx_standard: 17
+            cmake_options: "-DURL_TEST_SANITIZER=ON"
 
     steps:
     - uses: actions/checkout@v2
