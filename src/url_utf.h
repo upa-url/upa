@@ -106,13 +106,13 @@ inline bool url_utf::read_code_point(const char*& first, const char* last, uint3
                     (c -= 0xF0) <= 4 &&
                     k_U8_LEAD4_T1_BITS[(__t = static_cast<uint8_t>(*first)) >> 4] & (1 << c) &&
                     (c = (c << 6) | (__t & 0x3F), ++first != last) &&
-                    (__t = static_cast<uint8_t>(*first) - 0x80) <= 0x3F) &&
+                    (__t = static_cast<uint8_t>(static_cast<uint8_t>(*first) - 0x80)) <= 0x3F) &&
                 // valid second-to-last trail byte
                 (c = (c << 6) | __t, ++first != last)
                 : // U+0080..U+07FF
                 c >= 0xC2 && (c &= 0x1F, 1)) &&
             // last trail byte
-            (__t = static_cast<uint8_t>(*first) - 0x80) <= 0x3F &&
+            (__t = static_cast<uint8_t>(static_cast<uint8_t>(*first) - 0x80)) <= 0x3F &&
             (c = (c << 6) | __t, ++first, 1)) {
             // valid utf-8
         } else {

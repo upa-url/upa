@@ -19,7 +19,7 @@ bool url_utf::convert_utf8_to_utf16(const char* first, const char* last, simple_
 }
 
 static inline void append_to_string(uint8_t c, std::string& str) {
-    str.push_back(c);
+    str.push_back(static_cast<char>(c));
 };
 
 template <typename CharT>

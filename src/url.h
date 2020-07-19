@@ -2374,7 +2374,8 @@ inline void url_setter::replace_part(const url::PartType last_pt, const char* st
     if (diff) {
         for (auto it = std::begin(url_.part_end_) + last_pt; it != std::end(url_.part_end_); it++) {
             if (*it == 0) break;
-            *it += diff;
+            // perform arithmetics using signed type ptrdiff_t, because diff can be negative
+            *it = static_cast<std::ptrdiff_t>(*it) + diff;
         }
     }
 }
