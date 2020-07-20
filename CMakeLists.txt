@@ -14,11 +14,21 @@ set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ standard")
 
 # Options
 option(URL_BUILD_TESTS "Build the URL tests." ON)
+option(URL_BUILD_FUZZER "Build the URL fuzzer." OFF)
 option(URL_BUILD_EXAMPLES "Build the URL examples." OFF)
 option(URL_BUILD_TOOLS "Build tools." OFF)
 # tests build options
 option(URL_TEST_COROUTINE "Build coroutine tests (MSVC)" OFF)
 option(URL_TEST_SANITIZER "Build tests with Clang sanitizer" OFF)
+
+# Clang libFuzzer
+if (URL_BUILD_FUZZER)
+  set(URL_BUILD_TESTS OFF)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-O1 -g -fsanitize=fuzzer)
+    add_link_options(-g -fsanitize=fuzzer)
+  endif()
+endif()
 
 # coroutine support
 if (URL_TEST_COROUTINE)
@@ -36,7 +46,7 @@ if (URL_TEST_SANITIZER)
 endif()
 
 # are URL and ICU libraries needed
-if (URL_BUILD_TESTS OR URL_BUILD_EXAMPLES)
+if (URL_BUILD_TESTS OR URL_BUILD_FUZZER OR URL_BUILD_EXAMPLES)
   set(URL_USE_LIBS ON)
 endif()
 
@@ -88,6 +98,20 @@ if (URL_BUILD_TESTS)
     add_test(NAME ${test_name}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
       COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
+  endforeach()
+endif()
+
+# Fuzzer targets
+
+if (URL_BUILD_FUZZER)
+  set(fuzz_files
+    test/fuzz-url.cpp
+  )
+  foreach(file ${fuzz_files})
+    get_filename_component(fuzz_name ${file} NAME_WE)
+
+    add_executable(${fuzz_name} ${file})
+    target_link_libraries(${fuzz_name} cppurl ICU::i18n ICU::uc Threads::Threads)
   endforeach()
 endif()
 
