@@ -106,6 +106,7 @@ endif()
 if (URL_BUILD_FUZZER)
   set(fuzz_files
     test/fuzz-url.cpp
+    test/fuzz-url-relative.cpp
   )
   foreach(file ${fuzz_files})
     get_filename_component(fuzz_name ${file} NAME_WE)
