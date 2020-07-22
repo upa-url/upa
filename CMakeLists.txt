@@ -22,6 +22,7 @@ option(URL_TEST_COROUTINE "Build coroutine tests (MSVC)" OFF)
 option(URL_TEST_COVERAGE "Build tests with code coverage reporting" OFF)
 option(URL_TEST_COVERAGE_CLANG "Build tests with Clang source-based code coverage" OFF)
 option(URL_TEST_SANITIZER "Build tests with Clang sanitizer" OFF)
+option(URL_TEST_VALGRIND "Run tests with Valgrind" OFF)
 
 # AFL or Clang libFuzzer
 if (URL_BUILD_FUZZER)
@@ -68,6 +69,13 @@ if (URL_TEST_SANITIZER)
     add_compile_options(-O1 -g -fsanitize=address -fsanitize=undefined -fsanitize=integer -fno-omit-frame-pointer)
     add_link_options(-g -fsanitize=address -fsanitize=undefined)
   endif()
+endif()
+
+# Valgrind
+if (URL_TEST_VALGRIND)
+  find_program(MEMORYCHECK valgrind)
+  set(MEMORYCHECK_COMMAND "${MEMORYCHECK} --error-exitcode=1 --leak-check=full")
+  separate_arguments(MEMORYCHECK_COMMAND)
 endif()
 
 # are URL and ICU libraries needed
@@ -125,6 +133,12 @@ if (URL_BUILD_TESTS)
     add_test(NAME ${test_name}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
       COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
+
+    if (URL_TEST_VALGRIND)
+      add_test(NAME ${test_name}_valgrind
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
+        COMMAND ${MEMORYCHECK_COMMAND} ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
+    endif()
   endforeach()
 endif()
 
