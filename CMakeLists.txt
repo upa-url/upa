@@ -19,6 +19,7 @@ option(URL_BUILD_EXAMPLES "Build the URL examples." OFF)
 option(URL_BUILD_TOOLS "Build tools." OFF)
 # tests build options
 option(URL_TEST_COROUTINE "Build coroutine tests (MSVC)" OFF)
+option(URL_TEST_COVERAGE_CLANG "Build tests with Clang source-based code coverage" OFF)
 option(URL_TEST_SANITIZER "Build tests with Clang sanitizer" OFF)
 
 # AFL or Clang libFuzzer
@@ -40,6 +41,16 @@ endif()
 if (URL_TEST_COROUTINE)
   if (MSVC)
     add_compile_options(/await)
+  endif()
+endif()
+
+# Clang source-based code coverage
+# https://clang.llvm.org/docs/SourceBasedCodeCoverage.html
+# https://llvm.org/docs/CommandGuide/llvm-cov.html#show-command
+if (URL_TEST_COVERAGE_CLANG)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-fprofile-instr-generate=${CMAKE_CURRENT_BINARY_DIR}/%m.profraw -fcoverage-mapping)
+    add_link_options(-fprofile-instr-generate)
   endif()
 endif()
 
