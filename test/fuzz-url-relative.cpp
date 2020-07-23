@@ -2,7 +2,13 @@
 
 #include "url.h"
 #include <cassert>
+#include <type_traits>
 
+
+template <typename T, std::size_t N>
+constexpr std::size_t arraySize(T (&)[N]) noexcept {
+    return N;
+}
 
 static void reparse_test(const whatwg::url& u1) {
     whatwg::url u2;
@@ -24,19 +30,25 @@ extern "C" int LLVMFuzzerTestOneInput(const char* data, std::size_t size) {
         whatwg::url("non-spec://h/p?q#f")
     };
 
-    whatwg::url::str_view_type inp{ data, size };
+    if (size < 1) return 0;
+    // first byte - index in the base URLs array
+    if (data[0] < '0') return 0;
+    const std::size_t ind = data[0] - '0';
+    if (ind >= arraySize(baseUrls)) return 0;
+    const auto& base = baseUrls[ind];
+    // skip firts byte of data
+    ++data; --size;
 
-    for (const auto& base : baseUrls) {
-        try {
-            whatwg::url u1{ inp, base };
-            reparse_test(u1);
-        }
-        catch (whatwg::url_error&) {
-            // invalid input
-        }
-        catch (std::exception&) {
-            assert(false);
-        }
+    whatwg::url::str_view_type inp{ data, size };
+    try {
+        whatwg::url u1{ inp, base };
+        reparse_test(u1);
+    }
+    catch (whatwg::url_error&) {
+        // invalid input
+    }
+    catch (std::exception&) {
+        assert(false);
     }
     return 0;
 }
