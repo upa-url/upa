@@ -27,6 +27,12 @@ std::wstring to_wstr(Args&& ...args) {
     }
 }
 
+std::wstring to_wstr(whatwg::url::str_view_type sv) {
+    // std::wstring_convert::from_bytes doesn't support std::string_view
+    // https://en.cppreference.com/w/cpp/locale/wstring_convert/from_bytes
+    return to_wstr(sv.data(), sv.data() + sv.length());
+}
+
 void cout_str(const wchar_t* str) {
     std::wcout << str;
 }
@@ -211,7 +217,7 @@ public:
         json_.array_end();
     }
 
-    virtual void comment(const char* sz) {
+    void comment(const char* sz) override {
         json_.value(sz);
     }
     void output(const char* str_url, whatwg::url* base) override {
