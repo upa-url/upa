@@ -40,3 +40,44 @@ TEST_CASE("whatwg::simple_buffer<char, 16>") {
     CHECK(buff.size() == 32);
     CHECK(buff.data()[31] == 0);
 }
+
+TEST_CASE("whatwg::simple_buffer<char, 4>") {
+    whatwg::simple_buffer<char, 4> buff;
+
+    CHECK(buff.empty());
+
+    // make buff.size() == buff.capacity()
+    std::string aaa("1234");
+    buff.append(aaa.data(), aaa.data() + aaa.length());
+
+    CHECK_FALSE(buff.empty());
+    CHECK(buff.capacity() == 4);
+    CHECK(buff.size() == 4);
+    CHECK(str::compare(buff.data(), "1234", 4) == 0);
+
+    INFO("buff.push_back grows capacity");
+    buff.push_back('5');
+    CHECK(buff.capacity() >= 5);
+    CHECK(buff.size() == 5);
+    CHECK(str::compare(buff.data(), "12345", 5) == 0);
+}
+
+TEST_CASE("whatwg::simple_buffer<char, 2> constructor with initial capacity 4") {
+    whatwg::simple_buffer<char, 2> buff(4);
+
+    std::string aaa("1234");
+    buff.append(aaa.data(), aaa.data() + aaa.length());
+
+    CHECK(buff.capacity() == 4);
+    CHECK(buff.size() == 4);
+    CHECK(str::compare(buff.data(), "1234", 4) == 0);
+
+    INFO("grow capacity when initial buffer is allocated dynamically");
+    buff.reserve(8);
+    std::string bbb("5678");
+    buff.append(bbb.data(), bbb.data() + bbb.length());
+
+    CHECK(buff.capacity() == 8);
+    CHECK(buff.size() == 8);
+    CHECK(str::compare(buff.data(), "12345678", 4) == 0);
+}
