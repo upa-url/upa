@@ -19,6 +19,38 @@
     "base": "about:blank",
     "failure": true
   },
+  "Invalid IPv4 address number",
+  {
+    "input": "https://0100000000000/",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "https://0xAx/",
+    "base": "about:blank",
+    "href": "https://0xax/",
+    "origin": "https://0xax",
+    "protocol": "https:",
+    "username": "",
+    "password": "",
+    "host": "0xax",
+    "hostname": "0xax",
+    "port": "",
+    "pathname": "/",
+    "search": "",
+    "hash": ""
+  },
+  "Invalid IPv6 address",
+  {
+    "input": "https://[:1]/",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "https://[1:1]/",
+    "base": "about:blank",
+    "failure": true
+  },
 
   "[END OF TESTS]"
 ]

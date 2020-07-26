@@ -134,7 +134,7 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
             if (part[dot_count] == it)
                 return url_result::False; // 6.1. If part is the empty string, then return input.
             part[++dot_count] = it + 1; // skip '.'
-        } else if (uc >= 0x80 || !detail::isIPv4Char(static_cast<unsigned char>(uc))) {
+        } else if (!detail::isIPv4Char(uc)) {
             // not IPv4 character
             return url_result::False;
         }
