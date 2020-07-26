@@ -38,6 +38,7 @@ int main(int argc, char** argv)
     err |= test_from_file(run_setter_tests, "wpt/setters_tests.json");
 
     // additional tests
+    err |= test_from_file(run_parser_tests, "data/my-urltestdata.json");
     err |= test_from_file(run_setter_tests, "data/my-setters_tests.json");
 
     return err;

@@ -1,0 +1,24 @@
+[
+  "Invalid percent-encode sequence (%xx) in hostname",
+  {
+    "input": "non-spec://%C4%84%xx",
+    "base": "about:blank",
+    "href": "non-spec://%C4%84%xx",
+    "protocol": "non-spec:",
+    "username": "",
+    "password": "",
+    "host": "%C4%84%xx",
+    "hostname": "%C4%84%xx",
+    "port": "",
+    "pathname": "",
+    "search": "",
+    "hash": ""
+  },
+  {
+    "input": "https://%C4%84%xx",
+    "base": "about:blank",
+    "failure": true
+  },
+
+  "[END OF TESTS]"
+]

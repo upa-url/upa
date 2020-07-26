@@ -65,7 +65,7 @@ static inline bool contains_forbidden_opaque_host_char(const CharT* first, const
 }
 
 // The host parser
-// https://whatpr.org/url/494.html#concept-host-parser
+// https://url.spec.whatwg.org/#concept-host-parser
 
 template <typename CharT>
 inline url_result host_parser::parse_host(const CharT* first, const CharT* last, bool isNotSpecial, host_output& dest) {
