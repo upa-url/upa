@@ -52,6 +52,12 @@ public:
             init_capacity(new_cap);
     }
 
+    // disable copy/move
+    simple_buffer(const simple_buffer&) = delete;
+    simple_buffer(simple_buffer&&) = delete;
+    simple_buffer& operator=(const simple_buffer&) = delete;
+    simple_buffer& operator=(simple_buffer&&) = delete;
+
     ~simple_buffer() {
         if (data_ != fixed_buffer_)
             allocator_traits::deallocate(allocator_, data_, capacity_);
