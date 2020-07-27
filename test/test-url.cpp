@@ -37,3 +37,27 @@ TEST_CASE("url constructor") {
     check_url_contructor(whatwg::url_result::RelativeUrlWithoutBase, "relative");
     check_url_contructor(whatwg::url_result::RelativeUrlWithCannotBeABase, "relative", "about:blank");
 }
+
+// UTF-8 in hostname
+
+TEST_CASE("Valid UTF-8 in hostname") {
+    static const char szUrl[] = { 'h', 't', 't', 'p', ':', '/', '/', char(0xC4), char(0x84), '/', '\0' }; // valid
+
+    whatwg::url url;
+    REQUIRE(whatwg::success(url.parse(szUrl, nullptr)));
+    CHECK(url.hostname() == "xn--2da");
+}
+TEST_CASE("Valid percent encoded utf-8 in hostname") {
+    static const char szUrl[] = { 'h', 't', 't', 'p', ':', '/', '/', '%', 'C', '4', '%', '8', '4', '/', '\0' }; // valid
+
+    whatwg::url url;
+    REQUIRE(whatwg::success(url.parse(szUrl, nullptr)));
+    CHECK(url.hostname() == "xn--2da");
+}
+TEST_CASE("Invalid utf-8 in hostname") {
+    static const char szUrl1[] = { 'h', 't', 't', 'p', ':', '/', '/', '%', 'C', '4', char(0x84), '/', '\0' }; // invalid
+    static const char szUrl2[] = { 'h', 't', 't', 'p', ':', '/', '/', char(0xC4), '%', '8', '4', '/', '\0' }; // invalid
+
+    check_url_contructor(whatwg::url_result::IdnaError, szUrl1);
+    check_url_contructor(whatwg::url_result::IdnaError, szUrl2);
+}
