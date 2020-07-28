@@ -1,5 +1,6 @@
 #include "url.h"
 #include "doctest-main.h"
+#include "test-utils.h"
 
 
 const char* urls_to_str(const char* s1) {
@@ -36,6 +37,54 @@ TEST_CASE("url constructor") {
     check_url_contructor(whatwg::url_result::InvalidDomainCharacter, "http://h[]/p");
     check_url_contructor(whatwg::url_result::RelativeUrlWithoutBase, "relative");
     check_url_contructor(whatwg::url_result::RelativeUrlWithCannotBeABase, "relative", "about:blank");
+}
+
+// Copy/move construction/assignment
+
+const char* test_url = "http://h:123/p?a=b&c=d#frag";
+const pairs_list_t<std::string> test_url_params = { {"a","b"}, {"c","d"} };
+
+void check_test_url(whatwg::url& url) {
+    CHECK(url.href() == test_url);
+    CHECK(url.protocol() == "http:");
+    CHECK(url.host() == "h:123");
+    CHECK(url.hostname() == "h");
+    CHECK(url.port() == "123");
+    CHECK(url.path() == "/p?a=b&c=d");
+    CHECK(url.pathname() == "/p");
+    CHECK(url.search() == "?a=b&c=d");
+    CHECK(url.hash() == "#frag");
+    CHECK(list_eq(url.searchParams(), test_url_params));
+}
+
+TEST_CASE("url copy constructor") {
+    whatwg::url url1(test_url);
+    whatwg::url url2(url1);
+
+    // CHECK(url2 == url1);
+    check_test_url(url2);
+}
+
+TEST_CASE("url copy assignment") {
+    whatwg::url url1(test_url);
+    whatwg::url url2;
+
+    url2 = url1;
+
+    // CHECK(url2 == url1);
+    check_test_url(url2);
+}
+
+TEST_CASE("url move constructor") {
+    whatwg::url url0(test_url);
+    whatwg::url url{ std::move(url0) };
+    check_test_url(url);
+}
+
+TEST_CASE("url move assignment") {
+    whatwg::url url;
+    url = whatwg::url(test_url);
+    check_test_url(url);
 }
 
 // UTF-8 in hostname
