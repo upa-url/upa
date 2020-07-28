@@ -10,6 +10,7 @@
 #ifndef WHATWG_BUFFER_H
 #define WHATWG_BUFFER_H
 
+#include <array>
 #include <memory>
 #include <string>
 #include <type_traits>
@@ -36,7 +37,7 @@ public:
     simple_buffer() : simple_buffer(Allocator()) {}
     explicit simple_buffer(const Allocator& alloc)
         : allocator_(alloc)
-        , data_(fixed_buffer_)
+        , data_(fixed_buffer_.data())
         , size_(0)
         , capacity_(fixed_capacity)
     {}
@@ -44,7 +45,7 @@ public:
     // with initial capacity
     explicit simple_buffer(size_type new_cap, const Allocator& alloc = Allocator())
         : allocator_(alloc)
-        , data_(fixed_buffer_)
+        , data_(fixed_buffer_.data())
         , size_(0)
         , capacity_(fixed_capacity)
     {
@@ -59,7 +60,7 @@ public:
     simple_buffer& operator=(simple_buffer&&) = delete;
 
     ~simple_buffer() {
-        if (data_ != fixed_buffer_)
+        if (data_ != fixed_buffer_.data())
             allocator_traits::deallocate(allocator_, data_, capacity_);
     }
 
@@ -145,7 +146,7 @@ protected:
         // copy data
         traits_type::copy(new_data, data(), size());
         // deallocate old data & assign new
-        if (data_ != fixed_buffer_)
+        if (data_ != fixed_buffer_.data())
             allocator_traits::deallocate(allocator_, data_, capacity_);
         data_ = new_data;
         capacity_ = new_cap;
@@ -178,7 +179,7 @@ private:
     size_type capacity_;
 
     // fixed size buffer
-    value_type fixed_buffer_[fixed_capacity];
+    std::array<value_type, fixed_capacity> fixed_buffer_;
 };
 
 } // namespace whatwg
