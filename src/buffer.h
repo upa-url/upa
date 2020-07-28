@@ -37,7 +37,7 @@ public:
     simple_buffer() : simple_buffer(Allocator()) {}
     explicit simple_buffer(const Allocator& alloc)
         : allocator_(alloc)
-        , data_(fixed_buffer_.data())
+        , data_(fixed_buffer())
         , size_(0)
         , capacity_(fixed_capacity)
     {}
@@ -45,7 +45,7 @@ public:
     // with initial capacity
     explicit simple_buffer(size_type new_cap, const Allocator& alloc = Allocator())
         : allocator_(alloc)
-        , data_(fixed_buffer_.data())
+        , data_(fixed_buffer())
         , size_(0)
         , capacity_(fixed_capacity)
     {
@@ -60,7 +60,7 @@ public:
     simple_buffer& operator=(simple_buffer&&) = delete;
 
     ~simple_buffer() {
-        if (data_ != fixed_buffer_.data())
+        if (data_ != fixed_buffer())
             allocator_traits::deallocate(allocator_, data_, capacity_);
     }
 
@@ -146,7 +146,7 @@ protected:
         // copy data
         traits_type::copy(new_data, data(), size());
         // deallocate old data & assign new
-        if (data_ != fixed_buffer_.data())
+        if (data_ != fixed_buffer())
             allocator_traits::deallocate(allocator_, data_, capacity_);
         data_ = new_data;
         capacity_ = new_cap;
@@ -172,6 +172,12 @@ protected:
             return n1 + n2;
         throw std::bad_alloc();
     }
+
+private:
+    value_type* fixed_buffer() noexcept {
+        return fixed_buffer_.data();
+    }
+
 private:
     allocator_type allocator_;
     value_type* data_;
