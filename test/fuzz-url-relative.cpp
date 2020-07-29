@@ -36,7 +36,7 @@ extern "C" int LLVMFuzzerTestOneInput(const char* data, std::size_t size) {
     const std::size_t ind = data[0] - '0';
     if (ind >= arraySize(baseUrls)) return 0;
     const auto& base = baseUrls[ind];
-    // skip firts byte of data
+    // skip first byte of data
     ++data; --size;
 
     whatwg::url::str_view_type inp{ data, size };
