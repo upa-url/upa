@@ -173,7 +173,7 @@ public:
     url_search_params& searchParams();
 
     // get url info
-    
+
     str_view_type get_part_view(PartType t) const;
 
     bool is_empty(const PartType t) const;
@@ -221,7 +221,7 @@ protected:
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
 
-    // parsing constructor    
+    // parsing constructor
     template <class T, enable_if_str_arg_t<T> = 0>
     explicit url(T&& str_url, const url* base, const char* what_arg);
 
@@ -246,7 +246,7 @@ protected:
     // path shortening
     bool get_path_rem_last(std::size_t& path_end, std::size_t& path_segment_count) const;
     bool get_shorten_path(std::size_t& path_end, std::size_t& path_segment_count) const;
-    
+
     // flags
     void set_flag(const UrlFlag flag);
 
@@ -1068,7 +1068,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
 #if WHATWG_URL_USE_ENCODING
     const char* encoding = "UTF-8";
-    // TODO: If encoding override is given, set encoding to the result of getting an output encoding from encoding override. 
+    // TODO: If encoding override is given, set encoding to the result of getting an output encoding from encoding override.
 #endif
 
     auto pointer = first;
@@ -1200,7 +1200,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             return url_result::RelativeUrlWithoutBase;
         }
     }
-    
+
     if (state == special_relative_or_authority_state) {
         if (pointer + 1 < last && pointer[0] == '/' && pointer[1] == '/') {
             state = special_authority_ignore_slashes_state;
@@ -1921,7 +1921,7 @@ inline bool url::get_shorten_path(std::size_t& path_end, std::size_t& path_segme
     return get_path_rem_last(path_end, path_segment_count);
 }
 
-// url_serializer class 
+// url_serializer class
 
 inline void url_serializer::shorten_path() {
     assert(last_pt_ <= url::PATH);
@@ -2145,7 +2145,7 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             // prepare buffer to append data
             // IMPORTANT: do before any url_ members modifications!
             std::string& norm_url = start_part(ifirst);
-            
+
             // last part and url_.path_segment_count_
             std::size_t lastp_end = src.part_end_[ilast];
             if (pathOpFn && ilast == url::PATH) {
