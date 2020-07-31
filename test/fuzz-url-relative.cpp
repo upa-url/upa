@@ -5,6 +5,14 @@
 #include <type_traits>
 
 
+// Base URLs
+static const whatwg::url baseUrls[] = {
+    whatwg::url("http://h/p?q#f"),
+    whatwg::url("file://h/p?q#f"),
+    whatwg::url("non-spec://h/p?q#f")
+};
+
+
 template <typename T, std::size_t N>
 constexpr std::size_t arraySize(T (&)[N]) noexcept {
     return N;
@@ -24,12 +32,7 @@ static void reparse_test(const whatwg::url& u1) {
 // http://llvm.org/docs/LibFuzzer.html
 
 extern "C" int LLVMFuzzerTestOneInput(const char* data, std::size_t size) {
-    static const whatwg::url baseUrls[] = {
-        whatwg::url("http://h/p?q#f"),
-        whatwg::url("file://h/p?q#f"),
-        whatwg::url("non-spec://h/p?q#f")
-    };
-
+    // Get base URL
     if (size < 1) return 0;
     // first byte - index in the base URLs array
     if (data[0] < '0') return 0;
@@ -39,6 +42,7 @@ extern "C" int LLVMFuzzerTestOneInput(const char* data, std::size_t size) {
     // skip first byte of data
     ++data; --size;
 
+    // Parse input data against base URL
     whatwg::url::str_view_type inp{ data, size };
     try {
         whatwg::url u1{ inp, base };
