@@ -96,9 +96,12 @@ public:
 
     /// Parsing constructor.
     ///
+    /// Throws @a url_error exception on parse error.
+    ///
     /// @param str_url[in]  URL string to parse
+    /// @param pbase  pointer to base URL, may be nullptr
     template <class T, enable_if_str_arg_t<T> = 0>
-    explicit url(T&& str_url);
+    explicit url(T&& str_url, const url* pbase = nullptr);
 
     /// Parsing constructor.
     ///
@@ -889,8 +892,8 @@ inline bool url::canHaveUsernamePasswordPort() {
 // url parsing
 
 template <class T, enable_if_str_arg_t<T>>
-inline url::url(T&& str_url)
-    : url(std::forward<T>(str_url), nullptr, detail::kURLParseError)
+inline url::url(T&& str_url, const url* pbase)
+    : url(std::forward<T>(str_url), pbase, detail::kURLParseError)
 {}
 
 template <class T, enable_if_str_arg_t<T>>
