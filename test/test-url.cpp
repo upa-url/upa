@@ -42,6 +42,7 @@ TEST_CASE("url constructor") {
 // Copy/move construction/assignment
 
 const char* test_url = "http://h:123/p?a=b&c=d#frag";
+const char* test_rel_url = "//h:123/p?a=b&c=d#frag";
 const pairs_list_t<std::string> test_url_params = { {"a","b"}, {"c","d"} };
 
 void check_test_url(whatwg::url& url) {
@@ -85,6 +86,20 @@ TEST_CASE("url move assignment") {
     whatwg::url url;
     url = whatwg::url(test_url);
     check_test_url(url);
+}
+
+// url parsing constructor with base URL
+
+TEST_CASE("url parsing constructor with base URL") {
+    const whatwg::url base("http://example.org/p");
+    {
+        // pointer to base URL
+        whatwg::url url(test_rel_url, &base);
+        check_test_url(url);
+    } {
+        whatwg::url url(test_rel_url, base);
+        check_test_url(url);
+    }
 }
 
 // UTF-8 in hostname
