@@ -34,18 +34,22 @@ static void reparse_test(const whatwg::url& u1) {
 extern "C" int LLVMFuzzerTestOneInput(const char* data, std::size_t size) {
     // Get base URL
     if (size < 1) return 0;
-    // first byte - index in the base URLs array
-    if (data[0] < '0') return 0;
-    const std::size_t ind = data[0] - '0';
-    if (ind >= arraySize(baseUrls)) return 0;
-    const auto& base = baseUrls[ind];
+    // first byte (code) means what base URL to use:
+    // '0' - no base URL
+    // '1'... - base URL from baseUrls by index (code - '0' - 1)
+    const auto code = data[0];
+    if (code < '0') return 0;
+    const std::size_t ind = code - '0';
+    if (ind > arraySize(baseUrls)) return 0;
+    const whatwg::url* pbase = ind > 0 ? &baseUrls[ind - 1] : nullptr;
+
     // skip first byte of data
     ++data; --size;
 
     // Parse input data against base URL
     whatwg::url::str_view_type inp{ data, size };
     try {
-        whatwg::url u1{ inp, base };
+        whatwg::url u1{ inp, pbase };
         reparse_test(u1);
     }
     catch (whatwg::url_error&) {
