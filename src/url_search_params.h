@@ -99,9 +99,9 @@ public:
 
     void sort();
 
-    void serialize(std::string& query);
+    void serialize(std::string& query) const;
 
-    std::string to_string();
+    std::string to_string() const;
 
     // iterable
 
@@ -408,7 +408,7 @@ inline void url_search_params::urlencode(std::string& encoded, Args&&... value) 
     }
 }
 
-inline void url_search_params::serialize(std::string& query) {
+inline void url_search_params::serialize(std::string& query) const {
     auto it = params_.begin();
     if (it != params_.end()) {
         while (true) {
@@ -422,7 +422,7 @@ inline void url_search_params::serialize(std::string& query) {
     }
 }
 
-inline std::string url_search_params::to_string() {
+inline std::string url_search_params::to_string() const {
     std::string query;
     serialize(query);
     return query;
