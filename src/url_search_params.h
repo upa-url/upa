@@ -209,7 +209,7 @@ inline url_search_params::url_search_params(Args&&... query)
 
 template<class ConT, typename std::enable_if<is_iterable_pairs<ConT>::value, int>::type>
 inline url_search_params::url_search_params(ConT&& cont) {
-    for (auto p : cont) {
+    for (const auto& p : cont) {
         params_.emplace_back(make_string(p.first), make_string(p.second));
     }
 }
