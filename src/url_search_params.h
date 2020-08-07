@@ -79,23 +79,23 @@ public:
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     void parse(Args&&... query);
 
-    template <class T, class TV>
-    void append(T&& name, TV&& value);
+    template <class TN, class TV>
+    void append(TN&& name, TV&& value);
 
-    template <class T>
-    void del(const T& name);
+    template <class TN>
+    void del(const TN& name);
 
-    template <class T>
-    const std::string* get(const T& name) const;
+    template <class TN>
+    const std::string* get(const TN& name) const;
 
-    template <class T>
-    std::list<std::string> getAll(const T& name) const;
+    template <class TN>
+    std::list<std::string> getAll(const TN& name) const;
 
-    template <class T>
-    bool has(const T& name) const;
+    template <class TN>
+    bool has(const TN& name) const;
 
-    template <class T, class TV>
-    void set(T&& name, TV&& value);
+    template <class TN, class TV>
+    void set(TN&& name, TV&& value);
 
     void sort();
 
@@ -233,18 +233,18 @@ inline void url_search_params::parse(Args&&... query) {
     update();
 }
 
-template <class T, class TV>
-inline void url_search_params::append(T&& name, TV&& value) {
+template <class TN, class TV>
+inline void url_search_params::append(TN&& name, TV&& value) {
     params_.emplace_back(
-        make_string(std::forward<T>(name)),
+        make_string(std::forward<TN>(name)),
         make_string(std::forward<TV>(value))
     );
     is_sorted_ = false;
     update();
 }
 
-template <class T>
-inline void url_search_params::del(const T& name) {
+template <class TN>
+inline void url_search_params::del(const TN& name) {
     const auto str_name = make_string(name);
     for (auto it = params_.begin(); it != params_.end();) {
         if (it->first == str_name)
@@ -255,8 +255,8 @@ inline void url_search_params::del(const T& name) {
     update();
 }
 
-template <class T>
-inline const std::string* url_search_params::get(const T& name) const {
+template <class TN>
+inline const std::string* url_search_params::get(const TN& name) const {
     const auto str_name = make_string(name);
     for (auto it = params_.begin(); it != params_.end(); ++it) {
         if (it->first == str_name)
@@ -265,8 +265,8 @@ inline const std::string* url_search_params::get(const T& name) const {
     return nullptr;
 }
 
-template <class T>
-std::list<std::string> url_search_params::getAll(const T& name) const {
+template <class TN>
+std::list<std::string> url_search_params::getAll(const TN& name) const {
     std::list<std::string> lst;
     const auto str_name = make_string(name);
     for (auto it = params_.begin(); it != params_.end(); ++it) {
@@ -276,8 +276,8 @@ std::list<std::string> url_search_params::getAll(const T& name) const {
     return lst;
 }
 
-template <class T>
-inline bool url_search_params::has(const T& name) const {
+template <class TN>
+inline bool url_search_params::has(const TN& name) const {
     const auto str_name = make_string(name);
     for (auto it = params_.begin(); it != params_.end(); ++it) {
         if (it->first == str_name)
@@ -286,9 +286,9 @@ inline bool url_search_params::has(const T& name) const {
     return false;
 }
 
-template <class T, class TV>
-inline void url_search_params::set(T&& name, TV&& value) {
-    auto str_name = make_string(std::forward<T>(name));
+template <class TN, class TV>
+inline void url_search_params::set(TN&& name, TV&& value) {
+    auto str_name = make_string(std::forward<TN>(name));
     auto str_value = make_string(std::forward<TV>(value));
 
     bool is_match = false;
