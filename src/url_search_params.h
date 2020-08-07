@@ -55,14 +55,14 @@ class url_search_params
 {
 public:
     // types
-    using key_value_pair = std::pair<std::string, std::string>;
-    using key_value_list = std::list<key_value_pair>;
-    using const_iterator = key_value_list::const_iterator;
-    using const_reverse_iterator = key_value_list::const_reverse_iterator;
+    using name_value_pair = std::pair<std::string, std::string>;
+    using name_value_list = std::list<name_value_pair>;
+    using const_iterator = name_value_list::const_iterator;
+    using const_reverse_iterator = name_value_list::const_reverse_iterator;
     using iterator = const_iterator;
     using reverse_iterator = const_reverse_iterator;
-    using size_type = key_value_list::size_type;
-    using value_type = key_value_pair;
+    using size_type = name_value_list::size_type;
+    using value_type = name_value_pair;
 
     // constructors
     url_search_params();
@@ -122,7 +122,7 @@ public:
     // utils
 
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    static key_value_list do_parse(Args&&... query);
+    static name_value_list do_parse(Args&&... query);
 
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     static void urlencode(std::string& encoded, Args&&... value);
@@ -138,7 +138,7 @@ private:
     friend class url_search_params_ptr;
 
 private:
-    key_value_list params_;
+    name_value_list params_;
     bool is_sorted_ = false;
     url* url_ptr_ = nullptr;
 
@@ -316,7 +316,7 @@ inline void url_search_params::sort() {
     if (!is_sorted_) {
         // https://en.cppreference.com/w/cpp/container/list/sort
         // std::list::sort preserves the order of equal elements.
-        params_.sort([](const key_value_pair& a, const key_value_pair& b) {
+        params_.sort([](const name_value_pair& a, const name_value_pair& b) {
             //return a.first < b.first;
             return url_utf::compare_by_code_units(
                 a.first.data(), a.first.data() + a.first.size(),
@@ -328,8 +328,8 @@ inline void url_search_params::sort() {
 }
 
 template <class ...Args, enable_if_str_arg_t<Args...>>
-inline url_search_params::key_value_list url_search_params::do_parse(Args&&... query) {
-    key_value_list lst;
+inline url_search_params::name_value_list url_search_params::do_parse(Args&&... query) {
+    name_value_list lst;
 
     auto str_query = make_string(std::forward<Args>(query)...);
     auto b = str_query.begin();
@@ -339,7 +339,7 @@ inline url_search_params::key_value_list url_search_params::do_parse(Args&&... q
     if (b != e && *b == '?')
         ++b;
 
-    key_value_pair p;
+    name_value_pair p;
     std::string* pval = &p.first;
     auto start = b;
     for (auto it = b; it != e; ++it) {

@@ -17,7 +17,7 @@
 template <class CharT, class Traits>
 std::basic_ostream<CharT, Traits>& operator<<(
     std::basic_ostream<CharT, Traits>& os,
-    const whatwg::url_search_params::key_value_pair& v);
+    const whatwg::url_search_params::name_value_pair& v);
 #include "ddt/DataDrivenTest.hpp"
 
 //
@@ -47,20 +47,20 @@ int main(int argc, char** argv)
 
 struct TestObj {
     std::string m_input;
-    whatwg::url_search_params::key_value_list m_output;
+    whatwg::url_search_params::name_value_list m_output;
 };
 
-// key_value_pair stream output function for DataDrivenTest
+// url_search_params::name_value_pair stream output function for DataDrivenTest
 template <class CharT, class Traits>
 std::basic_ostream<CharT, Traits>& operator<<(
     std::basic_ostream<CharT, Traits>& os,
-    const whatwg::url_search_params::key_value_pair& v)
+    const whatwg::url_search_params::name_value_pair& v)
 {
     return os << "[\"" << v.first << "\", \"" << v.second << "\"]";
 }
 
 static void do_assert_equal(DataDrivenTest::TestCase& tc,
-    const whatwg::url_search_params::key_value_list& expected,
+    const whatwg::url_search_params::name_value_list& expected,
     const whatwg::url_search_params& sparams)
 {
     const size_t n_sparams = sparams.size();
