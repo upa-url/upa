@@ -14,12 +14,14 @@ using std::experimental::generator;
 #endif
 
 
+// Iterable containers tests
+
 #define TEST_ITERABLES_DATA {    \
         {{ 'a' }, { 'a', 'a' }}, \
         {{ 'b' }, { 'b', 'b' }}  \
     }
 
-TEST_CASE_TEMPLATE_DEFINE("Various string pairs iterables", CharT, test_iterables) {
+TEST_CASE_TEMPLATE_DEFINE("Various string pairs iterable containers", CharT, test_iterables) {
     using string_t = std::basic_string<CharT>;
 
     const pairs_list_t<std::string> output = TEST_ITERABLES_DATA;
@@ -65,7 +67,7 @@ TEST_CASE_TEMPLATE_INVOKE(test_iterables, char8_t);
 #endif
 
 
-// sort test
+// Sort test
 
 TEST_CASE("url_search_params::sort()") {
     struct {
