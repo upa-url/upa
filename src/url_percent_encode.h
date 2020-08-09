@@ -25,10 +25,11 @@ enum CharsType : uint8_t {
     CHAR_USERINFO = 0x02,
     CHAR_FRAGMENT = 0x04,
     CHAR_QUERY = 0x08,
+    CHAR_COMPONENT = 0x10,
     // other charcter classes
-    CHAR_HOST_FORBIDDEN = 0x10,
-    CHAR_IPV4 = 0x20,
-    CHAR_HEX = 0x40,
+    CHAR_HOST_FORBIDDEN = 0x20,
+    CHAR_IPV4 = 0x40,
+    CHAR_HEX = 0x80,
 };
 
 
@@ -55,27 +56,32 @@ public:
 
         // First: set all bits, which represent non C0 control characters
         // and then clear specific bits below
-        doSetBits(CHAR_FRAGMENT | CHAR_PATH | CHAR_USERINFO | CHAR_QUERY, 0x20, 0x7E);
+        doSetBits(CHAR_FRAGMENT | CHAR_QUERY | CHAR_PATH | CHAR_USERINFO | CHAR_COMPONENT, 0x20, 0x7E);
 
         // fragment percent-encode set
         // https://url.spec.whatwg.org/#fragment-percent-encode-set
-        doClearBits(CHAR_FRAGMENT | CHAR_PATH | CHAR_USERINFO,
+        doClearBits(CHAR_FRAGMENT,
             { 0x20, 0x22, 0x3C, 0x3E, 0x60 });
+
+        // query percent-encode set
+        // https://url.spec.whatwg.org/#query-percent-encode-set
+        doClearBits(CHAR_QUERY | CHAR_PATH | CHAR_USERINFO | CHAR_COMPONENT,
+            { 0x20, 0x22, 0x23, 0x3C, 0x3E });
 
         // path percent-encode set
         // https://url.spec.whatwg.org/#path-percent-encode-set
-        doClearBits(CHAR_PATH | CHAR_USERINFO,
-            { 0x23, 0x3F, 0x7B, 0x7D });
+        doClearBits(CHAR_PATH | CHAR_USERINFO | CHAR_COMPONENT,
+            { 0x3F, 0x60, 0x7B, 0x7D });
 
         // userinfo percent-encode set
         // https://url.spec.whatwg.org/#userinfo-percent-encode-set
-        doClearBits(CHAR_USERINFO,
+        doClearBits(CHAR_USERINFO | CHAR_COMPONENT,
             { 0x2F, 0x3A, 0x3B, 0x3D, 0x40, 0x5B, 0x5C, 0x5D, 0x5E, 0x7C });
 
-        // query state percent-encode set
-        // https://url.spec.whatwg.org/#query-state
-        doClearBits(CHAR_QUERY,
-            { 0x20, 0x22, 0x23, 0x3C, 0x3E });
+        // component percent-encode set
+        // https://url.spec.whatwg.org/#component-percent-encode-set
+        doClearBits(CHAR_COMPONENT,
+            { 0x24, 0x25, 0x26, 0x2B, 0x2C });
 
         // Forbidden host code points: U+0000 NULL, U+0009 TAB, U+000A LF, U+000D CR,
         // U+0020 SPACE, U+0023 (#), U+0025 (%), U+002F (/), U+003A (:), U+003C (<),
