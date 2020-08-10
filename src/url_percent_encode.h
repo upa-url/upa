@@ -11,6 +11,7 @@
 #define WHATWG_URL_PERCENT_ENCODE_H
 
 #include "config.h"
+#include "str_arg.h"
 #include "url_utf.h"
 #include <array>
 #include <type_traits>
@@ -292,6 +293,28 @@ void AppendStringOfType(const CharT* first, const CharT* last, const CharsType c
 
 
 } // namespace detail
+
+
+/// UTF-8 percennt encode input string using component percent encode set.
+///
+/// Invalid code points are replaced with UTF-8 percent encoded U+FFFD characters.
+///
+/// More info:
+/// https://url.spec.whatwg.org/#string-utf-8-percent-encode
+/// https://url.spec.whatwg.org/#component-percent-encode-set
+///
+/// @param args[in] string input
+/// @return percent encoded string
+template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+inline std::string encode_url_component(Args&&... args) {
+    const auto inp = make_str_arg(std::forward<Args>(args)...);
+
+    std::string out;
+    detail::AppendStringOfType(inp.begin(), inp.end(), detail::CHAR_COMPONENT, out);
+    return out;
+}
+
+
 } // namespace whatwg
 
 #endif // WHATWG_URL_PERCENT_ENCODE_H
