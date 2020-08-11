@@ -104,7 +104,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     // Let buff_uc be the result of running UTF-8 decode (to UTF-16) without BOM
     // on the percent decoding of UTF-8 encode on input
     simple_buffer<char16_t> buff_uc;
-    for (auto it = first; it < last;) {
+    for (auto it = first; it != last;) {
         UCharT uch = static_cast<UCharT>(*it++);
         if (uch < 0x80) {
             if (uch != '%') {
@@ -122,8 +122,8 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
                 // TODO: gal po vieną code_point, tuomet užtektų utf-8 buferio vienam simboliui
                 simple_buffer<unsigned char> buff_utf8;
                 buff_utf8.push_back(uc8);
-                while (it < last && *it == '%') {
-                    it++; // skip '%'
+                while (it != last && *it == '%') {
+                    ++it; // skip '%'
                     if (!detail::DecodeEscaped(it, last, uc8))
                         uc8 = '%';
                     buff_utf8.push_back(uc8);
@@ -132,11 +132,11 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
                 //buff_utf8.clear();
                 continue;
             }
-            // detected invalid percent encode
+            // detected an invalid percent-encoding sequence
             buff_uc.push_back('%');
         } else { // uch >= 0x80
             uint32_t code_point;
-            it--;
+            --it;
             url_utf::read_utf_char(it, last, code_point);
             url_utf::append_utf16(code_point, buff_uc);
         }
