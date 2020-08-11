@@ -125,3 +125,39 @@ TEST_CASE("Invalid utf-8 in hostname") {
     check_url_contructor(whatwg::url_result::IdnaError, szUrl1);
     check_url_contructor(whatwg::url_result::IdnaError, szUrl2);
 }
+
+// UTF-16 in hostname
+
+TEST_CASE("Valid UTF-16 in hostname") {
+    static const char16_t szUrl[] = { 'h', 't', 't', 'p', ':', '/', '/', char16_t(0xD800), char16_t(0xDC00), '/', '\0' };
+
+    whatwg::url url;
+    REQUIRE(whatwg::success(url.parse(szUrl, nullptr)));
+    CHECK(url.hostname() == "xn--2n7c");
+}
+TEST_CASE("Invalid UTF-16 in hostname") {
+    static const char16_t szUrl1[] = { 'h', 't', 't', 'p', ':', '/', '/', char16_t(0xD800), '/', '\0' };
+    static const char16_t szUrl2[] = { 'h', 't', 't', 'p', ':', '/', '/', char16_t(0xDC00), '/', '\0' };
+
+    CHECK_THROWS_AS(whatwg::url{ szUrl1 }, whatwg::url_error);
+    CHECK_THROWS_AS(whatwg::url{ szUrl2 }, whatwg::url_error);
+}
+
+// UTF-32 in hostname
+
+TEST_CASE("Valid UTF-32 in hostname") {
+    static const char32_t szUrl[] = { 'h', 't', 't', 'p', ':', '/', '/', char32_t(0x10000u), '/', '\0' };
+
+    whatwg::url url;
+    REQUIRE(whatwg::success(url.parse(szUrl, nullptr)));
+    CHECK(url.hostname() == "xn--2n7c");
+}
+TEST_CASE("Invalid UTF-32 in hostname") {
+    static const char32_t szUrl1[] = { 'h', 't', 't', 'p', ':', '/', '/', char32_t(0xD800), '/', '\0' };
+    static const char32_t szUrl2[] = { 'h', 't', 't', 'p', ':', '/', '/', char32_t(0xDFFF), '/', '\0' };
+    static const char32_t szUrl3[] = { 'h', 't', 't', 'p', ':', '/', '/', char32_t(0x110000u), '/', '\0' };
+
+    CHECK_THROWS_AS(whatwg::url{ szUrl1 }, whatwg::url_error);
+    CHECK_THROWS_AS(whatwg::url{ szUrl2 }, whatwg::url_error);
+    CHECK_THROWS_AS(whatwg::url{ szUrl3 }, whatwg::url_error);
+}
