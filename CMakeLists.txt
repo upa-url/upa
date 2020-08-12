@@ -19,6 +19,7 @@ option(URL_BUILD_EXAMPLES "Build the URL examples." OFF)
 option(URL_BUILD_TOOLS "Build tools." OFF)
 # tests build options
 option(URL_TEST_COROUTINE "Build coroutine tests (MSVC)" OFF)
+option(URL_TEST_COVERAGE "Build tests with code coverage reporting" OFF)
 option(URL_TEST_COVERAGE_CLANG "Build tests with Clang source-based code coverage" OFF)
 option(URL_TEST_SANITIZER "Build tests with Clang sanitizer" OFF)
 
@@ -42,6 +43,13 @@ if (URL_TEST_COROUTINE)
   if (MSVC)
     add_compile_options(/await)
   endif()
+endif()
+
+# Code coverage reporting
+if (URL_TEST_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+  # add flags for GCC & LLVM/Clang
+  add_compile_options(-O0 -g --coverage)
+  add_link_options(--coverage)
 endif()
 
 # Clang source-based code coverage
