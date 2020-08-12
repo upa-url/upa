@@ -15,10 +15,17 @@ matrix:
       compiler: clang
       env: [ICU_ROOT=/usr/local/opt/icu4c]
 
+# Codecov
+    - os: linux
+      compiler: gcc
+      after_success:
+        - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+      env: [CMAKE_OPTIONS=-DURL_TEST_COVERAGE=ON]
+
 # Build steps
 script:
   - ./init.sh
   - mkdir build
   - cd build
-  - cmake .. && cmake --build . --config Release
+  - cmake .. ${CMAKE_OPTIONS} && cmake --build . --config Release
   - ctest -C Release -V
