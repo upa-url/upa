@@ -16,11 +16,22 @@ matrix:
       env: [ICU_ROOT=/usr/local/opt/icu4c]
 
 # Codecov
+# Ubuntu on Travis CI has CMake 3.12.4 installed in /usr/local/cmake-3.12.4/bin/cmake
+# and added to PATH. To use newer CMake (Ubuntu 20.04 has 3.16 version), install it and
+# prepend its binary directory /usr/bin to PATH.
     - os: linux
+      dist: focal
+      addons:
+        apt:
+          packages: [cmake]
       compiler: gcc
+      before_script:
+        - cmake --version
       after_success:
         - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
-      env: [CMAKE_OPTIONS=-DURL_TEST_COVERAGE=ON]
+      env:
+        - CMAKE_OPTIONS=-DURL_TEST_COVERAGE=ON
+        - PATH=/usr/bin:$PATH
 
 # Build steps
 script:
