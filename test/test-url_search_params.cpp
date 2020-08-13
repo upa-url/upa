@@ -104,3 +104,45 @@ TEST_CASE("url_search_params::sort()") {
         CHECK(list_eq(params, val.output));
     }
 }
+
+
+// Test url::searchParams()
+
+TEST_CASE("url::searchParams()") {
+    whatwg::url url("http://h/p?a=A");
+    auto& params = url.searchParams();
+
+    INFO("url::search(...) -> url::searchParams()");
+
+    // initial
+    CHECK(list_eq(params, pairs_list_t<std::string>{ {"a", "A"} }));
+
+    // replace search
+    url.search("b=B");
+    CHECK(list_eq(params, pairs_list_t<std::string>{ {"b", "B"} }));
+
+    // clear search
+    url.search("");
+    CHECK(params.empty());
+
+    INFO("url::searchParams() -> url::search()");
+
+    // add parameters
+    params.append("c", "C");
+    params.append("d", "D");
+    params.append("e", "E");
+    CHECK(url.search() == "?c=C&d=D&e=E");
+
+    // delete parameter
+    params.del("d");
+    CHECK(url.search() == "?c=C&e=E");
+
+    // set parameters
+    params.set("c", "CC");
+    params.set("d", "DD");
+    CHECK(url.search() == "?c=CC&e=E&d=DD");
+
+    // clear parameters
+    params.clear();
+    CHECK(url.search() == "");
+}

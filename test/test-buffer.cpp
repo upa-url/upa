@@ -82,6 +82,17 @@ TEST_CASE("whatwg::simple_buffer<char, 2> constructor with initial capacity 4") 
     CHECK(str::compare(buff.data(), "12345678", 4) == 0);
 }
 
+TEST_CASE("whatwg::simple_buffer<char, 2> constructor with initial capacity 2") {
+    whatwg::simple_buffer<char, 2> buff(2);
+
+    std::string aaa("1234567890123456");
+    buff.append(aaa.data(), aaa.data() + aaa.length());
+
+    CHECK(buff.capacity() >= 16);
+    CHECK(buff.size() == 16);
+    CHECK(str::compare(buff.data(), "1234567890123456", 16) == 0);
+}
+
 TEST_CASE("whatwg::simple_buffer<char, 0>") {
     whatwg::simple_buffer<char, 0> buff;
 
