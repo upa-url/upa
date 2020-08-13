@@ -75,7 +75,11 @@ public:
     template<class ConT, typename std::enable_if<is_iterable_pairs<ConT>::value, int>::type = 0>
     url_search_params(ConT&& cont);
 
-    // operations
+    // Operations
+
+    /// Clears parameters
+    void clear();
+
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     void parse(Args&&... query);
 
@@ -214,7 +218,13 @@ inline url_search_params::url_search_params(ConT&& cont) {
     }
 }
 
-// operations
+// Operations
+
+inline void url_search_params::clear() {
+    params_.clear();
+    is_sorted_ = true;
+    update();
+}
 
 inline void url_search_params::clear_params() {
     params_.clear();
