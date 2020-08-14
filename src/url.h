@@ -1156,11 +1156,14 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     const url::scheme_info* scheme_inf = url::get_scheme_info(str_scheme);
                     const bool is_special_old = urls.is_special_scheme();
                     const bool is_special_new = scheme_inf && scheme_inf->is_special;
-                    if (is_special_old != is_special_new) return url_result::False;
+                    if (is_special_old != is_special_new)
+                        return url_result::False;
                     // new URL("http://u:p@host:88/).protocol("file:");
-                    if (scheme_inf && scheme_inf->is_file && (urls.has_credentials() || !urls.is_null(url::PORT))) return url_result::False;
+                    if (scheme_inf && scheme_inf->is_file && (urls.has_credentials() || !urls.is_null(url::PORT)))
+                        return url_result::False;
                     // new URL("file:///path).protocol("http:");
-                    if (urls.is_file_scheme() && urls.is_empty(url::HOST)) return url_result::False;
+                    if (urls.is_file_scheme() && urls.is_empty(url::HOST))
+                        return url_result::False;
                     // OR ursl.is_empty(url::HOST) && scheme_inf->no_empty_host
 
                     // set url's scheme
@@ -1450,7 +1453,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 int port = 0;
                 for (auto it = pointer; it < end_of_digits; it++) {
                     port = port * 10 + (*it - '0');
-                    if (port > 0xFFFF) return url_result::InvalidPort; // TODO-ERR: (2-1-2) validation error, failure
+                    if (port > 0xFFFF)
+                        return url_result::InvalidPort; // TODO-ERR: (2-1-2) validation error, failure
                 }
                 // set port if not default
                 if (urls.scheme_inf() == nullptr || urls.scheme_inf()->default_port != port) {
