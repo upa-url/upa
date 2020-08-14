@@ -1637,7 +1637,6 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     }
 
     if (state == path_state) {
-        // TODO: saugoti end_of_path ir naudoti kituose state
         auto end_of_path = state_override ? last :
             std::find_if(pointer, last, [](CharT c) { return c == '?' || c == '#'; });
 
@@ -1666,7 +1665,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     }
 
     if (state == cannot_be_base_URL_path_state) {
-        auto end_of_path = state_override ? last :
+        auto end_of_path =
             std::find_if(pointer, last, [](CharT c) { return c == '?' || c == '#'; });
 
         // UTF-8 percent encode using the C0 control percent-encode set,
