@@ -47,6 +47,7 @@ const pairs_list_t<std::string> test_url_params = { {"a","b"}, {"c","d"} };
 
 void check_test_url(whatwg::url& url) {
     CHECK(url.href() == test_url);
+    CHECK(url.origin() == "http://h:123");
     CHECK(url.protocol() == "http:");
     CHECK(url.host() == "h:123");
     CHECK(url.hostname() == "h");
@@ -99,6 +100,31 @@ TEST_CASE("url parsing constructor with base URL") {
     } {
         whatwg::url url(test_rel_url, base);
         check_test_url(url);
+    }
+}
+
+// Origin tests
+
+TEST_SUITE("Check origin") {
+    TEST_CASE("http:") {
+        whatwg::url url("http://host:123/path");
+        CHECK(url.origin() == "http://host:123");
+    }
+    TEST_CASE("blob:") {
+        whatwg::url url("blob:http://host:123/path");
+        CHECK(url.origin() == "http://host:123");
+    }
+    TEST_CASE("blob: x 3") {
+        whatwg::url url("blob:blob:blob:http://host:123/path");
+        CHECK(url.origin() == "http://host:123");
+    }
+    TEST_CASE("file:") {
+        whatwg::url url("file://host/path");
+        CHECK(url.origin() == "null");
+    }
+    TEST_CASE("non-spec:") {
+        whatwg::url url("non-spec://host:123/path");
+        CHECK(url.origin() == "null");
     }
 }
 
