@@ -6,11 +6,21 @@ TEST_CASE("Test setters with special URL's") {
     whatwg::url url;
 
     REQUIRE(whatwg::success(url.parse("ws://example.org/foo/bar", nullptr)));
-    CHECK_FALSE(url.href("wss://%00/foo/bar"));
-    CHECK_EQ(url.href(), "ws://example.org/foo/bar");
-    CHECK_EQ(url.protocol(), "ws:");
-    CHECK_EQ(url.host(), "example.org");
-    CHECK_EQ(url.pathname(), "/foo/bar");
+
+    SUBCASE("Check getters") {
+        CHECK_EQ(url.href(), "ws://example.org/foo/bar");
+        CHECK_EQ(url.protocol(), "ws:");
+        CHECK_EQ(url.host(), "example.org");
+        CHECK_EQ(url.pathname(), "/foo/bar");
+    }
+
+    SUBCASE("url::href(...)") {
+        CHECK_FALSE(url.href("wss://%00/foo/bar"));
+        CHECK_EQ(url.href(), "ws://example.org/foo/bar");
+
+        CHECK(url.href("wss://host/foo/bar"));
+        CHECK_EQ(url.href(), "wss://host/foo/bar");
+    }
 
     SUBCASE("switch to http: protocol") {
         // if setter sets value, then returns true
