@@ -74,15 +74,14 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     // 1. Non-"file" special URL's cannot have an empty host.
     // 2. For "file" URL's empty host is set in the file_host_state 1.2
     //    https://url.spec.whatwg.org/#file-host-state
-    // So empty host here will be set only for non-special URL's, instead of in
-    // the opaque host parser (if follow URL standard).
+    // 3. Non-special URLs can have empty host and it will be set here.
     if (first == last) {
         // https://github.com/whatwg/url/issues/79
         // https://github.com/whatwg/url/pull/189
         // set empty host
         dest.hostStart();
         dest.hostDone(HostType::Empty);
-        return url_result::Ok;
+        return isNotSpecial ? url_result::Ok : url_result::EmptyHost;
     }
     assert(first < last);
 

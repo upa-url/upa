@@ -108,6 +108,7 @@ if (URL_BUILD_TESTS)
     test/test-url.cpp
     test/test-url-port.cpp
     test/test-url-setters.cpp
+    test/test-url_host.cpp
     test/test-url_percent_encode.cpp
     test/test-url_search_params.cpp
     test/wpt-url.cpp
