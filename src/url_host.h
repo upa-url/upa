@@ -7,6 +7,7 @@
 #define WHATWG_URL_HOST_H
 
 #include "buffer.h"
+#include "str_arg.h"
 #include "url_idna.h"
 #include "url_ip.h"
 #include "url_result.h"
@@ -26,10 +27,6 @@ enum class HostType {
     IPv6
 };
 
-//union ip_address {
-//  uint32_t ipv4;
-//  //TODO
-//};
 
 class host_output {
 public:
@@ -51,6 +48,73 @@ public:
     template <typename CharT>
     static url_result parse_ipv6(const CharT* first, const CharT* last, host_output& dest);
 };
+
+
+// url_host class
+// https://github.com/whatwg/url/pull/288
+// https://whatpr.org/url/288.html#urlhost-class
+
+class url_host {
+public:
+    url_host() = delete;
+    url_host(const url_host&) = default;
+    url_host(url_host&&) = default;
+
+    /// Parsing constructor
+    ///
+    /// Throws @a url_error exception on parse error.
+    ///
+    /// @param args[in]  Host string to parse
+    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+    url_host(Args&&... args);
+
+    /// Host type getter
+    ///
+    /// @returns host type, the one of: Domain, IPv4, IPv6
+    HostType type() const {
+        return type_;
+    }
+
+    /// Hostname stringifier
+    ///
+    /// @returns host serialized to string
+    std::string to_string() const {
+        return host_str_;
+    }
+
+private:
+    class host_out : public host_output {
+    public:
+        host_out(url_host& host)
+            : host_(host)
+        {}
+        std::string& hostStart() override {
+            return host_.host_str_;
+        }
+        void hostDone(whatwg::HostType ht) override {
+            host_.type_ = ht;
+        }
+    private:
+        url_host& host_;
+    };
+
+    // members
+    std::string host_str_;
+    whatwg::HostType type_ = whatwg::HostType::Empty;
+};
+
+template <class ...Args, enable_if_str_arg_t<Args...>>
+url_host::url_host(Args&&... args) {
+    host_out out(*this);
+
+    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    const auto res = host_parser::parse_host(inp.begin(), inp.end(), false, out);
+    if (res != url_result::Ok)
+        throw url_error(res, "Host parse error");
+}
+
+
+// Helper functions
 
 template <typename CharT>
 static inline bool contains_forbidden_host_char(const CharT* first, const CharT* last) {
