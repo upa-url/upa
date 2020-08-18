@@ -31,7 +31,7 @@ enum class HostType {
 class host_output {
 public:
     virtual std::string& hostStart() = 0;
-    virtual void hostDone(HostType /*ht*/) {}
+    virtual void hostDone(HostType /*ht*/) = 0;
 };
 
 class host_parser {
