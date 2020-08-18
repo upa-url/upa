@@ -23,12 +23,16 @@ matrix:
       dist: focal
       addons:
         apt:
-          packages: [cmake]
+          packages: [cmake, lcov]
       compiler: gcc
       before_script:
         - cmake --version
       after_success:
-        - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
+        # See: https://github.com/codecov/example-cpp11-cmake
+        - lcov --capture --directory . --output-file coverage.info
+        - lcov --remove coverage.info '/usr/*' '*/deps/*' '*/test/*' --output-file coverage.info
+        - lcov --list coverage.info
+        - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
       env:
         - CMAKE_OPTIONS=-DURL_TEST_COVERAGE=ON
         - PATH=/usr/bin:$PATH
