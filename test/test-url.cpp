@@ -41,8 +41,9 @@ TEST_CASE("url constructor") {
 
 // Copy/move construction/assignment
 
-const char* test_url = "http://h:123/p?a=b&c=d#frag";
-const char* test_rel_url = "//h:123/p?a=b&c=d#frag";
+const char test_url[] = "http://h:123/p?a=b&c=d#frag";
+const char test_rel_url[] = "//h:123/p?a=b&c=d#frag";
+const char test_base_url[] = "http://example.org/p";
 const pairs_list_t<std::string> test_url_params = { {"a","b"}, {"c","d"} };
 
 void check_test_url(whatwg::url& url) {
@@ -92,7 +93,7 @@ TEST_CASE("url move assignment") {
 // url parsing constructor with base URL
 
 TEST_CASE("url parsing constructor with base URL") {
-    const whatwg::url base("http://example.org/p");
+    const whatwg::url base(test_base_url);
     {
         // pointer to base URL
         whatwg::url url(test_rel_url, &base);
@@ -101,6 +102,24 @@ TEST_CASE("url parsing constructor with base URL") {
         whatwg::url url(test_rel_url, base);
         check_test_url(url);
     }
+}
+
+TEST_CASE("url parsing constructor with base URL string") {
+    whatwg::url url(test_rel_url, test_base_url);
+    check_test_url(url);
+}
+
+// URL parts
+
+TEST_CASE("url::is_empty and url::is_null") {
+    whatwg::url url;
+
+    CHECK(url.is_empty(whatwg::url::SCHEME));
+    CHECK(url.is_null(whatwg::url::HOST));
+
+    CHECK(whatwg::success(url.parse("http://example.org/", nullptr)));
+    CHECK_FALSE(url.is_empty(whatwg::url::SCHEME));
+    CHECK_FALSE(url.is_null(whatwg::url::HOST));
 }
 
 // Origin tests
