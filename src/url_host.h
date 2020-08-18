@@ -258,7 +258,7 @@ inline url_result host_parser::parse_opaque_host(const CharT* first, const CharT
                 detail::AppendEscapedChar(uch, str_host);
             else
                 str_host.push_back(static_cast<unsigned char>(uch));
-            pointer++;
+            ++pointer;
         }
     }
 

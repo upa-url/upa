@@ -26,7 +26,7 @@ inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
     // one division is needed to prevent the multiplication overflow
     const UIntT num0 = num / base;
     for (UIntT divider = 1; divider <= num0; divider *= base)
-        count++;
+        ++count;
     output.resize(count);
 
     // convert
@@ -60,7 +60,7 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
         }
         // Skip leading zeros (*)
         while (first < last && first[0] == '0')
-            first++;
+            ++first;
     } else {
         radix = 10;
     }
@@ -74,12 +74,12 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
     // check if valid digits (we known all chars are ASCII)
     if (radix <= 10) {
         const CharT chmax = '0' - 1 + radix;
-        for (auto it = first; it != last; it++) {
+        for (auto it = first; it != last; ++it) {
             if (*it > chmax || *it < '0')
                 return url_result::False;
         }
     } else {
-        for (auto it = first; it != last; it++) {
+        for (auto it = first; it != last; ++it) {
             if (!detail::isHexChar(static_cast<unsigned char>(*it)))
                 return url_result::False;
         }
@@ -97,10 +97,10 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
     // number can overflow a 64-bit number in <= 16 characters).
     uint64_t num = 0;
     if (radix <= 10) {
-        for (auto it = first; it != last; it++)
+        for (auto it = first; it != last; ++it)
             num = num * radix + (*it - '0');
     } else {
-        for (auto it = first; it != last; it++)
+        for (auto it = first; it != last; ++it)
             num = num * radix + detail::HexCharToValue(static_cast<unsigned char>(*it));
     }
 
@@ -126,7 +126,7 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
 
     // split on "."
     part[0] = first;
-    for (auto it = first; it != last; it++) {
+    for (auto it = first; it != last; ++it) {
         UCharT uc = static_cast<UCharT>(*it);
         if (uc == '.') {
             if (dot_count == 4)
@@ -156,7 +156,7 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
 
     // IPv4 numbers
     uint32_t number[4];
-    for (int ind = 0; ind < part_count; ind++) {
+    for (int ind = 0; ind < part_count; ++ind) {
         url_result res = ipv4_parse_number(part[ind], part[ind + 1] - 1, number[ind]);
         if (res != url_result::Ok) return res;
     }
@@ -165,7 +165,7 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
     // 8. If any item in numbers is greater than 255, validation error.
 
     // 9. If any but the last item in numbers is greater than 255, then return failure.
-    for (int ind = 0; ind < part_count - 1; ind++) {
+    for (int ind = 0; ind < part_count - 1; ++ind) {
         if (number[ind] > 255) return url_result::InvalidIpv4Address;
     }
     // 10. If the last item in numbers is greater than or equal to 256**(5 - numbers’s size),
@@ -174,8 +174,8 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
     if (ipv4 > (std::numeric_limits<uint32_t>::max() >> (8 * (part_count - 1))))
         return url_result::InvalidIpv4Address;
 
-    // 14.1. Increment ipv4 by n * 256**(3 - counter). 
-    for (int counter = 0; counter < part_count - 1; counter++) {
+    // 14.1. Increment ipv4 by n * 256**(3 - counter).
+    for (int counter = 0; counter < part_count - 1; ++counter) {
         ipv4 += number[counter] << (8 * (3 - counter));
     }
 
@@ -195,7 +195,7 @@ inline void get_hex_number(const CharT*& pointer, const CharT* last, IntT& value
     while (pointer != last && detail::isHexChar(*pointer)) {
         const unsigned char uc = static_cast<unsigned char>(*pointer);
         value = value * 0x10 + detail::HexCharToValue(uc);
-        pointer++;
+        ++pointer;
     }
 }
 
@@ -237,7 +237,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
                 // TODO-ERR: validation error
                 return false;
             }
-            pointer++;
+            ++pointer;
             compress = ++piece_index;
             continue;
         }
@@ -296,12 +296,12 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
                 ipv4Piece = ipv4Piece * 10 + (*pointer - '0');
                 if (ipv4Piece > 255)
                     return false; // TODO-ERR: validation error
-                pointer++;
+                ++pointer;
             }
             address[piece_index] = address[piece_index] * 0x100 + ipv4Piece;
-            numbers_seen++;
+            ++numbers_seen;
             if (!(numbers_seen & 1)) // 2 or 4
-                piece_index++;
+                ++piece_index;
         }
         // If c is the EOF code point and numbersSeen is not 4
         if (numbers_seen != 4)  {
@@ -313,7 +313,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
     // Finale
     if (compress) {
         if (int diff = 8 - piece_index) {
-            for (int ind = piece_index - 1; ind >= compress; ind--) {
+            for (int ind = piece_index - 1; ind >= compress; --ind) {
                 address[ind + diff] = address[ind];
                 address[ind] = 0;
             }

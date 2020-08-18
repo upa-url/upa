@@ -35,7 +35,7 @@ static std::size_t longest_zero_sequence(
                 compress_end = ite;
             }
             if (ite == last) break;
-            it = ite; // it++ in loop skips not 0
+            it = ite; // ++it in the loop skips non-zero number
         }
     }
     return last_count;

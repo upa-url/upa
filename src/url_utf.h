@@ -184,7 +184,7 @@ inline bool url_utf::read_code_point(const char16_t*& first, const char16_t* las
 
 inline bool url_utf::read_code_point(const char32_t*& first, const char32_t*, uint32_t& c) {
     // no conversion
-    c = *(first++);
+    c = *first++;
     // don't allow surogates (U+D800..U+DFFF) and too high values
     return c < 0xD800u || (c > 0xDFFFu && c <= 0x10FFFFu);
 }
