@@ -433,6 +433,8 @@ public:
 #endif
 
 protected:
+    void adjust_path_prefix();
+
     std::size_t get_part_pos(const url::PartType pt) const;
     std::size_t get_part_len(const url::PartType pt) const;
     void replace_part(const url::PartType new_pt, const char* str, const std::size_t len);
@@ -2140,15 +2142,20 @@ inline void url_serializer::save_path_segment() {
 
 inline void url_serializer::commit_path() {
     // "/." path prefix
+    adjust_path_prefix();
+}
+
+inline void url_serializer::adjust_path_prefix() {
+    // "/." path prefix
     // https://url.spec.whatwg.org/#url-serializing (5.1.)
+    str_view_type new_prefix;
     if (is_null(url::HOST) && url_.path_segment_count_ > 1) {
         const auto pathname = get_part_view(url::PATH);
-        if (pathname.length() > 1 && pathname[0] == '/' && pathname[1] == '/') {
-            if (is_empty(url::PATH_PREFIX)) {
-                replace_part(url::PATH_PREFIX, "/.", 2);
-            }
-        }
+        if (pathname.length() > 1 && pathname[0] == '/' && pathname[1] == '/')
+            new_prefix = { "/.", 2 };
     }
+    if (is_empty(url::PATH_PREFIX) != new_prefix.empty())
+        replace_part(url::PATH_PREFIX, new_prefix.data(), new_prefix.length());
 }
 
 inline std::string& url_serializer::start_path_string() {
@@ -2444,16 +2451,7 @@ inline void url_setter::commit_path() {
     url_.path_segment_count_ = path_seg_end_.size();
 
     // "/." path prefix
-    // https://url.spec.whatwg.org/#url-serializing (5.1.)
-    const bool no_prefix = is_empty(url::PATH_PREFIX);
-    str_view_type new_prefix;
-    if (is_null(url::HOST) && url_.path_segment_count_ > 1) {
-        const auto pathname = get_part_view(url::PATH);
-        if (pathname.length() > 1 && pathname[0] == '/' && pathname[1] == '/')
-            new_prefix = { "/.", 2 };
-    }
-    if (no_prefix != new_prefix.empty())
-        replace_part(url::PATH_PREFIX, new_prefix.data(), new_prefix.length());
+    adjust_path_prefix();
 }
 
 // https://url.spec.whatwg.org/#shorten-a-urls-path
