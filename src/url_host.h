@@ -64,7 +64,7 @@ public:
     ///
     /// Throws @a url_error exception on parse error.
     ///
-    /// @param args[in]  Host string to parse
+    /// @param[in] args Host string to parse
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     url_host(Args&&... args);
 

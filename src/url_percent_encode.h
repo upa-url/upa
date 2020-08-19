@@ -303,8 +303,8 @@ void AppendStringOfType(const CharT* first, const CharT* last, const CharsType c
 /// https://url.spec.whatwg.org/#string-utf-8-percent-encode
 /// https://url.spec.whatwg.org/#component-percent-encode-set
 ///
-/// @param args[in] string input
-/// @return percent encoded string
+/// @param[in] args string input
+/// @returns percent encoded string
 template <class ...Args, enable_if_str_arg_t<Args...> = 0>
 inline std::string encode_url_component(Args&&... args) {
     const auto inp = make_str_arg(std::forward<Args>(args)...);

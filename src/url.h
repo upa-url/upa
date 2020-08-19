@@ -91,15 +91,15 @@ public:
     ///
     /// Replaces the contents with those of @a other using move semantics.
     ///
-    /// @param other[in,out]  URL to move to this object
+    /// @param[in,out] other  URL to move to this object
     url& operator=(url&& other) = default;
 
     /// Parsing constructor.
     ///
     /// Throws @a url_error exception on parse error.
     ///
-    /// @param str_url[in]  URL string to parse
-    /// @param pbase  pointer to base URL, may be nullptr
+    /// @param[in] str_url URL string to parse
+    /// @param[in] pbase   pointer to base URL, may be @a nullptr
     template <class T, enable_if_str_arg_t<T> = 0>
     explicit url(T&& str_url, const url* pbase = nullptr);
 
@@ -107,8 +107,8 @@ public:
     ///
     /// Throws @a url_error exception on parse error.
     ///
-    /// @param str_url[in]  URL string to parse
-    /// @param base[in]  base URL
+    /// @param[in] str_url URL string to parse
+    /// @param[in] base    base URL
     template <class T, enable_if_str_arg_t<T> = 0>
     explicit url(T&& str_url, const url& base);
 
@@ -116,8 +116,8 @@ public:
     ///
     /// Throws @a url_error exception on parse error.
     ///
-    /// @param str_url[in]  URL string to parse
-    /// @param str_base[in]  base URL string
+    /// @param[in] str_url  URL string to parse
+    /// @param[in] str_base base URL string
     template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
     explicit url(T&& str_url, TB&& str_base);
 
@@ -128,9 +128,9 @@ public:
 
     /// Parses given URL string against base URL.
     ///
-    /// @param str_url  URL string to parse
-    /// @param base  pointer to base URL, may be nullptr
-    /// @returns  error code (url_result::Ok on success)
+    /// @param[in] str_url URL string to parse
+    /// @param[in] base    pointer to base URL, may be nullptr
+    /// @returns error code (@a url_result::Ok on success)
     template <class T, enable_if_str_arg_t<T> = 0>
     url_result parse(T&& str_url, const url* base) {
         const auto inp = make_str_arg(std::forward<T>(str_url));
