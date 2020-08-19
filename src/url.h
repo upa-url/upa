@@ -210,7 +210,16 @@ public:
     // https://url.spec.whatwg.org/#dom-url-searchparams
     url_search_params& searchParams();
 
-    // get url info
+    /// URL serializing
+    ///
+    /// Returns serialized URL in a string_view as defined here:
+    /// https://url.spec.whatwg.org/#concept-url-serializer
+    ///
+    /// @param[in] exclude_fragment exclude fragment when serializing
+    /// @returns serialized URL as string_view
+    str_view_type serialize(bool exclude_fragment = false) const;
+
+    // Get url info
 
     str_view_type get_part_view(PartType t) const;
 
@@ -313,6 +322,17 @@ private:
     friend class url_parser;
     friend class url_search_params;
 };
+
+/// URL equivalence
+///
+/// Determines if @a lhs equals to @a rhs, optionally with an @a exclude_fragments flag.
+/// More info: https://url.spec.whatwg.org/#concept-url-equals
+///
+/// @param[in] lhs,rhs URLs to compare
+/// @param[in] exclude_fragments exclude fragments when comparing
+inline bool equals(const url& lhs, const url& rhs, bool exclude_fragments = false) {
+    return lhs.serialize(exclude_fragments) == rhs.serialize(exclude_fragments);
+}
 
 
 class url_serializer : public host_output {
@@ -799,7 +819,14 @@ inline void url::parse_search_params() {
         search_params_ptr_.parse_params(get_part_view(QUERY));
 }
 
-// get url info
+inline url::str_view_type url::serialize(bool exclude_fragment) const {
+    if (exclude_fragment && part_end_[FRAGMENT])
+        return str_view_type(norm_url_.data(), part_end_[QUERY]);
+    else
+        return norm_url_;
+}
+
+// Get url info
 
 inline url::str_view_type url::get_part_view(PartType t) const {
     if (t == SCHEME)

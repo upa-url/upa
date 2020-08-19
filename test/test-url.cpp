@@ -147,6 +147,51 @@ TEST_SUITE("Check origin") {
     }
 }
 
+// URL serializing
+
+static void check_serialize(std::string str_url, std::string str_hash) {
+    whatwg::url u(str_url + str_hash);
+    CHECK(u.serialize(false) == str_url + str_hash);
+    CHECK(u.serialize(true) == str_url);
+}
+
+TEST_CASE("URL serializing") {
+    check_serialize("http://h/", "");
+    check_serialize("http://h/", "#");
+    check_serialize("http://h/", "#f");
+    check_serialize("http://h/?q", "");
+    check_serialize("http://h/?q", "#");
+    check_serialize("http://h/?q", "#f");
+}
+
+// URL equivalence
+
+static bool is_equals(std::string atr_a, std::string atr_b, bool exclude_fragments) {
+    whatwg::url a(atr_a);
+    whatwg::url b(atr_b);
+    return whatwg::equals(a, b, exclude_fragments);
+}
+
+TEST_CASE("URL equivalence") {
+    CHECK(is_equals("http://h/#f", "http://h/#f", false));
+    CHECK(is_equals("http://h/#f", "http://h/#f", true));
+
+    CHECK_FALSE(is_equals("http://h/", "http://h/#", false));
+    CHECK(is_equals("http://h/", "http://h/#", true));
+
+    CHECK_FALSE(is_equals("http://h/", "http://h/#f", false));
+    CHECK(is_equals("http://h/", "http://h/#f", true));
+
+    CHECK_FALSE(is_equals("http://h/#", "http://h/#f", false));
+    CHECK(is_equals("http://h/#", "http://h/#f", true));
+
+    CHECK_FALSE(is_equals("http://h/#f1", "http://h/#f2", false));
+    CHECK(is_equals("http://h/#f1", "http://h/#f2", true));
+
+    CHECK_FALSE(is_equals("http://h1/", "http://h2/", false));
+    CHECK_FALSE(is_equals("http://h1/", "http://h2/", true));
+}
+
 // UTF-8 in hostname
 
 TEST_CASE("Valid UTF-8 in hostname") {
