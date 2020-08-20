@@ -166,30 +166,30 @@ TEST_CASE("URL serializing") {
 
 // URL equivalence
 
-static bool is_equals(std::string atr_a, std::string atr_b, bool exclude_fragments) {
+static bool are_equal(std::string atr_a, std::string atr_b, bool exclude_fragments) {
     whatwg::url a(atr_a);
     whatwg::url b(atr_b);
     return whatwg::equals(a, b, exclude_fragments);
 }
 
 TEST_CASE("URL equivalence") {
-    CHECK(is_equals("http://h/#f", "http://h/#f", false));
-    CHECK(is_equals("http://h/#f", "http://h/#f", true));
+    CHECK(are_equal("http://h/#f", "http://h/#f", false));
+    CHECK(are_equal("http://h/#f", "http://h/#f", true));
 
-    CHECK_FALSE(is_equals("http://h/", "http://h/#", false));
-    CHECK(is_equals("http://h/", "http://h/#", true));
+    CHECK_FALSE(are_equal("http://h/", "http://h/#", false));
+    CHECK(are_equal("http://h/", "http://h/#", true));
 
-    CHECK_FALSE(is_equals("http://h/", "http://h/#f", false));
-    CHECK(is_equals("http://h/", "http://h/#f", true));
+    CHECK_FALSE(are_equal("http://h/", "http://h/#f", false));
+    CHECK(are_equal("http://h/", "http://h/#f", true));
 
-    CHECK_FALSE(is_equals("http://h/#", "http://h/#f", false));
-    CHECK(is_equals("http://h/#", "http://h/#f", true));
+    CHECK_FALSE(are_equal("http://h/#", "http://h/#f", false));
+    CHECK(are_equal("http://h/#", "http://h/#f", true));
 
-    CHECK_FALSE(is_equals("http://h/#f1", "http://h/#f2", false));
-    CHECK(is_equals("http://h/#f1", "http://h/#f2", true));
+    CHECK_FALSE(are_equal("http://h/#f1", "http://h/#f2", false));
+    CHECK(are_equal("http://h/#f1", "http://h/#f2", true));
 
-    CHECK_FALSE(is_equals("http://h1/", "http://h2/", false));
-    CHECK_FALSE(is_equals("http://h1/", "http://h2/", true));
+    CHECK_FALSE(are_equal("http://h1/", "http://h2/", false));
+    CHECK_FALSE(are_equal("http://h1/", "http://h2/", true));
 }
 
 // UTF-8 in hostname
