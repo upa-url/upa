@@ -14,6 +14,7 @@ namespace whatwg {
 
 url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<char16_t>& output);
 url_result IDNToUnicode(const char* src, std::size_t src_len, simple_buffer<char>& output);
+void IDNClose();
 
 } // namespace whatwg
 

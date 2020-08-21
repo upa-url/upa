@@ -20,8 +20,9 @@ namespace {
 
 // Return UTS46 ICU handler opened with uidna_openUTS46()
 
+static UIDNA* uidna_ptr = nullptr;
+
 const UIDNA* getUIDNA() {
-    static UIDNA* uidna;
     static std::once_flag once;
 
     std::call_once(once, [] {
@@ -31,20 +32,25 @@ const UIDNA* getUIDNA() {
         // Nontransitional_Processing
         // CheckBidi = true
         // CheckJoiners = true
-        uidna = uidna_openUTS46(
+        uidna_ptr = uidna_openUTS46(
             UIDNA_CHECK_BIDI
             | UIDNA_CHECK_CONTEXTJ
             | UIDNA_NONTRANSITIONAL_TO_ASCII
             | UIDNA_NONTRANSITIONAL_TO_UNICODE, &err);
-        if (U_FAILURE(err)) {
-            //todo: CHECK(false) << "failed to open UTS46 data with error: " << err;
-            uidna = nullptr;
-        }
+        assert(U_SUCCESS(err) && uidna_ptr != nullptr);
     });
-    return uidna;
+    return uidna_ptr;
 }
 
 } // namespace
+
+
+void IDNClose() {
+    if (uidna_ptr) {
+        uidna_close(uidna_ptr);
+        uidna_ptr = nullptr;
+    }
+}
 
 
 // Converts the Unicode input representing a hostname to ASCII using IDN rules.
