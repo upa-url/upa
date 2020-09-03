@@ -4,7 +4,9 @@
 #include "test-utils.h"
 #include <map>
 
-// The old macro __cpp_coroutines is still used in Visual Studio 2019 16.6
+#if defined(__has_include)
+
+// The old macro __cpp_coroutines is still used in Visual Studio 2019 16.7
 #if defined(__cpp_impl_coroutine) || defined(__cpp_coroutines)
 #if __has_include(<experimental/generator>)
 # include <experimental/generator>
@@ -12,6 +14,8 @@
 using std::experimental::generator;
 #endif
 #endif
+
+#endif // defined(__has_include)
 
 
 // Iterable containers tests
