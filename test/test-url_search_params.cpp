@@ -6,11 +6,23 @@
 
 #if defined(__has_include)
 
+#if __has_include(<version>)
+# include <version>
+#endif
+
 #if defined(__cpp_impl_coroutine)
 #if __has_include(<experimental/generator>)
 # include <experimental/generator>
 # define TEST_COROUTINE_GENERATOR
 using std::experimental::generator;
+#endif
+#endif
+
+// Visual Studio 2019 16.8 (_MSC_VER = 1928) is sufficient to test ranges support
+#if defined(__cpp_lib_ranges) || (_MSC_VER >= 1928)
+#if __has_include(<ranges>)
+# include <ranges>
+# define TEST_RANGES
 #endif
 #endif
 
@@ -59,6 +71,14 @@ TEST_CASE_TEMPLATE_DEFINE("Various string pairs iterable containers", CharT, tes
         };
 
         whatwg::url_search_params params(pairs_gen());
+        CHECK(list_eq(params, output));
+    }
+#endif
+
+#ifdef TEST_RANGES
+    SUBCASE("ranges") {
+        const pairs_list_t<string_t> lst_pairs = TEST_ITERABLES_DATA;
+        whatwg::url_search_params params(std::ranges::subrange(lst_pairs.begin(), lst_pairs.end()));
         CHECK(list_eq(params, output));
     }
 #endif

@@ -25,6 +25,11 @@ jobs:
             cmake_options: "-DURL_TEST_VALGRIND=ON"
             install: "valgrind"
 
+          - name: g++-10 C++20
+            cxx_compiler: g++-10
+            cxx_standard: 20
+            cmake_options: ""
+
     steps:
     - uses: actions/checkout@v2
     - name: init dependances
