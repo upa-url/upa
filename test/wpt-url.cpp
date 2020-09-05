@@ -8,10 +8,11 @@
 //
 
 #include "url.h"
+#include "url_cleanup.h"
 #include "ddt/DataDrivenTest.hpp"
 
 // https://github.com/kazuho/picojson
-# include "picojson/picojson.h"
+#include "picojson/picojson.h"
 
 #include <fstream>
 #include <iostream>
@@ -40,6 +41,9 @@ int main(int argc, char** argv)
     // additional tests
     err |= test_from_file(run_parser_tests, "data/my-urltestdata.json");
     err |= test_from_file(run_setter_tests, "data/my-setters_tests.json");
+
+    // Free memory
+    whatwg::url_cleanup();
 
     return err;
 }
@@ -139,7 +143,7 @@ void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
         str_url += "/x";
         return str_url;
     };
-    
+
     const std::string& input = obj["input"];
     std::string str_case("Parse URL with host: \"" + input + "\"");
 
@@ -250,7 +254,7 @@ void test_setter(DataDrivenTest& ddt, SetterObj& obj)
                 else if (it->first == "pathname") str_val = url.pathname();
                 else if (it->first == "search") str_val = url.search();
                 else if (it->first == "hash") str_val = url.hash();
-                
+
                 tc.assert_equal(it->second, str_val, it->first.c_str());
             }
         }
@@ -288,7 +292,7 @@ namespace {
             picojson::default_parse_context ctx(&item);
             if (!picojson::_parse(ctx, in))
                 return false;
-            
+
             // analyze array item
             if (item.is<picojson::object>()) {
                 ParserObj obj;

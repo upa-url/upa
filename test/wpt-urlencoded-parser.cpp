@@ -5,9 +5,10 @@
 
 #include "url.h"
 #include "url_search_params.h"
+#include "url_cleanup.h"
 
 // https://github.com/kazuho/picojson
-# include "picojson/picojson.h"
+#include "picojson/picojson.h"
 
 #include <fstream>
 #include <iostream>
@@ -39,6 +40,9 @@ int main(int argc, char** argv)
 
     // NOTE: "Sorting non-existent params removes ? from URL" test based on
     // urlsearchparams-sort.any.js is in the wpt-url_search_params.cpp
+
+    // Free memory
+    whatwg::url_cleanup();
 
     return err;
 }
