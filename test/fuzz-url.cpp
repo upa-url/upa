@@ -15,7 +15,8 @@ static const whatwg::url baseUrls[] = {
     whatwg::url("non-spec:///p?q#f"),   // 5
     // with null host
     whatwg::url("non-spec:/p?q#f"),     // 6
-    whatwg::url("non-spec:p?q#f")       // 7
+    whatwg::url("non-spec:p?q#f"),      // 7
+    whatwg::url("non-spec:/.//p?q#f"),  // 8
 };
 
 
