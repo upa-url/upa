@@ -567,11 +567,6 @@ inline int port_from_str(const char* first, const char* last) {
 
 // Removable URL chars
 
-template <typename CharT, typename UCharT = typename std::make_unsigned<CharT>::type>
-auto to_unsigned(CharT ch) -> UCharT {
-    return static_cast<UCharT>(ch);
-}
-
 // chars to trim (C0 control or space: U+0000 to U+001F or U+0020)
 template <typename CharT>
 inline bool is_trim_char(CharT ch) {
@@ -620,7 +615,7 @@ inline void do_remove_whitespace(const CharT*& first, const CharT*& last, simple
 // reverse find
 
 template<class InputIt, class T>
-InputIt find_last(InputIt first, InputIt last, const T& value) {
+inline InputIt find_last(InputIt first, InputIt last, const T& value) {
     for (auto it = last; it > first;) {
         --it;
         if (*it == value) return it;
