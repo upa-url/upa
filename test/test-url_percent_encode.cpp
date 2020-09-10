@@ -68,3 +68,24 @@ TEST_CASE("encode_url_component with non ASCII input") {
         CHECK(whatwg::encode_url_component(std::u32string{ char32_t('a'), char32_t(0xDFFF), char32_t('z') }) == "a%EF%BF%BDz");
     }
 }
+
+
+TEST_CASE("percent_decode") {
+    SUBCASE("ASCII") {
+        CHECK(whatwg::percent_decode("a%20z") == "a z");
+    }
+    SUBCASE("non ASCII") {
+        CHECK(whatwg::percent_decode("a%C4%84z") == "a\xC4\x84z");
+        CHECK(whatwg::percent_decode("a\xC4\x84z") == "a\xC4\x84z");
+    }
+    SUBCASE("invalid percent encode sequence") {
+        CHECK(whatwg::percent_decode("a%z") == "a%z");
+        CHECK(whatwg::percent_decode("a%%20z") == "a% z");
+        CHECK(whatwg::percent_decode("a%20%z") == "a %z");
+        CHECK(whatwg::percent_decode("a%C4%84%z") == "a\xC4\x84%z");
+    }
+    SUBCASE("invalid UTF-8") {
+        CHECK(whatwg::percent_decode("a%C2z") == "a\xEF\xBF\xBDz");
+        CHECK(whatwg::percent_decode("a\xC2z") == "a\xEF\xBF\xBDz");
+    }
+}

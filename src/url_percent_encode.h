@@ -11,6 +11,7 @@
 #define WHATWG_URL_PERCENT_ENCODE_H
 
 #include "config.h"
+#include "int_cast.h"
 #include "str_arg.h"
 #include "url_utf.h"
 #include <array>
@@ -295,7 +296,64 @@ void AppendStringOfType(const CharT* first, const CharT* last, const CharsType c
 } // namespace detail
 
 
-/// UTF-8 percennt encode input string using component percent encode set.
+/// Percent decode input string.
+///
+/// Invalid code points are replaced with U+FFFD characters.
+///
+/// More info:
+/// https://url.spec.whatwg.org/#string-percent-decode
+///
+/// @param args[in] string input
+/// @return percent decoded string
+template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+inline std::string percent_decode(Args&&... args) {
+    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    const auto* first = inp.begin();
+    const auto* last = inp.end();
+
+    std::string out;
+    for (auto it = first; it != last;) {
+        const auto uch = detail::to_unsigned(*it); ++it;
+        if (uch < 0x80) {
+            if (uch != '%') {
+                out.push_back(static_cast<char>(uch));
+                continue;
+            }
+            // uch == '%'
+            unsigned char uc8;
+            if (detail::DecodeEscaped(it, last, uc8)) {
+                if (uc8 < 0x80) {
+                    out.push_back(static_cast<char>(uc8));
+                    continue;
+                }
+                // percent encoded utf-8 sequence
+                std::string buff_utf8;
+                buff_utf8.push_back(uc8);
+                while (it != last && *it == '%') {
+                    ++it; // skip '%'
+                    if (!detail::DecodeEscaped(it, last, uc8))
+                        uc8 = '%';
+                    buff_utf8.push_back(uc8);
+                }
+                url_utf::check_fix_utf8(buff_utf8);
+                out += buff_utf8;
+                continue;
+            }
+            // detected invalid percent encoding
+            out.push_back('%');
+        } else { // uch >= 0x80
+            uint32_t code_point;
+            auto start = --it;
+            if (url_utf::read_utf_char(it, last, code_point))
+                out.append(start, it);
+            else
+                out.append("\xEF\xBF\xBD"); // REPLACEMENT CHARATCTER
+        }
+    }
+    return out;
+}
+
+/// UTF-8 percent encode input string using component percent encode set.
 ///
 /// Invalid code points are replaced with UTF-8 percent encoded U+FFFD characters.
 ///
