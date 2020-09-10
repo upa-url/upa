@@ -10,7 +10,6 @@
 #include "url_idna.h"
 #include "int_cast.h"
 #include <cassert>
-#include <mutex>
 // ICU
 #include "unicode/uidna.h"
 
@@ -23,22 +22,24 @@ namespace {
 static UIDNA* uidna_ptr = nullptr;
 
 const UIDNA* getUIDNA() {
-    static std::once_flag once;
+    // initialize uidna_ptr
+    static struct Once {
+        Once() {
+            UErrorCode err = U_ZERO_ERROR;
+            // https://url.spec.whatwg.org/#idna
+            // UseSTD3ASCIIRules = false
+            // Nontransitional_Processing
+            // CheckBidi = true
+            // CheckJoiners = true
+            uidna_ptr = uidna_openUTS46(
+                UIDNA_CHECK_BIDI
+                | UIDNA_CHECK_CONTEXTJ
+                | UIDNA_NONTRANSITIONAL_TO_ASCII
+                | UIDNA_NONTRANSITIONAL_TO_UNICODE, &err);
+            assert(U_SUCCESS(err) && uidna_ptr != nullptr);
+        }
+    } once;
 
-    std::call_once(once, [] {
-        UErrorCode err = U_ZERO_ERROR;
-        // https://url.spec.whatwg.org/#idna
-        // UseSTD3ASCIIRules = false
-        // Nontransitional_Processing
-        // CheckBidi = true
-        // CheckJoiners = true
-        uidna_ptr = uidna_openUTS46(
-            UIDNA_CHECK_BIDI
-            | UIDNA_CHECK_CONTEXTJ
-            | UIDNA_NONTRANSITIONAL_TO_ASCII
-            | UIDNA_NONTRANSITIONAL_TO_UNICODE, &err);
-        assert(U_SUCCESS(err) && uidna_ptr != nullptr);
-    });
     return uidna_ptr;
 }
 
