@@ -31,7 +31,9 @@ jobs:
       run: ./init.sh
     - name: apt-get install
       if: ${{ matrix.install }}
-      run: sudo apt-get install -y ${{ matrix.install }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ${{ matrix.install }}
     - name: cmake
       run: cmake -S . -B build -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
     - name: build
