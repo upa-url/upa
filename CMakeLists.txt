@@ -89,7 +89,6 @@ include_directories(
 
 if (URL_USE_LIBS)
   find_package(ICU REQUIRED COMPONENTS i18n uc)
-  find_package(Threads)
 
   add_library(cppurl STATIC
     src/url.cpp
@@ -128,7 +127,7 @@ if (URL_BUILD_TESTS)
     get_filename_component(test_name ${file} NAME_WE)
 
     add_executable(${test_name} ${file})
-    target_link_libraries(${test_name} cppurl ICU::i18n ICU::uc Threads::Threads)
+    target_link_libraries(${test_name} cppurl ICU::i18n ICU::uc)
 
     add_test(NAME ${test_name}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
@@ -156,7 +155,7 @@ if (URL_BUILD_FUZZER)
     else()
       add_executable(${fuzz_name} ${file})
     endif()
-    target_link_libraries(${fuzz_name} cppurl ICU::i18n ICU::uc Threads::Threads)
+    target_link_libraries(${fuzz_name} cppurl ICU::i18n ICU::uc)
   endforeach()
 endif()
 
@@ -164,7 +163,7 @@ endif()
 
 if (URL_BUILD_EXAMPLES)
   add_executable(urlparse examples/urlparse.cpp)
-  target_link_libraries(urlparse cppurl ICU::i18n ICU::uc Threads::Threads)
+  target_link_libraries(urlparse cppurl ICU::i18n ICU::uc)
 endif()
 
 # Tool's targets
