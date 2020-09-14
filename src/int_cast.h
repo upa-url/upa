@@ -65,7 +65,7 @@ namespace detail {
 // Cast integer value to corresponding unsigned type
 
 template <typename T, typename UT = typename std::make_unsigned<T>::type>
-inline auto to_unsigned(T n) -> UT {
+constexpr auto to_unsigned(T n) -> UT {
     return static_cast<UT>(n);
 }
 
