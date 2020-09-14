@@ -998,7 +998,7 @@ inline bool url::username(Args&&... args) {
 
         std::string& str_username = urls.start_part(url::USERNAME);
         // UTF-8 percent encode it using the userinfo encode set
-        detail::AppendStringOfType(inp.begin(), inp.end(), detail::CHAR_USERINFO, str_username);
+        detail::AppendStringOfType(inp.begin(), inp.end(), detail::userinfo_no_encode_set, str_username);
         urls.save_part();
         return true;
     }
@@ -1014,7 +1014,7 @@ inline bool url::password(Args&&... args) {
 
         std::string& str_password = urls.start_part(url::PASSWORD);
         // UTF-8 percent encode it using the userinfo encode set
-        detail::AppendStringOfType(inp.begin(), inp.end(), detail::CHAR_USERINFO, str_password);
+        detail::AppendStringOfType(inp.begin(), inp.end(), detail::userinfo_no_encode_set, str_password);
         urls.save_part();
         return true;
     }
@@ -1393,12 +1393,12 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             if (not_empty_password || std::distance(pointer, it_colon) > 0 /*not empty username*/) {
                 // username
                 std::string& str_username = urls.start_part(url::USERNAME);
-                detail::AppendStringOfType(pointer, it_colon, detail::CHAR_USERINFO, str_username); // UTF-8 percent encode, @ -> %40
+                detail::AppendStringOfType(pointer, it_colon, detail::userinfo_no_encode_set, str_username); // UTF-8 percent encode, @ -> %40
                 urls.save_part();
                 // password
                 if (not_empty_password) {
                     std::string& str_password = urls.start_part(url::PASSWORD);
-                    detail::AppendStringOfType(it_colon + 1, it_eta, detail::CHAR_USERINFO, str_password); // UTF-8 percent encode, @ -> %40
+                    detail::AppendStringOfType(it_colon + 1, it_eta, detail::userinfo_no_encode_set, str_password); // UTF-8 percent encode, @ -> %40
                     urls.save_part();
                 }
             }
@@ -1740,7 +1740,9 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         // TODO: now supports UTF-8 encoding only, maybe later to add other encodings support
         std::string& str_query = urls.start_part(url::QUERY);
         //detail::AppendStringOfType(pointer, end_of_query, detail::CHAR_QUERY, str_query);
-        const bool is_special = urls.is_special_scheme();
+        const auto& query_cpset = urls.is_special_scheme()
+            ? detail::special_query_no_encode_set
+            : detail::query_no_encode_set;
         while (pointer != end_of_query) {
             // UTF-8 percent encode c using the fragment percent-encode set
             // and ignore '\0'
@@ -1751,7 +1753,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             } else {
                 // Just append the 7-bit character, possibly escaping it.
                 unsigned char uc = static_cast<unsigned char>(uch);
-                if (!isCharInSet(uc, detail::CHAR_QUERY) || (uc == 0x27 && is_special))
+                if (!isCharInSet(uc, query_cpset))
                     detail::AppendEscapedChar(uch, str_query);
                 else
                     str_query.push_back(uc);
@@ -1786,7 +1788,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             } else {
                 // Just append the 7-bit character, possibly escaping it.
                 unsigned char uc = static_cast<unsigned char>(uch);
-                if (isCharInSet(uc, detail::CHAR_FRAGMENT)) {
+                if (isCharInSet(uc, detail::fragment_no_encode_set)) {
                     str_frag.push_back(uc);
                 } else {
                     // other characters are escaped
@@ -1907,7 +1909,7 @@ inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last,
         } else {
             // Just append the 7-bit character, possibly escaping it.
             unsigned char uc = static_cast<unsigned char>(uch);
-            if (!isCharInSet(uc, detail::CHAR_PATH))
+            if (!isCharInSet(uc, detail::path_no_encode_set))
                 detail::AppendEscapedChar(uc, output);
             else
                 output.push_back(uc);

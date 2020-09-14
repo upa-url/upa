@@ -21,161 +21,161 @@
 namespace whatwg {
 namespace detail {
 
-enum CharsType : uint8_t {
-    // to represent percent encode sets
-    CHAR_PATH = 0x01,
-    CHAR_USERINFO = 0x02,
-    CHAR_FRAGMENT = 0x04,
-    CHAR_QUERY = 0x08,
-    CHAR_COMPONENT = 0x10,
-    // other charcter classes
-    CHAR_HOST_FORBIDDEN = 0x20,
-    CHAR_IPV4 = 0x40,
-    CHAR_HEX = 0x80,
+
+class code_point_set {
+public:
+    constexpr code_point_set(void (*fun)(code_point_set& self)) {
+        fun(*this);
+    }
+
+    constexpr void copy(const code_point_set& other) {
+        for (std::size_t i = 0; i < arr_size_; ++i)
+            arr_[i] = other.arr_[i];
+    }
+
+    constexpr void exclude(uint8_t c) {
+        arr_[c >> 3] &= ~(1u << (c & 0x07));
+    }
+
+    constexpr void include(uint8_t c) {
+        arr_[c >> 3] |= (1u << (c & 0x07));
+    }
+
+    constexpr void exclude(std::initializer_list<uint8_t> clist) {
+        for (auto c : clist)
+            exclude(c);
+    }
+
+    constexpr void include(std::initializer_list<uint8_t> clist) {
+        for (auto c : clist)
+            include(c);
+    }
+
+    constexpr void include(uint8_t from, uint8_t to) {
+        for (auto c = from; c <= to; ++c)
+            include(c);
+    }
+
+    template <typename CharT>
+    constexpr bool operator[](CharT c) const {
+        const auto uc = whatwg::detail::to_unsigned(c);
+        return is_8bit(uc) && (arr_[uc >> 3] & (1u << (uc & 0x07))) != 0;
+    }
+
+private:
+    // Check code point value is 8 bit (<=0xFF)
+    static constexpr bool is_8bit(unsigned char) {
+        return true;
+    }
+
+    template <typename CharT>
+    static constexpr bool is_8bit(CharT c) {
+        return c <= 0xFF;
+    }
+
+    // Data
+    static const std::size_t arr_size_ = 32;
+    uint8_t arr_[arr_size_] = {};
 };
 
+// #ifdef WHATWG__CPP_17
 
-#ifdef WHATWG__CPP_17
+// Percent encode sets
 
-// If you edit this class, then please compile tools/dumpCharBitSets.cpp program
+// TODO:
+// If you edit these data, then please compile tools/dumpCharBitSets.cpp program
 // with C++17 compiler, run it and copy output (the kCharBitSets array) to the
 // url_percent_encode.cpp file.
 // This is required to support C++11, C++14 compilers.
 
-class CodePointSets {
-public:
-    constexpr CodePointSets() {
+// fragment percent-encode set
+// https://url.spec.whatwg.org/#fragment-percent-encode-set
+inline constexpr code_point_set fragment_no_encode_set([](code_point_set& self) constexpr {
+    self.include(0x20, 0x7E); // C0 control percent-encode set
+    self.exclude({ 0x20, 0x22, 0x3C, 0x3E, 0x60 });
+    });
 
-        // This class fills 256 (0x100) bytes array - one byte for each 8-bit character.
-        // Bits of each byte in the array identifies sets to witch character belongs.
-        // For percent encode sets: if charcter is in set, then corresponding bit is cleared.
-        // That means, if bit is cleared, then character requires percent encoding, otherwise
-        // character can be left as is.
-        // For other sets: if charcter is in set, then corresponding bit is set.
+// query percent-encode set
+// https://url.spec.whatwg.org/#query-percent-encode-set
+inline constexpr code_point_set query_no_encode_set([](code_point_set& self) constexpr {
+    self.include(0x20, 0x7E); // C0 control percent-encode set
+    self.exclude({ 0x20, 0x22, 0x23, 0x3C, 0x3E });
+    });
 
-        // C0 control percent-encode set
-        // https://url.spec.whatwg.org/#c0-control-percent-encode-set
+// special query percent-encode set
+// https://url.spec.whatwg.org/#special-query-percent-encode-set
+inline constexpr code_point_set special_query_no_encode_set([](code_point_set& self) constexpr {
+    self.copy(query_no_encode_set);
+    self.exclude(0x27);
+    });
 
-        // First: set all bits, which represent non C0 control characters
-        // and then clear specific bits below
-        doSetBits(CHAR_FRAGMENT | CHAR_QUERY | CHAR_PATH | CHAR_USERINFO | CHAR_COMPONENT, 0x20, 0x7E);
+// path percent-encode set
+// https://url.spec.whatwg.org/#path-percent-encode-set
+inline constexpr code_point_set path_no_encode_set([](code_point_set& self) constexpr {
+    self.copy(query_no_encode_set);
+    self.exclude({ 0x3F, 0x60, 0x7B, 0x7D });
+    });
 
-        // fragment percent-encode set
-        // https://url.spec.whatwg.org/#fragment-percent-encode-set
-        doClearBits(CHAR_FRAGMENT,
-            { 0x20, 0x22, 0x3C, 0x3E, 0x60 });
+// userinfo percent-encode set
+// https://url.spec.whatwg.org/#userinfo-percent-encode-set
+inline constexpr code_point_set userinfo_no_encode_set([](code_point_set& self) constexpr {
+    self.copy(path_no_encode_set);
+    self.exclude({ 0x2F, 0x3A, 0x3B, 0x3D, 0x40, 0x5B, 0x5C, 0x5D, 0x5E, 0x7C });
+    });
 
-        // query percent-encode set
-        // https://url.spec.whatwg.org/#query-percent-encode-set
-        doClearBits(CHAR_QUERY | CHAR_PATH | CHAR_USERINFO | CHAR_COMPONENT,
-            { 0x20, 0x22, 0x23, 0x3C, 0x3E });
+// component percent-encode set
+// https://url.spec.whatwg.org/#component-percent-encode-set
+inline constexpr code_point_set component_no_encode_set([](code_point_set& self) constexpr {
+    self.copy(userinfo_no_encode_set);
+    self.exclude({ 0x24, 0x25, 0x26, 0x2B, 0x2C });
+    });
 
-        // path percent-encode set
-        // https://url.spec.whatwg.org/#path-percent-encode-set
-        doClearBits(CHAR_PATH | CHAR_USERINFO | CHAR_COMPONENT,
-            { 0x3F, 0x60, 0x7B, 0x7D });
+// Forbidden host code points: U+0000 NULL, U+0009 TAB, U+000A LF, U+000D CR,
+// U+0020 SPACE, U+0023 (#), U+0025 (%), U+002F (/), U+003A (:), U+003C (<),
+// U+003E (>), U+003F (?), U+0040 (@), U+005B ([), U+005C (\), U+005D (]), or
+// U+005E (^).
+// https://url.spec.whatwg.org/#forbidden-host-code-point
+inline constexpr code_point_set host_forbidden_set([](code_point_set& self) constexpr {
+    self.include({
+        0x00, 0x09, 0x0A, 0x0D, 0x20, 0x23, 0x25, 0x2F, 0x3A, 0x3C, 0x3E, 0x3F, 0x40, 0x5B,
+        0x5C, 0x5D, 0x5E });
+    });
 
-        // userinfo percent-encode set
-        // https://url.spec.whatwg.org/#userinfo-percent-encode-set
-        doClearBits(CHAR_USERINFO | CHAR_COMPONENT,
-            { 0x2F, 0x3A, 0x3B, 0x3D, 0x40, 0x5B, 0x5C, 0x5D, 0x5E, 0x7C });
+// Hex digits
+inline constexpr code_point_set hex_digit_set([](code_point_set& self) constexpr {
+    self.include('0', '9');
+    self.include('A', 'F');
+    self.include('a', 'f');
+    });
 
-        // component percent-encode set
-        // https://url.spec.whatwg.org/#component-percent-encode-set
-        doClearBits(CHAR_COMPONENT,
-            { 0x24, 0x25, 0x26, 0x2B, 0x2C });
+// Characters allowed in IPv4
+inline constexpr code_point_set ipv4_char_set([](code_point_set& self) constexpr {
+    self.copy(hex_digit_set);
+    self.include({ '.', 'X', 'x' });
+    });
 
-        // Forbidden host code points: U+0000 NULL, U+0009 TAB, U+000A LF, U+000D CR,
-        // U+0020 SPACE, U+0023 (#), U+0025 (%), U+002F (/), U+003A (:), U+003C (<),
-        // U+003E (>), U+003F (?), U+0040 (@), U+005B ([), U+005C (\), U+005D (]), or
-        // U+005E (^).
-        // https://url.spec.whatwg.org/#forbidden-host-code-point
-        doSetBits(CHAR_HOST_FORBIDDEN, {
-            0x00, 0x09, 0x0A, 0x0D, 0x20, 0x23, 0x25, 0x2F, 0x3A, 0x3C, 0x3E, 0x3F, 0x40, 0x5B,
-            0x5C, 0x5D, 0x5E });
-
-        // Hex digits (also allowed in IPv4)
-        doSetBits(CHAR_HEX | CHAR_IPV4, '0', '9');
-        doSetBits(CHAR_HEX | CHAR_IPV4, 'A', 'F');
-        doSetBits(CHAR_HEX | CHAR_IPV4, 'a', 'f');
-
-        // Additional characters allowed in IPv4
-        doSetBits(CHAR_IPV4, { '.', 'X', 'x' });
-    }
-
-    constexpr uint8_t operator[](size_t ind) const {
-        return arr_[ind];
-    }
-
-    constexpr size_t size() const {
-        return 0x100;
-    }
-
-private:
-    uint8_t arr_[0x100] = {};
-
-    constexpr void doClearBits(uint8_t cbit, std::initializer_list<uint8_t> clist) {
-        for (auto c : clist)
-            arr_[c] = arr_[c] & ~cbit;
-    }
-
-    constexpr void doSetBits(uint8_t cbit, std::initializer_list<uint8_t> clist) {
-        for (auto c : clist)
-            arr_[c] = arr_[c] | cbit;
-    }
-
-    constexpr void doSetBits(uint8_t cbit, uint8_t from, uint8_t to) {
-        for (unsigned c = from; c <= to; ++c)
-            arr_[c] = arr_[c] | cbit;
-    }
-};
-
-inline constexpr CodePointSets kCharBitSets;
-
-#else
-
-extern const uint8_t kCharBitSets[0x100];
-
-#endif
 
 // ----------------------------------------------------------------------------
-// Chars classification
-
-// Check char or code point value is 8 bit (<=0xFF)
-
-inline bool is8BitChar(char) {
-    return true;
-}
-
-inline bool is8BitChar(unsigned char) {
-    return true;
-}
-
-template <typename CharT>
-inline bool is8BitChar(CharT c) {
-    return c <= 0xFF;
-}
-
 // Check char is in predefined set
 
 template <typename CharT>
-inline bool isCharInSet(CharT c, CharsType charsType) {
-    return is8BitChar(c) && (kCharBitSets[static_cast<unsigned char>(c)] & charsType) != 0;
+inline bool isCharInSet(CharT c, const code_point_set& cpset) {
+    return cpset[c];
 }
 
 template <typename CharT>
 inline bool isIPv4Char(CharT c) {
-    return isCharInSet(c, CHAR_IPV4);
+    return isCharInSet(c, ipv4_char_set);
 }
 
 template <typename CharT>
 inline bool isHexChar(CharT c) {
-    return isCharInSet(c, CHAR_HEX);
+    return isCharInSet(c, hex_digit_set);
 }
 
 template <typename CharT>
 inline bool isForbiddenHostChar(CharT c) {
-    return isCharInSet(c, CHAR_HOST_FORBIDDEN);
+    return isCharInSet(c, host_forbidden_set);
 }
 
 // ----------------------------------------------------------------------------
@@ -270,7 +270,7 @@ inline bool AppendUTF8EscapedChar(const CharT*& first, const CharT* last, std::s
 // match the given |charsType| in CharsType.
 
 template<typename CharT>
-void AppendStringOfType(const CharT* first, const CharT* last, const CharsType charsType, std::string& output) {
+void AppendStringOfType(const CharT* first, const CharT* last, const code_point_set& cpset, std::string& output) {
     using UCharT = typename std::make_unsigned<CharT>::type;
 
     for (auto it = first; it < last; ) {
@@ -281,7 +281,7 @@ void AppendStringOfType(const CharT* first, const CharT* last, const CharsType c
         } else {
             // Just append the 7-bit character, possibly escaping it.
             const unsigned char uch = static_cast<unsigned char>(ch);
-            if (isCharInSet(uch, charsType)) {
+            if (isCharInSet(uch, cpset)) {
                 output.push_back(uch);
             } else {
                 // other characters are escaped
@@ -368,7 +368,7 @@ inline std::string encode_url_component(Args&&... args) {
     const auto inp = make_str_arg(std::forward<Args>(args)...);
 
     std::string out;
-    detail::AppendStringOfType(inp.begin(), inp.end(), detail::CHAR_COMPONENT, out);
+    detail::AppendStringOfType(inp.begin(), inp.end(), detail::component_no_encode_set, out);
     return out;
 }
 
