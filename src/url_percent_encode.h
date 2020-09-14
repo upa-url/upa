@@ -24,6 +24,7 @@ namespace detail {
 
 class code_point_set {
 public:
+#ifdef WHATWG__CPP_17
     constexpr code_point_set(void (*fun)(code_point_set& self)) {
         fun(*this);
     }
@@ -62,6 +63,18 @@ public:
         return is_8bit(uc) && (arr_[uc >> 3] & (1u << (uc & 0x07))) != 0;
     }
 
+    // for dump program
+    std::size_t arr_size() const { return arr_size_; }
+    uint8_t arr_val(std::size_t i) const { return arr_[i]; }
+#else
+
+    template <typename CharT>
+    bool operator[](CharT c) const {
+        const auto uc = whatwg::detail::to_unsigned(c);
+        return is_8bit(uc) && (arr_[uc >> 3] & (1u << (uc & 0x07))) != 0;
+    }
+#endif
+
 private:
     // Check code point value is 8 bit (<=0xFF)
     static constexpr bool is_8bit(unsigned char) {
@@ -75,17 +88,21 @@ private:
 
     // Data
     static const std::size_t arr_size_ = 32;
+#ifdef WHATWG__CPP_17
     uint8_t arr_[arr_size_] = {};
+#else
+public:
+    uint8_t arr_[arr_size_];
+#endif
 };
 
-// #ifdef WHATWG__CPP_17
 
 // Percent encode sets
 
-// TODO:
-// If you edit these data, then please compile tools/dumpCharBitSets.cpp program
-// with C++17 compiler, run it and copy output (the kCharBitSets array) to the
-// url_percent_encode.cpp file.
+#ifdef WHATWG__CPP_17
+
+// If you edit following data, then please compile tools/dumpCharBitSets.cpp program
+// with C++17 compiler, run it and copy output to the url_percent_encode.cpp file.
 // This is required to support C++11, C++14 compilers.
 
 // fragment percent-encode set
@@ -154,6 +171,22 @@ inline constexpr code_point_set ipv4_char_set([](code_point_set& self) constexpr
     self.include({ '.', 'X', 'x' });
     });
 
+#else
+
+// For C++11, C++14
+
+extern const code_point_set fragment_no_encode_set;
+extern const code_point_set query_no_encode_set;
+extern const code_point_set special_query_no_encode_set;
+extern const code_point_set path_no_encode_set;
+extern const code_point_set userinfo_no_encode_set;
+extern const code_point_set component_no_encode_set;
+
+extern const code_point_set host_forbidden_set;
+extern const code_point_set hex_digit_set;
+extern const code_point_set ipv4_char_set;
+
+#endif
 
 // ----------------------------------------------------------------------------
 // Check char is in predefined set
