@@ -6,6 +6,7 @@ matrix:
   include:
     - os: linux
       compiler: gcc
+      env: [CXX_STANDARD=11]
 
     - os: osx
       osx_image: xcode10
@@ -13,7 +14,9 @@ matrix:
         homebrew:
           packages: [ icu4c ]
       compiler: clang
-      env: [ICU_ROOT=/usr/local/opt/icu4c]
+      env:
+        - CXX_STANDARD=11
+        - ICU_ROOT=/usr/local/opt/icu4c
 
 # Codecov
 # Ubuntu on Travis CI has CMake 3.12.4 installed in /usr/local/cmake-3.12.4/bin/cmake
@@ -34,6 +37,7 @@ matrix:
         - lcov --list coverage.info
         - bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
       env:
+        - CXX_STANDARD=17
         - CMAKE_OPTIONS=-DURL_TEST_COVERAGE=ON
         - PATH=/usr/bin:$PATH
 
@@ -42,5 +46,6 @@ script:
   - ./init.sh
   - mkdir build
   - cd build
-  - cmake .. ${CMAKE_OPTIONS} && cmake --build . --config Release
+  - cmake .. -DCMAKE_CXX_STANDARD=${CXX_STANDARD} ${CMAKE_OPTIONS}
+  - cmake --build . --config Release
   - ctest -C Release -V
