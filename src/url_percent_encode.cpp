@@ -10,7 +10,6 @@
 #include "url_percent_encode.h"
 
 namespace whatwg {
-namespace detail {
 
 #ifndef WHATWG__CPP_17
 
@@ -44,6 +43,8 @@ const code_point_set ipv4_char_set = {
 };
 
 #endif
+
+namespace detail {
 
 // Maps hex numerical values to ASCII digits
 const char kHexCharLookup[0x10] = {

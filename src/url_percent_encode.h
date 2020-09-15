@@ -19,7 +19,6 @@
 
 
 namespace whatwg {
-namespace detail {
 
 
 class code_point_set {
@@ -187,6 +186,9 @@ extern const code_point_set hex_digit_set;
 extern const code_point_set ipv4_char_set;
 
 #endif
+
+
+namespace detail {
 
 // ----------------------------------------------------------------------------
 // Check char is in predefined set
@@ -386,6 +388,25 @@ inline std::string percent_decode(Args&&... args) {
     return out;
 }
 
+/// UTF-8 percent encode input string using specified percent encode set.
+///
+/// Invalid code points are replaced with UTF-8 percent encoded U+FFFD characters.
+///
+/// More info:
+/// https://url.spec.whatwg.org/#string-utf-8-percent-encode
+///
+/// @param[in] no_encode_set percent no encode set
+/// @param[in] args string input
+/// @returns percent encoded string
+template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+inline std::string percent_encode(const code_point_set& no_encode_set, Args&&... args) {
+    const auto inp = make_str_arg(std::forward<Args>(args)...);
+
+    std::string out;
+    detail::AppendStringOfType(inp.begin(), inp.end(), no_encode_set, out);
+    return out;
+}
+
 /// UTF-8 percent encode input string using component percent encode set.
 ///
 /// Invalid code points are replaced with UTF-8 percent encoded U+FFFD characters.
@@ -398,11 +419,7 @@ inline std::string percent_decode(Args&&... args) {
 /// @returns percent encoded string
 template <class ...Args, enable_if_str_arg_t<Args...> = 0>
 inline std::string encode_url_component(Args&&... args) {
-    const auto inp = make_str_arg(std::forward<Args>(args)...);
-
-    std::string out;
-    detail::AppendStringOfType(inp.begin(), inp.end(), detail::component_no_encode_set, out);
-    return out;
+    return percent_encode(component_no_encode_set, std::forward<Args>(args)...);
 }
 
 
