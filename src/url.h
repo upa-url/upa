@@ -691,8 +691,10 @@ inline bool starts_with_Windows_drive(const CharT* pointer, const CharT* last) {
 template <typename CharT>
 inline bool starts_with(const CharT* first, const CharT* last, url::str_view_type sv) {
     if (last - first >= static_cast<std::ptrdiff_t>(sv.length())) {
-        for (auto sp = sv.data(), spend = sv.data() + sv.length(); sp != spend; ++sp, ++first) {
-            if (*first != *sp) return false;
+        for (auto c : sv) {
+            if (*first != c)
+                return false;
+            ++first;
         }
         return true;
     }
