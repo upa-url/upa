@@ -370,12 +370,12 @@ inline std::string percent_decode(Args&&... args) {
                 }
                 // percent encoded utf-8 sequence
                 std::string buff_utf8;
-                buff_utf8.push_back(uc8);
+                buff_utf8.push_back(static_cast<char>(uc8));
                 while (it != last && *it == '%') {
                     ++it; // skip '%'
                     if (!detail::DecodeEscaped(it, last, uc8))
                         uc8 = '%';
-                    buff_utf8.push_back(uc8);
+                    buff_utf8.push_back(static_cast<char>(uc8));
                 }
                 url_utf::check_fix_utf8(buff_utf8);
                 out += buff_utf8;
