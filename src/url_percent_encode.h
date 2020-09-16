@@ -132,6 +132,12 @@ inline constexpr code_point_set path_no_encode_set([](code_point_set& self) cons
     self.exclude({ 0x3F, 0x60, 0x7B, 0x7D });
     });
 
+// path percent-encode set with '%' (0x25)
+inline constexpr code_point_set raw_path_no_encode_set([](code_point_set& self) constexpr {
+    self.copy(path_no_encode_set);
+    self.exclude(0x25);
+    });
+
 // userinfo percent-encode set
 // https://url.spec.whatwg.org/#userinfo-percent-encode-set
 inline constexpr code_point_set userinfo_no_encode_set([](code_point_set& self) constexpr {
@@ -178,6 +184,7 @@ extern const code_point_set fragment_no_encode_set;
 extern const code_point_set query_no_encode_set;
 extern const code_point_set special_query_no_encode_set;
 extern const code_point_set path_no_encode_set;
+extern const code_point_set raw_path_no_encode_set;
 extern const code_point_set userinfo_no_encode_set;
 extern const code_point_set component_no_encode_set;
 

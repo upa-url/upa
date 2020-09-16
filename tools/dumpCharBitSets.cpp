@@ -6,7 +6,7 @@
 #error "This file requires C++17 compiler"
 #endif
 
-using namespace whatwg::detail;
+using namespace whatwg;
 
 void dumpSet(std::ostream& out, const char* name, const code_point_set& cpset) {
     out << std::setfill('0') << std::hex;
@@ -33,6 +33,7 @@ void dumpAll(std::ostream& out) {
     DUMP_SET(query_no_encode_set);
     DUMP_SET(special_query_no_encode_set);
     DUMP_SET(path_no_encode_set);
+    DUMP_SET(raw_path_no_encode_set);
     DUMP_SET(userinfo_no_encode_set);
     DUMP_SET(component_no_encode_set);
 

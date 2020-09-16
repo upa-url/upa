@@ -687,6 +687,18 @@ inline bool starts_with_Windows_drive(const CharT* pointer, const CharT* last) {
 #endif
 }
 
+// check string starts with sv (ASCII)
+template <typename CharT>
+inline bool starts_with(const CharT* first, const CharT* last, url::str_view_type sv) {
+    if (last - first >= sv.length()) {
+        for (auto sp = sv.data(), spend = sv.data() + sv.size(); sp != spend; ++sp, ++first) {
+            if (*first != *sp) return false;
+        }
+        return true;
+    }
+    return false;
+}
+
 } // namespace detail
 
 
@@ -2500,6 +2512,28 @@ inline void url_setter::insert_part(url::PartType new_pt, const char* str, std::
     }
 }
 #endif
+
+// URL utilities
+
+/// Make URL from OS file path
+///
+/// @param[in] args file path string
+/// @returns file URL
+template <class ...Args, enable_if_str_arg_t<Args...> = 0>
+inline url url_from_file_path(Args&&... args) {
+    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    const auto* first = inp.begin();
+    const auto* last = inp.end();
+
+    // remove "\\?\" prefix
+    // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#maximum-path-length-limitation
+    if (detail::starts_with(first, last, {"\\\\?\\", 4}))
+        first += 4;
+    // make URL
+    std::string out("file:");
+    detail::AppendStringOfType(first, last, raw_path_no_encode_set, out);
+    return url(out);
+}
 
 
 } // namespace whatwg

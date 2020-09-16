@@ -251,3 +251,22 @@ TEST_CASE("Invalid UTF-32 in hostname") {
     CHECK_THROWS_AS(whatwg::url{ szUrl2 }, whatwg::url_error);
     CHECK_THROWS_AS(whatwg::url{ szUrl3 }, whatwg::url_error);
 }
+
+// URL utilities
+
+TEST_CASE("url_from_file_path") {
+    SUBCASE("Unix path") {
+        CHECK(whatwg::url_from_file_path("/").href() == "file:///");
+        CHECK(whatwg::url_from_file_path("/path").href() == "file:///path");
+        CHECK(whatwg::url_from_file_path("/path %#?").href() == "file:///path%20%25%23%3F");
+    }
+    SUBCASE("Windows path") {
+        // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+        CHECK(whatwg::url_from_file_path("C:\\").href() == "file:///C:/");
+        CHECK(whatwg::url_from_file_path("C:\\path").href() == "file:///C:/path");
+        CHECK(whatwg::url_from_file_path("C:\\path %#").href() == "file:///C:/path%20%25%23");
+        CHECK(whatwg::url_from_file_path("\\\\h\\path").href() == "file://h/path");
+        // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#maximum-path-length-limitation
+        CHECK(whatwg::url_from_file_path("\\\\?\\D:\\very_long_path").href() == "file:///D:/very_long_path");
+    }
+}
