@@ -12,6 +12,7 @@
 
 #include <array>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 
@@ -154,13 +155,13 @@ protected:
 
     // https://cs.chromium.org/chromium/src/url/url_canon.h
     // Grows the given buffer so that it can fit at least |min_cap|
-    // characters. Throws std::bad_alloc() on OOM.
+    // characters. Throws std::length_error() if min_cap is too big.
     void grow(size_type min_cap) {
         static const size_type kMinBufferLen = 16;
         size_type new_cap = (capacity_ == 0) ? kMinBufferLen : capacity_;
         do {
             if (new_cap > (max_size() >> 1))  // Prevent overflow below.
-                throw std::bad_alloc();
+                throw std::length_error("too big size");
             new_cap *= 2;
         } while (new_cap < min_cap);
         reserve(new_cap);
@@ -170,7 +171,7 @@ protected:
     size_type add_sizes(size_type n1, size_type n2) {
         if (max_size() - n1 >= n2)
             return n1 + n2;
-        throw std::bad_alloc();
+        throw std::length_error("too big size");
     }
 
 private:
