@@ -15,6 +15,7 @@
 #include <algorithm> // any_of
 #include <cassert>
 #include <cstdint> // uint32_t
+#include <stdexcept>
 #include <string>
 
 namespace whatwg {
@@ -128,6 +129,21 @@ static inline bool contains_forbidden_opaque_host_char(const CharT* first, const
     });
 }
 
+template <class BuffT>
+static inline void do_append(std::string& dest, const BuffT& src) {
+#ifdef _MSC_VER
+    if (dest.max_size() - dest.size() < src.size())
+        throw std::length_error("too big size");
+    // now it is safe to add sizes
+    dest.reserve(dest.size() + src.size());
+    for (auto c : src)
+        dest.push_back(static_cast<char>(c));
+#else
+    dest.append(src.begin(), src.end());
+#endif
+}
+
+
 // The host parser
 // https://url.spec.whatwg.org/#concept-host-parser
 
@@ -220,7 +236,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     res = parse_ipv4(buff_ascii.begin(), buff_ascii.end(), dest);
     if (res == url_result::False) {
         std::string& str_host = dest.hostStart();
-        str_host.append(buff_ascii.begin(), buff_ascii.end());
+        do_append(str_host, buff_ascii);
         dest.hostDone(HostType::Domain);
         return url_result::Ok;
     }
