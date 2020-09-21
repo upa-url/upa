@@ -139,6 +139,9 @@ public:
 
 #ifdef DOCTEST_LIBRARY_INCLUDED
     void internal_test() {
+        // https://en.cppreference.com/w/cpp/memory/allocator
+        // default allocator is stateless, i.e. instances compare equal:
+        CHECK(get_allocator() == allocator_);
         CHECK_THROWS(grow(max_size() + 1));
         CHECK_THROWS(add_sizes(max_size() - 1, 2));
     }

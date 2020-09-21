@@ -16,6 +16,11 @@ TEST_CASE("whatwg::simple_buffer<char, 16>") {
     CHECK(buff.size() == 4);
     CHECK(str::compare(buff.data(), "ABCD", 4) == 0);
 
+    // data() const
+    const auto& cbuff = buff;
+    CHECK(cbuff.data() != nullptr);
+    CHECK(str::compare(cbuff.data(), "ABCD", 4) == 0);
+
     // test append
     std::string aaa("123456789");
     std::string bbb("abcdefgh-");
@@ -39,6 +44,13 @@ TEST_CASE("whatwg::simple_buffer<char, 16>") {
     CHECK(buff.capacity() >= 32);
     CHECK(buff.size() == 32);
     CHECK(buff.data()[31] == 0);
+
+    buff.pop_back();
+    CHECK(buff.size() == 31);
+
+    buff.clear();
+    CHECK(buff.empty());
+    CHECK(buff.size() == 0);
 }
 
 TEST_CASE("whatwg::simple_buffer<char, 4>") {
