@@ -137,6 +137,13 @@ public:
         size_ = count;
     }
 
+#ifdef DOCTEST_LIBRARY_INCLUDED
+    void internal_test() {
+        CHECK_THROWS(grow(max_size() + 1));
+        CHECK_THROWS(add_sizes(max_size() - 1, 2));
+    }
+#endif
+
 protected:
     void init_capacity(size_type new_cap) {
         data_ = allocator_traits::allocate(allocator_, new_cap);

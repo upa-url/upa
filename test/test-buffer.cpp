@@ -1,6 +1,6 @@
 #include <string>
-#include "buffer.h"
 #include "doctest-main.h"
+#include "buffer.h" // must be included after doctest.h
 
 using str = std::char_traits<char>;
 
@@ -101,4 +101,9 @@ TEST_CASE("whatwg::simple_buffer<char, 0>") {
     CHECK(buff.size() == 1);
     CHECK(buff.data() != nullptr);
     CHECK(buff.data()[0] == 'A');
+}
+
+TEST_CASE("whatwg::simple_buffer internal test") {
+    whatwg::simple_buffer<char16_t> buff;
+    buff.internal_test();
 }
