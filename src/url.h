@@ -387,8 +387,8 @@ public:
     void save_path_string();
 
     virtual void shorten_path();
-    // retunrs how many slashes are removed
-    virtual std::size_t remove_leading_path_slashes();
+    //UNUSED// retunrs how many slashes are removed
+    //virtual std::size_t remove_leading_path_slashes();
 
     typedef bool (url::*PathOpFn)(std::size_t& path_end, std::size_t& segment_count) const;
     void append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn = nullptr);
@@ -481,8 +481,8 @@ public:
     void commit_path() override;
 
     void shorten_path() override;
-    // retunrs how many slashes are removed
-    std::size_t remove_leading_path_slashes() override;
+    //UNUSED// retunrs how many slashes are removed
+    //std::size_t remove_leading_path_slashes() override;
     bool is_empty_path() const override;
 
 protected:
@@ -1553,8 +1553,11 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                             // set url's host to base's host, url's path to base's path, and then shorten url's path
                             urls.append_parts(*base, url::HOST, url::PATH, &url::get_shorten_path);
                             // Note: This is a (platform-independent) Windows drive letter quirk.
+                        } else {
+                            // TODO-WARN: validation error
+                            // set url's host to base's host
+                            urls.append_parts(*base, url::HOST, url::HOST);
                         }
-                        //else // TODO-WARN: validation error
                         state = path_state;
                     }
                 }
@@ -1575,21 +1578,25 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             break;
 
         default:
-            if (base && base->is_file_scheme() &&
-                !detail::starts_with_Windows_drive(pointer, last)) {
-                url::str_view_type base_path = base->get_path_first_string(2);
-                // if base's path[0] is a normalized Windows drive letter
-                if (base_path.length() == 2 &&
-                    detail::is_normalized_Windows_drive(base_path[0], base_path[1])) {
-                    // append base's path[0] to url's path
-                    std::string& str_path = urls.start_path_segment();
-                    str_path.append(base_path.data(), 2); // "C:"
-                    urls.save_path_segment();
-                    // Note: This is a (platform - independent) Windows drive letter quirk.
-                    // Both url's and base's host are null under these conditions and therefore not copied.
-                } else {
-                    // set url's host to base's host
-                    urls.append_parts(*base, url::HOST, url::HOST);
+            if (base && base->is_file_scheme()) {
+                // It is important to first set host, then path, otherwise
+                // serializer may assert.
+
+                // set url's host to base's host
+                urls.append_parts(*base, url::HOST, url::HOST);
+                // path
+                if (!detail::starts_with_Windows_drive(pointer, last)) {
+                    url::str_view_type base_path = base->get_path_first_string(2);
+                    // if base's path[0] is a normalized Windows drive letter
+                    if (base_path.length() == 2 &&
+                        detail::is_normalized_Windows_drive(base_path[0], base_path[1])) {
+                        // append base's path[0] to url's path
+                        std::string& str_path = urls.start_path_segment();
+                        str_path.append(base_path.data(), 2); // "C:"
+                        urls.save_path_segment();
+                        // Note: This is a (platform - independent) Windows drive letter quirk.
+                        //TODO------- Both url's and base's host are null under these conditions and therefore not copied.
+                    }
                 }
             }
             state = path_state;
@@ -1682,12 +1689,6 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
         parse_path(urls, pointer, end_of_path);
         pointer = end_of_path;
-
-        // trim leading slashes of file URL path
-        if (urls.is_file_scheme()) {
-            urls.remove_leading_path_slashes();
-            // if (urls.remove_leading_path_slashes() > 0) // TODO-WARN: validation error
-        }
 
         // the end of path parse
         urls.commit_path();
@@ -1882,13 +1883,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
                 urls.is_empty_path() &&
                 detail::is_Windows_drive(pointer[0], pointer[1]))
             {
-                if (!urls.is_empty(url::HOST)) {
-                    // 1. If url's host is not the empty string, validation error
-                    // TODO-WARN: validation error
-                    // 2. Set url's host to the empty string
-                    urls.empty_host();
-                }
-                // and replace the second code point in buffer with ":"
+                // replace the second code point in buffer with ":"
                 std::string& str_path = urls.start_path_segment();
                 str_path += static_cast<char>(pointer[0]);
                 str_path += ':';
@@ -2015,6 +2010,7 @@ inline void url_serializer::shorten_path() {
         url_.norm_url_.resize(url_.part_end_[url::PATH]);
 }
 
+#if 0 // UNUSED
 static inline std::size_t count_leading_path_slashes(const char* first, const char* last) {
     return std::distance(first,
         std::find_if_not(first, last, [](char c){ return c == '/'; }));
@@ -2034,6 +2030,7 @@ inline std::size_t url_serializer::remove_leading_path_slashes() {
     }
     return 0;
 }
+#endif
 
 inline url_serializer::~url_serializer() {
     switch (last_pt_) {
@@ -2480,6 +2477,7 @@ inline void url_setter::shorten_path() {
     }
 }
 
+#if 0 // UNUSED
 inline std::size_t url_setter::remove_leading_path_slashes() {
     std::size_t count = count_leading_path_slashes(strp_.data(), strp_.data() + strp_.length());
     if (count > 1) {
@@ -2490,6 +2488,7 @@ inline std::size_t url_setter::remove_leading_path_slashes() {
     }
     return 0;
 }
+#endif
 
 inline bool url_setter::is_empty_path() const {
     return path_seg_end_.empty();
