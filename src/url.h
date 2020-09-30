@@ -1579,8 +1579,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
         default:
             if (base && base->is_file_scheme()) {
-                // It is important to first set host, then path, otherwise
-                // serializer may assert.
+                // It is important to first set host, then path, otherwise serializer
+                // will fail.
 
                 // set url's host to base's host
                 urls.append_parts(*base, url::HOST, url::HOST);
@@ -1595,7 +1595,6 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                         str_path.append(base_path.data(), 2); // "C:"
                         urls.save_path_segment();
                         // Note: This is a (platform - independent) Windows drive letter quirk.
-                        //TODO------- Both url's and base's host are null under these conditions and therefore not copied.
                     }
                 }
             }
