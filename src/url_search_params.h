@@ -126,7 +126,7 @@ public:
     // utils
 
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    static name_value_list do_parse(Args&&... query);
+    static name_value_list do_parse(bool rem_qmark, Args&&... query);
 
     template <class ...Args, enable_if_str_arg_t<Args...> = 0>
     static void urlencode(std::string& encoded, Args&&... value);
@@ -206,9 +206,10 @@ inline url_search_params::url_search_params(const url_search_params& other)
     , url_ptr_(nullptr)
 {}
 
+// https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
 template <class ...Args, enable_if_str_arg_t<Args...>>
 inline url_search_params::url_search_params(Args&&... query)
-    : params_(do_parse(std::forward<Args>(query)...))
+    : params_(do_parse(true, std::forward<Args>(query)...))
 {}
 
 template<class ConT, typename std::enable_if<is_iterable_pairs<ConT>::value, int>::type>
@@ -232,13 +233,13 @@ inline void url_search_params::clear_params() {
 }
 
 inline void url_search_params::parse_params(url_str_view_t query) {
-    params_ = do_parse(query);
+    params_ = do_parse(false, query);
     is_sorted_ = false;
 }
 
 template <class ...Args, enable_if_str_arg_t<Args...>>
 inline void url_search_params::parse(Args&&... query) {
-    params_ = do_parse(std::forward<Args>(query)...);
+    params_ = do_parse(true, std::forward<Args>(query)...);
     is_sorted_ = false;
     update();
 }
@@ -338,15 +339,15 @@ inline void url_search_params::sort() {
 }
 
 template <class ...Args, enable_if_str_arg_t<Args...>>
-inline url_search_params::name_value_list url_search_params::do_parse(Args&&... query) {
+inline url_search_params::name_value_list url_search_params::do_parse(bool rem_qmark, Args&&... query) {
     name_value_list lst;
 
     auto str_query = make_string(std::forward<Args>(query)...);
     auto b = str_query.begin();
     auto e = str_query.end();
 
-    // https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
-    if (b != e && *b == '?')
+    // remove leading question-mark?
+    if (rem_qmark && b != e && *b == '?')
         ++b;
 
     name_value_pair p;

@@ -150,3 +150,12 @@ TEST_CASE("url::searchParams()") {
     params.clear();
     CHECK(url.search() == "");
 }
+
+TEST_CASE("url::searchParams() and url::search(...)") {
+    whatwg::url url("http://h/p");
+    auto& params = url.searchParams();
+
+    url.search("??a=b&c=d");
+    CHECK(url.search() == "??a=b&c=d");
+    CHECK(params.to_string() == "%3Fa=b&c=d");
+}
