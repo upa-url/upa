@@ -76,6 +76,11 @@ public:
     bool failure;
 };
 
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/url-constructor.html
+// https://github.com/web-platform-tests/wpt/blob/master/url/url-origin.html
+// https://github.com/web-platform-tests/wpt/blob/master/url/failure.html
+//
 void test_parser(DataDrivenTest& ddt, ParserObj& obj)
 {
     // https://github.com/web-platform-tests/wpt/blob/master/url/README.md
@@ -208,6 +213,9 @@ public:
     std::map<std::string, std::string> m_expected;
 };
 
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/url-setters.html
+//
 void test_setter(DataDrivenTest& ddt, SetterObj& obj)
 {
     std::string str_case("URL(\"" + obj.m_href + "\")." + obj.m_setter + "(\"" + obj.m_new_value + "\");");
