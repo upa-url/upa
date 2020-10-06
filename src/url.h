@@ -366,10 +366,8 @@ public:
     virtual std::string& start_part(url::PartType new_pt);
     virtual void save_part();
 
-    // TODO: can be used instead of clear_host():
     virtual void clear_part(const url::PartType /*pt*/) {}
 
-    virtual void clear_host();
     virtual void empty_host();
 
     // host_output overrides
@@ -472,7 +470,6 @@ public:
     void clear_part(const url::PartType pt) override;
     void empty_part(const url::PartType pt); // override
 
-    void clear_host() override { clear_part(url::HOST); }
     void empty_host() override { empty_part(url::HOST); }
 
     // path
@@ -2178,12 +2175,6 @@ inline void url_serializer::save_path_string() {
     url_.path_segment_count_ = 1;
 }
 
-
-inline void url_serializer::clear_host() {
-    //NOT USED
-    empty_host();
-    url_.flags_ &= ~(url::HOST_FLAG | url::HOST_TYPE_MASK); // set to null
-}
 
 inline void url_serializer::empty_host() {
     assert(last_pt_ >= url::HOST);
