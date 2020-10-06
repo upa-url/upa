@@ -1519,6 +1519,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     if (state == file_state) {
         if (!urls.is_file_scheme())
             urls.set_scheme(url::str_view_type{ "file", 4 });
+        // ensure file URL's host is not null
+        urls.set_empty_host();
         // EOF ==> 0 ==> default:
         switch (pointer != last ? *pointer : 0) {
         case '\\':
@@ -2031,14 +2033,6 @@ inline std::size_t url_serializer::remove_leading_path_slashes() {
 #endif
 
 inline url_serializer::~url_serializer() {
-    switch (last_pt_) {
-    case url::SCHEME:
-        // if url's host is null and url's scheme is "file"
-        if (url_.is_file_scheme())
-            url_.norm_url_.append("//");
-        break;
-    default: break;
-    }
 }
 
 // set/clear scheme
@@ -2070,8 +2064,8 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
     url::PartType fill_start_pt = static_cast<url::PartType>(static_cast<int>(last_pt_)+1);
     switch (last_pt_) {
     case url::SCHEME:
-        // if host is non-null or scheme is "file"
-        if (new_pt <= url::HOST || url_.is_file_scheme())
+        // if host is non-null
+        if (new_pt <= url::HOST)
             url_.norm_url_.append("//");
         break;
     case url::USERNAME:
@@ -2115,7 +2109,7 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
     default: break;
     }
 
-    assert(last_pt_ < new_pt);
+    assert(last_pt_ < new_pt || (last_pt_ == new_pt && is_empty(last_pt_)));
     // value to url_.part_end_[new_pt] will be assigned in the save_part()
     last_pt_ = new_pt;
     return url_.norm_url_;
@@ -2325,8 +2319,6 @@ inline void url_serializer::replace_part(const url::PartType last_pt, const char
 // url_setter class
 
 inline url_setter::~url_setter() {
-    //todo: ~url_serializer() must do nothing
-    last_pt_ = url::FRAGMENT;
 }
 
 //???
