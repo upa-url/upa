@@ -368,6 +368,9 @@ public:
 
     virtual void clear_part(const url::PartType /*pt*/) {}
 
+    // set empty host
+    void set_empty_host();
+
     // empties not empty host
     virtual void empty_host();
 
@@ -1606,9 +1609,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         if (pointer == end_of_authority) {
             // buffer is the empty string
             // set empty host
-            urls.start_part(url::HOST);
-            urls.save_part();
-            urls.set_host_type(HostType::Empty);
+            urls.set_empty_host();
             // if state override is given, then return
             if (state_override)
                 return url_result::Ok;
@@ -2176,6 +2177,12 @@ inline void url_serializer::save_path_string() {
     url_.path_segment_count_ = 1;
 }
 
+
+inline void url_serializer::set_empty_host() {
+    start_part(url::HOST);
+    save_part();
+    set_host_type(HostType::Empty);
+}
 
 inline void url_serializer::empty_host() {
     assert(last_pt_ >= url::HOST);
