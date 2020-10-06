@@ -368,6 +368,7 @@ public:
 
     virtual void clear_part(const url::PartType /*pt*/) {}
 
+    // empties not empty host
     virtual void empty_host();
 
     // host_output overrides
@@ -470,7 +471,7 @@ public:
     void clear_part(const url::PartType pt) override;
     void empty_part(const url::PartType pt); // override
 
-    void empty_host() override { empty_part(url::HOST); }
+    void empty_host() override;
 
     // path
     std::string& start_path_segment() override;
@@ -2426,6 +2427,11 @@ inline void url_setter::empty_part(const url::PartType pt) {
     if (url_.part_end_[pt]) {
         replace_part(pt, "", 0);
     }
+}
+
+inline void url_setter::empty_host() {
+    empty_part(url::HOST);
+    url_.set_host_type(HostType::Empty);
 }
 
 inline std::string& url_setter::start_path_segment() {

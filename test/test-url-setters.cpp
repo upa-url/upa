@@ -99,3 +99,11 @@ TEST_CASE("Test setters with non-special URL's") {
         CHECK_EQ(url.href(), "javascript:alert(1)#frag");
     }
 }
+
+TEST_CASE("Test host setter with file URL") {
+    whatwg::url url("file://h/p");
+
+    CHECK(url.host("localhost"));
+    CHECK(url.host() == "");
+    CHECK(url.host_type() == whatwg::HostType::Empty);
+}
