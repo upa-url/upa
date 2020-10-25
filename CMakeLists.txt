@@ -24,12 +24,13 @@ option(URL_TEST_COVERAGE_CLANG "Build tests with Clang source-based code coverag
 option(URL_TEST_SANITIZER "Build tests with Clang sanitizer" OFF)
 option(URL_TEST_VALGRIND "Run tests with Valgrind" OFF)
 
-# AFL or Clang libFuzzer
+# AFL, Honggfuzz, or Clang libFuzzer
 if (URL_BUILD_FUZZER)
   set(URL_BUILD_TESTS OFF)
   if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     string(REGEX MATCH "(afl-clang-fast|afl-clang)\\+\\+$" AFL ${CMAKE_CXX_COMPILER})
-    if (NOT AFL)
+    string(REGEX MATCH "hfuzz-clang\\+\\+$" HFUZZ ${CMAKE_CXX_COMPILER})
+    if (NOT AFL AND NOT HFUZZ)
       # Clang libFuzzer
       add_compile_options(-O1 -g -fsanitize=fuzzer)
       add_link_options(-g -fsanitize=fuzzer)
