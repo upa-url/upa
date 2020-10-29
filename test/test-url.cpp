@@ -29,7 +29,7 @@ TEST_CASE("url constructor") {
     // valid URL
     check_url_contructor(whatwg::url_result::Ok, "http://example.org/p");
     // invalid URLs
-    check_url_contructor(whatwg::url_result::EmptyHost, "http://xn--/p");
+    check_url_contructor(whatwg::url_result::EmptyHost, "http://%C2%AD/p"); // U+00AD - IDNA ignored code point
     check_url_contructor(whatwg::url_result::IdnaError, "http://xn--a/p");
     check_url_contructor(whatwg::url_result::InvalidPort, "http://h:a/p");
     check_url_contructor(whatwg::url_result::InvalidIpv4Address, "http://1.2.3.256/p");
