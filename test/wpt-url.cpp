@@ -131,6 +131,7 @@ inline bool _parse_string(std::string &out, input<Iter> &in) {
 bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file);
 bool run_host_parser_tests(DataDrivenTest& ddt, std::ifstream& file);
 bool run_setter_tests(DataDrivenTest& ddt, std::ifstream& file);
+bool run_percent_encoding_tests(DataDrivenTest& ddt, std::ifstream& file);
 
 typedef bool(*RunTests)(DataDrivenTest& ddt, std::ifstream& file);
 int test_from_file(RunTests run_tests, const char* file_name);
@@ -143,6 +144,7 @@ int main(int argc, char** argv)
     err |= test_from_file(run_parser_tests, "wpt/urltestdata.json");
     err |= test_from_file(run_host_parser_tests, "wpt/toascii.json");
     err |= test_from_file(run_setter_tests, "wpt/setters_tests.json");
+    err |= test_from_file(run_percent_encoding_tests, "wpt/percent-encoding.json");
 
     // additional tests
     err |= test_from_file(run_parser_tests, "data/my-urltestdata.json");
@@ -378,6 +380,42 @@ void test_setter(DataDrivenTest& ddt, SetterObj& obj)
     });
 }
 
+// URL percent encoding test
+
+class EncodingObj {
+public:
+    EncodingObj() {}
+
+    std::string m_input;
+    std::map<std::string, std::string> m_output;
+};
+
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/percent-encoding.window.js
+//
+void test_percent_encoding(DataDrivenTest& ddt, EncodingObj& obj)
+{
+    // URL library supports only UTF-8 encoding
+    const std::string& input = obj.m_input;
+    const std::string& output = obj.m_output.at("utf-8");
+
+    std::string str_case = input;
+
+    ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
+        // test percent_encode function
+        tc.assert_equal(output, whatwg::percent_encode(whatwg::special_query_no_encode_set, input), "percent_encode function");
+
+        // test URL parser
+        std::string str_url("https://example.org/?");
+        str_url += input;
+        str_url += "#";
+        str_url += input;
+        whatwg::url url(str_url);
+        tc.assert_equal("#" + output, url.hash(), "url.hash()"); // utf-8
+        tc.assert_equal("?" + output, url.search(), "url.search()"); // any encoding
+    });
+}
+
 
 // Read tests in JSON format
 
@@ -446,7 +484,7 @@ namespace {
                 }
             } else if (item.is<std::string>()) {
                 // comment
-                // std::cout << value.as_string() << std::endl;
+                // std::cout << item.get<std::string>() << std::endl;
             } else {
                 std::cout << "[ERR: invalid file]" << std::endl;
                 return false;
@@ -456,12 +494,12 @@ namespace {
     };
 
     // parses setters_tests.json
-    class root_context2 : public picojson::deny_parse_context {
+    class root_context_setter : public picojson::deny_parse_context {
     protected:
         DataDrivenTest& m_ddt;
         std::string m_setter_name;
     public:
-        root_context2(DataDrivenTest& ddt) : m_ddt(ddt) {}
+        root_context_setter(DataDrivenTest& ddt) : m_ddt(ddt) {}
 
         // array only as root
         bool parse_array_start() { return true; }
@@ -486,7 +524,7 @@ namespace {
                     const picojson::object& oexp = o.at("expected").get<picojson::object>();
                     for (picojson::object::const_iterator itexp = oexp.begin(); itexp != oexp.end(); itexp++) {
                         if (!itexp->second.is<std::string>())
-                            return false; // klaida: reikia string
+                            return false; // error: string is expected
                         obj.m_expected[itexp->first] = itexp->second.get<std::string>();
                     }
                 }
@@ -518,6 +556,58 @@ namespace {
             }
         }
     };
+
+    // parses percent-encoding.json
+    class root_context_percent_encoding : public picojson::deny_parse_context {
+    protected:
+        DataDrivenTest& m_ddt;
+    public:
+        root_context_percent_encoding(DataDrivenTest& ddt)
+            : m_ddt(ddt)
+        {}
+
+        // array only as root
+        bool parse_array_start() { return true; }
+        bool parse_array_stop(std::size_t) { return true; }
+
+        template <typename Iter> bool parse_array_item(picojson::input<Iter>& in, std::size_t) {
+            picojson::value item;
+
+            // parse the array item
+            picojson::default_parse_context ctx(&item);
+            if (!picojson::_parse(ctx, in))
+                return false;
+
+            // analyze array item
+            if (item.is<picojson::object>()) {
+                EncodingObj obj;
+
+                try {
+                    const picojson::object& o = item.get<picojson::object>();
+                    obj.m_input = o.at("input").get<std::string>();
+                    const picojson::object& o_output = o.at("output").get<picojson::object>();
+                    for (const auto& p : o_output) {
+                        if (!p.second.is<std::string>())
+                            return false; // error: string is expected
+                        obj.m_output[p.first] = p.second.get<std::string>();
+                    }
+                }
+                catch (const std::out_of_range& ex) {
+                    std::cout << "[ERR:invalid file]: " << ex.what() << std::endl;
+                    return false;
+                }
+
+                test_percent_encoding(m_ddt, obj);
+            } else if (item.is<std::string>()) {
+                // comment
+                // std::cout << item.get<std::string>() << std::endl;
+            } else {
+                std::cout << "[ERR: invalid file]" << std::endl;
+                return false;
+            }
+            return true;
+        }
+    };
 }
 
 template <typename Context>
@@ -546,6 +636,11 @@ bool run_host_parser_tests(DataDrivenTest& ddt, std::ifstream& file) {
 }
 
 bool run_setter_tests(DataDrivenTest& ddt, std::ifstream& file) {
-    root_context2 ctx(ddt);
+    root_context_setter ctx(ddt);
+    return run_some_tests(ctx, file);
+}
+
+bool run_percent_encoding_tests(DataDrivenTest& ddt, std::ifstream& file) {
+    root_context_percent_encoding ctx(ddt);
     return run_some_tests(ctx, file);
 }
