@@ -7,7 +7,7 @@
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2020-06-26
+// Last checked for updates: 2020-11-03
 //
 
 
@@ -309,9 +309,25 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         } lst[] = {
             {{{u"+", u"%C2"}}, {{"+", "%C2"}}, "object with +"},
             {{{u"c", u"x"}, {u"a", u"?"}}, {{"c", "x"}, {"a", "?"}}, "object/array with two keys" },
+            // C++ forbids invalid code points in string literals, so here is used initializer list
+            // to inject invalid code points (unpaired surrogates) into string
             {
-                // C++ forbids invalid code points in string literals, so it uses initializer list
-                // to inject invalid 0xD83D code point (unpaired surrogate) into string
+#if 0
+                // Two following tests are skiped. In the urlsearchparams-constructor.any.js all key/value pairs
+                // are in the map, and pairs count is reduced when converting to record<USVString, USVString>.
+                // So these two are specific to browsers. They appeared after:
+                // https://github.com/web-platform-tests/wpt/commit/54c6d64be071c60baaad8c4da0365b962ffbe77c
+                // https://github.com/web-platform-tests/wpt/pull/26126
+
+                {{std::u16string{0xD835, u'x'}, u"1"}, {u"xx", u"2"}, {std::u16string{0xD83D, u'x'}, u"3"}},
+                {{mk_string(u8"\uFFFDx"), "3"}, {"xx", "2"}},
+                "2 unpaired surrogates (no trailing)"
+            }, {
+                {{std::u16string{u'x', 0xDC53}, u"1"}, {std::u16string{u'x', 0xDC5C}, u"2"}, {std::u16string{u'x', 0xDC65}, u"3"}},
+                {{mk_string(u8"\uFFFDx"), "3"}},
+                "3 unpaired surrogates (no leading)"
+            }, {
+#endif
                 {{std::u16string(u"a\0b", 3), u"42"}, {std::u16string{{u'c', 0xD83D}}, u"23"}, {u"d\u1234", u"foo"}},
                 {{std::string("a\0b", 3), "42"}, {mk_string(u8"c\uFFFD"), "23"}, {mk_string(u8"d\u1234"), "foo"}},
                 "object with NULL, non-ASCII, and surrogate keys"
