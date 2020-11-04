@@ -361,20 +361,20 @@ void test_setter(DataDrivenTest& ddt, SetterObj& obj)
 
             // test result
             std::string str_val;
-            for (auto it = obj.m_expected.begin(); it != obj.m_expected.end(); it++) {
-                if (it->first == "href") str_val = url.href();
-                else if (it->first == "origin") str_val = url.origin();
-                else if (it->first == "protocol") str_val = url.protocol();
-                else if (it->first == "username") str_val = url.username();
-                else if (it->first == "password") str_val = url.password();
-                else if (it->first == "host") str_val = url.host();
-                else if (it->first == "hostname") str_val = url.hostname();
-                else if (it->first == "port") str_val = url.port();
-                else if (it->first == "pathname") str_val = url.pathname();
-                else if (it->first == "search") str_val = url.search();
-                else if (it->first == "hash") str_val = url.hash();
+            for (const auto& p : obj.m_expected) {
+                if (p.first == "href") str_val = url.href();
+                else if (p.first == "origin") str_val = url.origin();
+                else if (p.first == "protocol") str_val = url.protocol();
+                else if (p.first == "username") str_val = url.username();
+                else if (p.first == "password") str_val = url.password();
+                else if (p.first == "host") str_val = url.host();
+                else if (p.first == "hostname") str_val = url.hostname();
+                else if (p.first == "port") str_val = url.port();
+                else if (p.first == "pathname") str_val = url.pathname();
+                else if (p.first == "search") str_val = url.search();
+                else if (p.first == "hash") str_val = url.hash();
 
-                tc.assert_equal(it->second, str_val, it->first.c_str());
+                tc.assert_equal(p.second, str_val, p.first);
             }
         }
     });
@@ -452,26 +452,25 @@ namespace {
             if (item.is<picojson::object>()) {
                 ParserObj obj;
 
-                const picojson::object& o = item.get<picojson::object>();
-                for (picojson::object::const_iterator it = o.begin(); it != o.end(); it++) {
+                for (const auto& p : item.get<picojson::object>()) {
                     switch (m_ttype) {
                     case TestType::UrlParser:
-                        if (it->first == "failure") {
-                            obj.failure = it->second.evaluate_as_boolean();
+                        if (p.first == "failure") {
+                            obj.failure = p.second.evaluate_as_boolean();
                             continue;
                         }
                         break;
                     case TestType::HostParser:
-                        if (it->first == "output" && it->second.is<picojson::null>()) {
+                        if (p.first == "output" && p.second.is<picojson::null>()) {
                             obj.failure = true;
                             continue;
                         }
                         break;
                     }
                     // string attributes
-                    if (!it->second.is<std::string>())
+                    if (!p.second.is<std::string>())
                         return false; // error: need string
-                    obj[it->first] = it->second.get<std::string>();
+                    obj[p.first] = p.second.get<std::string>();
                 }
                 // run item test
                 switch (m_ttype) {
@@ -522,10 +521,10 @@ namespace {
                     obj.m_href = o.at("href").get<std::string>();
                     obj.m_new_value = o.at("new_value").get<std::string>();
                     const picojson::object& oexp = o.at("expected").get<picojson::object>();
-                    for (picojson::object::const_iterator itexp = oexp.begin(); itexp != oexp.end(); itexp++) {
-                        if (!itexp->second.is<std::string>())
+                    for (const auto& pexp : oexp) {
+                        if (!pexp.second.is<std::string>())
                             return false; // error: string is expected
-                        obj.m_expected[itexp->first] = itexp->second.get<std::string>();
+                        obj.m_expected[pexp.first] = pexp.second.get<std::string>();
                     }
                 }
                 catch (const std::out_of_range& ex) {
