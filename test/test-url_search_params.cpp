@@ -6,8 +6,7 @@
 
 #if defined(__has_include)
 
-// The old macro __cpp_coroutines is still used in Visual Studio 2019 16.7
-#if defined(__cpp_impl_coroutine) || defined(__cpp_coroutines)
+#if defined(__cpp_impl_coroutine)
 #if __has_include(<experimental/generator>)
 # include <experimental/generator>
 # define TEST_COROUTINE_GENERATOR

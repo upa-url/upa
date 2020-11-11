@@ -18,7 +18,6 @@ option(URL_BUILD_FUZZER "Build the URL fuzzer." OFF)
 option(URL_BUILD_EXAMPLES "Build the URL examples." OFF)
 option(URL_BUILD_TOOLS "Build tools." OFF)
 # tests build options
-option(URL_TEST_COROUTINE "Build coroutine tests (MSVC)" OFF)
 option(URL_TEST_COVERAGE "Build tests with code coverage reporting" OFF)
 option(URL_TEST_COVERAGE_CLANG "Build tests with Clang source-based code coverage" OFF)
 option(URL_TEST_SANITIZER "Build tests with Clang sanitizer" OFF)
@@ -37,13 +36,6 @@ if (URL_BUILD_FUZZER)
     endif()
   elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     string(REGEX MATCH "afl-g\\+\\+$" AFL ${CMAKE_CXX_COMPILER})
-  endif()
-endif()
-
-# coroutine support
-if (URL_TEST_COROUTINE)
-  if (MSVC)
-    add_compile_options(/await)
   endif()
 endif()
 
