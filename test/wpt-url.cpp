@@ -490,6 +490,10 @@ namespace {
             }
             return true;
         }
+
+        // deny object as root
+        bool parse_object_start() { return false; }
+        bool parse_object_stop() { return false; }
     };
 
     // parses setters_tests.json
@@ -542,6 +546,7 @@ namespace {
 
         // object only as root
         bool parse_object_start() { return true; }
+        bool parse_object_stop() { return true; }
 
         template <typename Iter> bool parse_object_item(picojson::input<Iter>& in, const std::string& name) {
             if (name == "comment") {
@@ -606,6 +611,10 @@ namespace {
             }
             return true;
         }
+
+        // deny object as root
+        bool parse_object_start() { return false; }
+        bool parse_object_stop() { return false; }
     };
 }
 

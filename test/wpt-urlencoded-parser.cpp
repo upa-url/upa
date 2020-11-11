@@ -165,6 +165,10 @@ public:
         }
         return true;
     }
+
+    // deny object as root
+    bool parse_object_start() { return false; }
+    bool parse_object_stop() { return false; }
 };
 
 // Read data file and run tests from it
