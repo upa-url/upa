@@ -7,7 +7,8 @@
 
 namespace whatwg {
 
-// IPv4
+// IPv4 serializer
+// https://url.spec.whatwg.org/#concept-ipv4-serializer
 
 void ipv4_serialize(uint32_t ipv4, std::string& output) {
     for (unsigned shift = 24; shift != 0; shift -= 8) {
@@ -17,7 +18,8 @@ void ipv4_serialize(uint32_t ipv4, std::string& output) {
     unsigned_to_str<uint32_t>(ipv4 & 0xFF, output, 10);
 }
 
-// IPv6
+// IPv6 serializer
+// https://url.spec.whatwg.org/#concept-ipv6-serializer
 
 static std::size_t longest_zero_sequence(
     const uint16_t* first, const uint16_t* last,

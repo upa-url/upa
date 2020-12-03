@@ -36,9 +36,16 @@ inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
     } while (num);
 }
 
-// IPv4 parser
-
+// IPv4 number parser
+// https://url.spec.whatwg.org/#ipv4-number-parser
+//
+// - on success sets number value and returns url_result::Ok
+// - if resulting number can not be represented by uint32_t value, then returns
+//   url_result::InvalidIpv4Address 
+// - on failure (non digit char) returns url_result::False
+//
 // TODO-WARN: validationError
+
 template <typename CharT>
 static inline url_result ipv4_parse_number(const CharT* first, const CharT* last, uint32_t& number) {
     // Figure out the base
@@ -85,7 +92,7 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
         }
     }
 
-    // convert to integer
+    // All characters are valid digits, convert them to integer:
     // max 32-bit value is
     // HEX: FFFFFFFF    (8 digits)
     // DEC: 4294967295  (10 digits)
@@ -111,6 +118,15 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
     number = static_cast<uint32_t>(num);
     return url_result::Ok;
 }
+
+// IPv4 parser
+// https://url.spec.whatwg.org/#concept-ipv4-parser
+//
+// - on success sets ipv4 value and returns url_result::Ok
+// - on failure (when all parts are valid numbers, but any of them is too big),
+//   returns url_result::InvalidIpv4Address
+// - if input is not IPv4 adrress (any part is empty or contains non digit),
+//   then returns url_result::False (standard says "return input").
 
 template <typename CharT>
 inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ipv4) {
@@ -183,11 +199,12 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
 }
 
 // IPv4 serializer
+// https://url.spec.whatwg.org/#concept-ipv4-serializer
 
 void ipv4_serialize(uint32_t ipv4, std::string& output);
 
 
-// IPv6 parser
+// IPv6
 
 template <typename CharT, typename IntT>
 inline void get_hex_number(const CharT*& pointer, const CharT* last, IntT& value) {
@@ -203,6 +220,13 @@ template <typename CharT>
 inline bool IsAsciiDigit(CharT ch) {
     return ch <= '9' && ch >= '0';
 }
+
+// IPv6 parser
+// https://url.spec.whatwg.org/#concept-ipv6-parser
+//
+// - on success sets address value and returns true
+// - on failure returns false
+//
 
 template <typename CharT>
 inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)[8]) {
@@ -326,6 +350,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
 }
 
 // IPv6 serializer
+// https://url.spec.whatwg.org/#concept-ipv6-serializer
 
 void ipv6_serialize(const uint16_t(&address)[8], std::string& output);
 
