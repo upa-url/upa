@@ -18,8 +18,8 @@ using std::experimental::generator;
 #endif
 #endif
 
-// Visual Studio 2019 16.8 (_MSC_VER = 1928) is sufficient to test ranges support
-#if defined(__cpp_lib_ranges) || (_MSC_VER >= 1928)
+// Visual Studio 2019 16.8 (_MSC_VER = 1928) and concepts are sufficient to test ranges support
+#if defined(__cpp_lib_ranges) || (_MSC_VER >= 1928 && defined(__cpp_lib_concepts))
 #if __has_include(<ranges>)
 # include <ranges>
 # define TEST_RANGES
