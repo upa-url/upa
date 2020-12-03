@@ -30,6 +30,18 @@ jobs:
             cxx_standard: 20
             cmake_options: ""
 
+          - name: g++ C++17 Codecov
+            cxx_compiler: g++
+            cxx_standard: 17
+            cmake_options: "-DURL_TEST_COVERAGE=ON"
+            install: "lcov"
+            after_test: |
+              # See: https://github.com/codecov/example-cpp11-cmake
+              lcov --capture --directory . --output-file coverage.info
+              lcov --remove coverage.info '/usr/*' '*/deps/*' '*/test/*' --output-file coverage.info
+              lcov --list coverage.info
+              bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
+
     steps:
     - uses: actions/checkout@v2
     - name: init dependances
@@ -45,3 +57,6 @@ jobs:
       run: cmake --build build --config Release
     - name: test
       run: cd build ; ctest -C Release -V
+    - name: after test
+      if: ${{ matrix.after_test }}
+      run: ${{ matrix.after_test }}
