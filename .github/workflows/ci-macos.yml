@@ -1,0 +1,30 @@
+name: macOS
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        include:
+          - name: clang++ C++17
+            cxx_compiler: clang++
+            cxx_standard: 17
+            cmake_options: ""
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: init dependances
+      run: ./init.sh
+    - name: install ICU library
+      run: brew install icu4c
+    - name: cmake
+      run: cmake -S . -B build -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
+      env:
+        ICU_ROOT: /usr/local/opt/icu4c
+    - name: build
+      run: cmake --build build --config Release
+    - name: test
+      run: cd build ; ctest -C Release -V

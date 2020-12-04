@@ -8,16 +8,6 @@ matrix:
       compiler: gcc
       env: [CXX_STANDARD=11]
 
-    - os: osx
-      osx_image: xcode10
-      addons:
-        homebrew:
-          packages: [ icu4c ]
-      compiler: clang
-      env:
-        - CXX_STANDARD=11
-        - ICU_ROOT=/usr/local/opt/icu4c
-
 # Build steps
 script:
   - ./init.sh
