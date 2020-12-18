@@ -15,7 +15,7 @@ environment:
 install:
   - mkdir C:\LIB
   - mkdir C:\LIB\ICU
-  - curl -fsSL -o C:\LIB\icu4c-bin.zip https://github.com/unicode-org/icu/releases/download/release-68-1/icu4c-68_1-Win64-MSVC2019.zip
+  - curl -fsSL -o C:\LIB\icu4c-bin.zip https://github.com/unicode-org/icu/releases/download/release-68-2/icu4c-68_2-Win64-MSVC2019.zip
   - 7z x C:\LIB\icu4c-bin.zip -oC:\LIB\ICU
 
 before_build:
