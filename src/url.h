@@ -138,43 +138,37 @@ public:
         return do_parse(inp.begin(), inp.end(), base);
     }
 
-    template <typename T1, typename T2, enable_if_str_arg_t<T1, T2> = 0>
-    url_result parse(T1&& arg1, T2&& arg2, const url* base) {
-        const auto inp = make_str_arg(std::forward<T1>(arg1), std::forward<T2>(arg2));
-        return do_parse(inp.begin(), inp.end(), base);
-    }
-
     // setters
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    bool href(Args&&... args);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool href(StrT&& str);
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    bool protocol(Args&&... args);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool protocol(StrT&& str);
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    bool username(Args&&... args);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool username(StrT&& str);
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    bool password(Args&&... args);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool password(StrT&& str);
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    bool host(Args&&... args);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool host(StrT&& str);
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    bool hostname(Args&&... args);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool hostname(StrT&& str);
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    bool port(Args&&... args);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool port(StrT&& str);
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    bool pathname(Args&&... args);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool pathname(StrT&& str);
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    bool search(Args&&... args);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool search(StrT&& str);
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    bool hash(Args&&... args);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool hash(StrT&& str);
 
     // getters
 
@@ -984,11 +978,11 @@ inline url_result url::do_parse(const CharT* first, const CharT* last, const url
     return res;
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline bool url::href(Args&&... args) {
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline bool url::href(StrT&& str) {
     url u; // parsedURL
 
-    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    const auto inp = make_str_arg(std::forward<StrT>(str));
     if (u.do_parse(inp.begin(), inp.end(), nullptr) == url_result::Ok) {
         *this = std::move(u);
         return true;
@@ -996,20 +990,20 @@ inline bool url::href(Args&&... args) {
     return false;
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline bool url::protocol(Args&&... args) {
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline bool url::protocol(StrT&& str) {
     url_setter urls(*this);
 
-    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    const auto inp = make_str_arg(std::forward<StrT>(str));
     return url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::scheme_start_state) == url_result::Ok;
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline bool url::username(Args&&... args) {
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline bool url::username(StrT&& str) {
     if (canHaveUsernamePasswordPort()) {
         url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<Args>(args)...);
+        const auto inp = make_str_arg(std::forward<StrT>(str));
 
         std::string& str_username = urls.start_part(url::USERNAME);
         // UTF-8 percent encode it using the userinfo encode set
@@ -1020,12 +1014,12 @@ inline bool url::username(Args&&... args) {
     return false;
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline bool url::password(Args&&... args) {
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline bool url::password(StrT&& str) {
     if (canHaveUsernamePasswordPort()) {
         url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<Args>(args)...);
+        const auto inp = make_str_arg(std::forward<StrT>(str));
 
         std::string& str_password = urls.start_part(url::PASSWORD);
         // UTF-8 percent encode it using the userinfo encode set
@@ -1036,34 +1030,34 @@ inline bool url::password(Args&&... args) {
     return false;
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline bool url::host(Args&&... args) {
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline bool url::host(StrT&& str) {
     if (!cannot_be_base()) {
         url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<Args>(args)...);
+        const auto inp = make_str_arg(std::forward<StrT>(str));
         return url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::host_state) == url_result::Ok;
     }
     return false;
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline bool url::hostname(Args&&... args) {
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline bool url::hostname(StrT&& str) {
     if (!cannot_be_base()) {
         url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<Args>(args)...);
+        const auto inp = make_str_arg(std::forward<StrT>(str));
         return url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::hostname_state) == url_result::Ok;
     }
     return false;
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline bool url::port(Args&&... args) {
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline bool url::port(StrT&& str) {
     if (canHaveUsernamePasswordPort()) {
         url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<Args>(args)...);
+        const auto inp = make_str_arg(std::forward<StrT>(str));
         const auto* first = inp.begin();
         const auto* last = inp.end();
 
@@ -1077,24 +1071,24 @@ inline bool url::port(Args&&... args) {
     return false;
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline bool url::pathname(Args&&... args) {
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline bool url::pathname(StrT&& str) {
     if (!cannot_be_base()) {
         url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<Args>(args)...);
+        const auto inp = make_str_arg(std::forward<StrT>(str));
         return url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::path_start_state) == url_result::Ok;
     }
     return false;
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline bool url::search(Args&&... args) {
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline bool url::search(StrT&& str) {
     bool res;
     {
         url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<Args>(args)...);
+        const auto inp = make_str_arg(std::forward<StrT>(str));
         const auto* first = inp.begin();
         const auto* last = inp.end();
 
@@ -1112,11 +1106,11 @@ inline bool url::search(Args&&... args) {
     return res;
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline bool url::hash(Args&&... args) {
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline bool url::hash(StrT&& str) {
     url_setter urls(*this);
 
-    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    const auto inp = make_str_arg(std::forward<StrT>(str));
     const auto* first = inp.begin();
     const auto* last = inp.end();
 
@@ -2513,11 +2507,11 @@ inline void url_setter::insert_part(url::PartType new_pt, const char* str, std::
 
 /// Make URL from OS file path
 ///
-/// @param[in] args file path string
+/// @param[in] str file path string
 /// @returns file URL
-template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-inline url url_from_file_path(Args&&... args) {
-    const auto inp = make_str_arg(std::forward<Args>(args)...);
+template <class StrT, enable_if_str_arg_t<StrT> = 0>
+inline url url_from_file_path(StrT&& str) {
+    const auto inp = make_str_arg(std::forward<StrT>(str));
     const auto* first = inp.begin();
     const auto* last = inp.end();
 

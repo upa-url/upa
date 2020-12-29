@@ -69,8 +69,8 @@ public:
     url_search_params(const url_search_params& other);
     url_search_params(url_search_params&&) noexcept = default;
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    url_search_params(Args&&... query);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    url_search_params(StrT&& query);
 
     template<class ConT, typename std::enable_if<is_iterable_pairs<ConT>::value, int>::type = 0>
     url_search_params(ConT&& cont);
@@ -80,8 +80,8 @@ public:
     /// Clears parameters
     void clear();
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    void parse(Args&&... query);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    void parse(StrT&& query);
 
     template <class TN, class TV>
     void append(TN&& name, TV&& value);
@@ -125,11 +125,11 @@ public:
 
     // utils
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    static name_value_list do_parse(bool rem_qmark, Args&&... query);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    static name_value_list do_parse(bool rem_qmark, StrT&& query);
 
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    static void urlencode(std::string& encoded, Args&&... value);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    static void urlencode(std::string& encoded, StrT&& value);
 
 private:
     explicit url_search_params(url* url_ptr);
@@ -207,9 +207,9 @@ inline url_search_params::url_search_params(const url_search_params& other)
 {}
 
 // https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline url_search_params::url_search_params(Args&&... query)
-    : params_(do_parse(true, std::forward<Args>(query)...))
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline url_search_params::url_search_params(StrT&& query)
+    : params_(do_parse(true, std::forward<StrT>(query)))
 {}
 
 template<class ConT, typename std::enable_if<is_iterable_pairs<ConT>::value, int>::type>
@@ -237,9 +237,9 @@ inline void url_search_params::parse_params(url_str_view_t query) {
     is_sorted_ = false;
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline void url_search_params::parse(Args&&... query) {
-    params_ = do_parse(true, std::forward<Args>(query)...);
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline void url_search_params::parse(StrT&& query) {
+    params_ = do_parse(true, std::forward<StrT>(query));
     is_sorted_ = false;
     update();
 }
@@ -338,11 +338,11 @@ inline void url_search_params::sort() {
     update();
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline url_search_params::name_value_list url_search_params::do_parse(bool rem_qmark, Args&&... query) {
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline url_search_params::name_value_list url_search_params::do_parse(bool rem_qmark, StrT&& query) {
     name_value_list lst;
 
-    auto str_query = make_string(std::forward<Args>(query)...);
+    auto str_query = make_string(std::forward<StrT>(query));
     auto b = str_query.begin();
     auto e = str_query.end();
 
@@ -402,9 +402,9 @@ inline url_search_params::name_value_list url_search_params::do_parse(bool rem_q
     return lst;
 }
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-inline void url_search_params::urlencode(std::string& encoded, Args&&... value) {
-    auto str_value = make_string(std::forward<Args>(value)...);
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline void url_search_params::urlencode(std::string& encoded, StrT&& value) {
+    auto str_value = make_string(std::forward<StrT>(value));
     auto b = str_value.begin();
     auto e = str_value.end();
 
