@@ -66,8 +66,8 @@ public:
     /// Throws @a url_error exception on parse error.
     ///
     /// @param[in] args Host string to parse
-    template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-    url_host(Args&&... args);
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    url_host(StrT&& str);
 
     /// Host type getter
     ///
@@ -104,11 +104,11 @@ private:
     whatwg::HostType type_ = whatwg::HostType::Empty;
 };
 
-template <class ...Args, enable_if_str_arg_t<Args...>>
-url_host::url_host(Args&&... args) {
+template <class StrT, enable_if_str_arg_t<StrT>>
+url_host::url_host(StrT&& str) {
     host_out out(*this);
 
-    const auto inp = make_str_arg(std::forward<Args>(args)...);
+    const auto inp = make_str_arg(std::forward<StrT>(str));
     const auto res = host_parser::parse_host(inp.begin(), inp.end(), false, out);
     if (res != url_result::Ok)
         throw url_error(res, "Host parse error");

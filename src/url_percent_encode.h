@@ -347,9 +347,9 @@ void AppendStringOfType(const CharT* first, const CharT* last, const code_point_
 ///
 /// @param args[in] string input
 /// @return percent decoded string
-template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-inline std::string percent_decode(Args&&... args) {
-    const auto inp = make_str_arg(std::forward<Args>(args)...);
+template <class StrT, enable_if_str_arg_t<StrT> = 0>
+inline std::string percent_decode(StrT&& str) {
+    const auto inp = make_str_arg(std::forward<StrT>(str));
     const auto* first = inp.begin();
     const auto* last = inp.end();
 
@@ -405,9 +405,9 @@ inline std::string percent_decode(Args&&... args) {
 /// @param[in] no_encode_set percent no encode set
 /// @param[in] args string input
 /// @returns percent encoded string
-template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-inline std::string percent_encode(const code_point_set& no_encode_set, Args&&... args) {
-    const auto inp = make_str_arg(std::forward<Args>(args)...);
+template <class StrT, enable_if_str_arg_t<StrT> = 0>
+inline std::string percent_encode(const code_point_set& no_encode_set, StrT&& str) {
+    const auto inp = make_str_arg(std::forward<StrT>(str));
 
     std::string out;
     detail::AppendStringOfType(inp.begin(), inp.end(), no_encode_set, out);
@@ -424,9 +424,9 @@ inline std::string percent_encode(const code_point_set& no_encode_set, Args&&...
 ///
 /// @param[in] args string input
 /// @returns percent encoded string
-template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-inline std::string encode_url_component(Args&&... args) {
-    return percent_encode(component_no_encode_set, std::forward<Args>(args)...);
+template <class StrT, enable_if_str_arg_t<StrT> = 0>
+inline std::string encode_url_component(StrT&& str) {
+    return percent_encode(component_no_encode_set, std::forward<StrT>(str));
 }
 
 
