@@ -403,7 +403,7 @@ void test_percent_encoding(DataDrivenTest& ddt, EncodingObj& obj)
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         // test percent_encode function
-        tc.assert_equal(output, whatwg::percent_encode(whatwg::special_query_no_encode_set, input), "percent_encode function");
+        tc.assert_equal(output, whatwg::percent_encode(input, whatwg::special_query_no_encode_set), "percent_encode function");
 
         // test URL parser
         std::string str_url("https://example.org/?");
