@@ -71,14 +71,14 @@ public:
 
     /// Host type getter
     ///
-    /// @returns host type, the one of: Domain, IPv4, IPv6
+    /// @return host type, the one of: Domain, IPv4, IPv6
     HostType type() const {
         return type_;
     }
 
     /// Hostname stringifier
     ///
-    /// @returns host serialized to string
+    /// @return host serialized to string
     std::string to_string() const {
         return host_str_;
     }

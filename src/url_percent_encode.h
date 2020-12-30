@@ -404,7 +404,7 @@ inline std::string percent_decode(StrT&& str) {
 ///
 /// @param[in] no_encode_set percent no encode set
 /// @param[in] str string input
-/// @returns percent encoded string
+/// @return percent encoded string
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
 inline std::string percent_encode(const code_point_set& no_encode_set, StrT&& str) {
     const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -423,7 +423,7 @@ inline std::string percent_encode(const code_point_set& no_encode_set, StrT&& st
 /// https://url.spec.whatwg.org/#component-percent-encode-set
 ///
 /// @param[in] str string input
-/// @returns percent encoded string
+/// @return percent encoded string
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
 inline std::string encode_url_component(StrT&& str) {
     return percent_encode(component_no_encode_set, std::forward<StrT>(str));

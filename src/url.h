@@ -131,7 +131,7 @@ public:
     ///
     /// @param[in] str_url URL string to parse
     /// @param[in] base    pointer to base URL, may be nullptr
-    /// @returns error code (@a url_result::Ok on success)
+    /// @return error code (@a url_result::Ok on success)
     template <class T, enable_if_str_arg_t<T> = 0>
     url_result parse(T&& str_url, const url* base) {
         const auto inp = make_str_arg(std::forward<T>(str_url));
@@ -211,7 +211,7 @@ public:
     /// https://url.spec.whatwg.org/#concept-url-serializer
     ///
     /// @param[in] exclude_fragment exclude fragment when serializing
-    /// @returns serialized URL as string_view
+    /// @return serialized URL as string_view
     str_view_type serialize(bool exclude_fragment = false) const;
 
     // Get url info
@@ -2508,7 +2508,7 @@ inline void url_setter::insert_part(url::PartType new_pt, const char* str, std::
 /// Make URL from OS file path
 ///
 /// @param[in] str file path string
-/// @returns file URL
+/// @return file URL
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
 inline url url_from_file_path(StrT&& str) {
     const auto inp = make_str_arg(std::forward<StrT>(str));
