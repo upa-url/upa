@@ -345,7 +345,7 @@ void AppendStringOfType(const CharT* first, const CharT* last, const code_point_
 /// More info:
 /// https://url.spec.whatwg.org/#string-percent-decode
 ///
-/// @param args[in] string input
+/// @param[in] str string input
 /// @return percent decoded string
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
 inline std::string percent_decode(StrT&& str) {
@@ -403,7 +403,7 @@ inline std::string percent_decode(StrT&& str) {
 /// https://url.spec.whatwg.org/#string-utf-8-percent-encode
 ///
 /// @param[in] no_encode_set percent no encode set
-/// @param[in] args string input
+/// @param[in] str string input
 /// @returns percent encoded string
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
 inline std::string percent_encode(const code_point_set& no_encode_set, StrT&& str) {
@@ -422,7 +422,7 @@ inline std::string percent_encode(const code_point_set& no_encode_set, StrT&& st
 /// https://url.spec.whatwg.org/#string-utf-8-percent-encode
 /// https://url.spec.whatwg.org/#component-percent-encode-set
 ///
-/// @param[in] args string input
+/// @param[in] str string input
 /// @returns percent encoded string
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
 inline std::string encode_url_component(StrT&& str) {
