@@ -39,13 +39,18 @@
 
 namespace whatwg {
 
-// URL class
-
+/// URL class
+///
+/// Follows specification in
+/// https://url.spec.whatwg.org/#url-class
+///
 class url {
 public:
     // types
     using str_view_type = url_str_view_t;
 
+    /// Enumeration to identify URL's parts (URL record members) defined here:
+    /// https://url.spec.whatwg.org/#url-representation
     enum PartType {
         SCHEME = 0,
         SCHEME_SEP,
@@ -356,18 +361,32 @@ public:
 
     // Get url info
 
+    /// Function to get ASCII string of any URL's part (URL record member) defined here:
+    /// https://url.spec.whatwg.org/#url-representation
+    /// 
+    /// @param[in] t URL's part
+    /// @return URL's part string; it is empty if part is null or empty
     str_view_type get_part_view(PartType t) const;
 
+    /// @param[in] t URL's part
+    /// @return URL's part is empty
     bool is_empty(const PartType t) const;
+
+    /// @param[in] t URL's part
+    /// @return URL's part is null
     bool is_null(const PartType t) const;
 
+    /// @return URL's scheme is special ("ftp", "file", "http", "https", "ws", or "wss");
+    ///   see: https://url.spec.whatwg.org/#special-scheme
     bool is_special_scheme() const;
+
+    /// @return URL's scheme is "file"
     bool is_file_scheme() const;
 
-    // URL includes credentials?
+    /// @return URL includes credentials (username, password)?
     bool has_credentials() const;
 
-    // stringify
+    /// @return serialized URL as @c std::string
     std::string to_string() const;
 
 protected:
