@@ -138,71 +138,211 @@ public:
         return do_parse(inp.begin(), inp.end(), base);
     }
 
-    // setters
+    // Setters
 
+    /// The href setter
+    ///
+    /// Parses given URL string, and in the case of success assigns parsed URL value.
+    /// On parse failure leaves URL value unchanged.
+    ///
+    /// @param[in] str URL string to parse
+    /// @return true - on success; false - on failure
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool href(StrT&& str);
 
+    /// The protocol setter
+    ///
+    /// Parses given string and on succes sets the URL's protocol.
+    /// More info: https://url.spec.whatwg.org/#dom-url-protocol
+    ///
+    /// @param[in] str string to parse
+    /// @return true - on success; false - on failure (URL protocol unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool protocol(StrT&& str);
 
+    /// The username setter
+    ///
+    /// Parses given string and on succes sets the URL's username.
+    /// More info: https://url.spec.whatwg.org/#dom-url-username
+    ///
+    /// @param[in] str string to parse
+    /// @return true - on success; false - if username can not be set
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool username(StrT&& str);
 
+    /// The password setter
+    ///
+    /// Parses given string and on succes sets the URL's password.
+    /// More info: https://url.spec.whatwg.org/#dom-url-password
+    ///
+    /// @param[in] str string to parse
+    /// @return true - on success; false - if password can not be set
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool password(StrT&& str);
 
+    /// The host setter
+    ///
+    /// Parses given string and on succes sets the URL's host and port.
+    /// More info: https://url.spec.whatwg.org/#dom-url-host
+    ///
+    /// @param[in] str string to parse
+    /// @return true - on success; false - on failure (URL's host and port unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool host(StrT&& str);
 
+    /// The hostname setter
+    ///
+    /// Parses given string and on succes sets the URL's host.
+    /// More info: https://url.spec.whatwg.org/#dom-url-hostname
+    ///
+    /// @param[in] str string to parse
+    /// @return true - on success; false - on failure (URL's host unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool hostname(StrT&& str);
 
+    /// The port setter
+    ///
+    /// Parses given string and on succes sets the URL's port.
+    /// More info: https://url.spec.whatwg.org/#dom-url-port
+    ///
+    /// @param[in] str string to parse
+    /// @return true - on success; false - on failure (URL's port unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool port(StrT&& str);
 
+    /// The pathname setter
+    ///
+    /// Parses given string and on succes sets the URL's path.
+    /// More info: https://url.spec.whatwg.org/#dom-url-pathname
+    ///
+    /// @param[in] str string to parse
+    /// @return true - on success; false - on failure (URL's path unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool pathname(StrT&& str);
 
+    /// The search setter
+    ///
+    /// Parses given string and on succes sets the URL's query.
+    /// More info: https://url.spec.whatwg.org/#dom-url-search
+    ///
+    /// @param[in] str string to parse
+    /// @return true - on success; false - on failure (URL's query unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool search(StrT&& str);
 
+    /// The hash setter
+    ///
+    /// Parses given string and on succes sets the URL's fragment.
+    /// More info: https://url.spec.whatwg.org/#dom-url-hash
+    ///
+    /// @param[in] str string to parse
+    /// @return true - on success; false - on failure (URL's fragment unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool hash(StrT&& str);
 
-    // getters
+    // Getters
 
-    // get serialized URL
+    /// The href getter
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-url-href
+    ///
+    /// @return serialized URL
     str_view_type href() const;
 
-    // ASCII serialized origin
+    /// The origin getter
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-url-origin
+    ///
+    /// @return ASCII serialized URL's origin
     std::string origin() const;
 
+    /// The protocol getter
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-url-protocol
+    ///
+    /// @return URL's scheme, followed by U+003A (:)
     str_view_type protocol() const;
 
+    /// The username getter
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-url-username
+    ///
+    /// @return URL’s username
     str_view_type username() const;
+
+    /// The password getter
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-url-password
+    ///
+    /// @return URL’s password
     str_view_type password() const;
 
+    /// The host getter
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-url-host
+    ///
+    /// @return URL’s host, serialized, followed by U+003A (:) and URL’s port, serialized
     str_view_type host() const;
+
+    /// The hostname getter
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-url-hostname
+    ///
+    /// @return URL’s host, serialized
     str_view_type hostname() const;
+
+    /// The host_type getter
+    ///
+    /// @return URL’s host type as HostType enumeration value
     HostType host_type() const;
 
+    /// The port getter
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-url-port
+    ///
+    /// @return empty string if URL’s port is null, otherwise URL’s port, serialized
     str_view_type port() const;
 
-    // port to int
+    /// @return -1 if URL’s port is null, otherwise URL’s port, converted to @c int value
     int port_int() const;
+
+    /// @return if URL’s port is not null, then URL’s port, converted to @c int value,
+    ///   otherwise if URL's scheme has default port, then default port as @c int value,
+    ///   otherwise -1
     int real_port_int() const;
 
+    /// The path getter
+    ///
+    /// @return URL's path, serialized, followed by U+003F (?) and URL’s query
     // pathname + search
     str_view_type path() const;
 
+    /// The pathname getter
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-url-pathname
+    ///
+    /// @return URL’s path, serialized
     str_view_type pathname() const;
 
+    /// The search getter
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-url-search
+    ///
+    /// @return empty string or U+003F (?), followed by URL’s query
     str_view_type search() const;
 
+    /// The hash getter
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-url-hash
+    ///
+    /// @return empty string or U+0023 (#), followed by URL’s fragment
     str_view_type hash() const;
 
-    // https://url.spec.whatwg.org/#dom-url-searchparams
+    /// The searchParams getter
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-url-searchparams
+    ///
+    /// @return reference to this’s query object (url_search_params class)
     url_search_params& searchParams();
 
     /// URL serializing
