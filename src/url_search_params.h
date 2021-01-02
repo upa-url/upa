@@ -51,6 +51,11 @@ struct is_iterable_pairs : is_pair<iterable_value_t<T>> {};
 
 class url;
 
+/// URLSearchParams class
+///
+/// Follows specification in
+/// https://url.spec.whatwg.org/#interface-urlsearchparams
+///
 class url_search_params
 {
 public:
@@ -64,14 +69,37 @@ public:
     using size_type = name_value_list::size_type;
     using value_type = name_value_pair;
 
-    // constructors
+    // Constructors
+
+    /// Default constructor.
+    ///
+    /// Constructs empty @c url_search_params object.
     url_search_params();
+
+    /// Copy constructor.
+    ///
+    /// @param[in] other @c url_search_params object to copy from
     url_search_params(const url_search_params& other);
+
+    /// Move constructor.
+    ///
+    /// Constructs the @c url_search_params object with the contents of @a other
+    /// using move semantics.
+    ///
+    /// @param[in,out] other @c url_search_params object to move to this object
     url_search_params(url_search_params&&) noexcept = default;
 
+    /// Parsing constructor.
+    ///
+    /// Initializes name-value pairs list by parsing query string.
+    ///
+    /// @param[in] query string to parse
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     url_search_params(StrT&& query);
 
+    /// Initializes name-value pairs list by copying pairs fron container.
+    ///
+    /// @param[in] cont name-value pairs container
     template<class ConT, typename std::enable_if<is_iterable_pairs<ConT>::value, int>::type = 0>
     url_search_params(ConT&& cont);
 
@@ -80,54 +108,137 @@ public:
     /// Clears parameters
     void clear();
 
+    /// Initializes name-value pairs list by parsing query string.
+    ///
+    /// @param[in] query string to parse
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     void parse(StrT&& query);
 
+    /// Appends given name-value pair to list
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-urlsearchparams-append
+    ///
+    /// @param[in] name
+    /// @param[in] value
     template <class TN, class TV>
     void append(TN&& name, TV&& value);
 
+    /// Remove all name-value pairs whose name is @a name from list.
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-urlsearchparams-delete
+    ///
+    /// @param[in] name
     template <class TN>
     void del(const TN& name);
 
+    /// Returns value of the first name-value pair whose name is @a name, or `nullptr`,
+    /// if there isn't such pair.
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-urlsearchparams-get
+    ///
+    /// @param[in] name
+    /// @return pair value, or `nullptr`
     template <class TN>
     const std::string* get(const TN& name) const;
 
+    /// Return the values of all name-value pairs whose name is @a name.
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-urlsearchparams-getall
+    ///
+    /// @param[in] name
+    /// @return list of values as `std::string`
     template <class TN>
     std::list<std::string> getAll(const TN& name) const;
 
+    /// Tests if list contains a name-value pair whose name is @a name.
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-urlsearchparams-has
+    ///
+    /// @param[in] name
+    /// @return `true`, if list contains such pair, `false` otherwise
     template <class TN>
     bool has(const TN& name) const;
 
+    /// Sets search parameter value
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-urlsearchparams-set
+    ///
+    /// @param[in] name
+    /// @param[in] value
     template <class TN, class TV>
     void set(TN&& name, TV&& value);
 
+    /// Sort all name-value pairs, by their names.
+    ///
+    /// Sorting is done by comparison of code units. The relative order between
+    /// name-value pairs with equal names is preserved.
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-urlsearchparams-sort
     void sort();
 
+    /// Serializes name-value pairs to string and appends it to @a query.
+    ///
+    /// @param[in,out] query
     void serialize(std::string& query) const;
 
+    /// Serializes name-value pairs to string.
+    ///
+    /// More info: https://url.spec.whatwg.org/#urlsearchparams-stringification-behavior
+    ///
+    /// @return serialized name-value pairs
     std::string to_string() const;
 
-    // iterable
+    // Iterable
 
+    /// @return an iterator to the beginning of name-value list
     const_iterator begin() const { return params_.begin(); }
+
+    /// @return an iterator to the beginning of name-value list
     const_iterator cbegin() const { return params_.cbegin(); }
+
+    /// @return an iterator to the end of name-value list
     const_iterator end() const { return params_.end(); }
+
+    /// @return an iterator to the end of name-value list
     const_iterator cend() const { return params_.cend(); }
+
+    /// @return a reverse iterator to the beginning of name-value list
     const_reverse_iterator rbegin() const { return params_.rbegin(); }
+
+    /// @return a reverse iterator to the beginning of name-value list
     const_reverse_iterator crbegin() const { return params_.crbegin(); }
+
+    /// @return a reverse iterator to the end of name-value list
     const_reverse_iterator rend() const { return params_.rend(); }
+
+    /// @return a reverse iterator to the end of name-value list
     const_reverse_iterator crend() const { return params_.crend(); }
 
-    // capacity
+    // Capacity
 
+    /// Checks whether the name-value list is empty
+    ///
+    /// @return `true` if the container is empty, `false` otherwise
     bool empty() const noexcept { return params_.empty(); }
+
+    /// @return the number of elements in the name-value list
     size_type size() const noexcept { return params_.size(); }
 
-    // utils
+    // Utils
 
+    /// Initializes and returns name-value pairs list by parsing query string.
+    ///
+    /// @param[in] rem_qmark if it is `true` and the @a query starts with U+003F (?),
+    ///   then skips first code point in @a query
+    /// @param[in] query string to parse
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     static name_value_list do_parse(bool rem_qmark, StrT&& query);
 
+    /// Percent encodes the @a value using application/x-www-form-urlencoded percent-encode set,
+    /// and replacing 0x20 (SP) with U+002B (+). Appends result to the @a encoded string.
+    ///
+    /// @param[in,out] encoded string to append percent encoded value
+    /// @param[in] value string value to percent encode
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     static void urlencode(std::string& encoded, StrT&& value);
 
