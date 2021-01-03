@@ -39,6 +39,14 @@
 
 namespace whatwg {
 
+// forward declarations
+
+namespace detail {
+    class url_serializer;
+    class url_setter;
+    class url_parser;
+}
+
 /// URL class
 ///
 /// Follows specification in
@@ -471,9 +479,9 @@ private:
     std::size_t path_segment_count_;
     detail::url_search_params_ptr search_params_ptr_;
 
-    friend class url_serializer;
-    friend class url_setter;
-    friend class url_parser;
+    friend detail::url_serializer;
+    friend detail::url_setter;
+    friend detail::url_parser;
     friend class url_search_params;
 };
 
@@ -488,6 +496,8 @@ inline bool equals(const url& lhs, const url& rhs, bool exclude_fragments = fals
     return lhs.serialize(exclude_fragments) == rhs.serialize(exclude_fragments);
 }
 
+
+namespace detail {
 
 class url_serializer : public host_output {
 public:
@@ -601,7 +611,7 @@ protected:
     url::PartType last_pt_;
 };
 
-// TODO
+
 class url_setter : public url_serializer {
 public:
     url_setter(url& dest_url)
@@ -698,8 +708,6 @@ private:
     static bool do_simple_path(const CharT* pointer, const CharT* last, std::string& output);
 };
 
-
-namespace detail {
 
 // url_error what() values
 extern const char kURLParseError[];
@@ -1122,7 +1130,7 @@ template <typename CharT>
 inline url_result url::do_parse(const CharT* first, const CharT* last, const url* base) {
     url_result res;
     {
-        url_serializer urls(*this); // new URL
+        detail::url_serializer urls(*this); // new URL
 
         // reset URL
         urls.new_url();
@@ -1131,7 +1139,7 @@ inline url_result url::do_parse(const CharT* first, const CharT* last, const url
         detail::do_trim(first, last);
         //TODO-WARN: validation error if trimmed
 
-        res = url_parser::url_parse(urls, first, last, base);
+        res = detail::url_parser::url_parse(urls, first, last, base);
     }
     parse_search_params();
     return res;
@@ -1151,16 +1159,16 @@ inline bool url::href(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::protocol(StrT&& str) {
-    url_setter urls(*this);
+    detail::url_setter urls(*this);
 
     const auto inp = make_str_arg(std::forward<StrT>(str));
-    return url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::scheme_start_state) == url_result::Ok;
+    return detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, detail::url_parser::scheme_start_state) == url_result::Ok;
 }
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::username(StrT&& str) {
     if (canHaveUsernamePasswordPort()) {
-        url_setter urls(*this);
+        detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
 
@@ -1176,7 +1184,7 @@ inline bool url::username(StrT&& str) {
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::password(StrT&& str) {
     if (canHaveUsernamePasswordPort()) {
-        url_setter urls(*this);
+        detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
 
@@ -1192,10 +1200,10 @@ inline bool url::password(StrT&& str) {
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::host(StrT&& str) {
     if (!cannot_be_base()) {
-        url_setter urls(*this);
+        detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
-        return url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::host_state) == url_result::Ok;
+        return detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, detail::url_parser::host_state) == url_result::Ok;
     }
     return false;
 }
@@ -1203,10 +1211,10 @@ inline bool url::host(StrT&& str) {
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::hostname(StrT&& str) {
     if (!cannot_be_base()) {
-        url_setter urls(*this);
+        detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
-        return url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::hostname_state) == url_result::Ok;
+        return detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, detail::url_parser::hostname_state) == url_result::Ok;
     }
     return false;
 }
@@ -1214,7 +1222,7 @@ inline bool url::hostname(StrT&& str) {
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::port(StrT&& str) {
     if (canHaveUsernamePasswordPort()) {
-        url_setter urls(*this);
+        detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
         const auto* first = inp.begin();
@@ -1224,7 +1232,7 @@ inline bool url::port(StrT&& str) {
             urls.clear_part(url::PORT);
             return true;
         } else {
-            return url_parser::url_parse(urls, first, last, nullptr, url_parser::port_state) == url_result::Ok;
+            return detail::url_parser::url_parse(urls, first, last, nullptr, detail::url_parser::port_state) == url_result::Ok;
         }
     }
     return false;
@@ -1233,10 +1241,10 @@ inline bool url::port(StrT&& str) {
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::pathname(StrT&& str) {
     if (!cannot_be_base()) {
-        url_setter urls(*this);
+        detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
-        return url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, url_parser::path_start_state) == url_result::Ok;
+        return detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, detail::url_parser::path_start_state) == url_result::Ok;
     }
     return false;
 }
@@ -1245,7 +1253,7 @@ template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::search(StrT&& str) {
     bool res;
     {
-        url_setter urls(*this);
+        detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
         const auto* first = inp.begin();
@@ -1258,7 +1266,7 @@ inline bool url::search(StrT&& str) {
             return true;
         }
         if (*first == '?') ++first;
-        res = url_parser::url_parse(urls, first, last, nullptr, url_parser::query_state) == url_result::Ok;
+        res = detail::url_parser::url_parse(urls, first, last, nullptr, detail::url_parser::query_state) == url_result::Ok;
     }
     // set context object's query object's list to the result of parsing input
     parse_search_params();
@@ -1267,7 +1275,7 @@ inline bool url::search(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::hash(StrT&& str) {
-    url_setter urls(*this);
+    detail::url_setter urls(*this);
 
     const auto inp = make_str_arg(std::forward<StrT>(str));
     const auto* first = inp.begin();
@@ -1278,9 +1286,11 @@ inline bool url::hash(StrT&& str) {
         return true;
     }
     if (*first == '#') ++first;
-    return url_parser::url_parse(urls, first, last, nullptr, url_parser::fragment_state) == url_result::Ok;
+    return detail::url_parser::url_parse(urls, first, last, nullptr, detail::url_parser::fragment_state) == url_result::Ok;
 }
 
+
+namespace detail {
 
 // https://url.spec.whatwg.org/#concept-basic-url-parser
 template <typename CharT>
@@ -2109,6 +2119,9 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
     return success;
 }
 
+} // namespace detail
+
+
 // path util
 
 inline url::str_view_type url::get_path_first_string(std::size_t len) const {
@@ -2154,6 +2167,9 @@ inline bool url::get_shorten_path(std::size_t& path_end, std::size_t& path_segme
     // Remove path's last item
     return get_path_rem_last(path_end, path_segment_count);
 }
+
+
+namespace detail {
 
 // url_serializer class
 
@@ -2661,6 +2677,9 @@ inline void url_setter::insert_part(url::PartType new_pt, const char* str, std::
     }
 }
 #endif
+
+} // namespace detail
+
 
 // URL utilities
 

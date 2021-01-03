@@ -17,7 +17,7 @@ url_search_params::url_search_params(url* url_ptr)
 
 void url_search_params::update() {
     if (url_ptr_) {
-        url_setter urls(*url_ptr_);
+        detail::url_setter urls(*url_ptr_);
 
         if (empty()) {
             // set query to null
