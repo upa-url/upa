@@ -56,7 +56,7 @@ namespace detail {
     class url_search_params_ptr;
 }
 
-/// URLSearchParams class
+/// @brief URLSearchParams class
 ///
 /// Follows specification in
 /// https://url.spec.whatwg.org/#interface-urlsearchparams
@@ -76,17 +76,17 @@ public:
 
     // Constructors
 
-    /// Default constructor.
+    /// @brief Default constructor.
     ///
     /// Constructs empty @c url_search_params object.
     url_search_params();
 
-    /// Copy constructor.
+    /// @brief Copy constructor.
     ///
     /// @param[in] other @c url_search_params object to copy from
     url_search_params(const url_search_params& other);
 
-    /// Move constructor.
+    /// @brief Move constructor.
     ///
     /// Constructs the @c url_search_params object with the contents of @a other
     /// using move semantics.
@@ -94,7 +94,7 @@ public:
     /// @param[in,out] other @c url_search_params object to move to this object
     url_search_params(url_search_params&&) noexcept = default;
 
-    /// Parsing constructor.
+    /// @brief Parsing constructor.
     ///
     /// Initializes name-value pairs list by parsing query string.
     ///
@@ -110,7 +110,7 @@ public:
 
     // Operations
 
-    /// Clears parameters
+    /// @brief Clears parameters
     void clear();
 
     /// Initializes name-value pairs list by parsing query string.

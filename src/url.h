@@ -47,7 +47,7 @@ namespace detail {
     class url_parser;
 }
 
-/// URL class
+/// @brief URL class
 ///
 /// Follows specification in
 /// https://url.spec.whatwg.org/#url-class
@@ -74,7 +74,7 @@ public:
         PART_COUNT
     };
 
-    /// Default constructor.
+    /// @brief Default constructor.
     ///
     /// Constructs empty URL.
     url()
@@ -84,31 +84,31 @@ public:
         , part_end_({})
     {}
 
-    /// Copy constructor.
+    /// @brief Copy constructor.
     ///
     /// @param[in] other  URL to copy from
     url(const url& other) = default;
 
-    /// Move constructor.
+    /// @brief Move constructor.
     ///
     /// Constructs the URL with the contents of @a other using move semantics.
     ///
     /// @param[in,out] other  URL to move to this object
     url(url&& other) noexcept = default;
 
-    /// Copy assignment.
+    /// @brief Copy assignment.
     ///
     /// @param[in] other  URL to copy from
     url& operator=(const url& other) = default;
 
-    /// Move assignment.
+    /// @brief Move assignment.
     ///
     /// Replaces the contents with those of @a other using move semantics.
     ///
     /// @param[in,out] other  URL to move to this object
     url& operator=(url&& other) = default;
 
-    /// Parsing constructor.
+    /// @brief Parsing constructor.
     ///
     /// Throws url_error exception on parse error.
     ///
@@ -117,7 +117,7 @@ public:
     template <class T, enable_if_str_arg_t<T> = 0>
     explicit url(T&& str_url, const url* pbase = nullptr);
 
-    /// Parsing constructor.
+    /// @brief Parsing constructor.
     ///
     /// Throws url_error exception on parse error.
     ///
@@ -126,7 +126,7 @@ public:
     template <class T, enable_if_str_arg_t<T> = 0>
     explicit url(T&& str_url, const url& base);
 
-    /// Parsing constructor.
+    /// @brief Parsing constructor.
     ///
     /// Throws url_error exception on parse error.
     ///
@@ -135,12 +135,13 @@ public:
     template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
     explicit url(T&& str_url, TB&& str_base);
 
-    /// Clear URL - make it empty.
+    /// @brief clear URL
+    /// Make URL empty.
     void clear();
 
     // Parser
 
-    /// Parses given URL string against base URL.
+    /// @brief Parses given URL string against base URL.
     ///
     /// @param[in] str_url URL string to parse
     /// @param[in] base    pointer to base URL, may be nullptr
@@ -153,7 +154,7 @@ public:
 
     // Setters
 
-    /// The href setter
+    /// @brief The href setter
     ///
     /// Parses given URL string, and in the case of success assigns parsed URL value.
     /// On parse failure leaves URL value unchanged.
@@ -163,7 +164,7 @@ public:
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool href(StrT&& str);
 
-    /// The protocol setter
+    /// @brief The protocol setter
     ///
     /// Parses given string and on succes sets the URL's protocol.
     /// More info: https://url.spec.whatwg.org/#dom-url-protocol
@@ -173,7 +174,7 @@ public:
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool protocol(StrT&& str);
 
-    /// The username setter
+    /// @brief The username setter
     ///
     /// Parses given string and on succes sets the URL's username.
     /// More info: https://url.spec.whatwg.org/#dom-url-username
@@ -183,7 +184,7 @@ public:
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool username(StrT&& str);
 
-    /// The password setter
+    /// @brief The password setter
     ///
     /// Parses given string and on succes sets the URL's password.
     /// More info: https://url.spec.whatwg.org/#dom-url-password
@@ -193,7 +194,7 @@ public:
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool password(StrT&& str);
 
-    /// The host setter
+    /// @brief The host setter
     ///
     /// Parses given string and on succes sets the URL's host and port.
     /// More info: https://url.spec.whatwg.org/#dom-url-host
@@ -203,7 +204,7 @@ public:
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool host(StrT&& str);
 
-    /// The hostname setter
+    /// @brief The hostname setter
     ///
     /// Parses given string and on succes sets the URL's host.
     /// More info: https://url.spec.whatwg.org/#dom-url-hostname
@@ -213,7 +214,7 @@ public:
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool hostname(StrT&& str);
 
-    /// The port setter
+    /// @brief The port setter
     ///
     /// Parses given string and on succes sets the URL's port.
     /// More info: https://url.spec.whatwg.org/#dom-url-port
@@ -223,7 +224,7 @@ public:
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool port(StrT&& str);
 
-    /// The pathname setter
+    /// @brief The pathname setter
     ///
     /// Parses given string and on succes sets the URL's path.
     /// More info: https://url.spec.whatwg.org/#dom-url-pathname
@@ -233,7 +234,7 @@ public:
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool pathname(StrT&& str);
 
-    /// The search setter
+    /// @brief The search setter
     ///
     /// Parses given string and on succes sets the URL's query.
     /// More info: https://url.spec.whatwg.org/#dom-url-search
@@ -243,7 +244,7 @@ public:
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool search(StrT&& str);
 
-    /// The hash setter
+    /// @brief The hash setter
     ///
     /// Parses given string and on succes sets the URL's fragment.
     /// More info: https://url.spec.whatwg.org/#dom-url-hash
@@ -255,61 +256,61 @@ public:
 
     // Getters
 
-    /// The href getter
+    /// @brief The href getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-href
     ///
     /// @return serialized URL
     str_view_type href() const;
 
-    /// The origin getter
+    /// @brief The origin getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-origin
     ///
     /// @return ASCII serialized URL's origin
     std::string origin() const;
 
-    /// The protocol getter
+    /// @brief The protocol getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-protocol
     ///
     /// @return URL's scheme, followed by U+003A (:)
     str_view_type protocol() const;
 
-    /// The username getter
+    /// @brief The username getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-username
     ///
     /// @return URL’s username
     str_view_type username() const;
 
-    /// The password getter
+    /// @brief The password getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-password
     ///
     /// @return URL’s password
     str_view_type password() const;
 
-    /// The host getter
+    /// @brief The host getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-host
     ///
     /// @return URL’s host, serialized, followed by U+003A (:) and URL’s port, serialized
     str_view_type host() const;
 
-    /// The hostname getter
+    /// @brief The hostname getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-hostname
     ///
     /// @return URL’s host, serialized
     str_view_type hostname() const;
 
-    /// The host_type getter
+    /// @brief The host_type getter
     ///
     /// @return URL’s host type as HostType enumeration value
     HostType host_type() const;
 
-    /// The port getter
+    /// @brief The port getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-port
     ///
@@ -325,40 +326,40 @@ public:
     ///   otherwise `-1`
     int real_port_int() const;
 
-    /// The path getter
+    /// @brief The path getter
     ///
     /// @return URL's path, serialized, followed by U+003F (?) and URL’s query
     str_view_type path() const;
 
-    /// The pathname getter
+    /// @brief The pathname getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-pathname
     ///
     /// @return URL’s path, serialized
     str_view_type pathname() const;
 
-    /// The search getter
+    /// @brief The search getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-search
     ///
     /// @return empty string or U+003F (?), followed by URL’s query
     str_view_type search() const;
 
-    /// The hash getter
+    /// @brief The hash getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-hash
     ///
     /// @return empty string or U+0023 (#), followed by URL’s fragment
     str_view_type hash() const;
 
-    /// The searchParams getter
+    /// @brief The searchParams getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-searchparams
     ///
     /// @return reference to this’s query object (url_search_params class)
     url_search_params& searchParams();
 
-    /// URL serializer
+    /// @brief URL serializer
     ///
     /// Returns serialized URL in a string_view as defined here:
     /// https://url.spec.whatwg.org/#concept-url-serializer
