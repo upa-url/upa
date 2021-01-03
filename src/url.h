@@ -469,7 +469,7 @@ private:
     const scheme_info* scheme_inf_;
     unsigned flags_;
     std::size_t path_segment_count_;
-    url_search_params_ptr search_params_ptr_;
+    detail::url_search_params_ptr search_params_ptr_;
 
     friend class url_serializer;
     friend class url_setter;

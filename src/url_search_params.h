@@ -49,7 +49,12 @@ struct is_iterable_pairs : is_pair<iterable_value_t<T>> {};
 }
 
 
+// forward declarations
+
 class url;
+namespace detail {
+    class url_search_params_ptr;
+}
 
 /// URLSearchParams class
 ///
@@ -250,7 +255,7 @@ private:
 
     void update();
 
-    friend class url_search_params_ptr;
+    friend detail::url_search_params_ptr;
 
 private:
     name_value_list params_;
@@ -259,6 +264,9 @@ private:
 
     static const char kEncByte[0x100];
 };
+
+
+namespace detail {
 
 class url_search_params_ptr
 {
@@ -304,6 +312,8 @@ public:
 private:
     std::unique_ptr<url_search_params> ptr_;
 };
+
+} // namespace detail
 
 
 // url_search_params inline
