@@ -397,7 +397,7 @@ public:
     /// @return serialized URL as @c std::string
     std::string to_string() const;
 
-protected:
+private:
     struct scheme_info {
         str_view_type scheme;
         int default_port;           // -1 if none
