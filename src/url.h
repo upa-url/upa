@@ -110,16 +110,16 @@ public:
 
     /// Parsing constructor.
     ///
-    /// Throws @a url_error exception on parse error.
+    /// Throws url_error exception on parse error.
     ///
     /// @param[in] str_url URL string to parse
-    /// @param[in] pbase   pointer to base URL, may be @a nullptr
+    /// @param[in] pbase   pointer to base URL, may be `nullptr`
     template <class T, enable_if_str_arg_t<T> = 0>
     explicit url(T&& str_url, const url* pbase = nullptr);
 
     /// Parsing constructor.
     ///
-    /// Throws @a url_error exception on parse error.
+    /// Throws url_error exception on parse error.
     ///
     /// @param[in] str_url URL string to parse
     /// @param[in] base    base URL
@@ -128,7 +128,7 @@ public:
 
     /// Parsing constructor.
     ///
-    /// Throws @a url_error exception on parse error.
+    /// Throws url_error exception on parse error.
     ///
     /// @param[in] str_url  URL string to parse
     /// @param[in] str_base base URL string
@@ -159,7 +159,7 @@ public:
     /// On parse failure leaves URL value unchanged.
     ///
     /// @param[in] str URL string to parse
-    /// @return true - on success; false - on failure
+    /// @return `true` - on success; `false` - on failure
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool href(StrT&& str);
 
@@ -169,7 +169,7 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-protocol
     ///
     /// @param[in] str string to parse
-    /// @return true - on success; false - on failure (URL protocol unchanged)
+    /// @return `true` - on success; `false` - on failure (URL protocol unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool protocol(StrT&& str);
 
@@ -179,7 +179,7 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-username
     ///
     /// @param[in] str string to parse
-    /// @return true - on success; false - if username can not be set
+    /// @return `true` - on success; `false` - if username can not be set
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool username(StrT&& str);
 
@@ -189,7 +189,7 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-password
     ///
     /// @param[in] str string to parse
-    /// @return true - on success; false - if password can not be set
+    /// @return `true` - on success; `false` - if password can not be set
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool password(StrT&& str);
 
@@ -199,7 +199,7 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-host
     ///
     /// @param[in] str string to parse
-    /// @return true - on success; false - on failure (URL's host and port unchanged)
+    /// @return `true` - on success; `false` - on failure (URL's host and port unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool host(StrT&& str);
 
@@ -209,7 +209,7 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-hostname
     ///
     /// @param[in] str string to parse
-    /// @return true - on success; false - on failure (URL's host unchanged)
+    /// @return `true` - on success; `false` - on failure (URL's host unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool hostname(StrT&& str);
 
@@ -219,7 +219,7 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-port
     ///
     /// @param[in] str string to parse
-    /// @return true - on success; false - on failure (URL's port unchanged)
+    /// @return `true` - on success; `false` - on failure (URL's port unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool port(StrT&& str);
 
@@ -229,7 +229,7 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-pathname
     ///
     /// @param[in] str string to parse
-    /// @return true - on success; false - on failure (URL's path unchanged)
+    /// @return `true` - on success; `false` - on failure (URL's path unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool pathname(StrT&& str);
 
@@ -239,7 +239,7 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-search
     ///
     /// @param[in] str string to parse
-    /// @return true - on success; false - on failure (URL's query unchanged)
+    /// @return `true` - on success; `false` - on failure (URL's query unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool search(StrT&& str);
 
@@ -249,7 +249,7 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-hash
     ///
     /// @param[in] str string to parse
-    /// @return true - on success; false - on failure (URL's fragment unchanged)
+    /// @return `true` - on success; `false` - on failure (URL's fragment unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool hash(StrT&& str);
 
@@ -313,21 +313,21 @@ public:
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-port
     ///
-    /// @return empty string if URL’s port is null, otherwise URL’s port, serialized
+    /// @return URL’s port, serialized, if URL’s port is not null, otherwise empty string
     str_view_type port() const;
 
-    /// @return -1 if URL’s port is null, otherwise URL’s port, converted to @c int value
+    /// @return URL’s port, converted to `int` value, if URL’s port is not null,
+    ///   otherwise `-1`
     int port_int() const;
 
-    /// @return if URL’s port is not null, then URL’s port, converted to @c int value,
-    ///   otherwise if URL's scheme has default port, then default port as @c int value,
-    ///   otherwise -1
+    /// @return URL’s port, converted to `int` value, if URL’s port is not null,
+    ///   otherwise default port, if URL's scheme has default port,
+    ///   otherwise `-1`
     int real_port_int() const;
 
     /// The path getter
     ///
     /// @return URL's path, serialized, followed by U+003F (?) and URL’s query
-    // pathname + search
     str_view_type path() const;
 
     /// The pathname getter
@@ -358,7 +358,7 @@ public:
     /// @return reference to this’s query object (url_search_params class)
     url_search_params& searchParams();
 
-    /// URL serializing
+    /// URL serializer
     ///
     /// Returns serialized URL in a string_view as defined here:
     /// https://url.spec.whatwg.org/#concept-url-serializer
@@ -373,28 +373,28 @@ public:
     /// https://url.spec.whatwg.org/#url-representation
     /// 
     /// @param[in] t URL's part
-    /// @return URL's part string; it is empty if part is null or empty
+    /// @return URL's part string; it is empty if part is empty or null
     str_view_type get_part_view(PartType t) const;
 
     /// @param[in] t URL's part
-    /// @return URL's part is empty
+    /// @return `true` if URL's part @a t is empty or null, `false` otherwise
     bool is_empty(const PartType t) const;
 
     /// @param[in] t URL's part
-    /// @return URL's part is null
+    /// @return `true` if URL's part @a t is null, `false` otherwise
     bool is_null(const PartType t) const;
 
-    /// @return URL's scheme is special ("ftp", "file", "http", "https", "ws", or "wss");
-    ///   see: https://url.spec.whatwg.org/#special-scheme
+    /// @return `true` if URL's scheme is special ("ftp", "file", "http", "https", "ws", or "wss"),
+    ///   `false` otherwise; see: https://url.spec.whatwg.org/#special-scheme
     bool is_special_scheme() const;
 
-    /// @return URL's scheme is "file"
+    /// @return `true` if URL's scheme is "file", `false` otherwise
     bool is_file_scheme() const;
 
-    /// @return URL includes credentials (username, password)?
+    /// @return `true` if URL includes credentials (username, password), `false` otherwise
     bool has_credentials() const;
 
-    /// @return serialized URL as @c std::string
+    /// @return serialized URL as `std::string`
     std::string to_string() const;
 
 private:
