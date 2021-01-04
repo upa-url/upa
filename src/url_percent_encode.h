@@ -131,75 +131,75 @@ public:
 
 // fragment percent-encode set
 // https://url.spec.whatwg.org/#fragment-percent-encode-set
-inline constexpr code_point_set fragment_no_encode_set([](code_point_set& self) constexpr {
+inline constexpr code_point_set fragment_no_encode_set{ [](code_point_set& self) constexpr {
     self.include(0x20, 0x7E); // C0 control percent-encode set
     self.exclude({ 0x20, 0x22, 0x3C, 0x3E, 0x60 });
-    });
+    } };
 
 // query percent-encode set
 // https://url.spec.whatwg.org/#query-percent-encode-set
-inline constexpr code_point_set query_no_encode_set([](code_point_set& self) constexpr {
+inline constexpr code_point_set query_no_encode_set{ [](code_point_set& self) constexpr {
     self.include(0x20, 0x7E); // C0 control percent-encode set
     self.exclude({ 0x20, 0x22, 0x23, 0x3C, 0x3E });
-    });
+    } };
 
 // special query percent-encode set
 // https://url.spec.whatwg.org/#special-query-percent-encode-set
-inline constexpr code_point_set special_query_no_encode_set([](code_point_set& self) constexpr {
+inline constexpr code_point_set special_query_no_encode_set{ [](code_point_set& self) constexpr {
     self.copy(query_no_encode_set);
     self.exclude(0x27);
-    });
+    } };
 
 // path percent-encode set
 // https://url.spec.whatwg.org/#path-percent-encode-set
-inline constexpr code_point_set path_no_encode_set([](code_point_set& self) constexpr {
+inline constexpr code_point_set path_no_encode_set{ [](code_point_set& self) constexpr {
     self.copy(query_no_encode_set);
     self.exclude({ 0x3F, 0x60, 0x7B, 0x7D });
-    });
+    } };
 
 // path percent-encode set with '%' (0x25)
-inline constexpr code_point_set raw_path_no_encode_set([](code_point_set& self) constexpr {
+inline constexpr code_point_set raw_path_no_encode_set{ [](code_point_set& self) constexpr {
     self.copy(path_no_encode_set);
     self.exclude(0x25);
-    });
+    } };
 
 // userinfo percent-encode set
 // https://url.spec.whatwg.org/#userinfo-percent-encode-set
-inline constexpr code_point_set userinfo_no_encode_set([](code_point_set& self) constexpr {
+inline constexpr code_point_set userinfo_no_encode_set{ [](code_point_set& self) constexpr {
     self.copy(path_no_encode_set);
     self.exclude({ 0x2F, 0x3A, 0x3B, 0x3D, 0x40, 0x5B, 0x5C, 0x5D, 0x5E, 0x7C });
-    });
+    } };
 
 // component percent-encode set
 // https://url.spec.whatwg.org/#component-percent-encode-set
-inline constexpr code_point_set component_no_encode_set([](code_point_set& self) constexpr {
+inline constexpr code_point_set component_no_encode_set{ [](code_point_set& self) constexpr {
     self.copy(userinfo_no_encode_set);
     self.exclude({ 0x24, 0x25, 0x26, 0x2B, 0x2C });
-    });
+    } };
 
 // Forbidden host code points: U+0000 NULL, U+0009 TAB, U+000A LF, U+000D CR,
 // U+0020 SPACE, U+0023 (#), U+0025 (%), U+002F (/), U+003A (:), U+003C (<),
 // U+003E (>), U+003F (?), U+0040 (@), U+005B ([), U+005C (\), U+005D (]), or
 // U+005E (^).
 // https://url.spec.whatwg.org/#forbidden-host-code-point
-inline constexpr code_point_set host_forbidden_set([](code_point_set& self) constexpr {
+inline constexpr code_point_set host_forbidden_set{ [](code_point_set& self) constexpr {
     self.include({
         0x00, 0x09, 0x0A, 0x0D, 0x20, 0x23, 0x25, 0x2F, 0x3A, 0x3C, 0x3E, 0x3F, 0x40, 0x5B,
         0x5C, 0x5D, 0x5E });
-    });
+    } };
 
 // Hex digits
-inline constexpr code_point_set hex_digit_set([](code_point_set& self) constexpr {
+inline constexpr code_point_set hex_digit_set{ [](code_point_set& self) constexpr {
     self.include('0', '9');
     self.include('A', 'F');
     self.include('a', 'f');
-    });
+    } };
 
 // Characters allowed in IPv4
-inline constexpr code_point_set ipv4_char_set([](code_point_set& self) constexpr {
+inline constexpr code_point_set ipv4_char_set{ [](code_point_set& self) constexpr {
     self.copy(hex_digit_set);
     self.include({ '.', 'X', 'x' });
-    });
+    } };
 
 #else
 
