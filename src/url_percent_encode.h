@@ -21,41 +21,66 @@
 namespace whatwg {
 
 
+/// @brief Represents code point set
+///
+/// Is used to define percent encode sets, forbidden host code points, and
+/// other code point sets.
+///
 class code_point_set {
 public:
 #ifdef WHATWG__CPP_17
+    /// @brief constructor for code point set initialization
+    ///
+    /// Function @a fun must iniatialize @a self object by using code_point_set
+    /// member functions: copy(), exclude(), and include().
+    ///
+    /// @param[in] fun constexpr function to initialize code point set elements
     constexpr code_point_set(void (*fun)(code_point_set& self)) {
         fun(*this);
     }
 
+    /// @brief copy code points from @a other set
+    /// @param[in] other code point set to copy from
     constexpr void copy(const code_point_set& other) {
         for (std::size_t i = 0; i < arr_size_; ++i)
             arr_[i] = other.arr_[i];
     }
 
+    /// @brief exclude @a c code point from set
+    /// @param[in] c code point to exclude
     constexpr void exclude(uint8_t c) {
         arr_[c >> 3] &= ~(1u << (c & 0x07));
     }
 
+    /// @brief include @a c code point to set
+    /// @param[in] c code point to include
     constexpr void include(uint8_t c) {
         arr_[c >> 3] |= (1u << (c & 0x07));
     }
 
+    /// @brief exclude list of code points from set
+    /// @param[in] clist list of code points to exclude
     constexpr void exclude(std::initializer_list<uint8_t> clist) {
         for (auto c : clist)
             exclude(c);
     }
 
+    /// @brief include code points from list
+    /// @param[in] clist list of code points to include
     constexpr void include(std::initializer_list<uint8_t> clist) {
         for (auto c : clist)
             include(c);
     }
 
+    /// @brief include range of code points to set
+    /// @param[in] from,to range of code points to include
     constexpr void include(uint8_t from, uint8_t to) {
         for (auto c = from; c <= to; ++c)
             include(c);
     }
 
+    /// @brief test code point set contains code point @a c
+    /// @param[in] c code point to test
     template <typename CharT>
     constexpr bool operator[](CharT c) const {
         const auto uc = whatwg::detail::to_unsigned(c);
@@ -420,8 +445,8 @@ inline std::string percent_encode(StrT&& str, const code_point_set& no_encode_se
 /// Invalid code points are replaced with UTF-8 percent encoded U+FFFD characters.
 ///
 /// More info:
-/// https://url.spec.whatwg.org/#string-utf-8-percent-encode
-/// https://url.spec.whatwg.org/#component-percent-encode-set
+/// * https://url.spec.whatwg.org/#string-utf-8-percent-encode
+/// * https://url.spec.whatwg.org/#component-percent-encode-set
 ///
 /// @param[in] str string input
 /// @return percent encoded string
