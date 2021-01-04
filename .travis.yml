@@ -6,7 +6,9 @@ matrix:
   include:
     - os: linux
       compiler: gcc
-      env: [CXX_STANDARD=11]
+      env:
+        - CXX_STANDARD=11
+        - CMAKE_OPTIONS="-DURL_BUILD_EXAMPLES=ON"
 
 # Build steps
 script:
