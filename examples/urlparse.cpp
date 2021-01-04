@@ -186,9 +186,10 @@ class SamplesOutput {
 public:
     virtual bool open() { return true; };
     virtual void close() {};
-    virtual void comment(const char* sz) {
-        std::wcout << sz << std::endl;
-        while (*sz) std::wcout << '~', sz++;
+    virtual void comment(whatwg::url::str_view_type sv) {
+        auto strw = to_wstr(sv);
+        std::wcout << strw << std::endl;
+        for (auto c : strw) std::wcout << '~';
         std::wcout << std::endl;
     }
     virtual void output(const char* str_url, whatwg::url* base) {
@@ -217,8 +218,8 @@ public:
         json_.array_end();
     }
 
-    void comment(const char* sz) override {
-        json_.value(sz);
+    void comment(whatwg::url::str_view_type sv) override {
+        json_.value(sv.data(), sv.data() + sv.length());
     }
     void output(const char* str_url, whatwg::url* base) override {
         url_parse_to_json(json_, str_url, base);
@@ -272,15 +273,16 @@ void read_samples(const char* file_name, SamplesOutput& out)
             bool ok = true;
             auto icolon = line.find(':');
             if (icolon != line.npos) {
+                whatwg::url::str_view_type val{line.data() + icolon + 1, line.length() - (icolon + 1) };
                 if (line.compare(0, icolon, "BASE") == 0) {
-                    const auto res = url_base.parse(line.data() + icolon + 1, line.data() + line.length(), nullptr);
+                    const auto res = url_base.parse(val, nullptr);
                     ok = whatwg::success(res);
                 } else if (line.compare(0, icolon, "COMMENT") == 0) {
-                    out.comment(line.data() + icolon + 1);
+                    out.comment(val);
                 } else if (line.compare(0, icolon, "URL") == 0) {
                     state = State::url;
                 } else if (line.compare(0, icolon, "SET") == 0) {
-                    if (!read_setter(file, line.data() + icolon + 1, line.data() + line.length()))
+                    if (!read_setter(file, val.data(), val.data() + val.length()))
                         return;
                 } else {
                     ok = false;
@@ -338,40 +340,35 @@ bool read_setter(std::ifstream& file, const char* name, const char* name_end) {
         if (line.length() == 0) break;
         auto icolon = line.find(':');
         if (icolon != line.npos) {
-            const char* val = line.data() + icolon + 1;
-            const char* val_end = line.data() + line.length();
+            whatwg::url::str_view_type val{ line.data() + icolon + 1, line.length() - (icolon + 1) };
             if (line.compare(0, icolon, "url") == 0) {
-                std::cout << "URL=";
-                std::cout.write(val, val_end - val);
-                std::cout << std::endl;
-                ok = whatwg::success(url.parse(val, val_end, nullptr));
+                std::cout << "URL=" << val << std::endl;
+                ok = whatwg::success(url.parse(val, nullptr));
             } else if (line.compare(0, icolon, "val") == 0) {
                 // set value
                 if (strName == "protocol") {
-                    url.protocol(val, val_end);
+                    url.protocol(val);
                 } else if (strName == "username") {
-                    url.username(val, val_end);
+                    url.username(val);
                 } else if (strName == "password") {
-                    url.password(val, val_end);
+                    url.password(val);
                 } else if (strName == "host") {
-                    url.host(val, val_end);
+                    url.host(val);
                 } else if (strName == "hostname") {
-                    url.hostname(val, val_end);
+                    url.hostname(val);
                 } else if (strName == "port") {
-                    url.port(val, val_end);
+                    url.port(val);
                 } else if (strName == "pathname") {
-                    url.pathname(val, val_end);
+                    url.pathname(val);
                 } else if (strName == "search") {
-                    url.search(val, val_end);
+                    url.search(val);
                 } else if (strName == "hash") {
-                    url.hash(val, val_end);
+                    url.hash(val);
                 } else {
                     std::cerr << "Unknown setter: " << strName << std::endl;
                     return false;
                 }
-                std::cout << strName << "=";
-                std::cout.write(val, val_end - val);
-                std::cout << std::endl;
+                std::cout << strName << "=" << val << std::endl;
                 cout_url_eol(url);
             }
         }
