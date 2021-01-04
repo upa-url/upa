@@ -91,8 +91,8 @@ public:
     /// Constructs the @c url_search_params object with the contents of @a other
     /// using move semantics.
     ///
-    /// @param[in,out] other @c url_search_params object to move to this object
-    url_search_params(url_search_params&&) noexcept = default;
+    /// @param[in,out] other @c url_search_params object to move from
+    url_search_params(url_search_params&& other) noexcept = default;
 
     /// @brief Parsing constructor.
     ///
