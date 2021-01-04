@@ -486,7 +486,7 @@ private:
     friend class url_search_params;
 };
 
-/// URL equivalence
+/// @brief URL equivalence
 ///
 /// Determines if @a lhs equals to @a rhs, optionally with an @a exclude_fragments flag.
 /// More info: https://url.spec.whatwg.org/#concept-url-equals
@@ -2684,7 +2684,7 @@ inline void url_setter::insert_part(url::PartType new_pt, const char* str, std::
 
 // URL utilities
 
-/// Make URL from OS file path
+/// @brief Make URL from OS file path
 ///
 /// @param[in] str file path string
 /// @return file URL

@@ -338,7 +338,7 @@ void AppendStringOfType(const CharT* first, const CharT* last, const code_point_
 } // namespace detail
 
 
-/// Percent decode input string.
+/// @brief Percent decode input string.
 ///
 /// Invalid code points are replaced with U+FFFD characters.
 ///
@@ -395,7 +395,7 @@ inline std::string percent_decode(StrT&& str) {
     return out;
 }
 
-/// UTF-8 percent encode input string using specified percent encode set.
+/// @brief UTF-8 percent encode input string using specified percent encode set.
 ///
 /// Invalid code points are replaced with UTF-8 percent encoded U+FFFD characters.
 ///
@@ -415,7 +415,7 @@ inline std::string percent_encode(StrT&& str, const code_point_set& no_encode_se
     return out;
 }
 
-/// UTF-8 percent encode input string using component percent encode set.
+/// @brief UTF-8 percent encode input string using component percent encode set.
 ///
 /// Invalid code points are replaced with UTF-8 percent encoded U+FFFD characters.
 ///

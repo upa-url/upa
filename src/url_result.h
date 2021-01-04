@@ -30,7 +30,7 @@ enum class url_result {
     Overflow,                      //!< URLs is too long
 };
 
-/// @brief Check result code is succesful
+/// @brief Check result code indicates success
 /// @return `true` if result code is url_result::Ok, `false` otherwise
 inline bool success(url_result res) {
     return res == url_result::Ok;
