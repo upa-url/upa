@@ -185,8 +185,8 @@ public:
 };
 
 //
-// https://github.com/web-platform-tests/wpt/blob/master/url/url-constructor.html
-// https://github.com/web-platform-tests/wpt/blob/master/url/url-origin.html
+// https://github.com/web-platform-tests/wpt/blob/master/url/url-constructor.any.js
+// https://github.com/web-platform-tests/wpt/blob/master/url/url-origin.any.js
 // https://github.com/web-platform-tests/wpt/blob/master/url/failure.html
 //
 void test_parser(DataDrivenTest& ddt, ParserObj& obj)
