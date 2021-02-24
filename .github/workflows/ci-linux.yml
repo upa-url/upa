@@ -12,7 +12,7 @@ jobs:
           - name: clang++ C++20
             cxx_compiler: clang++
             cxx_standard: 20
-            cmake_options: ""
+            cmake_options: "-DCMAKE_CXX_FLAGS=-stdlib=libc++ -DCMAKE_EXE_LINKER_FLAGS=-lc++"
 
           - name: clang++ C++17 with sanitizer
             cxx_compiler: clang++
