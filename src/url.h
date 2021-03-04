@@ -1403,8 +1403,9 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     } else {
                         urls.set_cannot_be_base();
                         // append an empty string to url's path
-                        // urls.append_to_path();
-                        urls.start_path_string(); // ne start_path_segment()
+                        // Path must be without '/', so urls.append_to_path() cannot
+                        // be used here:
+                        urls.start_path_string(); // not start_path_segment()
                         urls.save_path_string();
                         state = cannot_be_base_URL_path_state;
                     }
@@ -2289,10 +2290,10 @@ inline void url_serializer::save_part() {
     url_.part_end_[last_pt_] = url_.norm_url_.length();
 }
 
-// The append_empty_to_path() is called from these places:
-// 1) scheme_state -> [2.9.] -> cannot_be_base_URL_path_state
-// 2) path_state -> [1.2. ".." ]
-// 3) path_state -> [1.3. "." ]
+// The append_empty_to_path() appends empty segment to path;
+// it is called from these places:
+// 1) path_state -> [1.2.2. ".." ]
+// 2) path_state -> [1.3. "." ]
 inline void url_serializer::append_to_path() { // append_empty_to_path();
     start_path_segment();
     save_path_segment();
