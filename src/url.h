@@ -1841,7 +1841,10 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             }
         } else {
             // EOF
-            urls.commit_path(); // path is empty
+            if (state_override && urls.is_null(url::HOST))
+                urls.append_to_path();
+            // otherwise path is empty
+            urls.commit_path();
             return url_result::Ok;
         }
     }
@@ -2288,8 +2291,9 @@ inline void url_serializer::save_part() {
 
 // The append_empty_to_path() appends empty segment to path;
 // it is called from these places:
-// 1) path_state -> [1.2.2. ".." ]
-// 2) path_state -> [1.3. "." ]
+// 1) path_start_state -> [5.]
+// 2) path_state -> [1.2.2. ".." ]
+// 3) path_state -> [1.3. "." ]
 inline void url_serializer::append_to_path() { // append_empty_to_path();
     start_path_segment();
     save_path_segment();

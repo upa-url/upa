@@ -38,8 +38,8 @@
             "href": "non-spec:/abc",
             "new_value": "",
             "expected": {
-                "href": "non-spec:",
-                "pathname": ""
+                "href": "non-spec:/",
+                "pathname": "/"
             }
         },
         {
