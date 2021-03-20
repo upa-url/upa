@@ -18,11 +18,14 @@ using std::experimental::generator;
 #endif
 #endif
 
+// Clang does not support ranges
+#if !defined(__clang__)
 // Visual Studio 2019 16.8 (_MSC_VER = 1928) and concepts are sufficient to test ranges support
 #if defined(__cpp_lib_ranges) || (_MSC_VER >= 1928 && defined(__cpp_lib_concepts))
 #if __has_include(<ranges>)
 # include <ranges>
 # define TEST_RANGES
+#endif
 #endif
 #endif
 
