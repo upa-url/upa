@@ -1915,14 +1915,17 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             encoding = "UTF-8";
 #endif
 
-        // Set buffer to the result of encoding buffer using encoding
-        // percent encode: (c < 0x21 || c > 0x7E || c == 0x22 || c == 0x23 || c == 0x3C || c == 0x3E)
-        // TODO: now supports UTF-8 encoding only, maybe later to add other encodings support
-        std::string& str_query = urls.start_part(url::QUERY);
-        //detail::AppendStringOfType(pointer, end_of_query, detail::CHAR_QUERY, str_query);
+        // Let query_cpset be the special-query percent-encode set if url is special;
+        // otherwise the query percent-encode set.
         const auto& query_cpset = urls.is_special_scheme()
             ? special_query_no_encode_set
             : query_no_encode_set;
+
+        // Percent-encode after encoding, with encoding, buffer, and query_cpset, and append
+        // the result to url’s query.
+        // TODO: now supports UTF-8 encoding only, maybe later add other encodings
+        std::string& str_query = urls.start_part(url::QUERY);
+        // detail::AppendStringOfType(pointer, end_of_query, query_cpset, str_query);
         while (pointer != end_of_query) {
             // UTF-8 percent encode c using the fragment percent-encode set
             // and ignore '\0'
