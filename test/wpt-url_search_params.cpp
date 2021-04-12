@@ -7,7 +7,7 @@
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2021-03-22
+// Last checked for updates: 2021-04-12
 //
 
 
@@ -688,6 +688,16 @@ TEST_CASE("urlsearchparams-stringifier.any.js") {
 
         CHECK_EQ(url.to_string(), "http://www.example.com/?a=b%2Cc&x=y");
         CHECK_EQ(params.to_string(), "a=b%2Cc&x=y");
+    }
+
+    SUBCASE("URLSearchParams must not do newline normalization") {
+        whatwg::url url("http://www.example.com/");
+        auto& params = url.searchParams();
+
+        params.append("a\nb", "c\rd");
+        params.append("e\n\rf", "g\r\nh");
+
+        CHECK_EQ(params.to_string(), "a%0Ab=c%0Dd&e%0A%0Df=g%0D%0Ah");
     }
 }
 
