@@ -2,6 +2,10 @@
 #include "doctest-main.h"
 
 
+// Test host_parser class static functions:
+// * parse_host
+// * parse_opaque_host
+
 class host_out : public whatwg::host_output {
 public:
     std::string host;
@@ -63,6 +67,18 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = false)") {
         CHECK(out.host_type == whatwg::HostType::Domain);
     }
 
+    TEST_CASE("HostType::Domain with long host") {
+        // Host length = 10 + 102 * 10 = 1030 > 1024 (simple_buffer's fixed buffer length)
+        std::string strHost = "abcde12345";
+        for (int i = 0; i < 102; ++i)
+            strHost.append(".bcde12345");
+        host_out out;
+
+        REQUIRE(whatwg::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == whatwg::url_result::Ok);
+        CHECK(out.host == strHost);
+        CHECK(out.host_type == whatwg::HostType::Domain);
+    }
+
     TEST_CASE("HostType::IPv4") {
         const std::string strHost = "127.0.0.1";
         host_out out;
@@ -102,6 +118,8 @@ TEST_SUITE("host_parser::parse_opaque_host") {
     }
 }
 
+
+// Test whatwg::url_host class
 
 template <class ...Args>
 whatwg::url_result construct_url_host(Args&&... args) {
