@@ -83,7 +83,7 @@ public:
     /// @param[in] c code point to test
     template <typename CharT>
     constexpr bool operator[](CharT c) const {
-        const auto uc = whatwg::detail::to_unsigned(c);
+        const auto uc = detail::to_unsigned(c);
         return is_8bit(uc) && (arr_[uc >> 3] & (1u << (uc & 0x07))) != 0;
     }
 
@@ -94,7 +94,7 @@ public:
 
     template <typename CharT>
     bool operator[](CharT c) const {
-        const auto uc = whatwg::detail::to_unsigned(c);
+        const auto uc = detail::to_unsigned(c);
         return is_8bit(uc) && (arr_[uc >> 3] & (1u << (uc & 0x07))) != 0;
     }
 #endif

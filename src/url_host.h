@@ -92,7 +92,7 @@ private:
         std::string& hostStart() override {
             return host_.host_str_;
         }
-        void hostDone(whatwg::HostType ht) override {
+        void hostDone(HostType ht) override {
             host_.type_ = ht;
         }
     private:
@@ -101,7 +101,7 @@ private:
 
     // members
     std::string host_str_;
-    whatwg::HostType type_ = whatwg::HostType::Empty;
+    HostType type_ = HostType::Empty;
 };
 
 template <class StrT, enable_if_str_arg_t<StrT>>
