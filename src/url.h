@@ -77,12 +77,7 @@ public:
     /// @brief Default constructor.
     ///
     /// Constructs empty URL.
-    url()
-        : scheme_inf_(nullptr)
-        , flags_(INITIAL_FLAGS)
-        , path_segment_count_(0)
-        , part_end_({})
-    {}
+    url() = default;
 
     /// @brief Copy constructor.
     ///
@@ -149,7 +144,7 @@ public:
     template <class T, enable_if_str_arg_t<T> = 0>
     url_result parse(T&& str_url, const url* base) {
         const auto inp = make_str_arg(std::forward<T>(str_url));
-        return do_parse(inp.begin(), inp.end(), base);
+        return do_parse(inp.begin(), inp.end(), base, true);
     }
 
     // Setters
@@ -437,7 +432,7 @@ private:
 
     // parser
     template <typename CharT>
-    url_result do_parse(const CharT* first, const CharT* last, const url* base);
+    url_result do_parse(const CharT* first, const CharT* last, const url* base, const bool clear = false);
 
     // get scheme info
     static const scheme_info kSchemes[];
@@ -474,10 +469,10 @@ private:
 
 private:
     std::string norm_url_;
-    std::array<std::size_t, PART_COUNT> part_end_;
-    const scheme_info* scheme_inf_;
-    unsigned flags_;
-    std::size_t path_segment_count_;
+    std::array<std::size_t, PART_COUNT> part_end_ = {};
+    const scheme_info* scheme_inf_ = nullptr;
+    unsigned flags_ = INITIAL_FLAGS;
+    std::size_t path_segment_count_ = 0;
     detail::url_search_params_ptr search_params_ptr_;
 
     friend detail::url_serializer;
@@ -512,7 +507,7 @@ public:
 
     ~url_serializer();
 
-    void new_url() { url_.clear(); }
+    void new_url(const bool clear) { if (clear) url_.clear(); }
     virtual void reserve(std::size_t new_cap) { url_.norm_url_.reserve(new_cap); }
 
     // set data
@@ -1128,13 +1123,13 @@ inline void url::clear() {
 }
 
 template <typename CharT>
-inline url_result url::do_parse(const CharT* first, const CharT* last, const url* base) {
+inline url_result url::do_parse(const CharT* first, const CharT* last, const url* base, const bool clear) {
     url_result res;
     {
         detail::url_serializer urls(*this); // new URL
 
         // reset URL
-        urls.new_url();
+        urls.new_url(clear);
 
         // remove any leading and trailing C0 control or space:
         detail::do_trim(first, last);
