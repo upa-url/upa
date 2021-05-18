@@ -1615,10 +1615,13 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     // TODO-ERR: validation error
                     return url_result::EmptyHost;
                 } else if (state_override && (urls.has_credentials() || !urls.is_null(url::PORT))) {
-                    // TODO-WARN: validation error (empty host)
-                    return url_result::False;
+                    return url_result::False; // can not make host empty
                 }
             }
+
+            // 2.2. If state override is given and state override is hostname state, then return
+            if (is_port && state_override == hostname_state)
+                return url_result::False; // host with port not accepted
 
             // parse and set host:
             const url_result res = parse_host(urls, pointer, it_host_end);
@@ -1628,8 +1631,6 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             if (is_port) {
                 pointer = it_host_end + 1; // skip ':'
                 state = port_state;
-                if (state_override == hostname_state)
-                    return url_result::Ok;
             } else {
                 pointer = it_host_end;
                 state = path_start_state;
