@@ -179,9 +179,7 @@ int test_from_file(RunTests run_tests, const char* file_name)
 
 class ParserObj : public std::map<std::string, std::string> {
 public:
-    ParserObj() : failure(false) {}
-
-    bool failure;
+    bool failure = false;
 };
 
 //
@@ -455,8 +453,15 @@ namespace {
                 for (const auto& p : item.get<picojson::object>()) {
                     switch (m_ttype) {
                     case TestType::UrlParser:
+                        // boolean fields
                         if (p.first == "failure") {
                             obj.failure = p.second.evaluate_as_boolean();
+                            continue;
+                        }
+                        if (p.first == "inputCanBeRelative") {
+                            // skip field intended for browsers only; see:
+                            // https://github.com/web-platform-tests/wpt/pull/29009
+                            // https://github.com/web-platform-tests/wpt/blob/master/url/failure.html
                             continue;
                         }
                         break;
@@ -467,7 +472,7 @@ namespace {
                         }
                         break;
                     }
-                    // string attributes
+                    // string fields
                     if (!p.second.is<std::string>())
                         return false; // error: need string
                     obj[p.first] = p.second.get<std::string>();
