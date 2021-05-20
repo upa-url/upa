@@ -197,7 +197,7 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
 
     std::string str_case("<" + input + "> BASE: <" + base + ">");
 
-    ddt.test_case(str_case.c_str(), [&](DataDrivenTest::TestCase& tc) {
+    ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         whatwg::url url;
         whatwg::url url_base;
 
@@ -323,13 +323,13 @@ public:
 };
 
 //
-// https://github.com/web-platform-tests/wpt/blob/master/url/url-setters.html
+// https://github.com/web-platform-tests/wpt/blob/master/url/url-setters.any.js
 //
 void test_setter(DataDrivenTest& ddt, SetterObj& obj)
 {
     std::string str_case("URL(\"" + obj.m_href + "\")." + obj.m_setter + "(\"" + obj.m_new_value + "\");");
 
-    ddt.test_case(str_case.c_str(), [&](DataDrivenTest::TestCase& tc) {
+    ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         whatwg::url url;
 
         bool parse_success = url.parse(obj.m_href, nullptr) == whatwg::url_result::Ok;

@@ -7,7 +7,7 @@
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2021-04-12
+// Last checked for updates: 2021-05-20
 //
 
 
