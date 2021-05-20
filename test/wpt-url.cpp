@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2021 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -203,8 +203,9 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
 
         bool parse_success;
         if (!base.empty()) {
-            parse_success = url_base.parse(base, nullptr) == whatwg::url_result::Ok;
-            parse_success = parse_success && url.parse(input, &url_base) == whatwg::url_result::Ok;
+            parse_success =
+                url_base.parse(base, nullptr) == whatwg::url_result::Ok &&
+                url.parse(input, &url_base) == whatwg::url_result::Ok;
         } else {
             parse_success = url.parse(input, nullptr) == whatwg::url_result::Ok;
         }
@@ -284,8 +285,8 @@ void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
 
     str_case = "Set URL.host to: \"" + input + "\"";
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
-        whatwg::url url;
-        url.parse(make_url("x"), nullptr);
+        whatwg::url url(make_url("x"), nullptr);
+
         url.host(input);
         if (!obj.failure) {
             const std::string& output = obj["output"];
@@ -297,8 +298,8 @@ void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
 
     str_case = "Set URL.hostname to: \"" + input + "\"";
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
-        whatwg::url url;
-        url.parse(make_url("x"), nullptr);
+        whatwg::url url(make_url("x"), nullptr);
+
         url.hostname(input);
         if (!obj.failure) {
             const std::string& output = obj["output"];
@@ -330,50 +331,48 @@ void test_setter(DataDrivenTest& ddt, SetterObj& obj)
     std::string str_case("URL(\"" + obj.m_href + "\")." + obj.m_setter + "(\"" + obj.m_new_value + "\");");
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
-        whatwg::url url;
+        // url parsing must succeed
+        whatwg::url url(obj.m_href, nullptr);
 
-        bool parse_success = url.parse(obj.m_href, nullptr) == whatwg::url_result::Ok;
+        // Attributes
 
-        // attributes
-        if (parse_success) {
-            // set value
-            if (obj.m_setter == "protocol") {
-                url.protocol(obj.m_new_value);
-            } else if (obj.m_setter == "username") {
-                url.username(obj.m_new_value);
-            } else if (obj.m_setter == "password") {
-                url.password(obj.m_new_value);
-            } else if (obj.m_setter == "host") {
-                url.host(obj.m_new_value);
-            } else if (obj.m_setter == "hostname") {
-                url.hostname(obj.m_new_value);
-            } else if (obj.m_setter == "port") {
-                url.port(obj.m_new_value);
-            } else if (obj.m_setter == "pathname") {
-                url.pathname(obj.m_new_value);
-            } else if (obj.m_setter == "search") {
-                url.search(obj.m_new_value);
-            } else if (obj.m_setter == "hash") {
-                url.hash(obj.m_new_value);
-            }
+        // set value
+        if (obj.m_setter == "protocol") {
+            url.protocol(obj.m_new_value);
+        } else if (obj.m_setter == "username") {
+            url.username(obj.m_new_value);
+        } else if (obj.m_setter == "password") {
+            url.password(obj.m_new_value);
+        } else if (obj.m_setter == "host") {
+            url.host(obj.m_new_value);
+        } else if (obj.m_setter == "hostname") {
+            url.hostname(obj.m_new_value);
+        } else if (obj.m_setter == "port") {
+            url.port(obj.m_new_value);
+        } else if (obj.m_setter == "pathname") {
+            url.pathname(obj.m_new_value);
+        } else if (obj.m_setter == "search") {
+            url.search(obj.m_new_value);
+        } else if (obj.m_setter == "hash") {
+            url.hash(obj.m_new_value);
+        }
 
-            // test result
-            std::string str_val;
-            for (const auto& p : obj.m_expected) {
-                if (p.first == "href") str_val = url.href();
-                else if (p.first == "origin") str_val = url.origin();
-                else if (p.first == "protocol") str_val = url.protocol();
-                else if (p.first == "username") str_val = url.username();
-                else if (p.first == "password") str_val = url.password();
-                else if (p.first == "host") str_val = url.host();
-                else if (p.first == "hostname") str_val = url.hostname();
-                else if (p.first == "port") str_val = url.port();
-                else if (p.first == "pathname") str_val = url.pathname();
-                else if (p.first == "search") str_val = url.search();
-                else if (p.first == "hash") str_val = url.hash();
+        // test result
+        std::string str_val;
+        for (const auto& p : obj.m_expected) {
+            if (p.first == "href") str_val = url.href();
+            else if (p.first == "origin") str_val = url.origin();
+            else if (p.first == "protocol") str_val = url.protocol();
+            else if (p.first == "username") str_val = url.username();
+            else if (p.first == "password") str_val = url.password();
+            else if (p.first == "host") str_val = url.host();
+            else if (p.first == "hostname") str_val = url.hostname();
+            else if (p.first == "port") str_val = url.port();
+            else if (p.first == "pathname") str_val = url.pathname();
+            else if (p.first == "search") str_val = url.search();
+            else if (p.first == "hash") str_val = url.hash();
 
-                tc.assert_equal(p.second, str_val, p.first);
-            }
+            tc.assert_equal(p.second, str_val, p.first);
         }
     });
 }

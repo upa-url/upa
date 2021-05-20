@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2021 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -105,10 +105,7 @@ void test_urlsearchparams_sort(DataDrivenTest& ddt, const TestObj& obj) {
 
     str_case = "URL parse and sort: \"" + obj.m_input + "\"";
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
-        // let url = new URL("?" + val.input, "https://example/")
-        whatwg::url base, url;
-        base.parse("https://example/", nullptr);
-        url.parse("?" + obj.m_input, &base);
+        whatwg::url url("?" + obj.m_input, "https://example/");
 
         url.searchParams().sort();
 

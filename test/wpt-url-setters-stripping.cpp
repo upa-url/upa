@@ -1,3 +1,8 @@
+// Copyright 2016-2021 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+
 #include "url.h"
 #include "doctest-main.h"
 #include <algorithm>
@@ -34,9 +39,7 @@ static std::string urlString(url_args urlArgs) {
 }
 
 static whatwg::url urlRecord(std::string scheme) {
-    whatwg::url u;
-    u.parse(urlString({ { "scheme", scheme } }), nullptr);
-    return u;
+    return whatwg::url(urlString({ { "scheme", scheme } }), nullptr);
 }
 
 static std::string get_url_property(const whatwg::url& url, const std::string& property) {
