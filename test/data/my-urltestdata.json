@@ -1,4 +1,66 @@
 [
+  "Invalid sheme with cannot be base URL",
+  {
+    "input": ":p",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "1:p",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "a$:p",
+    "base": "about:blank",
+    "failure": true
+  },
+  "Invalid sheme with base URL",
+  {
+    "input": ":p",
+    "base": "https://host/path",
+    "href": "https://host/:p",
+    "origin": "https://host",
+    "protocol": "https:",
+    "username": "",
+    "password": "",
+    "host": "host",
+    "hostname": "host",
+    "port": "",
+    "pathname": "/:p",
+    "search": "",
+    "hash": ""
+  },
+  {
+    "input": "1:p",
+    "base": "https://host/path",
+    "href": "https://host/1:p",
+    "origin": "https://host",
+    "protocol": "https:",
+    "username": "",
+    "password": "",
+    "host": "host",
+    "hostname": "host",
+    "port": "",
+    "pathname": "/1:p",
+    "search": "",
+    "hash": ""
+  },
+  {
+    "input": "a$:p",
+    "base": "https://host/path",
+    "href": "https://host/a$:p",
+    "origin": "https://host",
+    "protocol": "https:",
+    "username": "",
+    "password": "",
+    "host": "host",
+    "hostname": "host",
+    "port": "",
+    "pathname": "/a$:p",
+    "search": "",
+    "hash": ""
+  },
   "Invalid percent-encode sequence (%xx) in hostname",
   {
     "input": "non-spec://%C4%84%xx",
