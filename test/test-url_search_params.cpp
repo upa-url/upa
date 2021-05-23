@@ -181,3 +181,19 @@ TEST_CASE("url::searchParams() and url::search(...)") {
     CHECK(url.search() == "??a=b&c=d");
     CHECK(params.to_string() == "%3Fa=b&c=d");
 }
+
+TEST_CASE("url::searchParams() and url::clear()") {
+    whatwg::url url("http://h/p?a=A&b=B");
+    auto& params = url.searchParams();
+
+    CHECK_FALSE(url.empty());
+    CHECK_FALSE(params.empty());
+    CHECK(list_eq(params, pairs_list_t<std::string>{ {"a", "A"}, { "b", "B" } }));
+
+    url.clear();
+
+    CHECK(url.href() == "");
+    CHECK(url.search() == "");
+    CHECK(url.empty());
+    CHECK(params.empty());
+}

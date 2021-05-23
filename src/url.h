@@ -365,6 +365,11 @@ public:
 
     // Get url info
 
+    /// @brief Checks whether the URL is empty
+    ///
+    /// @return `true` if URL is empty, `false` otherwise
+    bool empty() const noexcept;
+
     /// Function to get ASCII string of any URL's part (URL record member) defined here:
     /// https://url.spec.whatwg.org/#url-representation
     /// 
@@ -1001,6 +1006,10 @@ inline url::str_view_type url::serialize(bool exclude_fragment) const {
 
 // Get url info
 
+inline bool url::empty() const noexcept {
+    return norm_url_.empty();
+}
+
 inline url::str_view_type url::get_part_view(PartType t) const {
     if (t == SCHEME)
         return str_view_type(norm_url_.data(), part_end_[SCHEME]);
@@ -1120,6 +1129,7 @@ inline void url::clear() {
     scheme_inf_ = nullptr;
     flags_ = INITIAL_FLAGS;
     path_segment_count_ = 0;
+    clear_search_params();
 }
 
 template <typename CharT>
