@@ -303,7 +303,7 @@ public:
     /// @brief The host_type getter
     ///
     /// @return URL’s host type as HostType enumeration value
-    HostType host_type() const;
+    HostType host_type() const noexcept;
 
     /// @brief The port getter
     ///
@@ -383,14 +383,14 @@ public:
 
     /// @param[in] t URL's part
     /// @return `true` if URL's part @a t is null, `false` otherwise
-    bool is_null(const PartType t) const;
+    bool is_null(const PartType t) const noexcept;
 
     /// @return `true` if URL's scheme is special ("ftp", "file", "http", "https", "ws", or "wss"),
     ///   `false` otherwise; see: https://url.spec.whatwg.org/#special-scheme
-    bool is_special_scheme() const;
+    bool is_special_scheme() const noexcept;
 
     /// @return `true` if URL's scheme is "file", `false` otherwise
-    bool is_file_scheme() const;
+    bool is_file_scheme() const noexcept;
 
     /// @return `true` if URL includes credentials (username, password), `false` otherwise
     bool has_credentials() const;
@@ -458,15 +458,15 @@ private:
     bool get_shorten_path(std::size_t& path_end, std::size_t& path_segment_count) const;
 
     // flags
-    void set_flag(const UrlFlag flag);
+    void set_flag(const UrlFlag flag) noexcept;
 
-    bool cannot_be_base() const;
-    void set_cannot_be_base();
+    bool cannot_be_base() const noexcept;
+    void set_cannot_be_base() noexcept;
 
-    void set_host_type(const HostType ht);
+    void set_host_type(const HostType ht) noexcept;
 
     // info
-    bool canHaveUsernamePasswordPort();
+    bool canHaveUsernamePasswordPort() const;
 
     // search params
     void clear_search_params() noexcept;
@@ -927,7 +927,7 @@ inline url::str_view_type url::hostname() const {
     return get_part_view(HOST);
 }
 
-inline HostType url::host_type() const {
+inline HostType url::host_type() const noexcept {
     return static_cast<HostType>((flags_ & HOST_TYPE_MASK) >> HOST_TYPE_SHIFT);
 }
 
@@ -1028,15 +1028,15 @@ inline bool url::is_empty(const PartType t) const {
     return b >= e;
 }
 
-inline bool url::is_null(const PartType t) const {
+inline bool url::is_null(const PartType t) const noexcept {
     return !(flags_ & (1u << t));
 }
 
-inline bool url::is_special_scheme() const {
+inline bool url::is_special_scheme() const noexcept {
     return scheme_inf_ && scheme_inf_->is_special;
 }
 
-inline bool url::is_file_scheme() const {
+inline bool url::is_file_scheme() const noexcept {
     return scheme_inf_ && scheme_inf_->is_file;
 }
 
@@ -1048,7 +1048,7 @@ inline bool url::has_credentials() const {
 
 template <class StringT>
 inline void url::set_scheme_str(const StringT str) {
-    norm_url_.resize(0); // clear all
+    norm_url_.clear(); // clear all
     part_end_[SCHEME] = str.length();
     norm_url_.append(str.data(), str.length());
     norm_url_ += ':';
@@ -1070,7 +1070,7 @@ inline void url::set_scheme(std::size_t end_of_scheme) {
 }
 
 inline void url::clear_scheme() {
-    norm_url_.resize(0); // clear all
+    norm_url_.clear(); // clear all
     part_end_[SCHEME] = 0;
     //?TODO?: part_end_[SCHEME_SEP] = 0;
     scheme_inf_ = nullptr;
@@ -1078,23 +1078,23 @@ inline void url::clear_scheme() {
 
 // flags
 
-inline void url::set_flag(const UrlFlag flag) {
+inline void url::set_flag(const UrlFlag flag) noexcept {
     flags_ |= flag;
 }
 
-inline bool url::cannot_be_base() const {
+inline bool url::cannot_be_base() const noexcept {
     return !!(flags_ & CANNOT_BE_BASE_FLAG);
 }
 
-inline void url::set_cannot_be_base() {
+inline void url::set_cannot_be_base() noexcept {
     set_flag(CANNOT_BE_BASE_FLAG);
 }
 
-inline void url::set_host_type(const HostType ht) {
+inline void url::set_host_type(const HostType ht) noexcept {
     flags_ = (flags_ & ~HOST_TYPE_MASK) | HOST_FLAG | (static_cast<unsigned int>(ht) << HOST_TYPE_SHIFT);
 }
 
-inline bool url::canHaveUsernamePasswordPort() {
+inline bool url::canHaveUsernamePasswordPort() const {
     return !(is_empty(url::HOST) || cannot_be_base() || is_file_scheme());
 }
 
@@ -2218,7 +2218,7 @@ inline url_serializer::~url_serializer() {
 // set/clear scheme
 
 inline std::string& url_serializer::start_scheme() {
-    url_.norm_url_.resize(0);
+    url_.norm_url_.clear(); // clear all
     return url_.norm_url_;
 }
 
