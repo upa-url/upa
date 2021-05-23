@@ -196,28 +196,28 @@ public:
     // Iterable
 
     /// @return an iterator to the beginning of name-value list
-    const_iterator begin() const { return params_.begin(); }
+    const_iterator begin() const noexcept { return params_.begin(); }
 
     /// @return an iterator to the beginning of name-value list
-    const_iterator cbegin() const { return params_.cbegin(); }
+    const_iterator cbegin() const noexcept { return params_.cbegin(); }
 
     /// @return an iterator to the end of name-value list
-    const_iterator end() const { return params_.end(); }
+    const_iterator end() const noexcept { return params_.end(); }
 
     /// @return an iterator to the end of name-value list
-    const_iterator cend() const { return params_.cend(); }
+    const_iterator cend() const noexcept { return params_.cend(); }
 
     /// @return a reverse iterator to the beginning of name-value list
-    const_reverse_iterator rbegin() const { return params_.rbegin(); }
+    const_reverse_iterator rbegin() const noexcept { return params_.rbegin(); }
 
     /// @return a reverse iterator to the beginning of name-value list
-    const_reverse_iterator crbegin() const { return params_.crbegin(); }
+    const_reverse_iterator crbegin() const noexcept { return params_.crbegin(); }
 
     /// @return a reverse iterator to the end of name-value list
-    const_reverse_iterator rend() const { return params_.rend(); }
+    const_reverse_iterator rend() const noexcept { return params_.rend(); }
 
     /// @return a reverse iterator to the end of name-value list
-    const_reverse_iterator crend() const { return params_.crend(); }
+    const_reverse_iterator crend() const noexcept { return params_.crend(); }
 
     // Capacity
 
@@ -250,7 +250,7 @@ public:
 private:
     explicit url_search_params(url* url_ptr);
 
-    void clear_params();
+    void clear_params() noexcept;
     void parse_params(url_str_view_t query);
 
     void update();
@@ -291,7 +291,7 @@ public:
         ptr_.reset(new url_search_params(url_ptr));
     }
 
-    void clear_params() {
+    void clear_params() noexcept {
         assert(ptr_);
         ptr_->clear_params();
     }
@@ -348,7 +348,7 @@ inline void url_search_params::clear() {
     update();
 }
 
-inline void url_search_params::clear_params() {
+inline void url_search_params::clear_params() noexcept {
     params_.clear();
     is_sorted_ = true;
 }

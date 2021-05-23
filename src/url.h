@@ -469,7 +469,7 @@ private:
     bool canHaveUsernamePasswordPort();
 
     // search params
-    void clear_search_params();
+    void clear_search_params() noexcept;
     void parse_search_params();
 
 private:
@@ -987,7 +987,7 @@ inline url_search_params& url::searchParams() {
     return *search_params_ptr_;
 }
 
-inline void url::clear_search_params() {
+inline void url::clear_search_params() noexcept {
     if (search_params_ptr_)
         search_params_ptr_.clear_params();
 }
@@ -1124,7 +1124,7 @@ inline url::url(T&& str_url, const url* base, const char* what_arg) {
 }
 
 inline void url::clear() {
-    norm_url_.resize(0);
+    norm_url_.clear();
     part_end_.fill(0);
     scheme_inf_ = nullptr;
     flags_ = INITIAL_FLAGS;
