@@ -1,6 +1,11 @@
 [
   "Invalid sheme with cannot be base URL",
   {
+    "input": "",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
     "input": ":p",
     "base": "about:blank",
     "failure": true
