@@ -1336,7 +1336,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     if (state == scheme_state) {
         bool is_scheme = false;
         state = no_scheme_state;
-        auto it_colon = std::find(pointer, last, ':');
+        const auto it_colon = std::find(pointer, last, ':');
         // Deviation from URL stdandart's [ 2. ... if c is ":", run ... ] to
         // [ 2. ... if c is ":", or EOF and state override is given, run ... ]
         // This lets protocol setter to pass input without adding ':' to the end.
@@ -1561,18 +1561,18 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     //       because if host null ==> then no credentials serialization
     if (state == authority_state) {
         // TODO: saugoti end_of_authority ir naudoti kituose state
-        auto end_of_authority = urls.is_special_scheme() ?
+        const auto end_of_authority = urls.is_special_scheme() ?
             std::find_if(pointer, last, detail::is_special_authority_end_char<CharT>) :
             std::find_if(pointer, last, detail::is_authority_end_char<CharT>);
 
-        auto it_eta = detail::find_last(pointer, end_of_authority, CharT('@'));
+        const auto it_eta = detail::find_last(pointer, end_of_authority, CharT('@'));
         if (it_eta != end_of_authority) {
             if (std::distance(it_eta, end_of_authority) == 1) {
                 // disallow empty host, example: "http://u:p@/"
                 return url_result::EmptyHost; // TODO-ERR: 2.1. validation error, failure
             }
             //TODO-WARN: validation error
-            auto it_colon = std::find(pointer, it_eta, ':');
+            const auto it_colon = std::find(pointer, it_eta, ':');
             // url includes credentials?
             const bool not_empty_password = std::distance(it_colon, it_eta) > 1;
             if (not_empty_password || std::distance(pointer, it_colon) > 0 /*not empty username*/) {
@@ -1597,7 +1597,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         if (state_override && urls.is_file_scheme()) {
             state = file_host_state;
         } else {
-            auto end_of_authority = urls.is_special_scheme() ?
+            const auto end_of_authority = urls.is_special_scheme() ?
                 std::find_if(pointer, last, detail::is_special_authority_end_char<CharT>) :
                 std::find_if(pointer, last, detail::is_authority_end_char<CharT>);
 
@@ -1651,7 +1651,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     }
 
     if (state == port_state) {
-        auto end_of_digits = std::find_if_not(pointer, last, detail::is_ascii_digit<CharT>);
+        const auto end_of_digits = std::find_if_not(pointer, last, detail::is_ascii_digit<CharT>);
 
         const bool is_end_of_authority =
             end_of_digits == last || // EOF
@@ -1777,7 +1777,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     }
 
     if (state == file_host_state) {
-        auto end_of_authority = std::find_if(pointer, last, detail::is_special_authority_end_char<CharT>);
+        const auto end_of_authority = std::find_if(pointer, last, detail::is_special_authority_end_char<CharT>);
 
         if (pointer == end_of_authority) {
             // buffer is the empty string
@@ -1855,7 +1855,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     }
 
     if (state == path_state) {
-        auto end_of_path = state_override ? last :
+        const auto end_of_path = state_override ? last :
             std::find_if(pointer, last, [](CharT c) { return c == '?' || c == '#'; });
 
         parse_path(urls, pointer, end_of_path);
@@ -1880,7 +1880,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     }
 
     if (state == cannot_be_base_URL_path_state) {
-        auto end_of_path =
+        const auto end_of_path =
             std::find_if(pointer, last, [](CharT c) { return c == '?' || c == '#'; });
 
         // UTF-8 percent encode using the C0 control percent-encode set,
@@ -1906,7 +1906,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     }
 
     if (state == query_state) {
-        auto end_of_query = state_override ? last : std::find(pointer, last, '#');
+        const auto end_of_query = state_override ? last : std::find(pointer, last, '#');
 
         // TODO-WARN:
         //for (auto it = pointer; it < end_of_query; ++it) {
@@ -1935,7 +1935,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         while (pointer != end_of_query) {
             // UTF-8 percent encode c using the fragment percent-encode set
             // and ignore '\0'
-            UCharT uch = static_cast<UCharT>(*pointer);
+            const UCharT uch = static_cast<UCharT>(*pointer);
             if (uch >= 0x80) {
                 // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
                 detail::AppendUTF8EscapedChar(pointer, end_of_query, str_query);
@@ -1970,7 +1970,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         std::string& str_frag = urls.start_part(url::FRAGMENT);
         while (pointer < last) {
             // UTF-8 percent encode c using the fragment percent-encode set
-            UCharT uch = static_cast<UCharT>(*pointer);
+            const UCharT uch = static_cast<UCharT>(*pointer);
             if (uch >= 0x80) {
                 // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
                 detail::AppendUTF8EscapedChar(pointer, last, str_frag);
@@ -2037,13 +2037,13 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
     // parse path's segments
     auto pointer = first;
     while (true) {
-        auto end_of_segment = urls.is_special_scheme()
+        const auto end_of_segment = urls.is_special_scheme()
             ? std::find_if(pointer, last, detail::is_slash<CharT>)
             : std::find(pointer, last, '/');
 
         // end_of_segment >= pointer
         const std::size_t len = end_of_segment - pointer;
-        bool is_last = end_of_segment == last;
+        const bool is_last = end_of_segment == last;
         // TODO-WARN: 1. If url is special and c is "\", validation error.
 
         if (double_dot(pointer, len)) {
@@ -2085,13 +2085,13 @@ inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last,
     bool success = true;
     while (pointer < last) {
         // UTF-8 percent encode c using the default encode set
-        UCharT uch = static_cast<UCharT>(*pointer);
+        const UCharT uch = static_cast<UCharT>(*pointer);
         if (uch >= 0x80) {
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
             success &= detail::AppendUTF8EscapedChar(pointer, last, output);
         } else {
             // Just append the 7-bit character, possibly escaping it.
-            unsigned char uc = static_cast<unsigned char>(uch);
+            const unsigned char uc = static_cast<unsigned char>(uch);
             if (!detail::isCharInSet(uc, path_no_encode_set))
                 detail::AppendEscapedChar(uc, output);
             else
@@ -2114,7 +2114,7 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
     bool success = true;
     while (pointer < last) {
         // UTF-8 percent encode c using the C0 control percent-encode set (U+0000 ... U+001F and >U+007E)
-        UCharT uch = static_cast<UCharT>(*pointer);
+        const UCharT uch = static_cast<UCharT>(*pointer);
         if (uch >= 0x7f) {
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
             success &= detail::AppendUTF8EscapedChar(pointer, last, output);
@@ -2152,8 +2152,8 @@ inline url::str_view_type url::get_path_first_string(std::size_t len) const {
 inline bool url::get_path_rem_last(std::size_t& path_end, std::size_t& path_segment_count) const {
     if (path_segment_count_ > 0) {
         // Remove path's last item
-        const char* first = norm_url_.data() + part_end_[url::PATH-1];
-        const char* last = norm_url_.data() + part_end_[url::PATH];
+        const char* const first = norm_url_.data() + part_end_[url::PATH-1];
+        const char* const last = norm_url_.data() + part_end_[url::PATH];
         const char* it = detail::find_last(first, last, '/');
         if (it == last) it = first; // remove full path if '/' not found
         // shorten
@@ -2170,7 +2170,7 @@ inline bool url::get_shorten_path(std::size_t& path_end, std::size_t& path_segme
     if (path_segment_count_ == 0)
         return false;
     if (is_file_scheme() && path_segment_count_ == 1) {
-        str_view_type path1 = get_path_first_string(2);
+        const str_view_type path1 = get_path_first_string(2);
         if (path1.length() == 2 &&
             detail::is_normalized_Windows_drive(path1[0], path1[1]))
             return false;
@@ -2438,8 +2438,8 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             }
             // src
             const std::size_t offset = src.part_end_[ifirst - 1] + detail::kPartStart[ifirst];
-            const char* first = src.norm_url_.data() + offset;
-            const char* last = src.norm_url_.data() + lastp_end;
+            const char* const first = src.norm_url_.data() + offset;
+            const char* const last = src.norm_url_.data() + lastp_end;
             // dest
             const std::ptrdiff_t delta = checked_diff<std::ptrdiff_t>(norm_url.length(), offset);
             // copy normalized url string from src
