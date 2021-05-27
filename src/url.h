@@ -1350,8 +1350,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             str_scheme.push_back(detail::kSchemeCanonical[static_cast<UCharT>(*pointer)]);
             // other chars
             for (auto it = pointer + 1; it < it_colon; ++it) {
-                UCharT ch = static_cast<UCharT>(*it);
-                char c = (ch < 0x80) ? detail::kSchemeCanonical[ch] : 0;
+                const UCharT uch = static_cast<UCharT>(*it);
+                const char c = (uch < 0x80) ? detail::kSchemeCanonical[uch] : 0;
                 if (c) {
                     str_scheme.push_back(c);
                 } else {
@@ -2518,7 +2518,7 @@ inline void url_setter::save_scheme() {
 }
 
 inline void url_setter::clear_scheme() {
-    //?? assert(last_pt_ == url::SCHEME);
+    assert(curr_pt_ == url::SCHEME);
     strp_.clear();
 }
 

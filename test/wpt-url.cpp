@@ -199,10 +199,10 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         whatwg::url url;
-        whatwg::url url_base;
 
         bool parse_success;
         if (!base.empty()) {
+            whatwg::url url_base;
             parse_success =
                 url_base.parse(base, nullptr) == whatwg::url_result::Ok &&
                 url.parse(input, &url_base) == whatwg::url_result::Ok;
