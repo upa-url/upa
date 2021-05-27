@@ -449,7 +449,6 @@ private:
     void set_scheme(const url& src);
     void set_scheme(const str_view_type str);
     void set_scheme(std::size_t end_of_scheme);
-    void clear_scheme();
 
     // path util
     str_view_type get_path_first_string(std::size_t len) const;
@@ -520,10 +519,9 @@ public:
     void set_scheme(const str_view_type str) { url_.set_scheme(str); }
     void set_scheme(std::size_t end_of_scheme) { url_.set_scheme(end_of_scheme); }
 
-    // set/clear scheme
+    // set scheme
     virtual std::string& start_scheme();
     virtual void save_scheme();
-    virtual void clear_scheme();
 
     // set url's part
     void fill_parts_offset(url::PartType t1, url::PartType t2, std::size_t offset);
@@ -626,10 +624,9 @@ public:
     //???
     void reserve(std::size_t new_cap) override;
 
-    // set/clear scheme
+    // set scheme
     std::string& start_scheme() override;
     void save_scheme() override;
-    void clear_scheme() override;
 
     // set/clear/empty url's part
     std::string& start_part(url::PartType new_pt) override;
@@ -1069,13 +1066,6 @@ inline void url::set_scheme(std::size_t end_of_scheme) {
     scheme_inf_ = get_scheme_info(get_part_view(SCHEME));
 }
 
-inline void url::clear_scheme() {
-    norm_url_.clear(); // clear all
-    part_end_[SCHEME] = 0;
-    //?TODO?: part_end_[SCHEME_SEP] = 0;
-    scheme_inf_ = nullptr;
-}
-
 // flags
 
 inline void url::set_flag(const UrlFlag flag) noexcept {
@@ -1334,93 +1324,88 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     }
 
     if (state == scheme_state) {
-        bool is_scheme = false;
-        state = no_scheme_state;
-        const auto it_colon = std::find(pointer, last, ':');
         // Deviation from URL stdandart's [ 2. ... if c is ":", run ... ] to
         // [ 2. ... if c is ":", or EOF and state override is given, run ... ]
         // This lets protocol setter to pass input without adding ':' to the end.
         // Similiar deviation exists in nodejs, see:
         // https://github.com/nodejs/node/pull/11917#pullrequestreview-28061847
-        if (it_colon < last || state_override) {
-            is_scheme = true;
+
+        const auto end_of_sheme = std::find_if_not(pointer, last,
+            [](CharT c) -> bool {
+                const UCharT uch = static_cast<UCharT>(c);
+                return uch < 0x80 && detail::kSchemeCanonical[uch];
+            });
+        const bool is_scheme = end_of_sheme != last
+            ? *end_of_sheme == ':'
+            : state_override != not_set_state;
+
+        if (is_scheme) {
             // start of scheme
             std::string& str_scheme = urls.start_scheme();
-            // first char
-            str_scheme.push_back(detail::kSchemeCanonical[static_cast<UCharT>(*pointer)]);
-            // other chars
-            for (auto it = pointer + 1; it < it_colon; ++it) {
+            // append sheme chars
+            for (auto it = pointer; it != end_of_sheme; ++it) {
                 const UCharT uch = static_cast<UCharT>(*it);
-                const char c = (uch < 0x80) ? detail::kSchemeCanonical[uch] : 0;
-                if (c) {
-                    str_scheme.push_back(c);
-                } else {
-                    is_scheme = false;
-                    break;
-                }
+                str_scheme.push_back(detail::kSchemeCanonical[uch]);
             }
-            if (is_scheme) {
-                // kas toliau
-                if (state_override) {
-                    const url::scheme_info* scheme_inf = url::get_scheme_info(str_scheme);
-                    const bool is_special_old = urls.is_special_scheme();
-                    const bool is_special_new = scheme_inf && scheme_inf->is_special;
-                    if (is_special_old != is_special_new)
-                        return url_result::False;
-                    // new URL("http://u:p@host:88/).protocol("file:");
-                    if (scheme_inf && scheme_inf->is_file && (urls.has_credentials() || !urls.is_null(url::PORT)))
-                        return url_result::False;
-                    // new URL("file:///path).protocol("http:");
-                    if (urls.is_file_scheme() && urls.is_empty(url::HOST))
-                        return url_result::False;
-                    // OR ursl.is_empty(url::HOST) && scheme_inf->no_empty_host
 
-                    // set url's scheme
-                    urls.save_scheme();
+            if (state_override) {
+                const url::scheme_info* scheme_inf = url::get_scheme_info(str_scheme);
+                const bool is_special_old = urls.is_special_scheme();
+                const bool is_special_new = scheme_inf && scheme_inf->is_special;
+                if (is_special_old != is_special_new)
+                    return url_result::False;
+                // new URL("http://u:p@host:88/).protocol("file:");
+                if (scheme_inf && scheme_inf->is_file && (urls.has_credentials() || !urls.is_null(url::PORT)))
+                    return url_result::False;
+                // new URL("file:///path).protocol("http:");
+                if (urls.is_file_scheme() && urls.is_empty(url::HOST))
+                    return url_result::False;
+                // OR ursl.is_empty(url::HOST) && scheme_inf->no_empty_host
 
-                    // https://github.com/whatwg/url/pull/328
-                    // optimization: compare ports if scheme has the default port
-                    if (scheme_inf && scheme_inf->default_port >= 0 &&
-                        urls.port_int() == scheme_inf->default_port) {
-                        // set url's port to null
-                        urls.clear_part(url::PORT);
-                    }
-
-                    // if state override is given, then return
-                    return url_result::Ok;
-                }
+                // set url's scheme
                 urls.save_scheme();
-                pointer = it_colon + 1; // skip ':'
-                if (urls.is_file_scheme()) {
-                    // TODO-WARN: if remaining does not start with "//", validation error.
-                    state = file_state;
-                } else {
-                    if (urls.is_special_scheme()) {
-                        if (base && urls.get_part_view(url::SCHEME) == base->get_part_view(url::SCHEME)) {
-                            // NOTE: This means that base's cannot-be-a-base-URL flag is unset
-                            state = special_relative_or_authority_state;
-                        } else {
-                            state = special_authority_slashes_state;
-                        }
-                    } else if (pointer < last && *pointer == '/') {
-                        state = path_or_authority_state;
-                        ++pointer;
-                    } else {
-                        urls.set_cannot_be_base();
-                        // append an empty string to url's path
-                        // Path must be without '/', so urls.append_to_path() cannot
-                        // be used here:
-                        urls.start_path_string(); // not start_path_segment()
-                        urls.save_path_string();
-                        state = cannot_be_base_URL_path_state;
-                    }
+
+                // https://github.com/whatwg/url/pull/328
+                // optimization: compare ports if scheme has the default port
+                if (scheme_inf && scheme_inf->default_port >= 0 &&
+                    urls.port_int() == scheme_inf->default_port) {
+                    // set url's port to null
+                    urls.clear_part(url::PORT);
                 }
-            } else {
-                // remove invalid scheme
-                urls.clear_scheme();
+
+                // if state override is given, then return
+                return url_result::Ok;
             }
-        }
-        if (state_override && !is_scheme) {
+            urls.save_scheme();
+
+            pointer = end_of_sheme + 1; // skip ':'
+            if (urls.is_file_scheme()) {
+                // TODO-WARN: if remaining does not start with "//", validation error.
+                state = file_state;
+            } else {
+                if (urls.is_special_scheme()) {
+                    if (base && urls.get_part_view(url::SCHEME) == base->get_part_view(url::SCHEME)) {
+                        // NOTE: This means that base's cannot-be-a-base-URL flag is unset
+                        state = special_relative_or_authority_state;
+                    } else {
+                        state = special_authority_slashes_state;
+                    }
+                } else if (pointer < last && *pointer == '/') {
+                    state = path_or_authority_state;
+                    ++pointer;
+                } else {
+                    urls.set_cannot_be_base();
+                    // append an empty string to url's path
+                    // Path must be without '/', so urls.append_to_path() cannot
+                    // be used here:
+                    urls.start_path_string(); // not start_path_segment()
+                    urls.save_path_string();
+                    state = cannot_be_base_URL_path_state;
+                }
+            }
+        } else if (!state_override) {
+            state = no_scheme_state;
+        } else {
             //TODO-ERR: validation error
             return url_result::InvalidSchemeCharacter;
         }
@@ -2215,7 +2200,7 @@ inline std::size_t url_serializer::remove_leading_path_slashes() {
 inline url_serializer::~url_serializer() {
 }
 
-// set/clear scheme
+// set scheme
 
 inline std::string& url_serializer::start_scheme() {
     url_.norm_url_.clear(); // clear all
@@ -2225,11 +2210,6 @@ inline std::string& url_serializer::start_scheme() {
 inline void url_serializer::save_scheme() {
     set_scheme(url_.norm_url_.length());
     url_.norm_url_.push_back(':');
-}
-
-inline void url_serializer::clear_scheme() {
-    assert(last_pt_ == url::SCHEME);
-    url_.clear_scheme();
 }
 
 // set url's part
@@ -2506,7 +2486,7 @@ inline void url_setter::reserve(std::size_t new_cap) {
     strp_.reserve(new_cap);
 }
 
-// set/clear scheme
+// set scheme
 
 inline std::string& url_setter::start_scheme() {
     return strp_;
@@ -2515,11 +2495,6 @@ inline std::string& url_setter::start_scheme() {
 inline void url_setter::save_scheme() {
     replace_part(url::SCHEME, strp_.data(), strp_.length());
     set_scheme(strp_.length());
-}
-
-inline void url_setter::clear_scheme() {
-    assert(curr_pt_ == url::SCHEME);
-    strp_.clear();
 }
 
 // set/clear/empty url's part
