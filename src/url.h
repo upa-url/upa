@@ -1330,7 +1330,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         // Similiar deviation exists in nodejs, see:
         // https://github.com/nodejs/node/pull/11917#pullrequestreview-28061847
 
-        const auto end_of_sheme = std::find_if_not(pointer, last,
+        // first scheme char has been checked in the scheme_start_state, so skip it
+        const auto end_of_sheme = std::find_if_not(pointer + 1, last,
             [](CharT c) -> bool {
                 const UCharT uch = static_cast<UCharT>(c);
                 return uch < 0x80 && detail::kSchemeCanonical[uch];
