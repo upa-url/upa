@@ -448,7 +448,7 @@ private:
     void set_scheme_str(const StringT str);
     void set_scheme(const url& src);
     void set_scheme(const str_view_type str);
-    void set_scheme(std::size_t end_of_scheme);
+    void set_scheme(std::size_t scheme_length);
 
     // path util
     str_view_type get_path_first_string(std::size_t len) const;
@@ -517,7 +517,7 @@ public:
     // set data
     void set_scheme(const url& src) { url_.set_scheme(src); }
     void set_scheme(const str_view_type str) { url_.set_scheme(str); }
-    void set_scheme(std::size_t end_of_scheme) { url_.set_scheme(end_of_scheme); }
+    void set_scheme(std::size_t scheme_length) { url_.set_scheme(scheme_length); }
 
     // set scheme
     virtual std::string& start_scheme();
@@ -1061,8 +1061,8 @@ inline void url::set_scheme(const str_view_type str) {
     scheme_inf_ = get_scheme_info(str);
 }
 
-inline void url::set_scheme(std::size_t end_of_scheme) {
-    part_end_[SCHEME] = end_of_scheme;
+inline void url::set_scheme(std::size_t scheme_length) {
+    part_end_[SCHEME] = scheme_length;
     scheme_inf_ = get_scheme_info(get_part_view(SCHEME));
 }
 
@@ -1331,20 +1331,20 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         // https://github.com/nodejs/node/pull/11917#pullrequestreview-28061847
 
         // first scheme char has been checked in the scheme_start_state, so skip it
-        const auto end_of_sheme = std::find_if_not(pointer + 1, last,
+        const auto end_of_scheme = std::find_if_not(pointer + 1, last,
             [](CharT c) -> bool {
                 const UCharT uch = static_cast<UCharT>(c);
                 return uch < 0x80 && detail::kSchemeCanonical[uch];
             });
-        const bool is_scheme = end_of_sheme != last
-            ? *end_of_sheme == ':'
+        const bool is_scheme = end_of_scheme != last
+            ? *end_of_scheme == ':'
             : state_override != not_set_state;
 
         if (is_scheme) {
             // start of scheme
             std::string& str_scheme = urls.start_scheme();
-            // append sheme chars
-            for (auto it = pointer; it != end_of_sheme; ++it) {
+            // append scheme chars
+            for (auto it = pointer; it != end_of_scheme; ++it) {
                 const UCharT uch = static_cast<UCharT>(*it);
                 str_scheme.push_back(detail::kSchemeCanonical[uch]);
             }
@@ -1379,7 +1379,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             }
             urls.save_scheme();
 
-            pointer = end_of_sheme + 1; // skip ':'
+            pointer = end_of_scheme + 1; // skip ':'
             if (urls.is_file_scheme()) {
                 // TODO-WARN: if remaining does not start with "//", validation error.
                 state = file_state;
