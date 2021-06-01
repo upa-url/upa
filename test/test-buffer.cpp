@@ -1,3 +1,8 @@
+// Copyright 2016-2021 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+
 #include <string>
 #include "doctest-main.h"
 #include "buffer.h" // must be included after doctest.h

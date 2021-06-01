@@ -1,6 +1,12 @@
+// Copyright 2016-2021 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+
 //
 // NOTE: To pass test this file must just compile without errors.
 //
+
 #include "str_arg.h"
 //#include "doctest-main.h"
 
