@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2021 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -405,9 +405,6 @@ private:
         unsigned is_special : 1;    // "ftp", "file", "http", "https", "ws", "wss"
         unsigned is_file : 1;       // "file"
         unsigned is_ws : 1;         // "ws", "wss"
-
-        // for search operations
-        operator const str_view_type&() const { return scheme; }
     };
 
     enum UrlFlag : unsigned {
