@@ -59,35 +59,35 @@ public:
             allocator_traits::deallocate(allocator_, data_, capacity_);
     }
 
-    allocator_type get_allocator() const {
+    allocator_type get_allocator() const noexcept {
         return allocator_;
     }
 
-    value_type* data() {
+    value_type* data() noexcept {
         return data_;
     }
-    const value_type* data() const {
+    const value_type* data() const noexcept {
         return data_;
     }
 
-    const_iterator begin() const {
+    const_iterator begin() const noexcept {
         return data_;
     }
-    const_iterator end() const {
+    const_iterator end() const noexcept {
         return data_ + size_;
     }
 
     // Capacity
-    bool empty() const {
+    bool empty() const noexcept {
         return size_ == 0;
     }
-    size_type size() const {
+    size_type size() const noexcept {
         return size_;
     }
-    size_type max_size() const {
+    size_type max_size() const noexcept {
         return allocator_traits::max_size(allocator_);
     }
-    size_type capacity() const {
+    size_type capacity() const noexcept {
         return capacity_;
     }
 
@@ -97,7 +97,7 @@ public:
     }
 
     // Modifiers
-    void clear() {
+    void clear() noexcept {
         size_ = 0;
     }
 
