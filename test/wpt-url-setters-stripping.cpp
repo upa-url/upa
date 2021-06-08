@@ -13,7 +13,7 @@
 // Tests based on "url-setters-stripping.any.js" file from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2021-05-20
+// Last checked for updates: 2021-06-08
 //
 
 using url_args = std::unordered_map<std::string, std::string>;
