@@ -26,29 +26,23 @@ template <
 >
 class simple_buffer {
 public:
-    typedef T value_type;
-    typedef Traits traits_type;
-    typedef Allocator allocator_type;
-    typedef std::allocator_traits<allocator_type> allocator_traits;
-    typedef std::size_t size_type;
+    using value_type = T ;
+    using traits_type = Traits;
+    using allocator_type = Allocator;
+    using allocator_traits = std::allocator_traits<allocator_type>;
+    using size_type = std::size_t;
     // iterator
-    typedef const value_type* const_iterator;
+    using const_iterator = const value_type*;
 
     // default
-    simple_buffer() : simple_buffer(Allocator()) {}
+    simple_buffer() = default;
     explicit simple_buffer(const Allocator& alloc)
         : allocator_(alloc)
-        , data_(fixed_buffer())
-        , size_(0)
-        , capacity_(fixed_capacity)
     {}
 
     // with initial capacity
     explicit simple_buffer(size_type new_cap, const Allocator& alloc = Allocator())
         : allocator_(alloc)
-        , data_(fixed_buffer())
-        , size_(0)
-        , capacity_(fixed_capacity)
     {
         if (new_cap > fixed_capacity)
             init_capacity(new_cap);
@@ -191,9 +185,9 @@ private:
 
 private:
     allocator_type allocator_;
-    value_type* data_;
-    size_type size_;
-    size_type capacity_;
+    value_type* data_ = fixed_buffer();
+    size_type size_ = 0;
+    size_type capacity_ = fixed_capacity;
 
     // fixed size buffer
     std::array<value_type, fixed_capacity> fixed_buffer_;
