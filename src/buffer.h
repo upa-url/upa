@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2021 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -172,7 +172,7 @@ protected:
     }
 
     // add without overflow
-    size_type add_sizes(size_type n1, size_type n2) {
+    size_type add_sizes(size_type n1, size_type n2) const {
         if (max_size() - n1 >= n2)
             return n1 + n2;
         throw std::length_error("too big size");
