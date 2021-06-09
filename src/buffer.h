@@ -115,16 +115,16 @@ public:
     void push_back(const value_type& value) {
         if (size_ < capacity_) {
             data_[size_] = value;
-            size_++;
+            ++size_;
             return;
         }
         // grow buffer capacity
         grow(add_sizes(size_, 1));
         data_[size_] = value;
-        size_++;
+        ++size_;
     }
     void pop_back() {
-        size_--;
+        --size_;
     }
     void resize(size_type count) {
         reserve(count);
