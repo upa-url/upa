@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Rimas Misevičius
+// Copyright 2016-2021 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -31,26 +31,26 @@ public:
     // static constexpr size_type npos = size_type(-1);
 
     // construction and assignment
-    str_view() : ptr_(nullptr), len_(0) {}
-    str_view(const str_view&) = default;
-    str_view& operator=(const str_view&) = default;
+    str_view() noexcept = default;
+    str_view(const str_view&) noexcept = default;
+    str_view& operator=(const str_view&) noexcept = default;
     str_view(const CharT* ptr, size_type len) : ptr_(ptr), len_(len) {}
     str_view(const CharT* ptr) : ptr_(ptr), len_(Traits::length(ptr)) {}
 
     // iterator support
-    const_iterator begin() const { return ptr_; }
-    const_iterator end() const { return ptr_ + len_; }
+    const_iterator begin() const noexcept { return ptr_; }
+    const_iterator end() const noexcept { return ptr_ + len_; }
 
     // capacity
-    size_type size() const { return len_; }
-    size_type length() const { return len_; }
-    bool empty() const { return len_ == 0; }
+    size_type size() const noexcept { return len_; }
+    size_type length() const noexcept { return len_; }
+    bool empty() const noexcept { return len_ == 0; }
 
     // element access
     const_reference operator[](size_type ind) const {
         return ptr_[ind];
     }
-    const_pointer data() const { return ptr_; }
+    const_pointer data() const noexcept { return ptr_; }
 
     // modifiers
     void remove_prefix(size_type n) {
@@ -60,7 +60,7 @@ public:
     void remove_suffix(size_type n) {
         len_ -= n;
     }
-    void swap(str_view& x) {
+    void swap(str_view& x) noexcept {
         const str_view tmp{x};
         x = *this;
         *this = tmp;
@@ -90,8 +90,8 @@ public:
     }
 
 private:
-    const_pointer ptr_;
-    size_type len_;
+    const_pointer ptr_ = nullptr;
+    size_type len_ = 0;
 };
 
 
