@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Rimas Misevičius
+// Copyright 2016-2021 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -79,7 +79,7 @@ public:
         >::type;
 
     // constructors
-    str_arg(const str_arg&) = default;
+    str_arg(const str_arg&) noexcept = default;
 
     str_arg(const CharT* s)
         : first_(s)
@@ -99,19 +99,19 @@ public:
     {}
 
     // output
-    constexpr const value_type* begin() const {
+    constexpr const value_type* begin() const noexcept {
         return reinterpret_cast<const value_type*>(first_);
     }
-    constexpr const value_type* end() const {
+    constexpr const value_type* end() const noexcept {
         return reinterpret_cast<const value_type*>(last_);
     }
-    constexpr const value_type* data() const {
+    constexpr const value_type* data() const noexcept {
         return begin();
     }
-    constexpr const std::size_t length() const {
+    constexpr const std::size_t length() const noexcept {
         return end() - begin();
     }
-    constexpr const std::size_t size() const {
+    constexpr const std::size_t size() const noexcept {
         return length();
     }
 
