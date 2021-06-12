@@ -2669,7 +2669,7 @@ inline void url_setter::insert_part(url::PartType new_pt, const char* str, std::
 
 /// @brief Make URL from OS file path
 ///
-/// @param[in] str file path string
+/// @param[in] str absolute file path string
 /// @return file URL
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
 inline url url_from_file_path(StrT&& str) {
@@ -2677,14 +2677,22 @@ inline url url_from_file_path(StrT&& str) {
     const auto* first = inp.begin();
     const auto* last = inp.end();
 
-    // remove "\\?\" prefix
-    // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#maximum-path-length-limitation
-    if (detail::starts_with(first, last, {"\\\\?\\", 4}))
-        first += 4;
+    std::string str_url("file:");
+
+    // handle "\\?\" and "\\?\UNC\" prefixes
+    // https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
+    if (detail::starts_with(first, last, { "\\\\?\\", 4 })) {
+        if (detail::starts_with(first + 4, last, { "UNC\\", 4 })) {
+            str_url.append("//");
+            first += 8; // skip "\\?\UNC\"
+        } else {
+            first += 4; // skip "\\?\"
+        }
+    }
+
     // make URL
-    std::string out("file:");
-    detail::AppendStringOfType(first, last, raw_path_no_encode_set, out);
-    return url(out);
+    detail::AppendStringOfType(first, last, raw_path_no_encode_set, str_url);
+    return url(str_url);
 }
 
 

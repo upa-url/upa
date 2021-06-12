@@ -272,7 +272,8 @@ TEST_CASE("url_from_file_path") {
         CHECK(whatwg::url_from_file_path("C:\\path").href() == "file:///C:/path");
         CHECK(whatwg::url_from_file_path("C:\\path %#").href() == "file:///C:/path%20%25%23");
         CHECK(whatwg::url_from_file_path("\\\\h\\path").href() == "file://h/path");
-        // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file#maximum-path-length-limitation
+        // https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
         CHECK(whatwg::url_from_file_path("\\\\?\\D:\\very_long_path").href() == "file:///D:/very_long_path");
+        CHECK(whatwg::url_from_file_path("\\\\?\\UNC\\h\\very_long_path").href() == "file://h/very_long_path");
     }
 }
