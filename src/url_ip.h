@@ -80,7 +80,7 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
 
     // check if valid digits (we known all chars are ASCII)
     if (radix <= 10) {
-        const CharT chmax = '0' - 1 + radix;
+        const CharT chmax = static_cast<CharT>('0' - 1 + radix);
         for (auto it = first; it != last; ++it) {
             if (*it > chmax || *it < '0')
                 return url_result::False;
@@ -230,7 +230,7 @@ inline bool IsAsciiDigit(CharT ch) {
 
 template <typename CharT>
 inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)[8]) {
-    std::fill(std::begin(address), std::end(address), 0);
+    std::fill(std::begin(address), std::end(address), uint16_t(0));
     int piece_index = 0;    // zero
     int compress = 0;       // null
     bool is_ipv4 = false;
@@ -322,7 +322,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
                     return false; // TODO-ERR: validation error
                 ++pointer;
             }
-            address[piece_index] = address[piece_index] * 0x100 + ipv4Piece;
+            address[piece_index] = static_cast<uint16_t>(address[piece_index] * 0x100 + ipv4Piece);
             ++numbers_seen;
             if (!(numbers_seen & 1)) // 2 or 4
                 ++piece_index;
