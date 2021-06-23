@@ -265,15 +265,30 @@ TEST_CASE("url_from_file_path") {
         CHECK(whatwg::url_from_file_path("/").href() == "file:///");
         CHECK(whatwg::url_from_file_path("/path").href() == "file:///path");
         CHECK(whatwg::url_from_file_path("/path %#?").href() == "file:///path%20%25%23%3F");
+        CHECK(whatwg::url_from_file_path("/c:\\end").href() == "file:///c%3A%5Cend");
+        // empty path
+        CHECK_THROWS_AS(whatwg::url_from_file_path(""), whatwg::url_error);
+        // non absolute path
+        CHECK_THROWS_AS(whatwg::url_from_file_path("path"), whatwg::url_error);
     }
     SUBCASE("Windows path") {
         // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
         CHECK(whatwg::url_from_file_path("C:\\").href() == "file:///C:/");
         CHECK(whatwg::url_from_file_path("C:\\path").href() == "file:///C:/path");
+        CHECK(whatwg::url_from_file_path("C|\\path").href() == "file:///C:/path");
+        CHECK(whatwg::url_from_file_path("C:/path").href() == "file:///C:/path");
         CHECK(whatwg::url_from_file_path("C:\\path %#").href() == "file:///C:/path%20%25%23");
         CHECK(whatwg::url_from_file_path("\\\\h\\path").href() == "file://h/path");
+        // https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats
         // https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
         CHECK(whatwg::url_from_file_path("\\\\?\\D:\\very_long_path").href() == "file:///D:/very_long_path");
         CHECK(whatwg::url_from_file_path("\\\\?\\UNC\\h\\very_long_path").href() == "file://h/very_long_path");
+        CHECK(whatwg::url_from_file_path("\\\\.\\D:\\very_long_path").href() == "file:///D:/very_long_path");
+        CHECK(whatwg::url_from_file_path("\\\\.\\UNC\\h\\very_long_path").href() == "file://h/very_long_path");
+        // non absolute path
+        CHECK_THROWS_AS(whatwg::url_from_file_path("C:path"), whatwg::url_error);
+        // unsupported pathes
+        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\?\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), whatwg::url_error);
+        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\.\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), whatwg::url_error);
     }
 }

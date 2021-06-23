@@ -34,6 +34,7 @@ void dumpAll(std::ostream& out) {
     DUMP_SET(special_query_no_encode_set);
     DUMP_SET(path_no_encode_set);
     DUMP_SET(raw_path_no_encode_set);
+    DUMP_SET(unix_path_no_encode_set);
     DUMP_SET(userinfo_no_encode_set);
     DUMP_SET(component_no_encode_set);
 

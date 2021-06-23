@@ -844,6 +844,15 @@ inline bool starts_with_Windows_drive(const CharT* pointer, const CharT* last) {
 #endif
 }
 
+// check string starts with absolute Windows drive path (for example: "C:\\path" or "C:/path")
+template <typename CharT>
+inline bool starts_with_Windows_drive_absolute_path(const CharT* pointer, const CharT* last) {
+    return
+        last - pointer > 2 &&
+        detail::is_Windows_drive(pointer[0], pointer[1]) &&
+        (pointer[2] == '\\' || pointer[2] == '/');
+}
+
 // check string starts with sv (ASCII)
 template <typename CharT>
 inline bool starts_with(const CharT* first, const CharT* last, url::str_view_type sv) {
@@ -2669,6 +2678,8 @@ inline void url_setter::insert_part(url::PartType new_pt, const char* str, std::
 
 /// @brief Make URL from OS file path
 ///
+/// Throws url_error exception on error.
+///
 /// @param[in] str absolute file path string
 /// @return file URL
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
@@ -2677,22 +2688,52 @@ inline url url_from_file_path(StrT&& str) {
     const auto* first = inp.begin();
     const auto* last = inp.end();
 
-    std::string str_url("file:");
+    if (first != last) {
+        const auto* pointer = first;
+        const code_point_set* no_encode_set = nullptr;
 
-    // handle "\\?\" and "\\?\UNC\" prefixes
-    // https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
-    if (detail::starts_with(first, last, { "\\\\?\\", 4 })) {
-        if (detail::starts_with(first + 4, last, { "UNC\\", 4 })) {
-            str_url.append("//");
-            first += 8; // skip "\\?\UNC\"
+        std::string str_url("file://");
+
+        if (*pointer == '/') {
+            // Absolute Unix path
+            no_encode_set = &unix_path_no_encode_set;
         } else {
-            first += 4; // skip "\\?\"
-        }
-    }
+            // Windows path?
+            bool is_unc = false;
 
-    // make URL
-    detail::AppendStringOfType(first, last, raw_path_no_encode_set, str_url);
-    return url(str_url);
+            // https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats
+            // https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
+            if (detail::starts_with(pointer, last, { "\\\\", 2 })) {
+                pointer += 2; // skip '\\'
+
+                // UNC path or DOS device path
+                if (detail::starts_with(pointer, last, { "?\\", 2 }) ||
+                    detail::starts_with(pointer, last, { ".\\", 2 })) {
+                    pointer += 2; // skip "?\" or ".\"
+                    // DOS device path
+                    if (detail::starts_with(pointer, last, { "UNC\\", 4 })) {
+                        pointer += 4; // skip "UNC\"
+                        is_unc = true;
+                    }
+                } else {
+                    // UNC path
+                    is_unc = true;
+                }
+            }
+            if (is_unc || detail::starts_with_Windows_drive_absolute_path(pointer, last)) {
+                no_encode_set = &raw_path_no_encode_set;
+                if (!is_unc) str_url.push_back('/'); // start path
+            } else {
+                throw url_error(url_result::UnsupportedPath, "Unsupported path");
+            }
+        }
+
+        // make URL
+        detail::AppendStringOfType(pointer, last, *no_encode_set, str_url);
+        return url(str_url);
+    } else {
+        throw url_error(url_result::EmptyPath, "Empty path");
+    }
 }
 
 

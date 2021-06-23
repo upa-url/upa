@@ -27,6 +27,9 @@ enum class url_result {
     RelativeUrlWithoutBase,        //!< relative URL without a base
     RelativeUrlWithCannotBeABase,  //!< relative URL with a cannot-be-a-base base
     Overflow,                      //!< URLs is too long
+    // url_from_file_path errors
+    EmptyPath,                     //!< path cannot be empty
+    UnsupportedPath,               //!< given path unsupported (for example non absolute)
 };
 
 /// @brief Check result code indicates success
