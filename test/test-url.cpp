@@ -286,6 +286,7 @@ TEST_CASE("url_from_file_path") {
         CHECK(whatwg::url_from_file_path("\\\\.\\D:\\very_long_path").href() == "file:///D:/very_long_path");
         CHECK(whatwg::url_from_file_path("\\\\.\\UNC\\h\\very_long_path").href() == "file://h/very_long_path");
         // non absolute path
+        CHECK_THROWS_AS(whatwg::url_from_file_path("\\"), whatwg::url_error);
         CHECK_THROWS_AS(whatwg::url_from_file_path("C:path"), whatwg::url_error);
         // unsupported pathes
         CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\?\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), whatwg::url_error);
