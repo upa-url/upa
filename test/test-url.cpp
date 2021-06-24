@@ -266,6 +266,9 @@ TEST_CASE("url_from_file_path") {
         CHECK(whatwg::url_from_file_path("/path").href() == "file:///path");
         CHECK(whatwg::url_from_file_path("/path %#?").href() == "file:///path%20%25%23%3F");
         CHECK(whatwg::url_from_file_path("/c:\\end").href() == "file:///c%3A%5Cend");
+        CHECK(whatwg::url_from_file_path("/c|\\end").href() == "file:///c%7C%5Cend");
+        CHECK(whatwg::url_from_file_path("/c:/last").href() == "file:///c%3A/last");
+        CHECK(whatwg::url_from_file_path("/c|/last").href() == "file:///c%7C/last");
         // empty path
         CHECK_THROWS_AS(whatwg::url_from_file_path(""), whatwg::url_error);
         // non absolute path
