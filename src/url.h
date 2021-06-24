@@ -2671,6 +2671,33 @@ inline void url_setter::insert_part(url::PartType new_pt, const char* str, std::
 }
 #endif
 
+// Check UNC path
+//
+// Input - path string with the first two backslashes skipped
+//
+template <typename CharT>
+inline bool is_unc_path(const CharT* first, const CharT* last)
+{
+    // https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-dfsc/149a3039-98ce-491a-9268-2f5ddef08192
+    std::size_t path_components_count = 0;
+    const auto* start = first;
+    while (start != last) {
+        const CharT* pcend = std::find(start, last, '\\');
+        // path components MUST be at least one character in length
+        if (start == pcend)
+            return false;
+        // path components MUST NOT contain a backslash (\) or a null
+        if (std::find(start, pcend, '\0') != pcend)
+            return false;
+
+        ++path_components_count;
+        if (pcend == last) break;
+        start = pcend + 1; // skip '\'
+    }
+    // A valid UNC path MUST contain two or more path components
+    return path_components_count >= 2;
+}
+
 } // namespace detail
 
 
@@ -2720,7 +2747,9 @@ inline url url_from_file_path(StrT&& str) {
                     is_unc = true;
                 }
             }
-            if (is_unc || detail::starts_with_Windows_drive_absolute_path(pointer, last)) {
+            if (is_unc
+                ? detail::is_unc_path(pointer, last)
+                : detail::starts_with_Windows_drive_absolute_path(pointer, last)) {
                 no_encode_set = &raw_path_no_encode_set;
                 if (!is_unc) str_url.push_back('/'); // start path
             } else {
