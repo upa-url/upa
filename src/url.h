@@ -2690,11 +2690,19 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
         // path components MUST be at least one character in length
         if (start == pcend)
             return false;
-        // path components MUST NOT contain a backslash (\) or a null
-        if (std::find(start, pcend, '\0') != pcend)
+        // path components MUST NOT contain a backslash (\) or a null; also disallow '/'
+        // in path component because URL parser will treat it as a directory separator
+        if (std::find_if(start, pcend, [](CharT c) { return c == '\0' || c == '/'; }) != pcend)
             return false;
 
         ++path_components_count;
+
+        // disallow windows drive in the host-name because URL parser will make it a path
+        if (path_components_count == 1 &&
+            pcend - start == 2 &&
+            detail::is_Windows_drive(start[0], start[1]))
+            return false;
+
         if (pcend == last) break;
         start = pcend + 1; // skip '\'
     }
