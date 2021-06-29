@@ -1445,7 +1445,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     }
 
     if (state == special_relative_or_authority_state) {
-        if (pointer + 1 < last && pointer[0] == '/' && pointer[1] == '/') {
+        if (last - pointer > 1 && pointer[0] == '/' && pointer[1] == '/') {
             state = special_authority_ignore_slashes_state;
             pointer += 2; // skip "//"
         } else {
@@ -1532,7 +1532,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     }
 
     if (state == special_authority_slashes_state) {
-        if (pointer + 1 < last && pointer[0] == '/' && pointer[1] == '/') {
+        if (last - pointer > 1 && pointer[0] == '/' && pointer[1] == '/') {
             state = special_authority_ignore_slashes_state;
             pointer += 2; // skip "//"
         } else {
@@ -1779,7 +1779,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             if (state_override)
                 return url_result::Ok;
             state = path_start_state;
-        } else if (!state_override && pointer + 2 == end_of_authority &&
+        } else if (!state_override && end_of_authority - pointer == 2 &&
             detail::is_Windows_drive(pointer[0], pointer[1])) {
             // buffer is a Windows drive letter
             // TODO-WARN: validation error
