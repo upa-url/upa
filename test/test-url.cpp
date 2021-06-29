@@ -301,6 +301,8 @@ TEST_CASE("url_from_file_path") {
         CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\a/b\\path"), whatwg::url_error);
         CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\C:\\path"), whatwg::url_error);
         CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\C|\\path"), whatwg::url_error);
+        // invalid hostname
+        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\a b\\path"), whatwg::url_error);
         // unsupported pathes
         CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\?\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), whatwg::url_error);
         CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\.\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), whatwg::url_error);
