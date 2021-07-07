@@ -471,6 +471,9 @@ namespace {
                         }
                         break;
                     }
+                    // do not store null values
+                    if (p.second.is<picojson::null>())
+                        continue;
                     // string fields
                     if (!p.second.is<std::string>())
                         return false; // error: need string
