@@ -41,7 +41,7 @@ static void reparse_test(const whatwg::url& u1) {
 }
 
 // Use libFuzzer interface
-// http://llvm.org/docs/LibFuzzer.html
+// https://llvm.org/docs/LibFuzzer.html
 
 extern "C" int LLVMFuzzerTestOneInput(const char* data, std::size_t size) {
     // Get base URL

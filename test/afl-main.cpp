@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Rimas Misevičius
+// Copyright 2016-2021 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -13,8 +13,8 @@ extern "C" int LLVMFuzzerTestOneInput(const char* data, std::size_t size);
 #if defined(__AFL_FUZZ_TESTCASE_BUF)
 
 // AFL shared memory fuzzing (afl++ 2.66c and later)
-// https://github.com/AFLplusplus/AFLplusplus/blob/stable/llvm_mode/README.persistent_mode.md
-// https://github.com/AFLplusplus/AFLplusplus/blob/stable/examples/persistent_demo/persistent_demo_new.c
+// https://github.com/AFLplusplus/AFLplusplus/blob/stable/instrumentation/README.persistent_mode.md
+// https://github.com/AFLplusplus/AFLplusplus/blob/stable/utils/persistent_mode/persistent_demo_new.c
 
 #include <unistd.h>
 
