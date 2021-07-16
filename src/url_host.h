@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2021 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -232,15 +232,16 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
         //TODO-ERR: validation error
         return url_result::InvalidDomainCharacter;
     }
-    // IPv4
-    res = parse_ipv4(buff_ascii.begin(), buff_ascii.end(), dest);
-    if (res == url_result::False) {
-        std::string& str_host = dest.hostStart();
-        do_append(str_host, buff_ascii);
-        dest.hostDone(HostType::Domain);
-        return url_result::Ok;
-    }
-    return res;
+
+    // If asciiDomain ends in a number, return the result of IPv4 parsing asciiDomain
+    if (hostname_ends_in_a_number(buff_ascii.begin(), buff_ascii.end()))
+        return parse_ipv4(buff_ascii.begin(), buff_ascii.end(), dest);
+
+    // Return asciiDomain
+    std::string& str_host = dest.hostStart();
+    do_append(str_host, buff_ascii);
+    dest.hostDone(HostType::Domain);
+    return url_result::Ok;
 }
 
 // The opaque-host parser

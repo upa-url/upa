@@ -118,6 +118,98 @@
     "base": "about:blank",
     "failure": true
   },
-
+  "Non-IPv4 tests",
+  {
+    "input": "http://a.0x",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "http://a.0x.",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "http://a.0x100000000000000000000000000000000",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "http://a.0x100000000000000000000000000000000.",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "http://1.0x100000000000000000000000000000000",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "http://1.0x100000000000000000000000000000000.",
+    "base": "about:blank",
+    "failure": true
+  },
+  "IPv4",
+  {
+    "input": "http://1.0x",
+    "base": "about:blank",
+    "href": "http://1.0.0.0/",
+    "origin": "http://1.0.0.0",
+    "protocol": "http:",
+    "username": "",
+    "password": "",
+    "host": "1.0.0.0",
+    "hostname": "1.0.0.0",
+    "port": "",
+    "pathname": "/",
+    "search": "",
+    "hash": ""
+  },
+  {
+    "input": "http://1.0x.",
+    "base": "about:blank",
+    "href": "http://1.0.0.0/",
+    "origin": "http://1.0.0.0",
+    "protocol": "http:",
+    "username": "",
+    "password": "",
+    "host": "1.0.0.0",
+    "hostname": "1.0.0.0",
+    "port": "",
+    "pathname": "/",
+    "search": "",
+    "hash": ""
+  },
+  "IPv4 parser must not be invoked when there are two empty labels at the end",
+  {
+    "input": "http://1.0x..",
+    "base": "about:blank",
+    "href": "http://1.0x../",
+    "origin": "http://1.0x..",
+    "protocol": "http:",
+    "username": "",
+    "password": "",
+    "host": "1.0x..",
+    "hostname": "1.0x..",
+    "port": "",
+    "pathname": "/",
+    "search": "",
+    "hash": ""
+  },
+  {
+    "input": "http://a.1..",
+    "base": "about:blank",
+    "href": "http://a.1../",
+    "origin": "http://a.1..",
+    "protocol": "http:",
+    "username": "",
+    "password": "",
+    "host": "a.1..",
+    "hostname": "a.1..",
+    "port": "",
+    "pathname": "/",
+    "search": "",
+    "hash": ""
+  },
   "[END OF TESTS]"
 ]

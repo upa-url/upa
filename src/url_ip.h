@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2021 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -8,6 +8,7 @@
 
 #include "url_percent_encode.h"
 #include "url_result.h"
+#include <algorithm>
 #include <cassert>
 #include <cstdint> // uint32_t
 #include <limits>
@@ -36,21 +37,52 @@ inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
     } while (num);
 }
 
+// The hostname ends in a number checker
+// https://url.spec.whatwg.org/#ends-in-a-number
+// Optimized version
+//
+template <typename CharT>
+static inline bool hostname_ends_in_a_number(const CharT* first, const CharT* last) {
+    if (first != last) {
+        // if the last label is empty string, then skip it
+        if (*(last - 1) == '.')
+            --last;
+        // find start of the label
+        const CharT* start_of_label = last;
+        while (start_of_label != first && *(start_of_label - 1) != '.')
+            --start_of_label;
+        // check for a number
+        const auto len = last - start_of_label;
+        if (len) {
+            if (len >= 2 && start_of_label[0] == '0' && (start_of_label[1] == 'X' || start_of_label[1] == 'x')) {
+                // "0x" is valid IPv4 number (std::all_of returns true if the range is empty)
+                return std::all_of(start_of_label + 2, last, detail::isHexChar<CharT>);
+            } else {
+                return std::all_of(start_of_label, last, detail::is_ascii_digit<CharT>);
+            }
+        }
+    }
+    return false;
+}
+
 // IPv4 number parser
 // https://url.spec.whatwg.org/#ipv4-number-parser
 //
 // - on success sets number value and returns url_result::Ok
 // - if resulting number can not be represented by uint32_t value, then returns
-//   url_result::InvalidIpv4Address 
-// - on failure (non digit char) returns url_result::False
+//   url_result::InvalidIpv4Address
 //
 // TODO-WARN: validationError
 
 template <typename CharT>
 static inline url_result ipv4_parse_number(const CharT* first, const CharT* last, uint32_t& number) {
+    // If input is the empty string, then return failure
+    if (first == last)
+        return url_result::InvalidIpv4Address;
+
     // Figure out the base
     uint32_t radix;
-    if (first < last && first[0] == '0') {
+    if (first[0] == '0') {
         const std::size_t len = last - first;
         if (len == 1) {
             number = 0;
@@ -83,12 +115,13 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
         const CharT chmax = static_cast<CharT>('0' - 1 + radix);
         for (auto it = first; it != last; ++it) {
             if (*it > chmax || *it < '0')
-                return url_result::False;
+                return url_result::InvalidIpv4Address;
         }
     } else {
+        // radix == 16
         for (auto it = first; it != last; ++it) {
             if (!detail::isHexChar(static_cast<unsigned char>(*it)))
-                return url_result::False;
+                return url_result::InvalidIpv4Address;
         }
     }
 
@@ -126,15 +159,16 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
 // - on failure (when all parts are valid numbers, but any of them is too big),
 //   returns url_result::InvalidIpv4Address
 // - if input is not IPv4 adrress (any part is empty or contains non digit),
-//   then returns url_result::False (standard says "return input").
+//   then returns url_result::InvalidIpv4Address
 
 template <typename CharT>
 inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ipv4) {
     using UCharT = typename std::make_unsigned<CharT>::type;
 
-    // Comes from: 6.1. If part is the empty string, then return input.
+    // Comes from: 6.1 & "IPv4 number parser":
+    // If input is the empty string, then return failure.
     if (first == last)
-        return url_result::False;
+        return url_result::InvalidIpv4Address;
 
     // <1>.<2>.<3>.<4>.<->
     const CharT* part[6];
@@ -146,13 +180,15 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
         UCharT uc = static_cast<UCharT>(*it);
         if (uc == '.') {
             if (dot_count == 4)
-                return url_result::False; // 4. If parts’s size is greater than 4, then return input.
+                // 4. If parts’s size is greater than 4, then validation error, return failure.
+                return url_result::InvalidIpv4Address;
             if (part[dot_count] == it)
-                return url_result::False; // 6.1. If part is the empty string, then return input.
+                // 6.1 & "IPv4 number parser": If input is the empty string, then return failure.
+                return url_result::InvalidIpv4Address;
             part[++dot_count] = it + 1; // skip '.'
         } else if (!detail::isIPv4Char(uc)) {
-            // not IPv4 character
-            return url_result::False;
+            // non IPv4 character
+            return url_result::InvalidIpv4Address;
         }
     }
 
@@ -166,15 +202,17 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
         part_count = dot_count + 1;
         part[part_count] = last + 1; // bus -1
     }
-    // 4. If parts’s size is greater than 4, then return input.
+    // 4. If parts’s size is greater than 4, then validation error, return failure.
     if (part_count > 4)
-        return url_result::False;
+        return url_result::InvalidIpv4Address;
 
     // IPv4 numbers
     uint32_t number[4];
     for (int ind = 0; ind < part_count; ++ind) {
         url_result res = ipv4_parse_number(part[ind], part[ind + 1] - 1, number[ind]);
+        // 6.2. If result is failure, then validation error, return failure.
         if (res != url_result::Ok) return res;
+        // TODO: 6.3. If result[1] is true, then set validationError to true
     }
     // TODO-WARN:
     // 7. If validationError is true, validation error.
