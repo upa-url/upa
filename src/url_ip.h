@@ -216,11 +216,6 @@ inline void get_hex_number(const CharT*& pointer, const CharT* last, IntT& value
     }
 }
 
-template <typename CharT>
-inline bool IsAsciiDigit(CharT ch) {
-    return ch <= '9' && ch >= '0';
-}
-
 // IPv6 parser
 // https://url.spec.whatwg.org/#concept-ipv6-parser
 //
@@ -308,13 +303,13 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
                     return false;
                 }
             }
-            if (pointer == last || !IsAsciiDigit(*pointer)) {
+            if (pointer == last || !detail::is_ascii_digit(*pointer)) {
                 // TODO-ERR: validation error
                 return false;
             }
             // While c is an ASCII digit, run these subsubsteps
             unsigned ipv4Piece = *(pointer++) - '0';
-            while (pointer != last && IsAsciiDigit(*pointer)) {
+            while (pointer != last && detail::is_ascii_digit(*pointer)) {
                 if (ipv4Piece == 0) // leading zero
                     return false; // TODO-ERR: validation error
                 ipv4Piece = ipv4Piece * 10 + (*pointer - '0');

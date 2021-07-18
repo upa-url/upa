@@ -254,6 +254,18 @@ inline bool isForbiddenHostChar(CharT c) {
     return isCharInSet(c, host_forbidden_set);
 }
 
+// Char classification
+
+template <typename CharT>
+inline bool is_ascii_digit(CharT ch) {
+    return ch <= '9' && ch >= '0';
+}
+
+template <typename CharT>
+inline bool is_ascii_alpha(CharT ch) {
+    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
+}
+
 // ----------------------------------------------------------------------------
 // Hex digit conversion tables and functions
 

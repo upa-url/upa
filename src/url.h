@@ -787,16 +787,6 @@ inline bool is_slash(CharT ch) {
     return ch == '/' || ch == '\\';
 }
 
-template <typename CharT>
-inline bool is_ascii_digit(CharT ch) {
-    return ch <= '9' && ch >= '0';
-}
-
-template <typename CharT>
-inline bool is_ascii_alpha(CharT ch) {
-    return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
-}
-
 // Scheme chars
 
 template <typename CharT>
