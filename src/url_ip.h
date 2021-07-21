@@ -110,38 +110,34 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
         return url_result::Ok;
     }
 
-    // check if valid digits (we known all chars are ASCII)
-    if (radix <= 10) {
-        const CharT chmax = static_cast<CharT>('0' - 1 + radix);
-        for (auto it = first; it != last; ++it) {
-            if (*it > chmax || *it < '0')
-                return url_result::InvalidIpv4Address;
-        }
-    } else {
-        // radix == 16
-        for (auto it = first; it != last; ++it) {
-            if (!detail::isHexChar(static_cast<unsigned char>(*it)))
-                return url_result::InvalidIpv4Address;
-        }
-    }
-
-    // All characters are valid digits, convert them to integer:
-    // max 32-bit value is
+    // Check length - max 32-bit value is
     // HEX: FFFFFFFF    (8 digits)
     // DEC: 4294967295  (10 digits)
     // OCT: 37777777777 (11 digits)
     if (last - first > 11)
         return url_result::InvalidIpv4Address; // int overflow
 
+    // Check chars are valid digits and convert its sequence to number.
     // Use the 64-bit to get a big number (no hex, decimal, or octal
     // number can overflow a 64-bit number in <= 16 characters).
     uint64_t num = 0;
     if (radix <= 10) {
-        for (auto it = first; it != last; ++it)
-            num = num * radix + (*it - '0');
+        const auto chmax = static_cast<CharT>('0' - 1 + radix);
+        for (auto it = first; it != last; ++it) {
+            const auto ch = *it;
+            if (ch > chmax || ch < '0')
+                return url_result::InvalidIpv4Address;
+            num = num * radix + (ch - '0');
+        }
     } else {
-        for (auto it = first; it != last; ++it)
-            num = num * radix + detail::HexCharToValue(static_cast<unsigned char>(*it));
+        // radix == 16
+        for (auto it = first; it != last; ++it) {
+            // This cast is safe because chars are ASCII
+            const auto uch = static_cast<unsigned char>(*it);
+            if (!detail::isHexChar(uch))
+                return url_result::InvalidIpv4Address;
+            num = num * radix + detail::HexCharToValue(uch);
+        }
     }
 
     // Check for 32-bit overflow.
