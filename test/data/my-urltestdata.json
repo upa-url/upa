@@ -120,6 +120,16 @@
   },
   "Non-IPv4 tests",
   {
+    "input": "http://0xAX.1",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "http://0xAX.1.",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
     "input": "http://a.0x",
     "base": "about:blank",
     "failure": true
