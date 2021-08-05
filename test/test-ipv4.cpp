@@ -16,14 +16,14 @@ TEST_CASE("IPv4 parser test with empty input") {
     const char* szEmpty = "";
 
     // https://url.spec.whatwg.org/#ipv4-number-parser
-    // 4. If input is the empty string, then return zero.
+    // 1. If input is the empty string, then return failure.
     uint32_t ipv4 = 1;
-    CHECK(whatwg::ipv4_parse_number(szEmpty, szEmpty, ipv4) == whatwg::url_result::Ok);
-    CHECK(ipv4 == 0);
+    CHECK(whatwg::ipv4_parse_number(szEmpty, szEmpty, ipv4) != whatwg::url_result::Ok);
 
     // https://url.spec.whatwg.org/#concept-ipv4-parser
-    // 6. 1. If part is the empty string, return input.
-    CHECK(whatwg::ipv4_parse(szEmpty, szEmpty, ipv4) == whatwg::url_result::False);
+    // 6. 1. Let result be the result of parsing part.
+    // 6. 2. If result is failure, validation error, return failure.
+    CHECK(whatwg::ipv4_parse(szEmpty, szEmpty, ipv4) != whatwg::url_result::Ok);
 }
 
 TEST_CASE("IPv4 parser test with 127.0.0.1") {
