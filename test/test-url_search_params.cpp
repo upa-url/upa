@@ -98,6 +98,47 @@ TEST_CASE_TEMPLATE_INVOKE(test_iterables, char8_t);
 #endif
 
 
+// Constructors
+
+TEST_CASE("url_search_params constructors") {
+    const pairs_list_t<std::string> lst_pairs = TEST_ITERABLES_DATA;
+
+    SUBCASE("default constructor") {
+        const whatwg::url_search_params params;
+
+        CHECK(params.empty());
+        CHECK(params.size() == 0);
+        CHECK(params.to_string() == "");
+    }
+    SUBCASE("copy constructor") {
+        whatwg::url_search_params params(lst_pairs);
+        CHECK(list_eq(params, lst_pairs));
+
+        whatwg::url_search_params paramsCopy(params);
+        CHECK(list_eq(paramsCopy, lst_pairs));
+    }
+    SUBCASE("move constructor") {
+        whatwg::url_search_params params(lst_pairs);
+        CHECK(list_eq(params, lst_pairs));
+
+        whatwg::url_search_params paramsCopy(std::move(params));
+        CHECK(list_eq(paramsCopy, lst_pairs));
+    }
+}
+
+// Operations
+
+TEST_CASE("url_search_params::parse") {
+    whatwg::url_search_params params;
+
+    params.parse("a=b");
+    CHECK(params.to_string() == "a=b");
+
+    params.parse("?c=d");
+    CHECK(params.to_string() == "c=d");
+}
+
+
 // Sort test
 
 TEST_CASE("url_search_params::sort()") {
@@ -194,6 +235,7 @@ TEST_CASE("url::searchParams() and url::clear()") {
     CHECK_FALSE(url.empty());
     CHECK_FALSE(params.empty());
     CHECK(list_eq(params, pairs_list_t<std::string>{ {"a", "A"}, { "b", "B" } }));
+    CHECK(params.size() == 2);
 
     url.clear();
 
@@ -201,4 +243,5 @@ TEST_CASE("url::searchParams() and url::clear()") {
     CHECK(url.search() == "");
     CHECK(url.empty());
     CHECK(params.empty());
+    CHECK(params.size() == 0);
 }

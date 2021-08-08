@@ -79,7 +79,7 @@ public:
     /// @brief Default constructor.
     ///
     /// Constructs empty @c url_search_params object.
-    url_search_params();
+    url_search_params() = default;
 
     /// @brief Copy constructor.
     ///
@@ -317,9 +317,6 @@ private:
 
 
 // url_search_params inline
-
-inline url_search_params::url_search_params()
-{}
 
 inline url_search_params::url_search_params(const url_search_params& other)
     : params_(other.params_)
