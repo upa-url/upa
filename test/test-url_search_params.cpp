@@ -110,19 +110,26 @@ TEST_CASE("url_search_params constructors") {
         CHECK(params.size() == 0);
         CHECK(params.to_string() == "");
     }
+    SUBCASE("copy constructor from const") {
+        const whatwg::url_search_params params(lst_pairs);
+        CHECK(list_eq(params, lst_pairs));
+
+        whatwg::url_search_params paramsC(params);
+        CHECK(list_eq(paramsC, lst_pairs));
+    }
     SUBCASE("copy constructor") {
         whatwg::url_search_params params(lst_pairs);
         CHECK(list_eq(params, lst_pairs));
 
-        whatwg::url_search_params paramsCopy(params);
-        CHECK(list_eq(paramsCopy, lst_pairs));
+        whatwg::url_search_params paramsC(params);
+        CHECK(list_eq(paramsC, lst_pairs));
     }
     SUBCASE("move constructor") {
         whatwg::url_search_params params(lst_pairs);
         CHECK(list_eq(params, lst_pairs));
 
-        whatwg::url_search_params paramsCopy(std::move(params));
-        CHECK(list_eq(paramsCopy, lst_pairs));
+        whatwg::url_search_params paramsM(std::move(params));
+        CHECK(list_eq(paramsM, lst_pairs));
     }
 }
 

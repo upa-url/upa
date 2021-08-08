@@ -85,6 +85,8 @@ public:
     ///
     /// @param[in] other @c url_search_params object to copy from
     url_search_params(const url_search_params& other);
+    url_search_params(url_search_params& other)
+        : url_search_params((const url_search_params&)other) {}
 
     /// @brief Move constructor.
     ///
