@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2021 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -86,7 +86,7 @@ public:
     /// @param[in] other @c url_search_params object to copy from
     url_search_params(const url_search_params& other);
     url_search_params(url_search_params& other)
-        : url_search_params((const url_search_params&)other) {}
+        : url_search_params(const_cast<const url_search_params&>(other)) {}
 
     /// @brief Move constructor.
     ///
@@ -397,7 +397,7 @@ inline const std::string* url_search_params::get(const TN& name) const {
 }
 
 template <class TN>
-std::list<std::string> url_search_params::getAll(const TN& name) const {
+inline std::list<std::string> url_search_params::getAll(const TN& name) const {
     std::list<std::string> lst;
     const auto str_name = make_string(name);
     for (auto it = params_.begin(); it != params_.end(); ++it) {
