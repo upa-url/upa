@@ -56,6 +56,13 @@ namespace detail {
     class url_search_params_ptr;
 }
 
+// Disable MSVC compiler warning:
+// C4521 - the class has multiple copy constructors of a single type.
+#ifdef _MSC_VER
+#pragma warning( push )
+#pragma warning( disable : 4521 )
+#endif
+
 /// @brief URLSearchParams class
 ///
 /// Follows specification in
@@ -266,6 +273,10 @@ private:
 
     static const char kEncByte[0x100];
 };
+
+#ifdef _MSC_VER
+#pragma warning( pop )
+#endif
 
 
 namespace detail {
