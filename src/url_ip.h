@@ -38,7 +38,7 @@ inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
 }
 
 // The hostname ends in a number checker
-// https://url.spec.whatwg.org/#ends-in-a-number
+// https://url.spec.whatwg.org/#ends-in-a-number-checker
 // Optimized version
 //
 template <typename CharT>

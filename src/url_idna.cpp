@@ -76,7 +76,7 @@ static_assert(sizeof(char16_t) == sizeof(UChar), "");
 
 url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<char16_t>& output) {
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
-    // http://www.unicode.org/reports/tr46/#ToASCII
+    // https://www.unicode.org/reports/tr46/#ToASCII
     static const uint32_t UIDNA_ERR_MASK = ~(uint32_t)(
         // VerifyDnsLength = false
         UIDNA_ERROR_EMPTY_LABEL

@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2021 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -111,7 +111,7 @@ const char url_utf::kReplacementCharUtf8[] = "\xEF\xBF\xBD";
 
 //
 // (c) 2016 and later: Unicode, Inc. and others.
-// License & terms of use: http://www.unicode.org/copyright.html
+// License & terms of use: https://www.unicode.org/copyright.html
 //
 
 // Following two arrays have values from corresponding macros in ICU 61.1 library's

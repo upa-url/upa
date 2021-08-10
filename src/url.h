@@ -2308,7 +2308,7 @@ inline void url_serializer::commit_path() {
 
 inline void url_serializer::adjust_path_prefix() {
     // "/." path prefix
-    // https://url.spec.whatwg.org/#url-serializing (5.1.)
+    // https://url.spec.whatwg.org/#url-serializing (4.1.)
     str_view_type new_prefix;
     if (is_null(url::HOST) && url_.path_segment_count_ > 1) {
         const auto pathname = get_part_view(url::PATH);

@@ -15,7 +15,7 @@ namespace whatwg {
 enum class url_result {
     // Success:
     Ok = 0,                        //!< success 
-    False,                         //!< setter ignored the value; non-ipv4 address (internal)
+    False,                         //!< setter ignored the value (internal)
     // Failure:
     InvalidSchemeCharacter,        //!< invalid scheme character
     EmptyHost,                     //!< host cannot be empty

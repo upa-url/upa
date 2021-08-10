@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2021 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -85,7 +85,7 @@ inline bool url_utf::read_utf_char(const CharT*& first, const CharT* last, uint3
 // utf8.h, utf16.h and utf.h files.
 //
 // (c) 2016 and later: Unicode, Inc. and others.
-// License & terms of use: http://www.unicode.org/copyright.html
+// License & terms of use: https://www.unicode.org/copyright.html
 //
 
 // Decoding UTF-8, UTF-16, UTF-32

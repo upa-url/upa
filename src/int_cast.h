@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Rimas Misevičius
+// Copyright 2016-2021 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -31,9 +31,9 @@ struct unsigned_limit {
     static constexpr UT min() {
         // http://en.cppreference.com/w/cpp/language/implicit_conversion
         // Integral conversions: If the destination type is unsigned, the resulting
-        // value is the smallest unsigned value equal to the source value modulo 2n
+        // value is the smallest unsigned value equal to the source value modulo 2^n
         // where n is the number of bits used to represent the destination type.
-        // https://en.wikipedia.org/wiki/Modular_arithmetic#Congruence_relation
+        // https://en.wikipedia.org/wiki/Modular_arithmetic#Congruence
         return static_cast<UT>(0) - static_cast<UT>(std::numeric_limits<T>::min());
     }
 };
