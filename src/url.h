@@ -418,7 +418,7 @@ private:
         QUERY_FLAG = (1u << QUERY),
         FRAGMENT_FLAG = (1u << FRAGMENT),
         // other flags
-        CANNOT_BE_BASE_FLAG = (1u << (PART_COUNT + 0)),
+        OPAQUE_PATH_FLAG = (1u << (PART_COUNT + 0)),
         // host type
         HOST_TYPE_SHIFT = (PART_COUNT + 1),
         HOST_TYPE_MASK = (7u << HOST_TYPE_SHIFT),
@@ -456,8 +456,8 @@ private:
     // flags
     void set_flag(const UrlFlag flag) noexcept;
 
-    bool cannot_be_base() const noexcept;
-    void set_cannot_be_base() noexcept;
+    bool has_an_opaque_path() const noexcept;
+    void set_has_an_opaque_path() noexcept;
 
     void set_host_type(const HostType ht) noexcept;
 
@@ -557,11 +557,11 @@ public:
     // flags
     void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
     void set_host_type(const HostType ht) { url_.set_host_type(ht); }
-    // IMPORTANT: cannot-be-a-base-URL flag must be set before or just after
+    // IMPORTANT: has-an-opaque-path flag must be set before or just after
     // SCHEME set; because other part's serialization depends on this flag
-    void set_cannot_be_base() {
+    void set_has_an_opaque_path() {
         assert(last_pt_ == url::SCHEME);
-        url_.set_cannot_be_base();
+        url_.set_has_an_opaque_path();
     }
 
     // get info
@@ -681,7 +681,7 @@ public:
         file_host_state,
         path_start_state,
         path_state,
-        cannot_be_base_URL_path_state,
+        opaque_path_state,
         query_state,
         fragment_state
     };
@@ -1068,12 +1068,12 @@ inline void url::set_flag(const UrlFlag flag) noexcept {
     flags_ |= flag;
 }
 
-inline bool url::cannot_be_base() const noexcept {
-    return !!(flags_ & CANNOT_BE_BASE_FLAG);
+inline bool url::has_an_opaque_path() const noexcept {
+    return !!(flags_ & OPAQUE_PATH_FLAG);
 }
 
-inline void url::set_cannot_be_base() noexcept {
-    set_flag(CANNOT_BE_BASE_FLAG);
+inline void url::set_has_an_opaque_path() noexcept {
+    set_flag(OPAQUE_PATH_FLAG);
 }
 
 inline void url::set_host_type(const HostType ht) noexcept {
@@ -1081,7 +1081,7 @@ inline void url::set_host_type(const HostType ht) noexcept {
 }
 
 inline bool url::canHaveUsernamePasswordPort() const {
-    return !(is_empty(url::HOST) || cannot_be_base() || is_file_scheme());
+    return !(is_empty(url::HOST) || has_an_opaque_path() || is_file_scheme());
 }
 
 // url parsing
@@ -1191,7 +1191,7 @@ inline bool url::password(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::host(StrT&& str) {
-    if (!cannot_be_base()) {
+    if (!has_an_opaque_path()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1202,7 +1202,7 @@ inline bool url::host(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::hostname(StrT&& str) {
-    if (!cannot_be_base()) {
+    if (!has_an_opaque_path()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1232,7 +1232,7 @@ inline bool url::port(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::pathname(StrT&& str) {
-    if (!cannot_be_base()) {
+    if (!has_an_opaque_path()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1382,7 +1382,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             } else {
                 if (urls.is_special_scheme()) {
                     if (base && urls.get_part_view(url::SCHEME) == base->get_part_view(url::SCHEME)) {
-                        // NOTE: This means that base's cannot-be-a-base-URL flag is unset
+                        // NOTE: This means that base's has-an-opaque-path flag is unset
                         state = special_relative_or_authority_state;
                     } else {
                         state = special_authority_slashes_state;
@@ -1391,13 +1391,13 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     state = path_or_authority_state;
                     ++pointer;
                 } else {
-                    urls.set_cannot_be_base();
+                    urls.set_has_an_opaque_path();
                     // append an empty string to url's path
                     // Path must be without '/', so urls.append_to_path() cannot
                     // be used here:
                     urls.start_path_string(); // not start_path_segment()
                     urls.save_path_string();
-                    state = cannot_be_base_URL_path_state;
+                    state = opaque_path_state;
                 }
             }
         } else if (!state_override) {
@@ -1410,12 +1410,12 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
     if (state == no_scheme_state) {
         if (base) {
-            if (base->cannot_be_base()) {
+            if (base->has_an_opaque_path()) {
                 if (pointer < last && *pointer == '#') {
-                    // IMPORTANT: set_cannot_be_base() must be called before append_parts(..),
-                    // because the cannot_be_base flag can be used when serializing in
+                    // IMPORTANT: set_has_an_opaque_path() must be called before append_parts(..),
+                    // because the has_an_opaque_path flag can be used when serializing in
                     // append_parts(..)
-                    urls.set_cannot_be_base();
+                    urls.set_has_an_opaque_path();
                     urls.set_scheme(*base);
                     urls.append_parts(*base, url::PATH, url::QUERY);
                     //TODO: url's fragment to the empty string
@@ -1864,7 +1864,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         }
     }
 
-    if (state == cannot_be_base_URL_path_state) {
+    if (state == opaque_path_state) {
         const auto end_of_path =
             std::find_if(pointer, last, [](CharT c) { return c == '?' || c == '#'; });
 
@@ -2091,7 +2091,7 @@ template <typename CharT>
 inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, std::string& output) {
     using UCharT = typename std::make_unsigned<CharT>::type;
 
-    // 3. of "cannot-be-a-base-URL path state"
+    // 3. of "opaque path state"
     // TODO-WARN: 3. [ 1 ... 2 ] validation error.
     //  1. If c is not EOF code point, not a URL code point, and not "%", validation error.
     //  2. If c is "%" and remaining does not start with two ASCII hex digits, validation error.
@@ -2122,7 +2122,7 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
 
 inline url::str_view_type url::get_path_first_string(std::size_t len) const {
     str_view_type pathv = get_part_view(PATH);
-    if (pathv.length() == 0 || cannot_be_base())
+    if (pathv.length() == 0 || has_an_opaque_path())
         return pathv;
     // skip '/'
     pathv.remove_prefix(1);
