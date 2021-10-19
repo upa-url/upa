@@ -428,6 +428,8 @@ private:
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
 
+    static const unsigned kPartFlagMask[url::PART_COUNT];
+
     // parsing constructor
     template <class T, enable_if_str_arg_t<T> = 0>
     explicit url(T&& str_url, const url* base, const char* what_arg);
@@ -1391,6 +1393,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     state = path_or_authority_state;
                     ++pointer;
                 } else {
+                    // set url’s path to the empty string (it means path becomes opaque,
+                    // see: https://url.spec.whatwg.org/#url-opaque-path)
                     urls.set_has_an_opaque_path();
                     // append an empty string to url's path
                     // Path must be without '/', so urls.append_to_path() cannot
@@ -1412,10 +1416,6 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         if (base) {
             if (base->has_an_opaque_path()) {
                 if (pointer < last && *pointer == '#') {
-                    // IMPORTANT: set_has_an_opaque_path() must be called before append_parts(..),
-                    // because the has_an_opaque_path flag can be used when serializing in
-                    // append_parts(..)
-                    urls.set_has_an_opaque_path();
                     urls.set_scheme(*base);
                     urls.append_parts(*base, url::PATH, url::QUERY);
                     //TODO: url's fragment to the empty string
@@ -2394,6 +2394,13 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
         ifirst = t1;
     }
 
+    // copy flags; they can be used then copying / serializing url parts
+    unsigned mask = 0;
+    for (int ind = t1; ind <= t2; ++ind) {
+        mask |= url::kPartFlagMask[ind];
+    }
+    url_.flags_ = (url_.flags_ & ~mask) | (src.flags_ & mask);
+
     // copy parts & str
     if (ifirst <= t2) {
         int ilast = t2;
@@ -2435,13 +2442,6 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             last_pt_ = static_cast<url::PartType>(ilast);
         }
     }
-
-    // copy host_type & not null flags
-    unsigned mask = url::HOST_TYPE_MASK;
-    for (int ind = t1; ind <= t2; ++ind) {
-        mask |= (1u << ind);
-    }
-    url_.flags_ = (url_.flags_ & ~mask) | (src.flags_ & mask);
 }
 
 // replace part in url

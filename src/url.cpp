@@ -58,6 +58,22 @@ const uint8_t kPartStart[url::PART_COUNT] = {
 } // namespace detail
 
 
+  // URL's part flag masks
+
+const unsigned url::kPartFlagMask[url::PART_COUNT] = {
+    SCHEME_FLAG,
+    0,  // SCHEME_SEP
+    USERNAME_FLAG,
+    PASSWORD_FLAG,
+    0,  // HOST_START
+    HOST_FLAG | HOST_TYPE_MASK,
+    PORT_FLAG,
+    0,  // PATH_PREFIX
+    PATH_FLAG | OPAQUE_PATH_FLAG,
+    QUERY_FLAG,
+    FRAGMENT_FLAG
+};
+
 // MUST be sorted by length
 const url::scheme_info url::kSchemes[] = {
     // scheme,         port, is_special, is_file, is_ws
