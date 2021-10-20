@@ -1384,7 +1384,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             } else {
                 if (urls.is_special_scheme()) {
                     if (base && urls.get_part_view(url::SCHEME) == base->get_part_view(url::SCHEME)) {
-                        // NOTE: This means that base's has-an-opaque-path flag is unset
+                        assert(base->is_special_scheme()); // and therefore does not have an opaque path
                         state = special_relative_or_authority_state;
                     } else {
                         state = special_authority_slashes_state;
@@ -1393,7 +1393,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     state = path_or_authority_state;
                     ++pointer;
                 } else {
-                    // set url’s path to the empty string (it means path becomes opaque,
+                    // set url’s path to the empty string (so path becomes opaque,
                     // see: https://url.spec.whatwg.org/#url-opaque-path)
                     urls.set_has_an_opaque_path();
                     // append an empty string to url's path
@@ -2152,6 +2152,7 @@ inline bool url::get_path_rem_last(std::size_t& path_end, std::size_t& path_segm
 // https://url.spec.whatwg.org/#shorten-a-urls-path
 
 inline bool url::get_shorten_path(std::size_t& path_end, std::size_t& path_segment_count) const {
+    assert(!has_an_opaque_path());
     if (path_segment_count_ == 0)
         return false;
     if (is_file_scheme() && path_segment_count_ == 1) {
@@ -2394,7 +2395,7 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
         ifirst = t1;
     }
 
-    // copy flags; they can be used then copying / serializing url parts
+    // copy flags; they can be used when copying / serializing url parts below
     unsigned mask = 0;
     for (int ind = t1; ind <= t2; ++ind) {
         mask |= url::kPartFlagMask[ind];
