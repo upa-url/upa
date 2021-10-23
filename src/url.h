@@ -1396,7 +1396,6 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     // set url’s path to the empty string (so path becomes opaque,
                     // see: https://url.spec.whatwg.org/#url-opaque-path)
                     urls.set_has_an_opaque_path();
-                    // append an empty string to url's path
                     // Path must be without '/', so urls.append_to_path() cannot
                     // be used here:
                     urls.start_path_string(); // not start_path_segment()
@@ -1870,7 +1869,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
         // UTF-8 percent encode using the C0 control percent-encode set,
         // and append the result to url's path[0]
-        std::string& str_path = urls.start_path_string(); // ne start_path_segment()
+        std::string& str_path = urls.start_path_string(); // not start_path_segment()
         do_simple_path(pointer, end_of_path, str_path);
         urls.save_path_string();
         pointer = end_of_path;
