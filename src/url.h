@@ -1083,7 +1083,7 @@ inline void url::set_host_type(const HostType ht) noexcept {
 }
 
 inline bool url::canHaveUsernamePasswordPort() const {
-    return !(is_empty(url::HOST) || has_an_opaque_path() || is_file_scheme());
+    return !(is_empty(url::HOST) || is_file_scheme());
 }
 
 // url parsing
