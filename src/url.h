@@ -101,7 +101,7 @@ public:
     /// Replaces the contents with those of @a other using move semantics.
     ///
     /// @param[in,out] other  URL to move to this object
-    url& operator=(url&& other);
+    url& operator=(url&& other) WHATWG__NOEXCEPT_17;
 
     /// @brief Parsing constructor.
     ///
@@ -875,7 +875,7 @@ inline url::url(url&& other) noexcept
     search_params_ptr_.set_url_ptr(this);
 }
 
-inline url& url::operator=(url&& other) {
+inline url& url::operator=(url&& other) WHATWG__NOEXCEPT_17 {
     // move data
     norm_url_ = std::move(other.norm_url_);
     part_end_ = std::move(other.part_end_);
