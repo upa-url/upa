@@ -226,6 +226,31 @@ TEST_CASE("url::searchParams()") {
     CHECK(url.search() == "");
 }
 
+TEST_CASE("url::searchParams() and url::url(url&&)") {
+    // test move constructor from url with initialized url_search_params  
+    whatwg::url url("http://example.org/");
+    url.searchParams().append("a", "A");
+    CHECK(url.search() == "?a=A");
+
+    // move constructor
+    whatwg::url url_m(std::move(url));
+    url_m.searchParams().append("m", "M");
+    CHECK(url_m.search() == "?a=A&m=M");
+}
+
+TEST_CASE("url::searchParams() and url::operator=(url&&)") {
+    // test move assignment from url with initialized url_search_params  
+    whatwg::url url("http://example.org/");
+    url.searchParams().append("a", "A");
+    CHECK(url.search() == "?a=A");
+
+    // move assignment
+    whatwg::url url_m;
+    url_m = std::move(url);
+    url_m.searchParams().append("m", "M");
+    CHECK(url_m.search() == "?a=A&m=M");
+}
+
 TEST_CASE("url::searchParams() and url::search(...)") {
     whatwg::url url("http://h/p");
     auto& params = url.searchParams();

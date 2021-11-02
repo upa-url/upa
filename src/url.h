@@ -89,7 +89,7 @@ public:
     /// Constructs the URL with the contents of @a other using move semantics.
     ///
     /// @param[in,out] other  URL to move to this object
-    url(url&& other) noexcept = default;
+    url(url&& other) noexcept;
 
     /// @brief Copy assignment.
     ///
@@ -101,7 +101,7 @@ public:
     /// Replaces the contents with those of @a other using move semantics.
     ///
     /// @param[in,out] other  URL to move to this object
-    url& operator=(url&& other) = default;
+    url& operator=(url&& other);
 
     /// @brief Parsing constructor.
     ///
@@ -863,6 +863,34 @@ inline bool starts_with(const CharT* first, const CharT* last, url::str_view_typ
 
 
 // url class
+
+inline url::url(url&& other) noexcept
+    : norm_url_(std::move(other.norm_url_))
+    , part_end_(std::move(other.part_end_))
+    , scheme_inf_(other.scheme_inf_)
+    , flags_(other.flags_)
+    , path_segment_count_(other.path_segment_count_)
+    , search_params_ptr_(std::move(other.search_params_ptr_))
+{
+    search_params_ptr_.set_url_ptr(this);
+}
+
+inline url& url::operator=(url&& other) {
+    // move data
+    norm_url_ = std::move(other.norm_url_);
+    part_end_ = std::move(other.part_end_);
+    scheme_inf_ = other.scheme_inf_;
+    flags_ = other.flags_;
+    path_segment_count_ = other.path_segment_count_;
+    search_params_ptr_ = std::move(other.search_params_ptr_);
+
+    // setup search params
+    search_params_ptr_.set_url_ptr(this);
+
+    return *this;
+}
+
+// url getters
 
 inline url::str_view_type url::href() const {
     return norm_url_;

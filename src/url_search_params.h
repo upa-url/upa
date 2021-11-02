@@ -304,6 +304,11 @@ public:
         ptr_.reset(new url_search_params(url_ptr));
     }
 
+    void set_url_ptr(url* url_ptr) noexcept {
+        if (ptr_)
+            ptr_->url_ptr_ = url_ptr;
+    }
+
     void clear_params() noexcept {
         assert(ptr_);
         ptr_->clear_params();
