@@ -452,30 +452,30 @@ TEST_CASE("urlsearchparams-getall.any.js") {
     SUBCASE("getAll() basics") {
         {
             whatwg::url_search_params params("a=b&c=d");
-            CHECK(list_eq(params.getAll("a"), { "b" }));
-            CHECK(list_eq(params.getAll("c"), { "d" }));
-            CHECK(params.getAll("e").empty()); // empty list
+            CHECK(list_eq(params.get_all("a"), { "b" }));
+            CHECK(list_eq(params.get_all("c"), { "d" }));
+            CHECK(params.get_all("e").empty()); // empty list
         } {
             whatwg::url_search_params params("a=b&c=d&a=e");
-            CHECK(list_eq(params.getAll("a"), { "b", "e" }));
+            CHECK(list_eq(params.get_all("a"), { "b", "e" }));
         } {
             whatwg::url_search_params params("=b&c=d");
-            CHECK(list_eq(params.getAll(""), { "b" }));
+            CHECK(list_eq(params.get_all(""), { "b" }));
         } {
             whatwg::url_search_params params("a=&c=d&a=e");
-            CHECK(list_eq(params.getAll("a"), { "", "e" }));
+            CHECK(list_eq(params.get_all("a"), { "", "e" }));
         }
     }
 
     SUBCASE("getAll() multiples") {
         whatwg::url_search_params params("a=1&a=2&a=3&a");
         CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
-        auto matches = params.getAll("a");
+        auto matches = params.get_all("a");
         CHECK_MESSAGE(matches.size() == 4, "Search params object has values for name \"a\"");
         CHECK_MESSAGE(list_eq(matches, { "1", "2", "3", "" }), "Search params object has expected name \"a\" values");
         params.set("a", "one");
         CHECK_MESSAGE(param_eq(params.get("a"), "one"), "Search params object has name \"a\" with value \"one\"");
-        matches = params.getAll("a");
+        matches = params.get_all("a");
         CHECK_MESSAGE(matches.size() == 1, "Search params object has values for name \"a\"");
         CHECK_MESSAGE(list_eq(matches, { "one" }), "Search params object has expected name \"a\" values");
     }

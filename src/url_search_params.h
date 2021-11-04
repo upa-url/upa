@@ -162,7 +162,7 @@ public:
     /// @param[in] name
     /// @return list of values as `std::string`
     template <class TN>
-    std::list<std::string> getAll(const TN& name) const;
+    std::list<std::string> get_all(const TN& name) const;
 
     /// Tests if list contains a name-value pair whose name is @a name.
     ///
@@ -413,7 +413,7 @@ inline const std::string* url_search_params::get(const TN& name) const {
 }
 
 template <class TN>
-inline std::list<std::string> url_search_params::getAll(const TN& name) const {
+inline std::list<std::string> url_search_params::get_all(const TN& name) const {
     std::list<std::string> lst;
     const auto str_name = make_string(name);
     for (auto it = params_.begin(); it != params_.end(); ++it) {
