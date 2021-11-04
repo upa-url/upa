@@ -352,7 +352,7 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-searchparams
     ///
     /// @return reference to this’s query object (url_search_params class)
-    url_search_params& searchParams();
+    url_search_params& search_params();
 
     /// @brief URL serializer
     ///
@@ -1004,7 +1004,7 @@ inline url::str_view_type url::hash() const {
     return str_view_type(norm_url_.data() + b, e - b);
 }
 
-inline url_search_params& url::searchParams() {
+inline url_search_params& url::search_params() {
     if (!search_params_ptr_)
         search_params_ptr_.init(this);
     return *search_params_ptr_;

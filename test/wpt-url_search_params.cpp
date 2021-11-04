@@ -393,8 +393,8 @@ TEST_CASE("urlsearchparams-delete.any.js") {
         // whatwg::url url("http://example.com/?param1&param2");
         whatwg::url url;
         REQUIRE(whatwg::success(url.parse("http://example.com/?param1&param2", nullptr)));
-        url.searchParams().del("param1");
-        url.searchParams().del("param2");
+        url.search_params().del("param1");
+        url.search_params().del("param2");
         CHECK_MESSAGE(url.href() == "http://example.com/", "url.href does not have ?");
         CHECK_MESSAGE(url.search() == "", "url.search does not have ?");
     }
@@ -403,7 +403,7 @@ TEST_CASE("urlsearchparams-delete.any.js") {
         // whatwg::url url("http://example.com/?");
         whatwg::url url;
         REQUIRE(whatwg::success(url.parse("http://example.com/?", nullptr)));
-        url.searchParams().del("param1");
+        url.search_params().del("param1");
         CHECK_MESSAGE(url.href() == "http://example.com/", "url.href does not have ?");
         CHECK_MESSAGE(url.search() == "", "url.search does not have ?");
     }
@@ -684,7 +684,7 @@ TEST_CASE("urlsearchparams-stringifier.any.js") {
         // whatwg::url url("http://www.example.com/?a=b,c");
         whatwg::url url;
         REQUIRE(whatwg::success(url.parse("http://www.example.com/?a=b,c", nullptr)));
-        auto& params = url.searchParams();
+        auto& params = url.search_params();
 
         CHECK_EQ(url.to_string(), "http://www.example.com/?a=b,c");
         CHECK_EQ(params.to_string(), "a=b%2Cc");
@@ -697,7 +697,7 @@ TEST_CASE("urlsearchparams-stringifier.any.js") {
 
     SUBCASE("URLSearchParams must not do newline normalization") {
         whatwg::url url("http://www.example.com/");
-        auto& params = url.searchParams();
+        auto& params = url.search_params();
 
         params.append("a\nb", "c\rd");
         params.append("e\n\rf", "g\r\nh");
@@ -716,7 +716,7 @@ TEST_CASE("urlsearchparams-sort.any.js") {
     SUBCASE("Sorting non-existent params removes ? from URL") {
         whatwg::url url;
         REQUIRE(whatwg::success(url.parse("http://example.com/?", nullptr)));
-        url.searchParams().sort();
+        url.search_params().sort();
         CHECK_EQ(url.href(), "http://example.com/");
         CHECK_EQ(url.search(), "");
     }

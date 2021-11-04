@@ -227,9 +227,9 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
             tc.assert_equal(obj["port"], url.port(), "port");
             tc.assert_equal(obj["pathname"], url.pathname(), "pathname");
             tc.assert_equal(obj["search"], url.search(), "search");
-            auto itSearchParams = obj.find("searchParams");
-            if (itSearchParams != obj.end())
-                tc.assert_equal(itSearchParams->second, url.searchParams().to_string(), "searchParams");
+            auto it_search_params = obj.find("searchParams");
+            if (it_search_params != obj.end())
+                tc.assert_equal(it_search_params->second, url.search_params().to_string(), "searchParams");
             tc.assert_equal(obj["hash"], url.hash(), "hash");
         }
 

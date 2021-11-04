@@ -107,7 +107,7 @@ void test_urlsearchparams_sort(DataDrivenTest& ddt, const TestObj& obj) {
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         whatwg::url url("?" + obj.m_input, "https://example/");
 
-        url.searchParams().sort();
+        url.search_params().sort();
 
         whatwg::url_search_params sparams(url.search());
         do_assert_equal(tc, obj.m_output, sparams);

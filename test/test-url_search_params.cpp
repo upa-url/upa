@@ -185,13 +185,13 @@ TEST_CASE("url_search_params::sort()") {
 }
 
 
-// Test url::searchParams()
+// Test url::search_params()
 
-TEST_CASE("url::searchParams()") {
+TEST_CASE("url::search_params()") {
     whatwg::url url("http://h/p?a=A");
-    auto& params = url.searchParams();
+    auto& params = url.search_params();
 
-    INFO("url::search(...) -> url::searchParams()");
+    INFO("url::search(...) -> url::search_params()");
 
     // initial
     CHECK(list_eq(params, pairs_list_t<std::string>{ {"a", "A"} }));
@@ -204,7 +204,7 @@ TEST_CASE("url::searchParams()") {
     url.search("");
     CHECK(params.empty());
 
-    INFO("url::searchParams() -> url::search()");
+    INFO("url::search_params() -> url::search()");
 
     // add parameters
     params.append("c", "C");
@@ -226,43 +226,43 @@ TEST_CASE("url::searchParams()") {
     CHECK(url.search() == "");
 }
 
-TEST_CASE("url::searchParams() and url::url(url&&)") {
+TEST_CASE("url::search_params() and url::url(url&&)") {
     // test move constructor from url with initialized url_search_params  
     whatwg::url url("http://example.org/");
-    url.searchParams().append("a", "A");
+    url.search_params().append("a", "A");
     CHECK(url.search() == "?a=A");
 
     // move constructor
     whatwg::url url_m(std::move(url));
-    url_m.searchParams().append("m", "M");
+    url_m.search_params().append("m", "M");
     CHECK(url_m.search() == "?a=A&m=M");
 }
 
-TEST_CASE("url::searchParams() and url::operator=(url&&)") {
+TEST_CASE("url::search_params() and url::operator=(url&&)") {
     // test move assignment from url with initialized url_search_params  
     whatwg::url url("http://example.org/");
-    url.searchParams().append("a", "A");
+    url.search_params().append("a", "A");
     CHECK(url.search() == "?a=A");
 
     // move assignment
     whatwg::url url_m;
     url_m = std::move(url);
-    url_m.searchParams().append("m", "M");
+    url_m.search_params().append("m", "M");
     CHECK(url_m.search() == "?a=A&m=M");
 }
 
-TEST_CASE("url::searchParams() and url::search(...)") {
+TEST_CASE("url::search_params() and url::search(...)") {
     whatwg::url url("http://h/p");
-    auto& params = url.searchParams();
+    auto& params = url.search_params();
 
     url.search("??a=b&c=d");
     CHECK(url.search() == "??a=b&c=d");
     CHECK(params.to_string() == "%3Fa=b&c=d");
 }
 
-TEST_CASE("url::searchParams() and url::clear()") {
+TEST_CASE("url::search_params() and url::clear()") {
     whatwg::url url("http://h/p?a=A&b=B");
-    auto& params = url.searchParams();
+    auto& params = url.search_params();
 
     CHECK_FALSE(url.empty());
     CHECK_FALSE(params.empty());

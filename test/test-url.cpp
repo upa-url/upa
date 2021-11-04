@@ -63,7 +63,7 @@ void check_test_url(whatwg::url& url) {
     CHECK(url.pathname() == "/p");
     CHECK(url.search() == "?a=b&c=d");
     CHECK(url.hash() == "#frag");
-    CHECK(list_eq(url.searchParams(), test_url_params));
+    CHECK(list_eq(url.search_params(), test_url_params));
 }
 
 TEST_CASE("url copy constructor") {
