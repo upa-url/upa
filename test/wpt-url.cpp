@@ -216,9 +216,9 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
         // attributes
         if (parse_success && !obj.failure) {
             tc.assert_equal(obj["href"], url.href(), "href");
-            auto itOrigin = obj.find("origin");
-            if (itOrigin != obj.end())
-                tc.assert_equal(itOrigin->second, url.origin(), "origin");
+            auto it_origin = obj.find("origin");
+            if (it_origin != obj.end())
+                tc.assert_equal(it_origin->second, url.origin(), "origin");
             tc.assert_equal(obj["protocol"], url.protocol(), "protocol");
             tc.assert_equal(obj["username"], url.username(), "username");
             tc.assert_equal(obj["password"], url.password(), "password");
