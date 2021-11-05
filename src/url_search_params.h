@@ -289,6 +289,7 @@ private:
     explicit url_search_params(url* url_ptr);
 
     void clear_params() noexcept;
+    void copy_params(const url_search_params& other);
     void parse_params(url_str_view_t query);
 
     void update();
@@ -315,12 +316,9 @@ class url_search_params_ptr
 public:
     url_search_params_ptr() noexcept = default;
 
-    // copy constructor/assignment initializes to nullptr
+    // copy constructor initializes to nullptr
     url_search_params_ptr(const url_search_params_ptr&) noexcept {}
-    url_search_params_ptr& operator=(const url_search_params_ptr&) noexcept {
-        ptr_ = nullptr;
-        return *this;
-    }
+    url_search_params_ptr& operator=(const url_search_params_ptr& other);
 
     // move constructor/assignment
     url_search_params_ptr(url_search_params_ptr&& other) noexcept = default;
@@ -392,6 +390,11 @@ inline void url_search_params::clear() {
 inline void url_search_params::clear_params() noexcept {
     params_.clear();
     is_sorted_ = true;
+}
+
+inline void url_search_params::copy_params(const url_search_params& other) {
+    params_ = other.params_;
+    is_sorted_ = other.is_sorted_;
 }
 
 inline void url_search_params::parse_params(url_str_view_t query) {

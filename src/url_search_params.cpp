@@ -10,6 +10,8 @@
 namespace whatwg {
 
 
+// url_search_params class
+
 url_search_params::url_search_params(url* url_ptr)
     : params_(do_parse(false, url_ptr->get_part_view(url::QUERY)))
     , url_ptr_(url_ptr)
@@ -59,4 +61,21 @@ const char url_search_params::kEncByte[0x100] = {
     '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%'  // F
 };
 
+namespace detail {
+
+ // url_search_params_ptr class
+
+url_search_params_ptr& url_search_params_ptr::operator=(const url_search_params_ptr& other) {
+    if (ptr_) {
+        if (other.ptr_) {
+            ptr_->copy_params(*other.ptr_);
+        } else {
+            assert(ptr_->url_ptr_);
+            ptr_->parse_params(ptr_->url_ptr_->get_part_view(url::QUERY));
+        }
+    }
+    return *this;
+}
+
+} // namespace detail
 } // namespace whatwg

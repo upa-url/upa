@@ -253,6 +253,27 @@ TEST_CASE("url::search_params()") {
     CHECK(url.search() == "");
 }
 
+TEST_CASE("url::search_params() and url::operator=(const url&)") {
+    // test copy assignment to url with initialized url_search_params
+    whatwg::url url_ca("http://dest/");
+    auto& ca_search_params = url_ca.search_params();
+    ca_search_params.append("ca", "CA");
+    CHECK(url_ca.search() == "?ca=CA");
+
+    // copy assign url with not initialized url_search_params
+    whatwg::url url("http://src/?a=A");
+    url_ca = url;
+    REQUIRE(std::addressof(ca_search_params) == std::addressof(url_ca.search_params()));
+    CHECK(ca_search_params.to_string() == "a=A");
+
+    // copy assign url with initialized url_search_params
+    url.search_params().clear();
+    url.search_params().append("b", "B");
+    url_ca = url;
+    REQUIRE(std::addressof(ca_search_params) == std::addressof(url_ca.search_params()));
+    CHECK(ca_search_params.to_string() == "b=B");
+}
+
 TEST_CASE("url::search_params() and url::url(url&&)") {
     // test move constructor from url with initialized url_search_params
     whatwg::url url("http://example.org/");
