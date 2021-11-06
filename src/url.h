@@ -103,6 +103,14 @@ public:
     /// @param[in,out] other  URL to move to this object
     url& operator=(url&& other) WHATWG__NOEXCEPT_17;
 
+    /// @brief Safe move assignment.
+    ///
+    /// Replaces the contents with those of @a other using move semantics.
+    /// Preserves original url_search_params object.
+    ///
+    /// @param[in,out] other  URL to move to this object
+    url& safe_assign(url&& other);
+
     /// @brief Parsing constructor.
     ///
     /// Throws url_error exception on parse error.
@@ -351,6 +359,9 @@ public:
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-searchparams
     ///
+    /// Returned reference is valid thru lifetime of url. or until url's move assignment
+    /// operation (except @c safe_assign, which preserves reference validity).
+    ///
     /// @return reference to this’s query object (url_search_params class)
     url_search_params& search_params();
 
@@ -473,6 +484,9 @@ private:
 
     // info
     bool canHaveUsernamePasswordPort() const;
+
+    // url record
+    void move_record(url&& other) WHATWG__NOEXCEPT_17;
 
     // search params
     void clear_search_params() noexcept;
@@ -882,17 +896,38 @@ inline url::url(url&& other) noexcept
 
 inline url& url::operator=(url&& other) WHATWG__NOEXCEPT_17 {
     // move data
-    norm_url_ = std::move(other.norm_url_);
-    part_end_ = std::move(other.part_end_);
-    scheme_inf_ = other.scheme_inf_;
-    flags_ = other.flags_;
-    path_segment_count_ = other.path_segment_count_;
+    move_record(std::move(other));
     search_params_ptr_ = std::move(other.search_params_ptr_);
 
     // setup search params
     search_params_ptr_.set_url_ptr(this);
 
     return *this;
+}
+
+inline url& url::safe_assign(url&& other) {
+    if (search_params_ptr_) {
+        if (other.search_params_ptr_) {
+            move_record(std::move(other));
+            search_params_ptr_->move_params(std::move(*other.search_params_ptr_));
+        } else {
+            // parse search parameters before move assign for strong exception guarantee
+            url_search_params params(&other);
+            move_record(std::move(other));
+            search_params_ptr_->move_params(std::move(params));
+        }
+    } else {
+        move_record(std::move(other));
+    }
+    return *this;
+}
+
+inline void url::move_record(url&& other) WHATWG__NOEXCEPT_17 {
+    norm_url_ = std::move(other.norm_url_);
+    part_end_ = std::move(other.part_end_);
+    scheme_inf_ = other.scheme_inf_;
+    flags_ = other.flags_;
+    path_segment_count_ = other.path_segment_count_;
 }
 
 // url getters
@@ -1187,7 +1222,7 @@ inline bool url::href(StrT&& str) {
 
     const auto inp = make_str_arg(std::forward<StrT>(str));
     if (u.do_parse(inp.begin(), inp.end(), nullptr) == url_result::Ok) {
-        *this = std::move(u);
+        safe_assign(std::move(u));
         return true;
     }
     return false;

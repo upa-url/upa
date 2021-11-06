@@ -1,4 +1,4 @@
-// Copyright 2016-2022 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -297,6 +297,38 @@ TEST_CASE("url::search_params() and url::operator=(url&&)") {
     url_m = std::move(url);
     url_m.search_params().append("m", "M");
     CHECK(url_m.search() == "?a=A&m=M");
+}
+
+TEST_CASE("url::search_params() and url::safe_assign(url&&)") {
+    // test safe_assign(...) to url with initialized url_search_params
+    whatwg::url url_sa("http://dest/");
+    auto& sa_search_params = url_sa.search_params();
+    sa_search_params.append("sa", "SA");
+    CHECK(url_sa.search() == "?sa=SA");
+
+    // safe_assign url with not initialized url_search_params
+    url_sa.safe_assign(whatwg::url("http://src/?a=A"));
+    REQUIRE(std::addressof(sa_search_params) == std::addressof(url_sa.search_params()));
+    CHECK(sa_search_params.to_string() == "a=A");
+
+    // safe_assign url with initialized url_search_params
+    whatwg::url url("http://src/");
+    url.search_params().append("b", "B");
+    url_sa.safe_assign(std::move(url));
+    REQUIRE(std::addressof(sa_search_params) == std::addressof(url_sa.search_params()));
+    CHECK(sa_search_params.to_string() == "b=B");
+}
+
+TEST_CASE("url::search_params() and url::href(...)") {
+    // test href setter on url with initialized url_search_params
+    whatwg::url url("http://dest/");
+    auto& search_params = url.search_params();
+    search_params.append("hr", "HR");
+    CHECK(url.search() == "?hr=HR");
+
+    url.href("http://href/?a=A");
+    REQUIRE(std::addressof(search_params) == std::addressof(url.search_params()));
+    CHECK(search_params.to_string() == "a=A");
 }
 
 TEST_CASE("url::search_params() and url::search(...)") {

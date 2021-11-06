@@ -1,4 +1,4 @@
-// Copyright 2016-2022 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -11,6 +11,7 @@
 #include <string>
 #include <type_traits>
 #include <utility>
+#include "config.h"
 #include "str_arg.h"
 #include "url_percent_encode.h"
 
@@ -290,10 +291,12 @@ private:
 
     void clear_params() noexcept;
     void copy_params(const url_search_params& other);
+    void move_params(url_search_params&& other) WHATWG__NOEXCEPT_17;
     void parse_params(url_str_view_t query);
 
     void update();
 
+    friend class url;
     friend detail::url_search_params_ptr;
 
 private:
@@ -394,6 +397,11 @@ inline void url_search_params::clear_params() noexcept {
 
 inline void url_search_params::copy_params(const url_search_params& other) {
     params_ = other.params_;
+    is_sorted_ = other.is_sorted_;
+}
+
+inline void url_search_params::move_params(url_search_params&& other) WHATWG__NOEXCEPT_17 {
+    params_ = std::move(other.params_);
     is_sorted_ = other.is_sorted_;
 }
 
