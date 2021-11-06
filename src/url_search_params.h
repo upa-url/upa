@@ -285,13 +285,6 @@ class url_search_params_ptr
 {
 public:
     url_search_params_ptr() noexcept = default;
-    url_search_params_ptr(url_search_params_ptr&&) noexcept = default;
-
-    // move assignment
-    url_search_params_ptr& operator=(url_search_params_ptr&& other) noexcept {
-        ptr_ = std::move(other.ptr_);
-        return *this;
-    }
 
     // copy constructor/assignment initializes to nullptr
     url_search_params_ptr(const url_search_params_ptr&) noexcept {}
@@ -299,6 +292,10 @@ public:
         ptr_ = nullptr;
         return *this;
     }
+
+    // move constructor/assignment
+    url_search_params_ptr(url_search_params_ptr&& other) noexcept = default;
+    url_search_params_ptr& operator=(url_search_params_ptr&& other) noexcept = default;
 
     void init(url* url_ptr) {
         ptr_.reset(new url_search_params(url_ptr));
