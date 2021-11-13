@@ -44,7 +44,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: init dependances
+    - name: get dependencies
       run: ./init.sh
     - name: apt-get install
       if: ${{ matrix.install }}

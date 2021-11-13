@@ -1,5 +1,5 @@
 /build/
-# downloadable dependances
+# downloadable dependencies
 /deps/doctest/
 /deps/picojson/
 # downloadable tests dir

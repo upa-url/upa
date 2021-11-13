@@ -1,11 +1,11 @@
 @echo off
 
-REM Download dependances and tests
+REM Download dependencies and tests
 
 REM Download submodules
 git submodule update --init --recursive
 
-REM Download dependances
+REM Download dependencies
 call deps/download-deps.bat
 
 REM Download web-platform-tests
