@@ -583,24 +583,6 @@ public:
     const url::scheme_info* scheme_inf() const { return url_.scheme_inf_; }
     int port_int() const { return url_.port_int(); }
 
-#if 0
-    std::string& start_username();
-    std::string& start_password();
-    std::string& start_host();
-    std::string& start_port();
-    std::string& start_path();
-    std::string& start_query();
-    std::string& start_fragment();
-
-    void save_username();
-    void save_password();
-    void save_host();
-    void save_port();
-    void save_path();
-    void save_query();
-    void save_fragment();
-#endif
-
 protected:
     void adjust_path_prefix();
 
