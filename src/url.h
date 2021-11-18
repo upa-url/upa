@@ -1173,10 +1173,13 @@ inline bool url::href(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::protocol(StrT&& str) {
-    detail::url_setter urls(*this);
+    if (!empty()) {
+        detail::url_setter urls(*this);
 
-    const auto inp = make_str_arg(std::forward<StrT>(str));
-    return detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, detail::url_parser::scheme_start_state) == url_result::Ok;
+        const auto inp = make_str_arg(std::forward<StrT>(str));
+        return detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, detail::url_parser::scheme_start_state) == url_result::Ok;
+    }
+    return false;
 }
 
 template <class StrT, enable_if_str_arg_t<StrT>>
@@ -1213,7 +1216,7 @@ inline bool url::password(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::host(StrT&& str) {
-    if (!has_an_opaque_path()) {
+    if (!has_an_opaque_path() && !empty()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1224,7 +1227,7 @@ inline bool url::host(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::hostname(StrT&& str) {
-    if (!has_an_opaque_path()) {
+    if (!has_an_opaque_path() && !empty()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1254,7 +1257,7 @@ inline bool url::port(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::pathname(StrT&& str) {
-    if (!has_an_opaque_path()) {
+    if (!has_an_opaque_path() && !empty()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1265,8 +1268,33 @@ inline bool url::pathname(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::search(StrT&& str) {
-    bool res;
-    {
+    bool res = false;
+    if (!empty()) {
+        {
+            detail::url_setter urls(*this);
+
+            const auto inp = make_str_arg(std::forward<StrT>(str));
+            const auto* first = inp.begin();
+            const auto* last = inp.end();
+
+            if (first == last) {
+                urls.clear_part(url::QUERY);
+                // empty context object's query object's list
+                clear_search_params();
+                return true;
+            }
+            if (*first == '?') ++first;
+            res = detail::url_parser::url_parse(urls, first, last, nullptr, detail::url_parser::query_state) == url_result::Ok;
+        }
+        // set context object's query object's list to the result of parsing input
+        parse_search_params();
+    }
+    return res;
+}
+
+template <class StrT, enable_if_str_arg_t<StrT>>
+inline bool url::hash(StrT&& str) {
+    if (!empty()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1274,33 +1302,13 @@ inline bool url::search(StrT&& str) {
         const auto* last = inp.end();
 
         if (first == last) {
-            urls.clear_part(url::QUERY);
-            // empty context object's query object's list
-            clear_search_params();
+            urls.clear_part(url::FRAGMENT);
             return true;
         }
-        if (*first == '?') ++first;
-        res = detail::url_parser::url_parse(urls, first, last, nullptr, detail::url_parser::query_state) == url_result::Ok;
+        if (*first == '#') ++first;
+        return detail::url_parser::url_parse(urls, first, last, nullptr, detail::url_parser::fragment_state) == url_result::Ok;
     }
-    // set context object's query object's list to the result of parsing input
-    parse_search_params();
-    return res;
-}
-
-template <class StrT, enable_if_str_arg_t<StrT>>
-inline bool url::hash(StrT&& str) {
-    detail::url_setter urls(*this);
-
-    const auto inp = make_str_arg(std::forward<StrT>(str));
-    const auto* first = inp.begin();
-    const auto* last = inp.end();
-
-    if (first == last) {
-        urls.clear_part(url::FRAGMENT);
-        return true;
-    }
-    if (*first == '#') ++first;
-    return detail::url_parser::url_parse(urls, first, last, nullptr, detail::url_parser::fragment_state) == url_result::Ok;
+    return false;
 }
 
 

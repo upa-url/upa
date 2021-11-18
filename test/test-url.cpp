@@ -115,6 +115,52 @@ TEST_CASE("url parsing constructor with base URL string") {
     check_test_url(url);
 }
 
+// Empty URL
+
+TEST_CASE("Empty URL") {
+    whatwg::url url;
+    CHECK(url.empty());
+
+    url.protocol("http");
+    CHECK(url.empty());
+
+    url.protocol("about");
+    CHECK(url.empty());
+
+    url.username("user");
+    CHECK(url.empty());
+
+    url.password("psw");
+    CHECK(url.empty());
+
+    url.host("hp:1");
+    CHECK(url.empty());
+
+    url.hostname("h");
+    CHECK(url.empty());
+
+    url.port("12");
+    CHECK(url.empty());
+
+    url.pathname("path");
+    CHECK(url.empty());
+
+    url.search("a=b");
+    CHECK(url.empty());
+
+    url.search_params().append("c", "d");
+    CHECK(url.empty());
+
+    url.hash("hash");
+    CHECK(url.empty());
+
+    // href setter invoked with valid URL string as input
+    // makes URL not empty
+    url.href("http://example.com/");
+    CHECK_FALSE(url.empty());
+    CHECK(url.href() == "http://example.com/");
+}
+
 // URL parts
 
 TEST_CASE("url::is_empty and url::is_null") {
