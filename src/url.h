@@ -571,7 +571,11 @@ public:
     // get info
     str_view_type get_part_view(url::PartType t) const { return url_.get_part_view(t); }
     bool is_empty(const url::PartType t) const { return url_.is_empty(t); }
-    virtual bool is_empty_path() const { return url_.path_segment_count_ == 0; }
+    virtual bool is_empty_path() const {
+        assert(!url_.has_an_opaque_path());
+        // path_segment_count_ has meaning only if path is a list (path isn't opaque)
+        return url_.path_segment_count_ == 0;
+    }
     bool is_null(const url::PartType t) const  { return url_.is_null(t); }
     bool is_special_scheme() const { return url_.is_special_scheme(); }
     bool is_file_scheme() const { return url_.is_file_scheme(); }
@@ -608,6 +612,7 @@ protected:
 
 protected:
     url& url_;
+    // last serialized URL's part
     url::PartType last_pt_;
 };
 
@@ -657,8 +662,11 @@ protected:
 
 protected:
     bool use_strp_;
+    // buffer for URL's part
     std::string strp_;
+    // path segment end positions in the strp_
     std::vector<std::size_t> path_seg_end_;
+    // current URL's part
     url::PartType curr_pt_;
 };
 
@@ -1426,10 +1434,10 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     // set url’s path to the empty string (so path becomes opaque,
                     // see: https://url.spec.whatwg.org/#url-opaque-path)
                     urls.set_has_an_opaque_path();
-                    // Path must be without '/', so urls.append_empty_path_segment() cannot
-                    // be used here:
-                    urls.start_path_string(); // not start_path_segment()
-                    urls.save_path_string();
+                    // To complete the set url's path to the empty string, following functions must be called:
+                    //  urls.start_path_string();
+                    //  urls.save_path_string();
+                    // but the same functions will be called in the opaque_path_state, so skip them here.
                     state = opaque_path_state;
                 }
             }
@@ -1898,8 +1906,8 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             std::find_if(pointer, last, [](CharT c) { return c == '?' || c == '#'; });
 
         // UTF-8 percent encode using the C0 control percent-encode set,
-        // and append the result to url's path[0]
-        std::string& str_path = urls.start_path_string(); // not start_path_segment()
+        // and append the result to url's path string
+        std::string& str_path = urls.start_path_string();
         do_simple_path(pointer, end_of_path, str_path);
         urls.save_path_string();
         pointer = end_of_path;
@@ -2350,16 +2358,12 @@ inline void url_serializer::adjust_path_prefix() {
 }
 
 inline std::string& url_serializer::start_path_string() {
-    //return start_part(url::PATH);
-    if (last_pt_ != url::PATH)
-        return start_part(url::PATH);
-    return url_.norm_url_;
+    return start_part(url::PATH);
 }
 
 inline void url_serializer::save_path_string() {
-    assert(url_.path_segment_count_ <= 1);
+    assert(url_.path_segment_count_ == 0);
     save_part();
-    url_.path_segment_count_ = 1;
 }
 
 
@@ -2672,6 +2676,8 @@ inline std::size_t url_setter::remove_leading_path_slashes() {
 #endif
 
 inline bool url_setter::is_empty_path() const {
+    assert(!url_.has_an_opaque_path());
+    // path_seg_end_ has meaning only if path is a list (path isn't opaque)
     return path_seg_end_.empty();
 }
 
