@@ -539,9 +539,11 @@ public:
     std::string& hostStart() override;
     void hostDone(HostType ht) override;
 
-    // path
-    // TODO: append_to_path() --> append_empty_to_path()
-    void append_to_path();
+    // Path operations
+
+    // append the empty string to url’s path (list)
+    void append_empty_path_segment();
+    // append string to url's path (list)
     virtual std::string& start_path_segment();
     virtual void save_path_segment();
     virtual void commit_path();
@@ -1424,7 +1426,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     // set url’s path to the empty string (so path becomes opaque,
                     // see: https://url.spec.whatwg.org/#url-opaque-path)
                     urls.set_has_an_opaque_path();
-                    // Path must be without '/', so urls.append_to_path() cannot
+                    // Path must be without '/', so urls.append_empty_path_segment() cannot
                     // be used here:
                     urls.start_path_string(); // not start_path_segment()
                     urls.save_path_string();
@@ -1859,7 +1861,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         } else {
             // EOF
             if (state_override && urls.is_null(url::HOST))
-                urls.append_to_path();
+                urls.append_empty_path_segment();
             // otherwise path is empty
             urls.commit_path();
             return url_result::Ok;
@@ -2060,9 +2062,9 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
 
         if (double_dot(pointer, len)) {
             urls.shorten_path();
-            if (is_last) urls.append_to_path();
+            if (is_last) urls.append_empty_path_segment();
         } else if (single_dot(pointer, len)) {
-            if (is_last) urls.append_to_path();
+            if (is_last) urls.append_empty_path_segment();
         } else {
             if (len == 2 &&
                 urls.is_file_scheme() &&
@@ -2307,18 +2309,18 @@ inline void url_serializer::save_part() {
     url_.part_end_[last_pt_] = url_.norm_url_.length();
 }
 
-// The append_empty_to_path() appends empty segment to path;
+// The append_empty_path_segment() appends the empty string to url’s path (list);
 // it is called from these places:
 // 1) path_start_state -> [5.]
 // 2) path_state -> [1.2.2. ".." ]
 // 3) path_state -> [1.3. "." ]
-inline void url_serializer::append_to_path() { // append_empty_to_path();
+inline void url_serializer::append_empty_path_segment() {
     start_path_segment();
     save_path_segment();
 }
 
 inline std::string& url_serializer::start_path_segment() {
-    // lipdom prie esamo kelio: / seg1 / seg2 / ... / segN
+    // appends new segment to path: / seg1 / seg2 / ... / segN
     std::string& str_path = start_part(url::PATH);
     str_path += '/';
     return str_path;
