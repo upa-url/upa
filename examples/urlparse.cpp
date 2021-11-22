@@ -213,13 +213,21 @@ void read_samples(const char* file_name, SamplesOutput& out)
         return;
 
     enum class State {
-        header, url
-    } state = State::header;
+        before_header, header, url
+    } state = State::before_header;
     whatwg::url url_base;
 
     std::string line;
     while (std::getline(file, line)) {
         switch (state) {
+        case State::before_header:
+            // skip empty lines before header
+            if (line.empty())
+                break;
+            state = State::header;
+#ifdef WHATWG__CPP_17
+            [[fallthrough]];
+#endif
         case State::header: {
             bool ok = true;
             auto icolon = line.find(':');
@@ -242,7 +250,7 @@ void read_samples(const char* file_name, SamplesOutput& out)
                 ok = false;
             }
             if (!ok) {
-                std::cerr << "Error in header" << std::endl;
+                std::cerr << "Error in header line:\n" << line << std::endl;
                 return;
             }
             break;
@@ -254,14 +262,14 @@ void read_samples(const char* file_name, SamplesOutput& out)
                     picojson::value v;
                     std::string err = picojson::parse(v, line);
                     if (!err.empty()) {
-                        std::cerr << "Skip invalid line: " << line << std::endl;
+                        std::cerr << "Skip invalid line:\n" << line << std::endl;
                         continue;
                     }
                     line = v.get<std::string>();
                 }
                 out.output(line, url_base.empty() ? nullptr : &url_base);
             } else {
-                state = State::header;
+                state = State::before_header;
                 url_base.clear();
             }
             break;
