@@ -13,6 +13,10 @@
 // ICU
 #include "unicode/uidna.h"
 
+#if (U_ICU_VERSION_MAJOR_NUM) < 68
+# include <algorithm>
+#endif
+
 namespace whatwg {
 
 namespace {
@@ -112,6 +116,13 @@ url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<ch
             // 2) is "xn--".
             if (output_length == 0)
                 return url_result::EmptyHost;
+#if (U_ICU_VERSION_MAJOR_NUM) < 68
+            // Workaround of ICU bug ICU-21212: https://unicode-org.atlassian.net/browse/ICU-21212
+            // For some "xn--" labels which contain non ASCII chars, uidna_nameToASCII returns no error,
+            // and leaves these labels unchanged in the output. Bug fixed in ICU 68.1
+            if (std::any_of(output.begin(), output.end(), [](char16_t c) { return c >= 0x80; }))
+                return url_result::IdnaError;
+#endif
             return url_result::Ok;
         }
 
