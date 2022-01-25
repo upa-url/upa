@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2022 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -12,7 +12,7 @@
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2021-12-23
+// Last checked for updates: 2022-01-28
 //
 
 

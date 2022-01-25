@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2022 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -13,7 +13,7 @@
 // Tests based on "url-setters-stripping.any.js" file from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2021-12-23
+// Last checked for updates: 2022-01-28
 //
 
 using url_args = std::unordered_map<std::string, std::string>;
@@ -171,7 +171,8 @@ TEST_CASE("url-setters-stripping.any.js") {
                 TestData{"trailing", "test" + (scheme == "https" ? cpString : encodeURIComponent(cpString)), "test" + cpString}
                 })
             {
-                const std::string expected = i == 0x00 ? "host" : stripped ? "test" : td.expectedPart;
+                const std::string expected = i == 0x00 || (scheme == "https" && i == 0x1F) ? "host"
+                    : stripped ? "test" : td.expectedPart;
 
                 INFO("Setting host with " << td.type << "  " << cpReference << " (" << scheme << ":)");
                 {

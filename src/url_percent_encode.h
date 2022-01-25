@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2022 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -186,14 +186,23 @@ inline constexpr code_point_set component_no_encode_set{ [](code_point_set& self
     } };
 
 // Forbidden host code points: U+0000 NULL, U+0009 TAB, U+000A LF, U+000D CR,
-// U+0020 SPACE, U+0023 (#), U+0025 (%), U+002F (/), U+003A (:), U+003C (<),
-// U+003E (>), U+003F (?), U+0040 (@), U+005B ([), U+005C (\), U+005D (]),
-// U+005E (^), or U+007C (|).
+// U+0020 SPACE, U+0023 (#), U+002F (/), U+003A (:), U+003C (<), U+003E (>),
+// U+003F (?), U+0040 (@), U+005B ([), U+005C (\), U+005D (]), U+005E (^) and
+// U+007C (|).
 // https://url.spec.whatwg.org/#forbidden-host-code-point
 inline constexpr code_point_set host_forbidden_set{ [](code_point_set& self) constexpr {
     self.include({
-        0x00, 0x09, 0x0A, 0x0D, 0x20, 0x23, 0x25, 0x2F, 0x3A, 0x3C, 0x3E, 0x3F, 0x40, 0x5B,
+        0x00, 0x09, 0x0A, 0x0D, 0x20, 0x23, 0x2F, 0x3A, 0x3C, 0x3E, 0x3F, 0x40, 0x5B,
         0x5C, 0x5D, 0x5E, 0x7C });
+    } };
+
+// Forbidden domain code points: forbidden host code points, C0 controls, U+0025 (%)
+// and U+007F DELETE.
+// https://url.spec.whatwg.org/#forbidden-domain-code-point
+inline constexpr code_point_set domain_forbidden_set{ [](code_point_set& self) constexpr {
+    self.copy(host_forbidden_set);
+    self.include(0x00, 0x1F); // C0 controls
+    self.include({ 0x25, 0x7F });
     } };
 
 // Hex digits
@@ -223,6 +232,7 @@ extern const code_point_set userinfo_no_encode_set;
 extern const code_point_set component_no_encode_set;
 
 extern const code_point_set host_forbidden_set;
+extern const code_point_set domain_forbidden_set;
 extern const code_point_set hex_digit_set;
 extern const code_point_set ipv4_char_set;
 
@@ -250,7 +260,12 @@ inline bool isHexChar(CharT c) {
 }
 
 template <typename CharT>
-inline bool isForbiddenHostChar(CharT c) {
+inline bool is_forbidden_domain_char(CharT c) {
+    return isCharInSet(c, domain_forbidden_set);
+}
+
+template <typename CharT>
+inline bool is_forbidden_host_char(CharT c) {
     return isCharInSet(c, host_forbidden_set);
 }
 

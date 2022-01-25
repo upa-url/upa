@@ -1,3 +1,8 @@
+// Copyright 2019-2022 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+
 #include "url_percent_encode.h"
 #include <iomanip>
 #include <iostream>
@@ -39,6 +44,7 @@ void dumpAll(std::ostream& out) {
     DUMP_SET(component_no_encode_set);
 
     DUMP_SET(host_forbidden_set);
+    DUMP_SET(domain_forbidden_set);
     DUMP_SET(hex_digit_set);
     DUMP_SET(ipv4_char_set);
 }

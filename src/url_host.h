@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2022 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -118,15 +118,13 @@ url_host::url_host(StrT&& str) {
 // Helper functions
 
 template <typename CharT>
-static inline bool contains_forbidden_host_char(const CharT* first, const CharT* last) {
-    return std::any_of(first, last, detail::isForbiddenHostChar<CharT>);
+static inline bool contains_forbidden_domain_char(const CharT* first, const CharT* last) {
+    return std::any_of(first, last, detail::is_forbidden_domain_char<CharT>);
 }
 
 template <typename CharT>
-static inline bool contains_forbidden_opaque_host_char(const CharT* first, const CharT* last) {
-    return std::any_of(first, last, [](CharT c) {
-        return detail::isForbiddenHostChar(c) && c != '%';
-    });
+static inline bool contains_forbidden_host_char(const CharT* first, const CharT* last) {
+    return std::any_of(first, last, detail::is_forbidden_host_char<CharT>);
 }
 
 template <class BuffT>
@@ -228,7 +226,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     url_result res = IDNToASCII(buff_uc.data(), buff_uc.size(), buff_ascii);
     if (res != url_result::Ok)
         return res;
-    if (contains_forbidden_host_char(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
+    if (contains_forbidden_domain_char(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
         //TODO-ERR: validation error
         return url_result::InvalidDomainCharacter;
     }
@@ -249,7 +247,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
 
 template <typename CharT>
 inline url_result host_parser::parse_opaque_host(const CharT* first, const CharT* last, host_output& dest) {
-    if (contains_forbidden_opaque_host_char(first, last))
+    if (contains_forbidden_host_char(first, last))
         return url_result::InvalidDomainCharacter; //TODO-ERR: failure
 
     // TODO-WARN:
