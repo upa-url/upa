@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2022 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -145,6 +145,34 @@ TEST_CASE("url_search_params::parse") {
     CHECK(params.to_string() == "c=d");
 }
 
+TEST_CASE("url_search_params::remove...") {
+    SUBCASE("url_search_params::remove") {
+        whatwg::url_search_params params("a=a&a=A&b=b&b=B");
+
+        CHECK(params.remove("a") == 2);
+        CHECK(params.to_string() == "b=b&b=B");
+
+        CHECK(params.remove("b", "B") == 1);
+        CHECK(params.to_string() == "b=b");
+    }
+    SUBCASE("url_search_params::remove_if") {
+        whatwg::url_search_params params("a=a&a=A&b=b&b=B");
+
+        CHECK(params.remove_if([](whatwg::url_search_params::value_type& item) {
+            return item.first == item.second;
+        }) == 2);
+        CHECK(params.to_string() == "a=A&b=B");
+    }
+    SUBCASE("url::search_params") {
+        whatwg::url url("http://h?a&b=B");
+
+        CHECK(url.search_params().remove("A") == 0);
+        CHECK(url.search() == "?a&b=B");
+
+        CHECK(url.search_params().remove("b") == 1);
+        CHECK(url.search() == "?a=");
+    }
+}
 
 // Sort test
 

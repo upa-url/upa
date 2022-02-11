@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2022 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -145,6 +145,35 @@ public:
     template <class TN>
     void del(const TN& name);
 
+    /// Remove all name-value pairs whose name is @a name from list.
+    ///
+    /// It updates connected URL only if something is removed.
+    /// 
+    /// @param[in] name
+    /// @return the number of pairs removed
+    template <class TN>
+    size_type remove(const TN& name);
+
+    /// Remove all name-value pairs whose name is @a name and value is @a value from list.
+    ///
+    /// It updates connected URL only if something is removed.
+    /// 
+    /// @param[in] name
+    /// @param[in] value
+    /// @return the number of pairs removed
+    template <class TN, class TV>
+    size_type remove(const TN& name, const TV& value);
+
+    /// Remove all name-value pairs for which predicate @a p returns `true`.
+    ///
+    /// It updates connected URL only if something is removed.
+    ///
+    /// @param[in] p unary predicate which returns value of `bool` type and has
+    ///   `const value_type&` argument
+    /// @return the number of pairs removed
+    template <class UnaryPredicate>
+    size_type remove_if(UnaryPredicate p);
+
     /// Returns value of the first name-value pair whose name is @a name, or `nullptr`,
     /// if there isn't such pair.
     ///
@@ -202,7 +231,7 @@ public:
     /// @return serialized name-value pairs
     std::string to_string() const;
 
-    // Iterable
+    // Iterators
 
     /// @return an iterator to the beginning of name-value list
     const_iterator begin() const noexcept { return params_.begin(); }
@@ -390,13 +419,43 @@ inline void url_search_params::append(TN&& name, TV&& value) {
 template <class TN>
 inline void url_search_params::del(const TN& name) {
     const auto str_name = make_string(name);
-    for (auto it = params_.begin(); it != params_.end();) {
-        if (it->first == str_name)
-            it = params_.erase(it);
-        else
-            ++it;
-    }
+
+    params_.remove_if([&](const value_type& item) {
+        return item.first == str_name;
+    });
     update();
+}
+
+template <class TN>
+inline url_search_params::size_type url_search_params::remove(const TN& name) {
+    const auto str_name = make_string(name);
+
+    return remove_if([&](const value_type& item) {
+        return item.first == str_name;
+    });
+}
+
+template <class TN, class TV>
+inline url_search_params::size_type url_search_params::remove(const TN& name, const TV& value) {
+    const auto str_name = make_string(name);
+    const auto str_value = make_string(value);
+
+    return remove_if([&](const value_type& item) {
+        return item.first == str_name & item.second == str_value;
+    });
+}
+
+template <class UnaryPredicate>
+inline url_search_params::size_type url_search_params::remove_if(UnaryPredicate p) {
+#ifdef WHATWG__CPP_20
+    const size_type count = params_.remove_if(p);
+#else
+    const size_type old_size = params_.size();
+    params_.remove_if(p);
+    const size_type count = old_size - params_.size();
+#endif
+    if (count) update();
+    return count;
 }
 
 template <class TN>
