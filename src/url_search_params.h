@@ -461,9 +461,9 @@ inline url_search_params::size_type url_search_params::remove_if(UnaryPredicate 
 template <class TN>
 inline const std::string* url_search_params::get(const TN& name) const {
     const auto str_name = make_string(name);
-    for (auto it = params_.begin(); it != params_.end(); ++it) {
-        if (it->first == str_name)
-            return &it->second;
+    for (const auto& p : params_) {
+        if (p.first == str_name)
+            return &p.second;
     }
     return nullptr;
 }
@@ -472,9 +472,9 @@ template <class TN>
 inline std::list<std::string> url_search_params::get_all(const TN& name) const {
     std::list<std::string> lst;
     const auto str_name = make_string(name);
-    for (auto it = params_.begin(); it != params_.end(); ++it) {
-        if (it->first == str_name)
-            lst.push_back(it->second);
+    for (const auto& p : params_) {
+        if (p.first == str_name)
+            lst.push_back(p.second);
     }
     return lst;
 }
@@ -482,8 +482,8 @@ inline std::list<std::string> url_search_params::get_all(const TN& name) const {
 template <class TN>
 inline bool url_search_params::has(const TN& name) const {
     const auto str_name = make_string(name);
-    for (auto it = params_.begin(); it != params_.end(); ++it) {
-        if (it->first == str_name)
+    for (const auto& p : params_) {
+        if (p.first == str_name)
             return true;
     }
     return false;
@@ -534,9 +534,9 @@ template <class StrT, enable_if_str_arg_t<StrT>>
 inline url_search_params::name_value_list url_search_params::do_parse(bool rem_qmark, StrT&& query) {
     name_value_list lst;
 
-    auto str_query = make_string(std::forward<StrT>(query));
+    const auto str_query = make_string(std::forward<StrT>(query));
     auto b = str_query.begin();
-    auto e = str_query.end();
+    const auto e = str_query.end();
 
     // remove leading question-mark?
     if (rem_qmark && b != e && *b == '?')
@@ -571,10 +571,10 @@ inline url_search_params::name_value_list url_search_params::do_parse(bool rem_q
         case '%':
             if (std::distance(it, e) > 2) {
                 auto itc = it;
-                unsigned char uc1 = static_cast<unsigned char>(*(++itc));
-                unsigned char uc2 = static_cast<unsigned char>(*(++itc));
+                const unsigned char uc1 = static_cast<unsigned char>(*(++itc));
+                const unsigned char uc2 = static_cast<unsigned char>(*(++itc));
                 if (detail::isHexChar(uc1) && detail::isHexChar(uc2)) {
-                    char c = static_cast<char>((detail::HexCharToValue(uc1) << 4) + detail::HexCharToValue(uc2));
+                    const char c = static_cast<char>((detail::HexCharToValue(uc1) << 4) + detail::HexCharToValue(uc2));
                     pval->push_back(c);
                     it = itc;
                     break;
@@ -596,12 +596,10 @@ inline url_search_params::name_value_list url_search_params::do_parse(bool rem_q
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline void url_search_params::urlencode(std::string& encoded, StrT&& value) {
-    auto str_value = make_string(std::forward<StrT>(value));
-    auto b = str_value.begin();
-    auto e = str_value.end();
+    const auto str_value = make_string(std::forward<StrT>(value));
 
-    for (auto it = b; it != e; ++it) {
-        unsigned char uc = static_cast<unsigned char>(*it);
+    for (const char c : str_value) {
+        unsigned char uc = static_cast<unsigned char>(c);
         char cenc = kEncByte[uc];
         encoded.push_back(cenc);
         if (cenc == '%') {
