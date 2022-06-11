@@ -25,8 +25,7 @@ using std::experimental::generator;
 
 // Clang has partial ranges support in the libc++ 13
 #if !defined(__clang__) || defined(_LIBCPP_VERSION)
-// Visual Studio 2019 16.8 (_MSC_VER = 1928) and concepts are sufficient to test ranges support
-#if defined(__cpp_lib_ranges) || (_MSC_VER >= 1928 && defined(__cpp_lib_concepts)) || (defined(__clang__) && _LIBCPP_VERSION >= 13000)
+#if defined(__cpp_lib_ranges) || (defined(__clang__) && _LIBCPP_VERSION >= 13000)
 #if __has_include(<ranges>)
 # include <ranges>
 # define TEST_RANGES
