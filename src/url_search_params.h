@@ -599,8 +599,8 @@ inline void url_search_params::urlencode(std::string& encoded, StrT&& value) {
     const auto str_value = make_string(std::forward<StrT>(value));
 
     for (const char c : str_value) {
-        unsigned char uc = static_cast<unsigned char>(c);
-        char cenc = kEncByte[uc];
+        const unsigned char uc = static_cast<unsigned char>(c);
+        const char cenc = kEncByte[uc];
         encoded.push_back(cenc);
         if (cenc == '%') {
             encoded.push_back(detail::kHexCharLookup[uc >> 4]);

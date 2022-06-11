@@ -446,7 +446,7 @@ inline std::string percent_decode(StrT&& str) {
             out.push_back('%');
         } else { // uch >= 0x80
             uint32_t code_point;
-            auto start = --it;
+            const auto start = --it;
             if (url_utf::read_utf_char(it, last, code_point))
                 out.append(start, it);
             else

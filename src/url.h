@@ -951,12 +951,12 @@ inline url::str_view_type url::port() const {
 }
 
 inline int url::port_int() const {
-    auto vport = get_part_view(PORT);
+    const auto vport = get_part_view(PORT);
     return vport.length() ? detail::port_from_str(vport.data(), vport.data() + vport.length()) : -1;
 }
 
 inline int url::real_port_int() const {
-    auto vport = get_part_view(PORT);
+    const auto vport = get_part_view(PORT);
     if (vport.length()) {
         return detail::port_from_str(vport.data(), vport.data() + vport.length());
     } else {
@@ -1326,7 +1326,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     //TODO-WARN: validation error if removed
 
     // reserve size (TODO: But what if `base` is used?)
-    auto length = std::distance(first, last);
+    const auto length = std::distance(first, last);
     urls.reserve(length + 32);
 
 #if WHATWG_URL_USE_ENCODING
@@ -1953,7 +1953,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 detail::AppendUTF8EscapedChar(pointer, end_of_query, str_query);
             } else {
                 // Just append the 7-bit character, possibly escaping it.
-                unsigned char uc = static_cast<unsigned char>(uch);
+                const unsigned char uc = static_cast<unsigned char>(uch);
                 if (!detail::isCharInSet(uc, query_cpset))
                     detail::AppendEscapedChar(uch, str_query);
                 else
@@ -1988,7 +1988,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 detail::AppendUTF8EscapedChar(pointer, last, str_frag);
             } else {
                 // Just append the 7-bit character, possibly escaping it.
-                unsigned char uc = static_cast<unsigned char>(uch);
+                const unsigned char uc = static_cast<unsigned char>(uch);
                 if (detail::isCharInSet(uc, fragment_no_encode_set)) {
                     str_frag.push_back(uc);
                 } else {
