@@ -23,9 +23,9 @@ using std::experimental::generator;
 #endif
 #endif
 
-// Clang has partial ranges support in the libc++ 13
+// ranges requires libc++ when compile with Clang
 #if !defined(__clang__) || defined(_LIBCPP_VERSION)
-#if defined(__cpp_lib_ranges) || (defined(__clang__) && _LIBCPP_VERSION >= 13000)
+#if defined(__cpp_lib_ranges)
 #if __has_include(<ranges>)
 # include <ranges>
 # define TEST_RANGES
@@ -254,7 +254,7 @@ TEST_CASE("url::search_params()") {
 }
 
 TEST_CASE("url::search_params() and url::url(url&&)") {
-    // test move constructor from url with initialized url_search_params  
+    // test move constructor from url with initialized url_search_params
     whatwg::url url("http://example.org/");
     url.search_params().append("a", "A");
     CHECK(url.search() == "?a=A");
@@ -266,7 +266,7 @@ TEST_CASE("url::search_params() and url::url(url&&)") {
 }
 
 TEST_CASE("url::search_params() and url::operator=(url&&)") {
-    // test move assignment from url with initialized url_search_params  
+    // test move assignment from url with initialized url_search_params
     whatwg::url url("http://example.org/");
     url.search_params().append("a", "A");
     CHECK(url.search() == "?a=A");
