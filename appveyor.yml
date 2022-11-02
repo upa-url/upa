@@ -13,7 +13,7 @@ environment:
       CXX_STANDARD: 17
 
 install:
-  - install-icu.bat C:\LIB 71
+  - install-icu.bat C:\LIB 72
 
 before_build:
   - init.bat
