@@ -13,10 +13,7 @@ environment:
       CXX_STANDARD: 17
 
 install:
-  - mkdir C:\LIB
-  - mkdir C:\LIB\ICU
-  - curl -fsSL -o C:\LIB\icu4c-bin.zip https://github.com/unicode-org/icu/releases/download/release-71-1/icu4c-71_1-Win64-MSVC2019.zip
-  - 7z x C:\LIB\icu4c-bin.zip -oC:\LIB\ICU
+  - install-icu.bat C:\LIB 71
 
 before_build:
   - init.bat

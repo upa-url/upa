@@ -27,11 +27,7 @@ jobs:
       run: init.bat
       shell: cmd
     - name: install ICU library
-      run: |
-        mkdir C:\LIB
-        mkdir C:\LIB\ICU
-        curl -fsSL -o C:\LIB\icu4c-bin.zip https://github.com/unicode-org/icu/releases/download/release-71-1/icu4c-71_1-Win64-MSVC2019.zip
-        7z x C:\LIB\icu4c-bin.zip -oC:\LIB\ICU
+      run: install-icu.bat C:\LIB 71
       shell: cmd
     - name: cmake
       run: cmake -S . -B build -G "${{ matrix.generator }}" -A x64 -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DICU_ROOT=C:\LIB\ICU ${{ matrix.cmake_options }}
