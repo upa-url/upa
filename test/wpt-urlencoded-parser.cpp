@@ -26,7 +26,7 @@ std::basic_ostream<CharT, Traits>& operator<<(
 // https://github.com/web-platform-tests/wpt/blob/master/url/urlencoded-parser.any.js
 // https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-sort.any.js
 //
-// Last checked for updates: 2022-01-28
+// Last checked for updates: 2022-12-07
 //
 
 int test_from_file(const char* file_name, bool sort = false);
