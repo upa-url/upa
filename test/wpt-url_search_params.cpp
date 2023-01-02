@@ -12,7 +12,7 @@
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2022-12-31
+// Last checked for updates: 2023-01-02
 //
 
 
@@ -402,6 +402,24 @@ TEST_CASE("urlsearchparams-delete.any.js") {
         url.search_params().del("param1");
         CHECK_MESSAGE(url.href() == "http://example.com/", "url.href does not have ?");
         CHECK_MESSAGE(url.search() == "", "url.search does not have ?");
+    }
+
+    SUBCASE("Changing the query of a URL with an opaque path can impact the path") {
+        whatwg::url url("data:space    ?test");
+        CHECK(url.search_params().has("test"));
+        url.search_params().del("test");
+        CHECK_FALSE(url.search_params().has("test"));
+        CHECK_EQ(url.search(), "");
+        CHECK_EQ(url.pathname(), "space");
+        CHECK_EQ(url.href(), "data:space");
+    }
+
+    SUBCASE("Changing the query of a URL with an opaque path can impact the path if the URL has no fragment") {
+        whatwg::url url("data:space    ?test#test");
+        url.search_params().del("test");
+        CHECK_EQ(url.search(), "");
+        CHECK_EQ(url.pathname(), "space    ");
+        CHECK_EQ(url.href(), "data:space    #test");
     }
 }
 

@@ -85,5 +85,40 @@
         }
     ],
 
+    "search": [
+        {
+            "href": "sc:?query",
+            "new_value": "",
+            "expected": {
+                "href": "sc:",
+                "pathname": "",
+                "search": ""
+            }
+        },
+        {
+            "comment": "Drop trailing spaces from trailing opaque paths",
+            "href": "sc: ?query",
+            "new_value": "",
+            "expected": {
+                "href": "sc:",
+                "pathname": "",
+                "search": ""
+            }
+        }
+    ],
+
+    "hash": [
+        {
+            "comment": "Drop trailing spaces from trailing opaque paths",
+            "href": "sc:  #fragment",
+            "new_value": "",
+            "expected": {
+                "href": "sc:",
+                "pathname": "",
+                "hash": ""
+            }
+        }
+    ],
+
     "comment": [ "END OF TESTS" ]
 }

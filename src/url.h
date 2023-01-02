@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -634,6 +634,8 @@ public:
     //UNUSED// retunrs how many slashes are removed
     //std::size_t remove_leading_path_slashes() override;
     bool is_empty_path() const override;
+
+    void potentially_strip_trailing_spaces_from_an_opaque_path();
 
 protected:
     url::PartType find_last_part(url::PartType pt) const;
@@ -1281,6 +1283,7 @@ inline bool url::search(StrT&& str) {
                 urls.clear_part(url::QUERY);
                 // empty context object's query object's list
                 clear_search_params();
+                urls.potentially_strip_trailing_spaces_from_an_opaque_path();
                 return true;
             }
             if (*first == '?') ++first;
@@ -1303,6 +1306,7 @@ inline bool url::hash(StrT&& str) {
 
         if (first == last) {
             urls.clear_part(url::FRAGMENT);
+            urls.potentially_strip_trailing_spaces_from_an_opaque_path();
             return true;
         }
         if (*first == '#') ++first;
@@ -2669,6 +2673,22 @@ inline bool url_setter::is_empty_path() const {
     assert(!url_.has_an_opaque_path());
     // path_seg_end_ has meaning only if path is a list (path isn't opaque)
     return path_seg_end_.empty();
+}
+
+// https://url.spec.whatwg.org/#potentially-strip-trailing-spaces-from-an-opaque-path
+
+inline void url_setter::potentially_strip_trailing_spaces_from_an_opaque_path() {
+    if (url_.has_an_opaque_path() &&
+        is_null(url::FRAGMENT) &&
+        is_null(url::QUERY)) {
+        // Remove all trailing U+0020 SPACE code points from URL’s path.
+        // Note. If the entire path consists of spaces or is empty, then last non-space
+        // character in the url_.norm_url_ is scheme separator (:).
+        const auto newlen = url_.norm_url_.find_last_not_of(' ') + 1;
+        url_.norm_url_.resize(newlen);
+        for (int ind = url::PATH; ind < url_.part_end_.size() && url_.part_end_[ind]; ++ind)
+            url_.part_end_[ind] = newlen;
+    }
 }
 
 inline url::PartType url_setter::find_last_part(url::PartType pt) const {
