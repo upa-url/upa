@@ -3,7 +3,7 @@
 An implementation of the [WHATWG URL Standard](https://url.spec.whatwg.org/) in C++.
 
 This library is up to date with the URL Standard published on
-[28 January 2022 (commit a6c5f19)](https://url.spec.whatwg.org/commit-snapshots/a6c5f1956850c10736e49693da131ce53e056c72/).
+[2 January 2023 (commit fdaa0e5)](https://url.spec.whatwg.org/commit-snapshots/fdaa0e5a3790693a82f578d7373f216d8fef9ac8/).
 
 ## API
 
