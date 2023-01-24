@@ -5,6 +5,7 @@
 
 #include "url.h"
 #include "doctest-main.h"
+#include "test-utils.h"
 #include <algorithm>
 #include <sstream>
 #include <string>
@@ -87,21 +88,6 @@ static void set_url_property(whatwg::url& url, const std::string& property, cons
         url.search(value);
     else if (property == "hash")
         url.hash(value);
-}
-
-static std::string encodeURIComponent(const std::string& str) {
-    std::stringstream strm;
-    for (char c : str) {
-        // Not escapes: A-Z a-z 0-9 - _ . ! ~ * ' ( )
-        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
-            c == '-' || c == '_' || c == '.' || c == '!' || c == '~' || c == '*' || c == '\'' || c == '(' || c == ')') {
-            strm << c;
-        } else {
-            // percent encode
-            strm << '%' << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << int(c);
-        }
-    }
-    return strm.str();
 }
 
 //

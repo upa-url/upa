@@ -9,8 +9,10 @@
 #include "config.h"
 #include <algorithm>
 #include <initializer_list>
+#include <iomanip>
 #include <utility> // std::pair
 #include <string>
+#include <sstream>
 #ifdef __cpp_char8_t
 # include <string_view>
 #endif
@@ -28,6 +30,21 @@ inline /* constexpr */ bool operator==(std::string_view lhs, std::u8string_view 
 template <class T>
 inline std::string mk_string(T&& val) {
     return std::string(whatwg::make_string(std::forward<T>(val)));
+}
+
+std::string encodeURIComponent(const std::string& str) {
+    std::stringstream strm;
+    for (char c : str) {
+        // Not escapes: A-Z a-z 0-9 - _ . ! ~ * ' ( )
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
+            c == '-' || c == '_' || c == '.' || c == '!' || c == '~' || c == '*' || c == '\'' || c == '(' || c == ')') {
+            strm << c;
+        } else {
+            // percent encode
+            strm << '%' << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << int(c);
+        }
+    }
+    return strm.str();
 }
 
 // for url_search_params
