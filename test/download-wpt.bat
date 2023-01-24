@@ -10,6 +10,6 @@ REM 2. Find "Latest commit" text and click link next to it.
 REM 3. Copy hash from URL
 set HASH=1eaeb0e178b14078bd730ffecd62cb7569315523
 
-for %%f in (setters_tests.json toascii.json urltestdata.json percent-encoding.json) do (
+for %%f in (setters_tests.json toascii.json urltestdata.json percent-encoding.json IdnaTestV2.json) do (
   curl -fsS -o %p%\wpt\%%f https://raw.githubusercontent.com/web-platform-tests/wpt/%HASH%/url/resources/%%f
 )

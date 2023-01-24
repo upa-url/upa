@@ -10,6 +10,7 @@
 #include "url.h"
 #include "url_cleanup.h"
 #include "ddt/DataDrivenTest.hpp"
+#include "test-utils.h"
 
 #include "picojson_fffd.h"
 
@@ -17,12 +18,14 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <unicode/uversion.h>
 
 
 // Test runner
 
 bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file);
 bool run_host_parser_tests(DataDrivenTest& ddt, std::ifstream& file);
+bool run_idna_v2_tests(DataDrivenTest& ddt, std::ifstream& file);
 bool run_setter_tests(DataDrivenTest& ddt, std::ifstream& file);
 bool run_percent_encoding_tests(DataDrivenTest& ddt, std::ifstream& file);
 
@@ -38,6 +41,10 @@ int main(int argc, char** argv)
     err |= test_from_file(run_host_parser_tests, "wpt/toascii.json");
     err |= test_from_file(run_setter_tests, "wpt/setters_tests.json");
     err |= test_from_file(run_percent_encoding_tests, "wpt/percent-encoding.json");
+#if (U_ICU_VERSION_MAJOR_NUM) >= 66
+    // Only ICU 66.1 or latter passes all IdnaTestV2.json tests
+    err |= test_from_file(run_idna_v2_tests, "wpt/IdnaTestV2.json");
+#endif
 
     // additional tests
     err |= test_from_file(run_parser_tests, "data/my-urltestdata.json");
@@ -203,6 +210,55 @@ void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
     });
 }
 
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/IdnaTestV2.window.js
+//
+void test_idna_v2(DataDrivenTest& ddt, ParserObj& obj)
+{
+    // Test file format (toascii.json):
+    // https://github.com/web-platform-tests/wpt/tree/master/url#toasciijson
+    // https://github.com/web-platform-tests/wpt/pull/5976
+    static const auto make_url = [](const std::string& host) -> std::string {
+        std::string str_url("http://");
+        str_url += host;
+        str_url += "/x";
+        return str_url;
+    };
+
+    static const auto encodeHostEndingCodePoints = [](const std::string& input) -> std::string {
+        if (input.find_first_of(":/?#\\") != input.npos)
+            return encodeURIComponent(input);
+        return input;
+    };
+
+    const std::string& input = obj["input"];
+    const std::string& comment = obj["comment"];
+    std::string str_case("ToASCII(\"" + input + "\")");
+    if (!comment.empty())
+        str_case += " " + comment;
+
+    ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
+        const std::string input_url(make_url(encodeHostEndingCodePoints(input)));
+
+        whatwg::url url;
+        bool parse_success = url.parse(input_url, nullptr) == whatwg::url_result::Ok;
+
+        // check "failure"
+        tc.assert_equal(obj.failure, !parse_success, "parse failure");
+
+        // attributes
+        if (parse_success && !obj.failure) {
+            const std::string& output = obj["output"];
+            const std::string output_url(make_url(output));
+
+            tc.assert_equal(output, url.host(), "host");
+            tc.assert_equal(output, url.hostname(), "hostname");
+            tc.assert_equal("/x", url.pathname(), "pathname");
+            tc.assert_equal(output_url, url.href(), "href");
+        }
+    });
+}
+
 // URL setter test
 
 class SetterObj {
@@ -314,7 +370,8 @@ void test_percent_encoding(DataDrivenTest& ddt, EncodingObj& obj)
 namespace {
     enum class TestType {
         UrlParser,
-        HostParser
+        HostParser,
+        IdnaTestV2
     };
 
     // parses urltestdata.json, toascii.json
@@ -365,6 +422,15 @@ namespace {
                             continue;
                         }
                         break;
+                    case TestType::IdnaTestV2:
+                        if (p.first == "input" && p.second.is<std::string>() && p.second.get<std::string>().empty()) {
+                            return true; // cannot test empty string input through new URL()
+                        }
+                        if (p.first == "output" && p.second.is<picojson::null>()) {
+                            obj.failure = true;
+                            continue;
+                        }
+                        break;
                     }
                     // do not store null values
                     if (p.second.is<picojson::null>())
@@ -381,6 +447,9 @@ namespace {
                     break;
                 case TestType::HostParser:
                     test_host_parser(m_ddt, obj);
+                    break;
+                case TestType::IdnaTestV2:
+                    test_idna_v2(m_ddt, obj);
                     break;
                 }
             } else if (item.is<std::string>()) {
@@ -542,6 +611,11 @@ bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file) {
 
 bool run_host_parser_tests(DataDrivenTest& ddt, std::ifstream& file) {
     root_context ctx(ddt, TestType::HostParser);
+    return run_some_tests(ctx, file);
+}
+
+bool run_idna_v2_tests(DataDrivenTest& ddt, std::ifstream& file) {
+    root_context ctx(ddt, TestType::IdnaTestV2);
     return run_some_tests(ctx, file);
 }
 
