@@ -185,7 +185,6 @@ public:
 //
 // https://github.com/web-platform-tests/wpt/blob/master/url/url-constructor.any.js
 // https://github.com/web-platform-tests/wpt/blob/master/url/url-origin.any.js
-// https://github.com/web-platform-tests/wpt/blob/master/url/failure.html
 //
 void test_parser(DataDrivenTest& ddt, ParserObj& obj)
 {
@@ -234,6 +233,7 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
         }
 
         // https://github.com/web-platform-tests/wpt/pull/10955
+        // https://github.com/web-platform-tests/wpt/blob/master/url/failure.html
         // If a URL fails to parse with any valid base, it must also fail to parse with no base,
         // i.e. when used as a base URL itself.
         if (obj.failure && !base.empty()) {
