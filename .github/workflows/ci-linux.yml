@@ -42,6 +42,11 @@ jobs:
               lcov --list coverage.info
               bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
 
+          - name: g++-9 C++11
+            cxx_compiler: g++-9
+            cxx_standard: 11
+            cmake_options: "-DURL_BUILD_EXAMPLES=ON"
+
     steps:
     - uses: actions/checkout@v2
     - name: get dependencies
