@@ -12,7 +12,7 @@
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2023-01-02
+// Last checked for updates: 2023-02-23
 //
 
 
@@ -558,6 +558,46 @@ TEST_CASE("urlsearchparams-set.any.js") {
         params.set("a", "4"); // TODO: 4
         CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
         CHECK_MESSAGE(param_eq(params.get("a"), "4"), "Search params object has name \"a\" with value \"4\"");
+    }
+}
+
+//
+// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-size.any.js
+//
+TEST_CASE("urlsearchparams-size.any.js") {
+    SUBCASE("URLSearchParams's size and deletion") {
+        whatwg::url_search_params params("a=1&b=2&a=3");
+        CHECK_EQ(params.size(), 3);
+
+        params.del("a");
+        CHECK_EQ(params.size(), 1);
+    }
+
+    SUBCASE("URLSearchParams's size and addition") {
+        whatwg::url_search_params params("a=1&b=2&a=3");
+        CHECK_EQ(params.size(), 3);
+
+        params.append("b", "4");
+        CHECK_EQ(params.size(), 4);
+    }
+
+    SUBCASE("URLSearchParams's size when obtained from a URL") {
+        whatwg::url url("http://localhost/query?a=1&b=2&a=3");
+        CHECK_EQ(url.search_params().size(), 3);
+
+        url.search_params().del("a");
+        CHECK_EQ(url.search_params().size(), 1);
+
+        url.search_params().append("b", "4");
+        CHECK_EQ(url.search_params().size(), 2);
+    }
+
+    SUBCASE("URLSearchParams's size when obtained from a URL and using .search") {
+        whatwg::url url("http://localhost/query?a=1&b=2&a=3");
+        CHECK_EQ(url.search_params().size(), 3);
+
+        url.search("?");
+        CHECK_EQ(url.search_params().size(), 0);
     }
 }
 
