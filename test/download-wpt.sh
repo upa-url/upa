@@ -9,7 +9,7 @@ p="$(dirname "$0")"
 # 1. Go to https://github.com/web-platform-tests/wpt/tree/master/url
 # 2. Find "Latest commit" text and click link next to it.
 # 3. Copy hash from URL
-HASH=8ccf3f0be73c5432eb2017b1bbeb081fade4ecbb
+HASH=59cb2f84076bcf5c3578a26e93ee7b3eec20bd8c
 
 for f in setters_tests.json toascii.json urltestdata.json percent-encoding.json
 do

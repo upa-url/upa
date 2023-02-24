@@ -337,7 +337,9 @@ void test_setter(DataDrivenTest& ddt, SetterObj& obj)
         // Attributes
 
         // set value
-        if (obj.m_setter == "protocol") {
+        if (obj.m_setter == "href") {
+            url.href(obj.m_new_value);
+        } else if (obj.m_setter == "protocol") {
             url.protocol(obj.m_new_value);
         } else if (obj.m_setter == "username") {
             url.username(obj.m_new_value);
