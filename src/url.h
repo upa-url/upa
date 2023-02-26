@@ -144,7 +144,7 @@ public:
     template <class T, enable_if_str_arg_t<T> = 0>
     url_result parse(T&& str_url, const url* base) {
         const auto inp = make_str_arg(std::forward<T>(str_url));
-        return do_parse(inp.begin(), inp.end(), base, true);
+        return do_parse(inp.begin(), inp.end(), base);
     }
 
     // Setters
@@ -436,7 +436,7 @@ private:
 
     // parser
     template <typename CharT>
-    url_result do_parse(const CharT* first, const CharT* last, const url* base, const bool clear = false);
+    url_result do_parse(const CharT* first, const CharT* last, const url* base);
 
     // get scheme info
     static const scheme_info kSchemes[];
@@ -510,7 +510,10 @@ public:
 
     ~url_serializer();
 
-    void new_url(const bool clear) { if (clear) url_.clear(); }
+    void new_url() {
+        if (!url_.empty())
+            url_.clear();
+    }
     virtual void reserve(std::size_t new_cap) { url_.norm_url_.reserve(new_cap); }
 
     // set data
@@ -1143,13 +1146,13 @@ inline void url::clear() {
 }
 
 template <typename CharT>
-inline url_result url::do_parse(const CharT* first, const CharT* last, const url* base, const bool clear) {
+inline url_result url::do_parse(const CharT* first, const CharT* last, const url* base) {
     url_result res;
     {
-        detail::url_serializer urls(*this); // new URL
+        detail::url_serializer urls(*this);
 
         // reset URL
-        urls.new_url(clear);
+        urls.new_url();
 
         // remove any leading and trailing C0 control or space:
         detail::do_trim(first, last);

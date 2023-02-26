@@ -116,6 +116,21 @@ TEST_CASE("url parsing constructor with base URL string") {
     check_test_url(url);
 }
 
+// Parse URL
+
+TEST_CASE("url::parse must clear old URL data") {
+    whatwg::url url;
+
+    CHECK(whatwg::success(url.parse("about:blank", nullptr)));
+    CHECK_FALSE(url.empty());
+
+    CHECK(whatwg::success(url.parse("http://host-1/", nullptr)));
+    CHECK(url.host("host-2"));
+
+    CHECK(url.host() == "host-2");
+    CHECK(url.href() == "http://host-2/");
+}
+
 // Empty URL
 
 TEST_CASE("Empty URL") {
