@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -32,6 +32,11 @@ inline std::string mk_string(T&& val) {
     return std::string(whatwg::make_string(std::forward<T>(val)));
 }
 
+// encodeURIComponent(...) implementation as described in ECMAScript Language Specification (ECMA-262):
+// https://tc39.es/ecma262/#sec-encodeuricomponent-uricomponent
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
+// Input must be valid UTF-8.
+
 std::string encodeURIComponent(const std::string& str) {
     std::stringstream strm;
     for (char c : str) {
@@ -41,7 +46,8 @@ std::string encodeURIComponent(const std::string& str) {
             strm << c;
         } else {
             // percent encode
-            strm << '%' << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << int(c);
+            const auto uc = static_cast<unsigned char>(c);
+            strm << '%' << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << int(uc);
         }
     }
     return strm.str();

@@ -1,36 +1,17 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
 
 #include "url_percent_encode.h"
 #include "doctest-main.h"
+#include "test-utils.h"
 
 
-// encodeURIComponent(...) implementation as described in ECMAScript Language Specification (ECMA-262):
-// https://tc39.es/ecma262/#sec-encodeuricomponent-uricomponent
-// https://tc39.es/ecma262/#prod-uriUnescaped
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
-// Input must be valid UTF-8.
-// It is used in tests to compare result with encode_url_component(...).
-// According to URL specification results must match:
+// Test to compare ECMAScript encodeURIComponent(...) result with encode_url_component(...).
+// The encode_url_component(...) uses component percent-encode set, and according to URL
+// specification results must match:
 // https://url.spec.whatwg.org/#component-percent-encode-set
-
-static std::string encodeURIComponent(const std::string& str) {
-    std::stringstream strm;
-    for (auto c : str) {
-        // Not escapes: A-Z a-z 0-9 - _ . ! ~ * ' ( )
-        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
-            c == '-' || c == '_' || c == '.' || c == '!' || c == '~' || c == '*' || c == '\'' || c == '(' || c == ')') {
-            strm << c;
-        } else {
-            // percent encode
-            strm << '%' << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << int(c);
-        }
-    }
-    return strm.str();
-}
-
 
 TEST_CASE_TEMPLATE_DEFINE("encode_url_component with ASCII input", CharT, test_encode_url_component_ascii) {
     using string_t = std::basic_string<CharT>;
