@@ -31,6 +31,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint> // uint8_t
+#include <filesystem>
 #include <functional> // std::hash
 #include <iterator>
 #include <ostream>
@@ -3230,6 +3231,22 @@ template <class StrT, enable_if_str_arg_t<StrT> = 0>
     // make URL
     detail::append_utf8_percent_encoded(pointer, last, *no_encode_set, str_url);
     return url(str_url);
+}
+
+/// @brief Make URL from OS file path
+///
+/// Throws url_error exception on error.
+///
+/// @param[in] path absolute file path
+/// @return file URL
+inline url url_from_file_path(const std::filesystem::path& path) {
+#ifdef _WIN32
+    // On Windows, the native path is encoded in UTF-16
+    return url_from_file_path(path.native());
+#else
+    // Ensure string input is UTF-8 encoded
+    return url_from_file_path(path.u8string());
+#endif
 }
 
 /// @brief Get OS path from file URL
