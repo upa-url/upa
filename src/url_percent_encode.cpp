@@ -1,4 +1,4 @@
-// Copyright 2016-2022 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -29,7 +29,7 @@ const code_point_set path_no_encode_set = {
 const code_point_set raw_path_no_encode_set = {
     0x00, 0x00, 0x00, 0x00, 0xd2, 0xff, 0xff, 0x2f, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0x57
 };
-const code_point_set unix_path_no_encode_set = {
+const code_point_set posix_path_no_encode_set = {
     0x00, 0x00, 0x00, 0x00, 0xd2, 0xff, 0xff, 0x2b, 0xff, 0xff, 0xff, 0xef, 0xfe, 0xff, 0xff, 0x47
 };
 const code_point_set userinfo_no_encode_set = {

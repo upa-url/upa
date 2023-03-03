@@ -1,4 +1,4 @@
-// Copyright 2019-2022 Rimas Misevičius
+// Copyright 2019-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -39,7 +39,7 @@ void dumpAll(std::ostream& out) {
     DUMP_SET(special_query_no_encode_set);
     DUMP_SET(path_no_encode_set);
     DUMP_SET(raw_path_no_encode_set);
-    DUMP_SET(unix_path_no_encode_set);
+    DUMP_SET(posix_path_no_encode_set);
     DUMP_SET(userinfo_no_encode_set);
     DUMP_SET(component_no_encode_set);
 

@@ -1,4 +1,4 @@
-// Copyright 2016-2022 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -163,10 +163,10 @@ inline constexpr code_point_set raw_path_no_encode_set{ [](code_point_set& self)
     self.exclude(0x25);
     } };
 
-// Unix path percent-encode set
+// POSIX path percent-encode set
 // Additionally encode ':', '|' and '\' to prevent windows drive letter detection and interpretation of the
-// '\' as directory separator in Unix paths (for example "/c:\end" will be encoded to "/c%3A%5Cend").
-inline constexpr code_point_set unix_path_no_encode_set{ [](code_point_set& self) constexpr {
+// '\' as directory separator in POSIX paths (for example "/c:\end" will be encoded to "/c%3A%5Cend").
+inline constexpr code_point_set posix_path_no_encode_set{ [](code_point_set& self) constexpr {
     self.copy(raw_path_no_encode_set);
     self.exclude({ 0x3A, 0x5C, 0x7C }); // ':' (0x3A), '\' (0x5C), '|' (0x7C)
     } };
@@ -227,7 +227,7 @@ extern const code_point_set query_no_encode_set;
 extern const code_point_set special_query_no_encode_set;
 extern const code_point_set path_no_encode_set;
 extern const code_point_set raw_path_no_encode_set;
-extern const code_point_set unix_path_no_encode_set;
+extern const code_point_set posix_path_no_encode_set;
 extern const code_point_set userinfo_no_encode_set;
 extern const code_point_set component_no_encode_set;
 

@@ -2773,8 +2773,8 @@ inline url url_from_file_path(StrT&& str) {
         std::string str_url("file://");
 
         if (*pointer == '/') {
-            // Absolute Unix path
-            no_encode_set = &unix_path_no_encode_set;
+            // Absolute POSIX path
+            no_encode_set = &posix_path_no_encode_set;
         } else {
             // Windows path?
             bool is_unc = false;

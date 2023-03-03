@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -323,7 +323,7 @@ TEST_CASE("Invalid UTF-32 in hostname") {
 // URL utilities
 
 TEST_CASE("url_from_file_path") {
-    SUBCASE("Unix path") {
+    SUBCASE("POSIX path") {
         CHECK(whatwg::url_from_file_path("/").href() == "file:///");
         CHECK(whatwg::url_from_file_path("/path").href() == "file:///path");
         CHECK(whatwg::url_from_file_path("/path %#?").href() == "file:///path%20%25%23%3F");
