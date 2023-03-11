@@ -131,6 +131,79 @@ TEST_CASE("url::parse must clear old URL data") {
     CHECK(url.href() == "http://host-2/");
 }
 
+// Valid or invalid URL
+
+TEST_CASE("url::is_valid()") {
+    // empty url invalid
+    whatwg::url url;
+    CHECK(url.empty());
+    CHECK_FALSE(url.is_valid());
+
+    // parse valid URL
+    CHECK(url.parse("wss://host:88/path", nullptr) == whatwg::url_result::Ok);
+    CHECK(url.href() == "wss://host:88/path");
+    CHECK(url.is_valid());
+
+    // href setter must not change original url on failure
+    CHECK_FALSE(url.href("http://h:65616/p"));
+    CHECK(url.href() == "wss://host:88/path");
+    CHECK(url.is_valid());
+
+    // url::parse must reset VALID_FLAG on failure
+    CHECK(url.parse("http://h:8a/p", nullptr) == whatwg::url_result::InvalidPort);
+    CHECK_FALSE(url.is_valid());
+
+    // invalid URL must ignore setters (except href)
+    std::string href{ url.href() };
+
+    url.protocol("https");
+    CHECK(url.href() == href);
+    CHECK_FALSE(url.is_valid());
+
+    url.username("user");
+    CHECK(url.href() == href);
+    CHECK_FALSE(url.is_valid());
+
+    url.password("psw");
+    CHECK(url.href() == href);
+    CHECK_FALSE(url.is_valid());
+
+    url.host("host:1");
+    CHECK(url.href() == href);
+    CHECK_FALSE(url.is_valid());
+
+    url.hostname("host");
+    CHECK(url.href() == href);
+    CHECK_FALSE(url.is_valid());
+
+    url.port("12");
+    CHECK(url.href() == href);
+    CHECK_FALSE(url.is_valid());
+
+    url.pathname("path");
+    CHECK(url.href() == href);
+    CHECK_FALSE(url.is_valid());
+
+    url.search("a=b");
+    CHECK(url.href() == href);
+    CHECK_FALSE(url.is_valid());
+
+    url.search_params().append("c", "d");
+    CHECK(url.href() == href);
+    CHECK_FALSE(url.is_valid());
+
+    url.hash("hash");
+    CHECK(url.href() == href);
+    CHECK_FALSE(url.is_valid());
+
+    // href setter invoked with valid URL string as input
+    // makes URL valid
+    url.href("http://example.com/");
+    CHECK(url.href() == "http://example.com/");
+    CHECK_FALSE(url.empty());
+    CHECK(url.is_valid());
+}
+
 // Empty URL
 
 TEST_CASE("Empty URL") {

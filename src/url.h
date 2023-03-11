@@ -370,6 +370,13 @@ public:
     /// @return `true` if URL is empty, `false` otherwise
     bool empty() const noexcept;
 
+    /// @brief Returns whether the URL is valid
+    ///
+    /// URL is valid if it is not empty, and contains a successfully parsed URL.
+    ///
+    /// @return `true` if URL is valid, `false` otherwise
+    bool is_valid() const noexcept;
+
     /// Function to get ASCII string of any URL's part (URL record member) defined here:
     /// https://url.spec.whatwg.org/#url-representation
     /// 
@@ -419,8 +426,9 @@ private:
         FRAGMENT_FLAG = (1u << FRAGMENT),
         // other flags
         OPAQUE_PATH_FLAG = (1u << (PART_COUNT + 0)),
+        VALID_FLAG = (1u << (PART_COUNT + 1)),
         // host type
-        HOST_TYPE_SHIFT = (PART_COUNT + 1),
+        HOST_TYPE_SHIFT = (PART_COUNT + 2),
         HOST_TYPE_MASK = (7u << HOST_TYPE_SHIFT),
 
         // initial flags (empty (but not null) parts)
@@ -1030,6 +1038,10 @@ inline bool url::empty() const noexcept {
     return norm_url_.empty();
 }
 
+inline bool url::is_valid() const noexcept {
+    return !!(flags_ & VALID_FLAG);
+}
+
 inline url::str_view_type url::get_part_view(PartType t) const {
     if (t == SCHEME)
         return str_view_type(norm_url_.data(), part_end_[SCHEME]);
@@ -1108,7 +1120,7 @@ inline void url::set_host_type(const HostType ht) noexcept {
 }
 
 inline bool url::canHaveUsernamePasswordPort() const {
-    return !(is_empty(url::HOST) || is_file_scheme());
+    return is_valid() && !(is_empty(url::HOST) || is_file_scheme());
 }
 
 // url parsing
@@ -1159,6 +1171,7 @@ inline url_result url::do_parse(const CharT* first, const CharT* last, const url
         //TODO-WARN: validation error if trimmed
 
         res = detail::url_parser::url_parse(urls, first, last, base);
+        if (res == url_result::Ok) set_flag(VALID_FLAG);
     }
     parse_search_params();
     return res;
@@ -1178,7 +1191,7 @@ inline bool url::href(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::protocol(StrT&& str) {
-    if (!empty()) {
+    if (is_valid()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1221,7 +1234,7 @@ inline bool url::password(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::host(StrT&& str) {
-    if (!has_an_opaque_path() && !empty()) {
+    if (!has_an_opaque_path() && is_valid()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1232,7 +1245,7 @@ inline bool url::host(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::hostname(StrT&& str) {
-    if (!has_an_opaque_path() && !empty()) {
+    if (!has_an_opaque_path() && is_valid()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1262,7 +1275,7 @@ inline bool url::port(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::pathname(StrT&& str) {
-    if (!has_an_opaque_path() && !empty()) {
+    if (!has_an_opaque_path() && is_valid()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1274,7 +1287,7 @@ inline bool url::pathname(StrT&& str) {
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::search(StrT&& str) {
     bool res = false;
-    if (!empty()) {
+    if (is_valid()) {
         {
             detail::url_setter urls(*this);
 
@@ -1300,7 +1313,7 @@ inline bool url::search(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::hash(StrT&& str) {
-    if (!empty()) {
+    if (is_valid()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
