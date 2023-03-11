@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -26,6 +26,7 @@ enum class url_result {
     InvalidDomainCharacter,        //!< invalid domain character
     RelativeUrlWithoutBase,        //!< relative URL without a base
     RelativeUrlWithCannotBeABase,  //!< relative URL with a cannot-be-a-base base
+    InvalidBase,                   //!< invalid base
     Overflow,                      //!< URLs is too long
     // url_from_file_path errors
     EmptyPath,                     //!< path cannot be empty

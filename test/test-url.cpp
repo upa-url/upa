@@ -14,6 +14,9 @@ const char* urls_to_str(const char* s1) {
 std::string urls_to_str(const char* s1, const char* s2) {
     return std::string(s1) + " AGAINST " + s2;
 }
+std::string urls_to_str(const char* s1, const whatwg::url& u2) {
+    return urls_to_str(s1, u2.to_string().c_str());
+}
 
 template <class ...Args>
 void check_url_contructor(whatwg::url_result expected_res, Args&&... args)
@@ -44,6 +47,9 @@ TEST_CASE("url constructor") {
     check_url_contructor(whatwg::url_result::InvalidDomainCharacter, "http://h[]/p");
     check_url_contructor(whatwg::url_result::RelativeUrlWithoutBase, "relative");
     check_url_contructor(whatwg::url_result::RelativeUrlWithCannotBeABase, "relative", "about:blank");
+    // empty (invalid) base
+    const whatwg::url base;
+    check_url_contructor(whatwg::url_result::InvalidBase, "http://h/", base);
 }
 
 // Copy/move construction/assignment
@@ -202,6 +208,39 @@ TEST_CASE("url::is_valid()") {
     CHECK(url.href() == "http://example.com/");
     CHECK_FALSE(url.empty());
     CHECK(url.is_valid());
+}
+
+TEST_CASE("Parse URL with invalid base") {
+    SUBCASE("Empty base") {
+        const whatwg::url base;
+        CHECK_FALSE(base.is_valid());
+
+        whatwg::url url;
+        CHECK(url.parse("https://h/", &base) == whatwg::url_result::InvalidBase);
+        CHECK_FALSE(url.is_valid());
+
+        CHECK(url.parse("http://host/", nullptr) == whatwg::url_result::Ok);
+        CHECK(url.is_valid());
+        CHECK(url.parse("https://h/", &base) == whatwg::url_result::InvalidBase);
+        CHECK_FALSE(url.is_valid());
+    }
+    SUBCASE("Invalid base") {
+        whatwg::url base;
+        CHECK_FALSE(whatwg::success(base.parse("http://h:65616/p", nullptr)));
+        CHECK_FALSE(base.is_valid());
+
+        whatwg::url url;
+        CHECK(url.parse("https://h/", &base) == whatwg::url_result::InvalidBase);
+        CHECK_FALSE(url.is_valid());
+
+        CHECK(url.parse("/path", &base) == whatwg::url_result::InvalidBase);
+        CHECK_FALSE(url.is_valid());
+
+        CHECK(url.parse("http://host/", nullptr) == whatwg::url_result::Ok);
+        CHECK(url.is_valid());
+        CHECK(url.parse("https://h/", &base) == whatwg::url_result::InvalidBase);
+        CHECK_FALSE(url.is_valid());
+    }
 }
 
 // Empty URL

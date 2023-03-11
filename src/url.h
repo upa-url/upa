@@ -1166,6 +1166,10 @@ inline url_result url::do_parse(const CharT* first, const CharT* last, const url
         // reset URL
         urls.new_url();
 
+        // is base URL valid?
+        if (base && !base->is_valid())
+            return url_result::InvalidBase;
+
         // remove any leading and trailing C0 control or space:
         detail::do_trim(first, last);
         //TODO-WARN: validation error if trimmed
