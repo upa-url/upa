@@ -2045,29 +2045,28 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
     // 1. [ (/,\) - 1, 2, 3, 4 - [ 1 (if first segment), 2 ] ]
     // 2. [ 1 ... 4 ]
     static const auto escaped_dot = [](const CharT* const pointer) -> bool {
-        return pointer[0] == '%' && pointer[1] == '2' &&
-            (pointer[2] == 'e' || pointer[2] == 'E');
+        // "%2e" or "%2E"
+        return pointer[0] == '%' && pointer[1] == '2' && (pointer[2] | 0x20) == 'e';
     };
-    const auto double_dot = [](const CharT* const pointer, const std::size_t len) -> bool {
-        if (len == 2) {
-            return (pointer[0] == '.' && pointer[1] == '.');
-        } else if (len == 4) {
-            // ".%2e" or "%2e."
+    static const auto double_dot = [](const CharT* const pointer, const std::size_t len) -> bool {
+        switch (len) {
+        case 2: // ".."
+            return pointer[0] == '.' && pointer[1] == '.';
+        case 4: // ".%2e" or "%2e."
             return (pointer[0] == '.' && escaped_dot(pointer + 1)) ||
                 (escaped_dot(pointer) && pointer[3] == '.');
-        } else if (len == 6) {
-            // "%2e%2e"
+        case 6: // "%2e%2e"
             return escaped_dot(pointer) && escaped_dot(pointer + 3);
-        } else
+        default:
             return false;
+        }
     };
-    const auto single_dot = [](const CharT* const pointer, const std::size_t len) -> bool {
-        if (len == 1) {
-            return pointer[0] == '.';
-        } else if (len == 3) {
-            return escaped_dot(pointer); // "%2e"
-        } else
-            return false;
+    static const auto single_dot = [](const CharT* const pointer, const std::size_t len) -> bool {
+        switch (len) {
+        case 1: return pointer[0] == '.';
+        case 3: return escaped_dot(pointer); // "%2e"
+        default: return false;
+        }
     };
 
     // parse path's segments
