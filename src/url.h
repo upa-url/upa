@@ -486,7 +486,7 @@ private:
     bool canHaveUsernamePasswordPort() const;
 
     // url record
-    void move_record(url&& other) WHATWG__NOEXCEPT_17;
+    void move_record(url& other) WHATWG__NOEXCEPT_17;
 
     // search params
     void clear_search_params() noexcept;
@@ -896,7 +896,7 @@ inline url::url(url&& other) noexcept
 
 inline url& url::operator=(url&& other) WHATWG__NOEXCEPT_17 {
     // move data
-    move_record(std::move(other));
+    move_record(other);
     search_params_ptr_ = std::move(other.search_params_ptr_);
 
     // setup search params
@@ -908,21 +908,21 @@ inline url& url::operator=(url&& other) WHATWG__NOEXCEPT_17 {
 inline url& url::safe_assign(url&& other) {
     if (search_params_ptr_) {
         if (other.search_params_ptr_) {
-            move_record(std::move(other));
+            move_record(other);
             search_params_ptr_->move_params(std::move(*other.search_params_ptr_));
         } else {
             // parse search parameters before move assign for strong exception guarantee
             url_search_params params(&other);
-            move_record(std::move(other));
+            move_record(other);
             search_params_ptr_->move_params(std::move(params));
         }
     } else {
-        move_record(std::move(other));
+        move_record(other);
     }
     return *this;
 }
 
-inline void url::move_record(url&& other) WHATWG__NOEXCEPT_17 {
+inline void url::move_record(url& other) WHATWG__NOEXCEPT_17 {
     norm_url_ = std::move(other.norm_url_);
     part_end_ = std::move(other.part_end_);
     scheme_inf_ = other.scheme_inf_;
