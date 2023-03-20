@@ -553,27 +553,27 @@ inline url_search_params::name_value_list url_search_params::do_parse(bool rem_q
     if (rem_qmark && b != e && *b == '?')
         ++b;
 
-    name_value_pair p;
-    std::string* pval = &p.first;
+    std::string name, value;
+    std::string* pval = &name;
     auto start = b;
     for (auto it = b; it != e; ++it) {
         switch (*it) {
         case '=':
-            if (pval != &p.second)
-                pval = &p.second;
+            if (pval != &value)
+                pval = &value;
             else
                 pval->push_back(*it);
             break;
         case '&':
             if (start != it) {
-                url_utf::check_fix_utf8(p.first);
-                url_utf::check_fix_utf8(p.second);
-                lst.push_back(std::move(p));
+                url_utf::check_fix_utf8(name);
+                url_utf::check_fix_utf8(value);
+                lst.emplace_back(std::move(name), std::move(value));
                 // clear after move
-                p.first.clear();
-                p.second.clear();
+                name.clear();
+                value.clear();
             }
-            pval = &p.first;
+            pval = &name;
             start = it + 1; // skip '&'
             break;
         case '+':
@@ -598,9 +598,9 @@ inline url_search_params::name_value_list url_search_params::do_parse(bool rem_q
         }
     }
     if (start != e) {
-        url_utf::check_fix_utf8(p.first);
-        url_utf::check_fix_utf8(p.second);
-        lst.push_back(std::move(p));
+        url_utf::check_fix_utf8(name);
+        url_utf::check_fix_utf8(value);
+        lst.emplace_back(std::move(name), std::move(value));
     }
     return lst;
 }
