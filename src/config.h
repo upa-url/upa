@@ -15,8 +15,10 @@
 // https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
 #if defined(_MSVC_LANG) ? (_MSVC_LANG >= 201703) : (__cplusplus >= 201703)
 # define WHATWG__CPP_17
+# define WHATWG__FALLTHROUGH [[fallthrough]];
 # define WHATWG__NOEXCEPT_17 noexcept
 #else
+# define WHATWG__FALLTHROUGH
 # define WHATWG__NOEXCEPT_17
 #endif
 

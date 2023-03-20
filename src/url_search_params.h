@@ -591,7 +591,7 @@ inline url_search_params::name_value_list url_search_params::do_parse(bool rem_q
                     break;
                 }
             }
-            // fall thru
+            WHATWG__FALLTHROUGH
         default:
             pval->push_back(*it);
             break;

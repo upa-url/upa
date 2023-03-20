@@ -1572,6 +1572,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     state = relative_slash_state;
                     break;
                 }
+                WHATWG__FALLTHROUGH
             default:
                 // Set url's username to base's username, url's password to base's password, url's host to base's host,
                 // url's port to base's port, url's path to base's path, and then remove url's path's last entry, if any
@@ -1599,6 +1600,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 ++pointer;
                 break;
             }
+            WHATWG__FALLTHROUGH
         default:
             // set url's username to base's username, url's password to base's password, url's host to base's host,
             // url's port to base's port
@@ -1907,6 +1909,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     break;
                 case '/':
                     ++pointer;
+                    WHATWG__FALLTHROUGH
                 default:
                     state = path_state;
                     break;
@@ -2322,6 +2325,7 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
             url_.part_end_[url::PASSWORD] = url_.norm_url_.length();
             fill_start_pt = url::HOST_START; // (url::PASSWORD + 1)
         }
+        WHATWG__FALLTHROUGH
     case url::PASSWORD:
         if (new_pt == url::HOST) {
             url_.norm_url_ += '@';
@@ -2334,6 +2338,7 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
             url_.norm_url_ += ':';
             break;
         }
+        WHATWG__FALLTHROUGH
     case url::PORT:
         break;
     case url::PATH:
@@ -2639,6 +2644,7 @@ inline void url_setter::save_part() {
                     replace_part(url::HOST_START, "", 0, curr_pt_, 0);
                     break;
                 }
+                WHATWG__FALLTHROUGH
             default:
                 if ((curr_pt_ == url::PASSWORD || curr_pt_ == url::PORT) && empty_val)
                     strp_.clear(); // drop ':'
