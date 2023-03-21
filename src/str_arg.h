@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -25,7 +25,7 @@ inline void procfn(Args&&... args) {
 #include "config.h"
 #include "url_utf.h"
 
-#ifdef WHATWG__CPP_17
+#ifdef WHATWG_CPP_17
 # include <string_view>
 # define WHATWG_URL_STR_VIEW_TYPE  std::string_view
 #else

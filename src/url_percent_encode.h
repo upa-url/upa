@@ -28,7 +28,7 @@ namespace whatwg {
 ///
 class code_point_set {
 public:
-#ifdef WHATWG__CPP_17
+#ifdef WHATWG_CPP_17
     /// @brief constructor for code point set initialization
     ///
     /// Function @a fun must iniatialize @a self object by using code_point_set
@@ -112,7 +112,7 @@ private:
 
     // Data
     static const std::size_t arr_size_ = 32;
-#ifdef WHATWG__CPP_17
+#ifdef WHATWG_CPP_17
     uint8_t arr_[arr_size_] = {};
 #else
 public:
@@ -123,7 +123,7 @@ public:
 
 // Percent encode sets
 
-#ifdef WHATWG__CPP_17
+#ifdef WHATWG_CPP_17
 
 // If you edit following data, then please compile tools/dumpCharBitSets.cpp program
 // with C++17 compiler, run it and copy output to the url_percent_encode.cpp file.

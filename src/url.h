@@ -101,7 +101,7 @@ public:
     /// Replaces the contents with those of @a other using move semantics.
     ///
     /// @param[in,out] other  URL to move to this object
-    url& operator=(url&& other) WHATWG__NOEXCEPT_17;
+    url& operator=(url&& other) WHATWG_NOEXCEPT_17;
 
     /// @brief Safe move assignment.
     ///
@@ -486,7 +486,7 @@ private:
     bool canHaveUsernamePasswordPort() const;
 
     // url record
-    void move_record(url& other) WHATWG__NOEXCEPT_17;
+    void move_record(url& other) WHATWG_NOEXCEPT_17;
 
     // search params
     void clear_search_params() noexcept;
@@ -894,7 +894,7 @@ inline url::url(url&& other) noexcept
     search_params_ptr_.set_url_ptr(this);
 }
 
-inline url& url::operator=(url&& other) WHATWG__NOEXCEPT_17 {
+inline url& url::operator=(url&& other) WHATWG_NOEXCEPT_17 {
     // move data
     move_record(other);
     search_params_ptr_ = std::move(other.search_params_ptr_);
@@ -922,7 +922,7 @@ inline url& url::safe_assign(url&& other) {
     return *this;
 }
 
-inline void url::move_record(url& other) WHATWG__NOEXCEPT_17 {
+inline void url::move_record(url& other) WHATWG_NOEXCEPT_17 {
     norm_url_ = std::move(other.norm_url_);
     part_end_ = std::move(other.part_end_);
     scheme_inf_ = other.scheme_inf_;
@@ -1572,7 +1572,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     state = relative_slash_state;
                     break;
                 }
-                WHATWG__FALLTHROUGH
+                WHATWG_FALLTHROUGH
             default:
                 // Set url's username to base's username, url's password to base's password, url's host to base's host,
                 // url's port to base's port, url's path to base's path, and then remove url's path's last entry, if any
@@ -1600,7 +1600,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 ++pointer;
                 break;
             }
-            WHATWG__FALLTHROUGH
+            WHATWG_FALLTHROUGH
         default:
             // set url's username to base's username, url's password to base's password, url's host to base's host,
             // url's port to base's port
@@ -1909,7 +1909,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     break;
                 case '/':
                     ++pointer;
-                    WHATWG__FALLTHROUGH
+                    WHATWG_FALLTHROUGH
                 default:
                     state = path_state;
                     break;
@@ -2325,7 +2325,7 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
             url_.part_end_[url::PASSWORD] = url_.norm_url_.length();
             fill_start_pt = url::HOST_START; // (url::PASSWORD + 1)
         }
-        WHATWG__FALLTHROUGH
+        WHATWG_FALLTHROUGH
     case url::PASSWORD:
         if (new_pt == url::HOST) {
             url_.norm_url_ += '@';
@@ -2338,7 +2338,7 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
             url_.norm_url_ += ':';
             break;
         }
-        WHATWG__FALLTHROUGH
+        WHATWG_FALLTHROUGH
     case url::PORT:
         break;
     case url::PATH:
@@ -2644,7 +2644,7 @@ inline void url_setter::save_part() {
                     replace_part(url::HOST_START, "", 0, curr_pt_, 0);
                     break;
                 }
-                WHATWG__FALLTHROUGH
+                WHATWG_FALLTHROUGH
             default:
                 if ((curr_pt_ == url::PASSWORD || curr_pt_ == url::PORT) && empty_val)
                     strp_.clear(); // drop ':'

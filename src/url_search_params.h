@@ -291,7 +291,7 @@ private:
 
     void clear_params() noexcept;
     void copy_params(const url_search_params& other);
-    void move_params(url_search_params&& other) WHATWG__NOEXCEPT_17;
+    void move_params(url_search_params&& other) WHATWG_NOEXCEPT_17;
     void parse_params(url_str_view_t query);
 
     void update();
@@ -400,7 +400,7 @@ inline void url_search_params::copy_params(const url_search_params& other) {
     is_sorted_ = other.is_sorted_;
 }
 
-inline void url_search_params::move_params(url_search_params&& other) WHATWG__NOEXCEPT_17 {
+inline void url_search_params::move_params(url_search_params&& other) WHATWG_NOEXCEPT_17 {
     params_ = std::move(other.params_);
     is_sorted_ = other.is_sorted_;
 }
@@ -458,7 +458,7 @@ inline url_search_params::size_type url_search_params::remove(const TN& name, co
 
 template <class UnaryPredicate>
 inline url_search_params::size_type url_search_params::remove_if(UnaryPredicate p) {
-#ifdef WHATWG__CPP_20
+#ifdef WHATWG_CPP_20
     const size_type count = params_.remove_if(p);
 #else
     const size_type old_size = params_.size();
@@ -591,7 +591,7 @@ inline url_search_params::name_value_list url_search_params::do_parse(bool rem_q
                     break;
                 }
             }
-            WHATWG__FALLTHROUGH
+            WHATWG_FALLTHROUGH
         default:
             pval->push_back(*it);
             break;
