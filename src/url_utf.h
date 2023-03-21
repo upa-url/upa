@@ -95,25 +95,25 @@ inline bool url_utf::read_utf_char(const CharT*& first, const CharT* last, uint3
 inline bool url_utf::read_code_point(const char*& first, const char* last, uint32_t& c) {
     c = static_cast<uint8_t>(*first++);
     if (c & 0x80) {
-        uint8_t __t = 0;
+        uint8_t tmp = 0;
         if (first != last &&
             // fetch/validate/assemble all but last trail byte
             (c >= 0xE0 ?
                 (c < 0xF0 ? // U+0800..U+FFFF except surrogates
-                    k_U8_LEAD3_T1_BITS[c &= 0xF] & (1 << ((__t = static_cast<uint8_t>(*first)) >> 5)) &&
-                    (__t &= 0x3F, 1)
+                    k_U8_LEAD3_T1_BITS[c &= 0xF] & (1 << ((tmp = static_cast<uint8_t>(*first)) >> 5)) &&
+                    (tmp &= 0x3F, 1)
                     : // U+10000..U+10FFFF
                     (c -= 0xF0) <= 4 &&
-                    k_U8_LEAD4_T1_BITS[(__t = static_cast<uint8_t>(*first)) >> 4] & (1 << c) &&
-                    (c = (c << 6) | (__t & 0x3F), ++first != last) &&
-                    (__t = static_cast<uint8_t>(static_cast<uint8_t>(*first) - 0x80)) <= 0x3F) &&
+                    k_U8_LEAD4_T1_BITS[(tmp = static_cast<uint8_t>(*first)) >> 4] & (1 << c) &&
+                    (c = (c << 6) | (tmp & 0x3F), ++first != last) &&
+                    (tmp = static_cast<uint8_t>(static_cast<uint8_t>(*first) - 0x80)) <= 0x3F) &&
                 // valid second-to-last trail byte
-                (c = (c << 6) | __t, ++first != last)
+                (c = (c << 6) | tmp, ++first != last)
                 : // U+0080..U+07FF
                 c >= 0xC2 && (c &= 0x1F, 1)) &&
             // last trail byte
-            (__t = static_cast<uint8_t>(static_cast<uint8_t>(*first) - 0x80)) <= 0x3F &&
-            (c = (c << 6) | __t, ++first, 1)) {
+            (tmp = static_cast<uint8_t>(static_cast<uint8_t>(*first) - 0x80)) <= 0x3F &&
+            (c = (c << 6) | tmp, ++first, 1)) {
             // valid utf-8
         } else {
             // ill-formed
@@ -170,10 +170,10 @@ namespace detail {
 inline bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) {
     c = *first++;
     if (detail::u16_is_surrogate(c)) {
-        uint16_t __c2;
-        if (detail::u16_is_surrogate_lead(c) && first != last && detail::u16_is_trail(__c2 = *first)) {
+        uint16_t c2;
+        if (detail::u16_is_surrogate_lead(c) && first != last && detail::u16_is_trail(c2 = *first)) {
             ++first;
-            c = detail::u16_get_supplementary(c, __c2);
+            c = detail::u16_get_supplementary(c, c2);
         } else {
             // c = 0xfffd;
             return false;
