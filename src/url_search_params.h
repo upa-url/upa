@@ -6,14 +6,14 @@
 #ifndef WHATWG_URL_SEARCH_PARAMS_H
 #define WHATWG_URL_SEARCH_PARAMS_H
 
+#include "config.h"
+#include "str_arg.h"
+#include "url_percent_encode.h"
 #include <list>
 #include <memory>
 #include <string>
 #include <type_traits>
 #include <utility>
-#include "config.h"
-#include "str_arg.h"
-#include "url_percent_encode.h"
 
 namespace whatwg {
 

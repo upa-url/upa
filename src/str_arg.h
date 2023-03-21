@@ -18,12 +18,12 @@ inline void procfn(Args&&... args) {
 #ifndef WHATWG_STR_ARG_H
 #define WHATWG_STR_ARG_H
 
+#include "config.h"
+#include "url_utf.h"
 #include <cassert>
 #include <iterator>
 #include <string>
 #include <type_traits>
-#include "config.h"
-#include "url_utf.h"
 
 #ifdef WHATWG_CPP_17
 # include <string_view>

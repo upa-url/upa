@@ -17,8 +17,8 @@
 #ifndef WHATWG_URL_H
 #define WHATWG_URL_H
 
-#include "config.h"
 #include "buffer.h"
+#include "config.h"
 #include "int_cast.h"
 #include "str_arg.h"
 #include "url_host.h"
