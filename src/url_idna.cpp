@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -9,13 +9,16 @@
 
 #include "url_idna.h"
 #include "int_cast.h"
-#include <cassert>
 // ICU
 #include "unicode/uidna.h"
-
+#if (U_ICU_VERSION_MAJOR_NUM) >= 59
+# include "unicode/char16ptr.h"
+#endif
 #if (U_ICU_VERSION_MAJOR_NUM) < 68
 # include <algorithm>
 #endif
+
+#include <cassert>
 
 namespace whatwg {
 
@@ -57,6 +60,17 @@ void IDNClose() {
     }
 }
 
+// Conversion to ICU UChar
+
+static_assert(sizeof(UChar) == sizeof(char16_t), "UChar must be the same size as char16_t");
+
+#if (U_ICU_VERSION_MAJOR_NUM) < 59
+// toUCharPtr functions are defined in ICU 59
+namespace icu {
+    inline const UChar* toUCharPtr(const char16_t* p) { return reinterpret_cast<const UChar*>(p); }
+    inline UChar* toUCharPtr(char16_t* p) { return reinterpret_cast<UChar*>(p); }
+}
+#endif
 
 // Converts the Unicode input representing a hostname to ASCII using IDN rules.
 // The output must be ASCII, but is represented as wide characters.
@@ -76,12 +90,10 @@ void IDNClose() {
 // https://url.spec.whatwg.org/#concept-domain-to-ascii
 // with beStrict = false
 
-static_assert(sizeof(char16_t) == sizeof(UChar), "");
-
 url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<char16_t>& output) {
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
     // https://www.unicode.org/reports/tr46/#ToASCII
-    static const uint32_t UIDNA_ERR_MASK = ~(uint32_t)(
+    static const uint32_t UIDNA_ERR_MASK = ~static_cast<uint32_t>(
         // VerifyDnsLength = false
         UIDNA_ERROR_EMPTY_LABEL
         | UIDNA_ERROR_LABEL_TOO_LONG
@@ -106,8 +118,8 @@ url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<ch
         UErrorCode err = U_ZERO_ERROR;
         UIDNAInfo info = UIDNA_INFO_INITIALIZER;
         const int32_t output_length = uidna_nameToASCII(uidna,
-            (const UChar*)src, static_cast<int32_t>(src_len),
-            (UChar*)output.data(), static_cast<int32_t>(output.capacity()),
+            icu::toUCharPtr(src), static_cast<int32_t>(src_len),
+            icu::toUCharPtr(output.data()), static_cast<int32_t>(output.capacity()),
             &info, &err);
         if (U_SUCCESS(err) && (info.errors & UIDNA_ERR_MASK) == 0) {
             output.resize(output_length);

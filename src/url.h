@@ -1635,7 +1635,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             std::find_if(pointer, last, detail::is_special_authority_end_char<CharT>) :
             std::find_if(pointer, last, detail::is_authority_end_char<CharT>);
 
-        const auto it_eta = detail::find_last(pointer, end_of_authority, CharT('@'));
+        const auto it_eta = detail::find_last(pointer, end_of_authority, static_cast<CharT>('@'));
         if (it_eta != end_of_authority) {
             if (std::distance(it_eta, end_of_authority) == 1) {
                 // disallow empty host, example: "http://u:p@/"

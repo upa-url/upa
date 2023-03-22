@@ -259,7 +259,7 @@ inline void get_hex_number(const CharT*& pointer, const CharT* last, IntT& value
 
 template <typename CharT>
 inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)[8]) {
-    std::fill(std::begin(address), std::end(address), uint16_t(0));
+    std::fill(std::begin(address), std::end(address), static_cast<uint16_t>(0));
     int piece_index = 0;    // zero
     int compress = 0;       // null
     bool is_ipv4 = false;

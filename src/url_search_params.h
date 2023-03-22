@@ -346,7 +346,7 @@ public:
     }
 
     explicit operator bool() const noexcept {
-        return bool(ptr_);
+        return static_cast<bool>(ptr_);
     }
     url_search_params& operator*() const {
         return *ptr_;
