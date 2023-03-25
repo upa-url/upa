@@ -171,7 +171,7 @@ TEST_CASE("swap(url&, url&)") {
     CHECK(url_1.get_part_view(whatwg::url::QUERY) == url_1.search_params().to_string());
     CHECK(url_2.get_part_view(whatwg::url::QUERY) == url_2.search_params().to_string());
 
-    // Are url and search_params still linked correctly?
+    // Are url and url_search_params still linked correctly?
     url_1.search_params().append("e", "10");
     url_2.search_params().append("f", "20");
     CHECK(url_1.get_part_view(whatwg::url::QUERY) == url_1.search_params().to_string());

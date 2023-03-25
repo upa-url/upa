@@ -94,6 +94,7 @@ public:
     /// @brief Copy assignment.
     ///
     /// @param[in] other  URL to copy from
+    /// @return *this
     url& operator=(const url& other) = default;
 
     /// @brief Move assignment.
@@ -101,6 +102,7 @@ public:
     /// Replaces the contents with those of @a other using move semantics.
     ///
     /// @param[in,out] other  URL to move to this object
+    /// @return *this
     url& operator=(url&& other) WHATWG_NOEXCEPT_17;
 
     /// @brief Safe move assignment.
@@ -109,6 +111,7 @@ public:
     /// Preserves original url_search_params object.
     ///
     /// @param[in,out] other  URL to move to this object
+    /// @return *this
     url& safe_assign(url&& other);
 
     /// @brief Parsing constructor.
