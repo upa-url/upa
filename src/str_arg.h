@@ -98,6 +98,12 @@ public:
         , last_(last)
     {}
 
+    // destructor
+    ~str_arg() noexcept = default;
+
+    // assignment is not used
+    str_arg& operator=(const str_arg&) = delete;
+
     // output
     constexpr const value_type* begin() const noexcept {
         return reinterpret_cast<const value_type*>(first_);
@@ -108,14 +114,14 @@ public:
     constexpr const value_type* data() const noexcept {
         return begin();
     }
-    constexpr const std::size_t length() const noexcept {
+    constexpr std::size_t length() const noexcept {
         return end() - begin();
     }
-    constexpr const std::size_t size() const noexcept {
+    constexpr std::size_t size() const noexcept {
         return length();
     }
 
-protected:
+private:
     const input_type* first_;
     const input_type* last_;
 };

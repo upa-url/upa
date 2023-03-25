@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -182,5 +182,23 @@ TEST_SUITE("url_host") {
         whatwg::url_host hm{ std::move(h) };
         CHECK(hm.to_string() == "[1:2::3]");
         CHECK(hm.type() == whatwg::HostType::IPv6);
+    }
+
+    TEST_CASE("Copy assignment") {
+        const whatwg::url_host h{ "example.org" };
+        CHECK(h.to_string() == "example.org");
+        CHECK(h.type() == whatwg::HostType::Domain);
+
+        whatwg::url_host hc{ "[1::2]" };
+        hc = h;
+        CHECK(hc.to_string() == "example.org");
+        CHECK(hc.type() == whatwg::HostType::Domain);
+    }
+
+    TEST_CASE("Move assignment") {
+        whatwg::url_host hm{ "[1::2]" };
+        hm = whatwg::url_host{ "1.2.3.4" };
+        CHECK(hm.to_string() == "1.2.3.4");
+        CHECK(hm.type() == whatwg::HostType::IPv4);
     }
 }

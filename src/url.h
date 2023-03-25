@@ -45,7 +45,7 @@ namespace detail {
     class url_serializer;
     class url_setter;
     class url_parser;
-}
+} // namespace detail
 
 /// @brief URL class
 ///
@@ -137,6 +137,9 @@ public:
     /// @param[in] str_base base URL string
     template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
     explicit url(T&& str_url, TB&& str_base);
+
+    /// destructor
+    ~url() = default;
 
     /// @brief clear URL
     /// Make URL empty.
@@ -525,12 +528,16 @@ public:
     // types
     using str_view_type = url::str_view_type;
 
-    url_serializer(url& dest_url)
+    url_serializer() = delete;
+    url_serializer(const url_serializer&) = delete;
+    url_serializer& operator=(const url_serializer&) = delete;
+
+    explicit url_serializer(url& dest_url)
         : url_(dest_url)
         , last_pt_(url::SCHEME)
     {}
 
-    ~url_serializer();
+    ~url_serializer() override;
 
     void new_url() {
         if (!url_.empty())
@@ -626,13 +633,17 @@ protected:
 
 class url_setter : public url_serializer {
 public:
-    url_setter(url& dest_url)
+    url_setter() = delete;
+    url_setter(const url_setter&) = delete;
+    url_setter& operator=(const url_setter&) = delete;
+
+    explicit url_setter(url& dest_url)
         : url_serializer(dest_url)
         , use_strp_(true)
         , curr_pt_(url::SCHEME)
     {}
 
-    ~url_setter();
+    ~url_setter() override;
 
     //???
     void reserve(std::size_t new_cap) override;

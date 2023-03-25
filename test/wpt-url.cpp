@@ -29,7 +29,7 @@ bool run_idna_v2_tests(DataDrivenTest& ddt, std::ifstream& file);
 bool run_setter_tests(DataDrivenTest& ddt, std::ifstream& file);
 bool run_percent_encoding_tests(DataDrivenTest& ddt, std::ifstream& file);
 
-typedef bool(*RunTests)(DataDrivenTest& ddt, std::ifstream& file);
+using RunTests = bool(*)(DataDrivenTest& ddt, std::ifstream& file);
 int test_from_file(RunTests run_tests, const char* file_name);
 
 int main(int argc, char** argv)
@@ -94,7 +94,7 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
     const std::string& base = obj["base"];
     const std::string& input = obj["input"];
 
-    std::string str_case("<" + input + "> BASE: <" + base + ">");
+    const std::string str_case("<" + input + "> BASE: <" + base + ">");
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         whatwg::url url;
@@ -166,7 +166,7 @@ void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
         const std::string input_url(make_url(input));
 
         whatwg::url url;
-        bool parse_success = url.parse(input_url, nullptr) == whatwg::url_result::Ok;
+        const bool parse_success = url.parse(input_url, nullptr) == whatwg::url_result::Ok;
 
         // check "failure"
         tc.assert_equal(obj.failure, !parse_success, "parse failure");
@@ -241,7 +241,7 @@ void test_idna_v2(DataDrivenTest& ddt, ParserObj& obj)
         const std::string input_url(make_url(encodeHostEndingCodePoints(input)));
 
         whatwg::url url;
-        bool parse_success = url.parse(input_url, nullptr) == whatwg::url_result::Ok;
+        const bool parse_success = url.parse(input_url, nullptr) == whatwg::url_result::Ok;
 
         // check "failure"
         tc.assert_equal(obj.failure, !parse_success, "parse failure");
@@ -261,9 +261,9 @@ void test_idna_v2(DataDrivenTest& ddt, ParserObj& obj)
 
 // URL setter test
 
-class SetterObj {
-public:
-    SetterObj(const std::string& setter) : m_setter(setter)
+struct SetterObj {
+    explicit SetterObj(std::string setter)
+        : m_setter(std::move(setter))
     {}
 
     std::string m_setter;
@@ -277,7 +277,7 @@ public:
 //
 void test_setter(DataDrivenTest& ddt, SetterObj& obj)
 {
-    std::string str_case("URL(\"" + obj.m_href + "\")." + obj.m_setter + "(\"" + obj.m_new_value + "\");");
+    const std::string str_case("URL(\"" + obj.m_href + "\")." + obj.m_setter + "(\"" + obj.m_new_value + "\");");
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         // url parsing must succeed
@@ -330,10 +330,7 @@ void test_setter(DataDrivenTest& ddt, SetterObj& obj)
 
 // URL percent encoding test
 
-class EncodingObj {
-public:
-    EncodingObj() {}
-
+struct EncodingObj {
     std::string m_input;
     std::map<std::string, std::string> m_output;
 };
@@ -347,7 +344,7 @@ void test_percent_encoding(DataDrivenTest& ddt, EncodingObj& obj)
     const std::string& input = obj.m_input;
     const std::string& output = obj.m_output.at("utf-8");
 
-    std::string str_case = input;
+    const std::string str_case = input;
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         // test percent_encode function
@@ -376,7 +373,6 @@ namespace {
 
     // parses urltestdata.json, toascii.json
     class root_context : public picojson::deny_parse_context {
-    protected:
         DataDrivenTest& m_ddt;
         TestType m_ttype;
     public:
@@ -469,11 +465,10 @@ namespace {
 
     // parses setters_tests.json
     class root_context_setter : public picojson::deny_parse_context {
-    protected:
         DataDrivenTest& m_ddt;
         std::string m_setter_name;
     public:
-        root_context_setter(DataDrivenTest& ddt) : m_ddt(ddt) {}
+        explicit root_context_setter(DataDrivenTest& ddt) : m_ddt(ddt) {}
 
         // array only as root
         bool parse_array_start() { return true; }
@@ -537,7 +532,7 @@ namespace {
     protected:
         DataDrivenTest& m_ddt;
     public:
-        root_context_percent_encoding(DataDrivenTest& ddt)
+        explicit root_context_percent_encoding(DataDrivenTest& ddt)
             : m_ddt(ddt)
         {}
 
@@ -587,7 +582,7 @@ namespace {
         bool parse_object_start() { return false; }
         bool parse_object_stop() { return false; }
     };
-}
+} // namespace
 
 template <typename Context>
 bool run_some_tests(Context &ctx, std::ifstream& file) {

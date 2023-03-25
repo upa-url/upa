@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -163,7 +163,7 @@ namespace detail {
         const uint32_t u16_surrogate_offset = (0xd800 << 10UL) + 0xdc00 - 0x10000;
         return (lead << 10UL) + trail - u16_surrogate_offset;
     }
-}
+} // namespace detail
 
 // Modified version of the U16_NEXT_OR_FFFD macro in utf16.h from ICU
 

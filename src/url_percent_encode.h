@@ -35,7 +35,7 @@ public:
     /// member functions: copy(), exclude(), and include().
     ///
     /// @param[in] fun constexpr function to initialize code point set elements
-    constexpr code_point_set(void (*fun)(code_point_set& self)) {
+    constexpr explicit code_point_set(void (*fun)(code_point_set& self)) {
         fun(*this);
     }
 
@@ -88,8 +88,8 @@ public:
     }
 
     // for dump program
-    std::size_t arr_size() const { return arr_size_; }
-    uint8_t arr_val(std::size_t i) const { return arr_[i]; }
+    static constexpr std::size_t arr_size() { return arr_size_; }
+    constexpr uint8_t arr_val(std::size_t i) const { return arr_[i]; }
 #else
 
     template <typename CharT>
@@ -323,8 +323,8 @@ inline bool DecodeEscaped(const CharT*& first, const CharT* last, unsigned char&
     }
 
     // Valid escape sequence.
-    const unsigned char uc1 = static_cast<unsigned char>(first[0]);
-    const unsigned char uc2 = static_cast<unsigned char>(first[1]);
+    const auto uc1 = static_cast<unsigned char>(first[0]);
+    const auto uc2 = static_cast<unsigned char>(first[1]);
     unescaped_value = (HexCharToValue(uc1) << 4) + HexCharToValue(uc2);
     first += 2;
     return true;
@@ -364,7 +364,7 @@ inline bool AppendUTF8EscapedChar(const CharT*& first, const CharT* last, std::s
     // us the kUnicodeReplacementCharacter, so we don't have to do special
     // checking after failure, just pass through the failure to the caller.
     uint32_t code_point;
-    bool success = url_utf::read_utf_char(first, last, code_point);
+    const bool success = url_utf::read_utf_char(first, last, code_point);
     AppendUTF8EscapedValue(code_point, output);
     return success;
 }
@@ -377,13 +377,13 @@ void AppendStringOfType(const CharT* first, const CharT* last, const code_point_
     using UCharT = typename std::make_unsigned<CharT>::type;
 
     for (auto it = first; it < last; ) {
-        const UCharT ch = static_cast<UCharT>(*it);
+        const auto ch = static_cast<UCharT>(*it);
         if (ch >= 0x80) {
             // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
             AppendUTF8EscapedChar(it, last, output);
         } else {
             // Just append the 7-bit character, possibly escaping it.
-            const unsigned char uch = static_cast<unsigned char>(ch);
+            const auto uch = static_cast<unsigned char>(ch);
             if (isCharInSet(uch, cpset)) {
                 output.push_back(uch);
             } else {

@@ -1,4 +1,4 @@
-// Copyright 2016-2022 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -30,7 +30,13 @@ enum class HostType {
 
 
 class host_output {
+protected:
+    host_output() = default;
 public:
+    host_output(const host_output&) = delete;
+    host_output& operator=(const host_output&) = delete;
+    virtual ~host_output() = default;
+
     virtual std::string& hostStart() = 0;
     virtual void hostDone(HostType /*ht*/) = 0;
 };
@@ -59,7 +65,9 @@ class url_host {
 public:
     url_host() = delete;
     url_host(const url_host&) = default;
-    url_host(url_host&&) = default;
+    url_host(url_host&&) noexcept = default;
+    url_host& operator=(const url_host&) = default;
+    url_host& operator=(url_host&&) WHATWG_NOEXCEPT_17 = default;
 
     /// Parsing constructor
     ///
@@ -67,7 +75,10 @@ public:
     ///
     /// @param[in] args Host string to parse
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    url_host(StrT&& str);
+    explicit url_host(StrT&& str);
+
+    /// destructor
+    ~url_host() = default;
 
     /// Host type getter
     ///
@@ -86,7 +97,7 @@ public:
 private:
     class host_out : public host_output {
     public:
-        host_out(url_host& host)
+        explicit host_out(url_host& host)
             : host_(host)
         {}
         std::string& hostStart() override {
