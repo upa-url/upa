@@ -141,9 +141,17 @@ public:
     /// destructor
     ~url() = default;
 
-    /// @brief clear URL
-    /// Make URL empty.
+    // Operations
+
+    /// @brief Clears URL
+    ///
+    /// Makes URL empty.
     void clear();
+
+    /// @brief Swaps the contents of two URLs
+    ///
+    /// @param[in,out] other URL to exchange the contents with
+    void swap(url& other) WHATWG_NOEXCEPT_17;
 
     // Parser
 
@@ -1201,6 +1209,12 @@ inline void url::clear() {
     flags_ = INITIAL_FLAGS;
     path_segment_count_ = 0;
     clear_search_params();
+}
+
+inline void url::swap(url& other) WHATWG_NOEXCEPT_17 {
+    url tmp{ std::move(*this) };
+    *this = std::move(other);
+    other = std::move(tmp);
 }
 
 template <typename CharT>
@@ -2821,6 +2835,16 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
 
 
 // URL utilities
+
+/// @brief Swaps the values of two URLs
+///
+/// Swaps the values of the @a a and @a b URLs
+///
+/// @param[in,out] a
+/// @param[in,out] b
+inline void swap(url& a, url& b) WHATWG_NOEXCEPT_17 {
+    a.swap(b);
+}
 
 /// @brief Make URL from OS file path
 ///

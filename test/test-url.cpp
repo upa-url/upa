@@ -137,6 +137,47 @@ TEST_CASE("url::parse must clear old URL data") {
     CHECK(url.href() == "http://host-2/");
 }
 
+// Swap
+
+TEST_CASE("swap(url&, url&)") {
+    const std::string str_url_1 = "http://host-1:123/path-1?a=1&b=2#frag-1";
+    const std::string str_url_2 = "http://host-2:321/path-2?c=3&d=4#frag-2";
+
+    whatwg::url url_1(str_url_1);
+    whatwg::url url_2(str_url_2);
+
+    using std::swap;
+
+    // Swap URLs with uninitialised search parameters
+    swap(url_1, url_2);
+    CHECK(url_1.href() == str_url_2);
+    CHECK(url_2.href() == str_url_1);
+
+    // Swap with one search parameter initialised
+    auto& prm_1 = url_1.search_params();
+    CHECK(prm_1.to_string() == "c=3&d=4");
+    swap(url_1, url_2);
+    CHECK(url_1.href() == str_url_1);
+    CHECK(url_2.href() == str_url_2);
+
+    // Initialise both search parameters
+    CHECK(url_1.get_part_view(whatwg::url::QUERY) == url_1.search_params().to_string());
+    CHECK(url_2.get_part_view(whatwg::url::QUERY) == url_2.search_params().to_string());
+
+    // Swap with both search parameters initialised
+    swap(url_1, url_2);
+    CHECK(url_1.href() == str_url_2);
+    CHECK(url_2.href() == str_url_1);
+    CHECK(url_1.get_part_view(whatwg::url::QUERY) == url_1.search_params().to_string());
+    CHECK(url_2.get_part_view(whatwg::url::QUERY) == url_2.search_params().to_string());
+
+    // Are url and search_params still linked correctly?
+    url_1.search_params().append("e", "10");
+    url_2.search_params().append("f", "20");
+    CHECK(url_1.get_part_view(whatwg::url::QUERY) == url_1.search_params().to_string());
+    CHECK(url_2.get_part_view(whatwg::url::QUERY) == url_2.search_params().to_string());
+}
+
 // Valid or invalid URL
 
 TEST_CASE("url::is_valid()") {
