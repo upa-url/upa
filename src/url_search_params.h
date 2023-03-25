@@ -9,6 +9,7 @@
 #include "config.h"
 #include "str_arg.h"
 #include "url_percent_encode.h"
+#include <cassert>
 #include <list>
 #include <memory>
 #include <string>
@@ -47,7 +48,7 @@ using iterable_value_t = typename std::remove_cv<typename std::remove_reference<
 template<class T>
 struct is_iterable_pairs : is_pair<iterable_value_t<T>> {};
 
-}
+} // namespace
 
 
 // forward declarations
@@ -55,7 +56,7 @@ struct is_iterable_pairs : is_pair<iterable_value_t<T>> {};
 class url;
 namespace detail {
     class url_search_params_ptr;
-}
+} // namespace detail
 
 // Disable MSVC compiler warning:
 // C4521 - the class has multiple copy constructors of a single type.
@@ -110,13 +111,51 @@ public:
     ///
     /// @param[in] query string to parse
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    url_search_params(StrT&& query);
+    explicit url_search_params(StrT&& query);
 
     /// Initializes name-value pairs list by copying pairs fron container.
     ///
     /// @param[in] cont name-value pairs container
     template<class ConT, typename std::enable_if<is_iterable_pairs<ConT>::value, int>::type = 0>
-    url_search_params(ConT&& cont);
+    explicit url_search_params(ConT&& cont);
+
+    /// destructor
+    ~url_search_params() = default;
+
+    // Assignment
+
+    /// @brief Copy assignment.
+    ///
+    /// Replaces the contents with those of @a other using copy semantics.
+    ///
+    /// Updates linked URL object if any. So this operator can be used to assign
+    /// a value to the reference returned by url::search_params().
+    ///
+    /// @param[in] other  url_search_params to copy from
+    /// @return *this
+    url_search_params& operator=(const url_search_params& other);
+
+    /// @brief Move assignment.
+    ///
+    /// Replaces the contents with those of @a other using move semantics.
+    ///
+    /// NOTE: It is undefined behaviour to use this operator to assign a value to
+    /// the reference returned by url::search_params(). Use safe_assign instead.
+    ///
+    /// @param[in,out] other url_search_params to move to this object
+    /// @return *this
+    url_search_params& operator=(url_search_params&& other) WHATWG_NOEXCEPT_17;
+
+    /// @brief Safe move assignment.
+    ///
+    /// Replaces the contents with those of @a other using move semantics.
+    ///
+    /// Updates linked URL object if any. So this function can be used to assign
+    /// a value to the reference returned by url::search_params().
+    ///
+    /// @param[in,out] other  URL to move to this object
+    /// @return *this
+    url_search_params& safe_assign(url_search_params&& other);
 
     // Operations
 
@@ -327,6 +366,9 @@ public:
     url_search_params_ptr(url_search_params_ptr&& other) noexcept = default;
     url_search_params_ptr& operator=(url_search_params_ptr&& other) noexcept = default;
 
+    // destructor
+    ~url_search_params_ptr() = default;
+
     void init(url* url_ptr) {
         ptr_.reset(new url_search_params(url_ptr));
     }
@@ -366,7 +408,6 @@ private:
 inline url_search_params::url_search_params(const url_search_params& other)
     : params_(other.params_)
     , is_sorted_(other.is_sorted_)
-    , url_ptr_(nullptr)
 {}
 
 // https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
@@ -380,6 +421,28 @@ inline url_search_params::url_search_params(ConT&& cont) {
     for (const auto& p : cont) {
         params_.emplace_back(make_string(p.first), make_string(p.second));
     }
+}
+
+// Assignment
+
+inline url_search_params& url_search_params::operator=(const url_search_params& other) {
+    if (this != std::addressof(other)) {
+        copy_params(other);
+        update();
+    }
+    return *this;
+}
+
+inline url_search_params& url_search_params::operator=(url_search_params&& other) WHATWG_NOEXCEPT_17 {
+    assert(url_ptr_ == nullptr);
+    move_params(std::move(other));
+    return *this;
+}
+
+inline url_search_params& url_search_params::safe_assign(url_search_params&& other) {
+    move_params(std::move(other));
+    update();
+    return *this;
 }
 
 // Operations

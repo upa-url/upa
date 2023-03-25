@@ -43,6 +43,9 @@ using std::experimental::generator;
         {{ 'b' }, { 'b', 'b' }}  \
     }
 
+#define TEST_SEARCH_STR "?a=aa&b=bb"
+
+
 TEST_CASE_TEMPLATE_DEFINE("Various string pairs iterable containers", CharT, test_iterables) {
     using string_t = std::basic_string<CharT>;
 
@@ -129,6 +132,65 @@ TEST_CASE("url_search_params constructors") {
 
         whatwg::url_search_params paramsM(std::move(params));
         CHECK(list_eq(paramsM, lst_pairs));
+    }
+}
+
+// Assignment
+
+TEST_CASE("url_search_params assignment") {
+    const pairs_list_t<std::string> lst_pairs = TEST_ITERABLES_DATA;
+
+    SUBCASE("copy assignment") {
+        const whatwg::url_search_params params(lst_pairs);
+        whatwg::url_search_params paramsC("x=y");
+        REQUIRE(list_eq(params, lst_pairs));
+
+        paramsC = params;
+        CHECK(list_eq(paramsC, lst_pairs));
+    }
+
+    SUBCASE("move assignment") {
+        whatwg::url_search_params params(lst_pairs);
+        whatwg::url_search_params paramsM("x=y");
+        REQUIRE(list_eq(params, lst_pairs));
+
+        paramsM = std::move(params);
+        CHECK(list_eq(paramsM, lst_pairs));
+    }
+
+    SUBCASE("safe move assignment") {
+        whatwg::url_search_params params(lst_pairs);
+        whatwg::url_search_params paramsM("x=y");
+        REQUIRE(list_eq(params, lst_pairs));
+
+        paramsM.safe_assign(std::move(params));
+        CHECK(list_eq(paramsM, lst_pairs));
+    }
+}
+
+TEST_CASE("url_search_params assignment to url::search_params()") {
+    const pairs_list_t<std::string> lst_pairs = TEST_ITERABLES_DATA;
+
+    SUBCASE("copy assignment") {
+        const whatwg::url_search_params params(lst_pairs);
+        REQUIRE(list_eq(params, lst_pairs));
+
+        whatwg::url url("http://h/?y=x");
+        url.search_params() = params;
+
+        CHECK(list_eq(url.search_params(), lst_pairs));
+        CHECK(url.search() == TEST_SEARCH_STR);
+    }
+
+    SUBCASE("safe move assignment") {
+        whatwg::url_search_params params(lst_pairs);
+        REQUIRE(list_eq(params, lst_pairs));
+
+        whatwg::url url("http://h/?y=x");
+        url.search_params().safe_assign(std::move(params));
+
+        CHECK(list_eq(url.search_params(), lst_pairs));
+        CHECK(url.search() == TEST_SEARCH_STR);
     }
 }
 
