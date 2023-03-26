@@ -2837,16 +2837,16 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
 } // namespace detail
 
 
-// URL utilities
+// URL utilities (non-member functions)
 
-/// @brief Swaps the values of two URLs
+/// @brief Swaps the contents of two URLs
 ///
-/// Swaps the values of the @a a and @a b URLs
+/// Swaps the contents of the @a lhs and @a rhs URLs
 ///
-/// @param[in,out] a
-/// @param[in,out] b
-inline void swap(url& a, url& b) WHATWG_NOEXCEPT_17 {
-    a.swap(b);
+/// @param[in,out] lhs
+/// @param[in,out] rhs
+inline void swap(url& lhs, url& rhs) WHATWG_NOEXCEPT_17 {
+    lhs.swap(rhs);
 }
 
 /// @brief Make URL from OS file path
