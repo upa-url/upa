@@ -162,6 +162,14 @@ public:
     /// @brief Clears parameters
     void clear();
 
+    /// @brief Swaps the contents of two url_search_params
+    ///
+    /// NOTE: It is undefined behaviour to use this function to swap the
+    /// contents of references returned by url::search_params().
+    ///
+    /// @param[in,out] other url_search_params to exchange the contents with
+    void swap(url_search_params& other) WHATWG_NOEXCEPT_17;
+
     /// Initializes name-value pairs list by parsing query string.
     ///
     /// @param[in] query string to parse
@@ -453,6 +461,12 @@ inline void url_search_params::clear() {
     update();
 }
 
+inline void url_search_params::swap(url_search_params& other) WHATWG_NOEXCEPT_17 {
+    url_search_params tmp{ std::move(*this) };
+    *this = std::move(other);
+    other = std::move(tmp);
+}
+
 inline void url_search_params::clear_params() noexcept {
     params_.clear();
     is_sorted_ = true;
@@ -701,6 +715,21 @@ inline std::string url_search_params::to_string() const {
     std::string query;
     serialize(query);
     return query;
+}
+
+// Non-member functions
+
+/// @brief Swaps the contents of two url_search_params
+///
+/// Swaps the contents of the @a lhs and @a rhs url_search_params
+///
+/// NOTE: It is undefined behaviour to use this function to swap the
+/// contents of references returned by url::search_params().
+///
+/// @param[in,out] lhs
+/// @param[in,out] rhs
+inline void swap(url_search_params& lhs, url_search_params& rhs) WHATWG_NOEXCEPT_17 {
+    lhs.swap(rhs);
 }
 
 

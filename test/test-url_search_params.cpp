@@ -196,6 +196,20 @@ TEST_CASE("url_search_params assignment to url::search_params()") {
 
 // Operations
 
+TEST_CASE("swap(url_search_params&, url_search_params&)") {
+    const std::string str_params_1 = "a=1&b=2&c=3";
+    const std::string str_params_2 = "d=4";
+
+    whatwg::url_search_params params_1(str_params_1);
+    whatwg::url_search_params params_2(str_params_2);
+
+    using std::swap;
+
+    swap(params_1, params_2);
+    CHECK(params_1.to_string() == str_params_2);
+    CHECK(params_2.to_string() == str_params_1);
+}
+
 TEST_CASE("url_search_params::parse") {
     whatwg::url_search_params params;
 
