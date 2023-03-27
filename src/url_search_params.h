@@ -19,7 +19,7 @@
 namespace whatwg {
 
 
-namespace {
+namespace detail {
 
 // is key value pair
 template <typename>
@@ -48,7 +48,7 @@ using iterable_value_t = typename std::remove_cv<typename std::remove_reference<
 template<class T>
 struct is_iterable_pairs : is_pair<iterable_value_t<T>> {};
 
-} // namespace
+} // namespace detail
 
 
 // forward declarations
@@ -116,7 +116,7 @@ public:
     /// Initializes name-value pairs list by copying pairs fron container.
     ///
     /// @param[in] cont name-value pairs container
-    template<class ConT, typename std::enable_if<is_iterable_pairs<ConT>::value, int>::type = 0>
+    template<class ConT, typename std::enable_if<detail::is_iterable_pairs<ConT>::value, int>::type = 0>
     explicit url_search_params(ConT&& cont);
 
     /// destructor
@@ -424,7 +424,7 @@ inline url_search_params::url_search_params(StrT&& query)
     : params_(do_parse(true, std::forward<StrT>(query)))
 {}
 
-template<class ConT, typename std::enable_if<is_iterable_pairs<ConT>::value, int>::type>
+template<class ConT, typename std::enable_if<detail::is_iterable_pairs<ConT>::value, int>::type>
 inline url_search_params::url_search_params(ConT&& cont) {
     for (const auto& p : cont) {
         params_.emplace_back(make_string(p.first), make_string(p.second));
