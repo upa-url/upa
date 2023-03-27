@@ -103,7 +103,7 @@ public:
     /// using move semantics.
     ///
     /// @param[in,out] other @c url_search_params object to move from
-    url_search_params(url_search_params&& other) noexcept = default;
+    url_search_params(url_search_params&& other) = default;
 
     /// @brief Parsing constructor.
     ///
@@ -139,7 +139,7 @@ public:
     ///
     /// Replaces the contents with those of @a other using move semantics.
     ///
-    /// NOTE: It is undefined behaviour to use this operator to assign a value to
+    /// NOTE: It is undefined behavior to use this operator to assign a value to
     /// the reference returned by url::search_params(). Use safe_assign instead.
     ///
     /// @param[in,out] other url_search_params to move to this object
@@ -164,7 +164,7 @@ public:
 
     /// @brief Swaps the contents of two url_search_params
     ///
-    /// NOTE: It is undefined behaviour to use this function to swap the
+    /// NOTE: It is undefined behavior to use this function to swap the
     /// contents of references returned by url::search_params().
     ///
     /// @param[in,out] other url_search_params to exchange the contents with
@@ -462,9 +462,12 @@ inline void url_search_params::clear() {
 }
 
 inline void url_search_params::swap(url_search_params& other) WHATWG_NOEXCEPT_17 {
-    url_search_params tmp{ std::move(*this) };
-    *this = std::move(other);
-    other = std::move(tmp);
+    assert(url_ptr_ == nullptr && other.url_ptr_ == nullptr);
+
+    using std::swap;
+
+    swap(params_, other.params_);
+    swap(is_sorted_, other.is_sorted_);
 }
 
 inline void url_search_params::clear_params() noexcept {
@@ -723,7 +726,7 @@ inline std::string url_search_params::to_string() const {
 ///
 /// Swaps the contents of the @a lhs and @a rhs url_search_params
 ///
-/// NOTE: It is undefined behaviour to use this function to swap the
+/// NOTE: It is undefined behavior to use this function to swap the
 /// contents of references returned by url::search_params().
 ///
 /// @param[in,out] lhs
