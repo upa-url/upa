@@ -94,7 +94,7 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
     const std::string& base = obj["base"];
     const std::string& input = obj["input"];
 
-    const std::string str_case("<" + input + "> BASE: <" + base + ">");
+    const std::string str_case("Parsing <" + input + "> " + (base.empty() ? "without base" : "against <" + base + ">"));
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         whatwg::url url;
@@ -405,10 +405,11 @@ namespace {
                             obj.failure = p.second.evaluate_as_boolean();
                             continue;
                         }
-                        if (p.first == "inputCanBeRelative") {
+                        if (p.first == "relativeTo") {
                             // skip field intended for browsers only; see:
-                            // https://github.com/web-platform-tests/wpt/pull/29009
+                            // https://github.com/web-platform-tests/wpt/pull/39203
                             // https://github.com/web-platform-tests/wpt/blob/master/url/failure.html
+                            // https://github.com/web-platform-tests/wpt/blob/master/url/resources/a-element.js
                             continue;
                         }
                         break;
