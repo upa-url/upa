@@ -633,7 +633,8 @@ inline url_search_params::name_value_list url_search_params::do_parse(bool rem_q
     if (rem_qmark && b != e && *b == '?')
         ++b;
 
-    std::string name, value;
+    std::string name;
+    std::string value;
     std::string* pval = &name;
     auto start = b;
     for (auto it = b; it != e; ++it) {
@@ -662,8 +663,8 @@ inline url_search_params::name_value_list url_search_params::do_parse(bool rem_q
         case '%':
             if (std::distance(it, e) > 2) {
                 auto itc = it;
-                const unsigned char uc1 = static_cast<unsigned char>(*(++itc));
-                const unsigned char uc2 = static_cast<unsigned char>(*(++itc));
+                const auto uc1 = static_cast<unsigned char>(*(++itc));
+                const auto uc2 = static_cast<unsigned char>(*(++itc));
                 if (detail::isHexChar(uc1) && detail::isHexChar(uc2)) {
                     const char c = static_cast<char>((detail::HexCharToValue(uc1) << 4) + detail::HexCharToValue(uc2));
                     pval->push_back(c);
@@ -690,7 +691,7 @@ inline void url_search_params::urlencode(std::string& encoded, StrT&& value) {
     const auto str_value = make_string(std::forward<StrT>(value));
 
     for (const char c : str_value) {
-        const unsigned char uc = static_cast<unsigned char>(c);
+        const auto uc = static_cast<unsigned char>(c);
         const char cenc = kEncByte[uc];
         encoded.push_back(cenc);
         if (cenc == '%') {
