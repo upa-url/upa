@@ -48,6 +48,12 @@ using iterable_value_t = typename std::remove_cv<typename std::remove_reference<
 template<class T>
 struct is_iterable_pairs : is_pair<iterable_value_t<T>> {};
 
+// enable if `Base` is not the base class of `T`
+template<class Base, class T>
+using enable_if_not_base_of_t = typename std::enable_if<
+    !std::is_base_of<Base, typename std::decay<T>::type>::value, int
+>::type;
+
 } // namespace detail
 
 
@@ -57,13 +63,6 @@ class url;
 namespace detail {
     class url_search_params_ptr;
 } // namespace detail
-
-// Disable MSVC compiler warning:
-// C4521 - the class has multiple copy constructors of a single type.
-#ifdef _MSC_VER
-#pragma warning( push )
-#pragma warning( disable : 4521 )
-#endif
 
 /// @brief URLSearchParams class
 ///
@@ -94,8 +93,6 @@ public:
     ///
     /// @param[in] other @c url_search_params object to copy from
     url_search_params(const url_search_params& other);
-    url_search_params(url_search_params& other)
-        : url_search_params(const_cast<const url_search_params&>(other)) {}
 
     /// @brief Move constructor.
     ///
@@ -118,7 +115,11 @@ public:
     /// Initializes name-value pairs list by copying pairs fron container.
     ///
     /// @param[in] cont name-value pairs container
-    template<class ConT, typename std::enable_if<detail::is_iterable_pairs<ConT>::value, int>::type = 0>
+    template<class ConT,
+        // do not hide the copy and move constructors:
+        detail::enable_if_not_base_of_t<url_search_params, ConT> = 0,
+        typename std::enable_if<detail::is_iterable_pairs<ConT>::value, int>::type = 0
+    >
     explicit url_search_params(ConT&& cont) {
         for (const auto& p : cont) {
             params_.emplace_back(make_string(p.first), make_string(p.second));
@@ -359,10 +360,6 @@ private:
 
     static const char kEncByte[0x100];
 };
-
-#ifdef _MSC_VER
-#pragma warning( pop )
-#endif
 
 
 namespace detail {
