@@ -66,7 +66,7 @@ namespace detail {
  // url_search_params_ptr class
 
 url_search_params_ptr& url_search_params_ptr::operator=(const url_search_params_ptr& other) {
-    if (ptr_) {
+    if (ptr_ && this != std::addressof(other)) {
         if (other.ptr_) {
             ptr_->copy_params(*other.ptr_);
         } else {
