@@ -111,13 +111,19 @@ public:
     ///
     /// @param[in] query string to parse
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    explicit url_search_params(StrT&& query);
+    explicit url_search_params(StrT&& query)
+        : params_(do_parse(true, std::forward<StrT>(query)))
+    {}
 
     /// Initializes name-value pairs list by copying pairs fron container.
     ///
     /// @param[in] cont name-value pairs container
     template<class ConT, typename std::enable_if<detail::is_iterable_pairs<ConT>::value, int>::type = 0>
-    explicit url_search_params(ConT&& cont);
+    explicit url_search_params(ConT&& cont) {
+        for (const auto& p : cont) {
+            params_.emplace_back(make_string(p.first), make_string(p.second));
+        }
+    }
 
     /// destructor
     ~url_search_params() = default;
@@ -413,23 +419,12 @@ private:
 
 // url_search_params inline
 
+// Copy constructor
+
 inline url_search_params::url_search_params(const url_search_params& other)
     : params_(other.params_)
     , is_sorted_(other.is_sorted_)
 {}
-
-// https://url.spec.whatwg.org/#dom-urlsearchparams-urlsearchparams
-template <class StrT, enable_if_str_arg_t<StrT>>
-inline url_search_params::url_search_params(StrT&& query)
-    : params_(do_parse(true, std::forward<StrT>(query)))
-{}
-
-template<class ConT, typename std::enable_if<detail::is_iterable_pairs<ConT>::value, int>::type>
-inline url_search_params::url_search_params(ConT&& cont) {
-    for (const auto& p : cont) {
-        params_.emplace_back(make_string(p.first), make_string(p.second));
-    }
-}
 
 // Assignment
 

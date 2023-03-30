@@ -45,6 +45,10 @@ namespace detail {
     class url_serializer;
     class url_setter;
     class url_parser;
+
+    // url_error what() values
+    extern const char kURLParseError[];
+    extern const char kBaseURLParseError[];
 } // namespace detail
 
 /// @brief URL class
@@ -121,7 +125,9 @@ public:
     /// @param[in] str_url URL string to parse
     /// @param[in] pbase   pointer to base URL, may be `nullptr`
     template <class T, enable_if_str_arg_t<T> = 0>
-    explicit url(T&& str_url, const url* pbase = nullptr);
+    explicit url(T&& str_url, const url* pbase = nullptr)
+        : url(std::forward<T>(str_url), pbase, detail::kURLParseError)
+    {}
 
     /// @brief Parsing constructor.
     ///
@@ -130,7 +136,9 @@ public:
     /// @param[in] str_url URL string to parse
     /// @param[in] base    base URL
     template <class T, enable_if_str_arg_t<T> = 0>
-    explicit url(T&& str_url, const url& base);
+    explicit url(T&& str_url, const url& base)
+        : url(std::forward<T>(str_url), &base, detail::kURLParseError)
+    {}
 
     /// @brief Parsing constructor.
     ///
@@ -139,7 +147,9 @@ public:
     /// @param[in] str_url  URL string to parse
     /// @param[in] str_base base URL string
     template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
-    explicit url(T&& str_url, TB&& str_base);
+    explicit url(T&& str_url, TB&& str_base)
+        : url(std::forward<T>(str_url), url(std::forward<TB>(str_base), nullptr, detail::kBaseURLParseError))
+    {}
 
     /// destructor
     ~url() = default;
@@ -747,10 +757,6 @@ private:
 };
 
 
-// url_error what() values
-extern const char kURLParseError[];
-extern const char kBaseURLParseError[];
-
 // canonical version of each possible input letter in the scheme
 extern const char kSchemeCanonical[0x80];
 
@@ -1178,22 +1184,7 @@ inline bool url::canHaveUsernamePasswordPort() const {
     return is_valid() && !(is_empty(url::HOST) || is_file_scheme());
 }
 
-// url parsing
-
-template <class T, enable_if_str_arg_t<T>>
-inline url::url(T&& str_url, const url* pbase)
-    : url(std::forward<T>(str_url), pbase, detail::kURLParseError)
-{}
-
-template <class T, enable_if_str_arg_t<T>>
-inline url::url(T&& str_url, const url& base)
-    : url(std::forward<T>(str_url), &base, detail::kURLParseError)
-{}
-
-template <class T, class TB, enable_if_str_arg_t<T>, enable_if_str_arg_t<TB>>
-inline url::url(T&& str_url, TB&& str_base)
-    : url(std::forward<T>(str_url), url(std::forward<TB>(str_base), nullptr, detail::kBaseURLParseError))
-{}
+// Private parsing constructor
 
 template <class T, enable_if_str_arg_t<T>>
 inline url::url(T&& str_url, const url* base, const char* what_arg) {
@@ -1202,6 +1193,8 @@ inline url::url(T&& str_url, const url* base, const char* what_arg) {
     if (res != url_result::Ok)
         throw url_error(res, what_arg);
 }
+
+// Operations
 
 inline void url::clear() {
     norm_url_.clear();
@@ -1217,6 +1210,8 @@ inline void url::swap(url& other) WHATWG_NOEXCEPT_17 {
     *this = std::move(other);
     other = std::move(tmp);
 }
+
+// Parser
 
 template <typename CharT>
 inline url_result url::do_parse(const CharT* first, const CharT* last, const url* base) {
@@ -1241,6 +1236,8 @@ inline url_result url::do_parse(const CharT* first, const CharT* last, const url
     parse_search_params();
     return res;
 }
+
+// Setters
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::href(StrT&& str) {

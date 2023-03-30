@@ -75,7 +75,14 @@ public:
     ///
     /// @param[in] args Host string to parse
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    explicit url_host(StrT&& str);
+    explicit url_host(StrT&& str) {
+        host_out out(*this);
+
+        const auto inp = make_str_arg(std::forward<StrT>(str));
+        const auto res = host_parser::parse_host(inp.begin(), inp.end(), false, out);
+        if (res != url_result::Ok)
+            throw url_error(res, "Host parse error");
+    }
 
     /// destructor
     ~url_host() = default;
@@ -114,16 +121,6 @@ private:
     std::string host_str_;
     HostType type_ = HostType::Empty;
 };
-
-template <class StrT, enable_if_str_arg_t<StrT>>
-url_host::url_host(StrT&& str) {
-    host_out out(*this);
-
-    const auto inp = make_str_arg(std::forward<StrT>(str));
-    const auto res = host_parser::parse_host(inp.begin(), inp.end(), false, out);
-    if (res != url_result::Ok)
-        throw url_error(res, "Host parse error");
-}
 
 
 // Helper functions
