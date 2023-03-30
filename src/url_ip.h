@@ -57,9 +57,9 @@ static inline bool hostname_ends_in_a_number(const CharT* first, const CharT* la
             if (len >= 2 && start_of_label[0] == '0' && (start_of_label[1] == 'X' || start_of_label[1] == 'x')) {
                 // "0x" is valid IPv4 number (std::all_of returns true if the range is empty)
                 return std::all_of(start_of_label + 2, last, detail::isHexChar<CharT>);
-            } else {
-                return std::all_of(start_of_label, last, detail::is_ascii_digit<CharT>);
             }
+            // decimal or octal number?
+            return std::all_of(start_of_label, last, detail::is_ascii_digit<CharT>);
         }
     }
     return false;
@@ -87,15 +87,14 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
         if (len == 1) {
             number = 0;
             return url_result::Ok;
+        }
+        // len >= 2
+        if (first[1] == 'X' || first[1] == 'x') {
+            radix = 16;
+            first += 2;
         } else {
-            // len >= 2
-            if (first[1] == 'X' || first[1] == 'x') {
-                radix = 16;
-                first += 2;
-            } else {
-                radix = 8;
-                first += 1;
-            }
+            radix = 8;
+            first += 1;
         }
         // Skip leading zeros (*)
         while (first < last && first[0] == '0')
@@ -173,7 +172,7 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
     // split on "."
     part[0] = first;
     for (auto it = first; it != last; ++it) {
-        UCharT uc = static_cast<UCharT>(*it);
+        const auto uc = static_cast<UCharT>(*it);
         if (uc == '.') {
             if (dot_count == 4)
                 // 4. If parts’s size is greater than 4, then validation error, return failure.
@@ -205,7 +204,7 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
     // IPv4 numbers
     uint32_t number[4];
     for (int ind = 0; ind < part_count; ++ind) {
-        url_result res = ipv4_parse_number(part[ind], part[ind + 1] - 1, number[ind]);
+        const url_result res = ipv4_parse_number(part[ind], part[ind + 1] - 1, number[ind]);
         // 6.2. If result is failure, then validation error, return failure.
         if (res != url_result::Ok) return res;
         // TODO: 6.3. If result[1] is true, then set validationError to true
@@ -244,7 +243,7 @@ template <typename CharT, typename IntT>
 inline void get_hex_number(const CharT*& pointer, const CharT* last, IntT& value) {
     value = 0;
     while (pointer != last && detail::isHexChar(*pointer)) {
-        const unsigned char uc = static_cast<unsigned char>(*pointer);
+        const auto uc = static_cast<unsigned char>(*pointer);
         value = value * 0x10 + detail::HexCharToValue(uc);
         ++pointer;
     }
@@ -309,7 +308,8 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
                 pointer = pointer0;
                 is_ipv4 = true;
                 break;
-            } if (ch == ':') {
+            }
+            if (ch == ':') {
                 if (++pointer == last) {
                     // TODO-ERR: validation error
                     return false;
@@ -365,7 +365,7 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
 
     // Finale
     if (compress) {
-        if (int diff = 8 - piece_index) {
+        if (const int diff = 8 - piece_index) {
             for (int ind = piece_index - 1; ind >= compress; --ind) {
                 address[ind + diff] = address[ind];
                 address[ind] = 0;

@@ -355,7 +355,7 @@ void test_percent_encoding(DataDrivenTest& ddt, EncodingObj& obj)
         str_url += input;
         str_url += "#";
         str_url += input;
-        whatwg::url url(str_url);
+        const whatwg::url url(str_url);
         tc.assert_equal("#" + output, url.hash(), "url.hash()"); // utf-8
         tc.assert_equal("?" + output, url.search(), "url.search()"); // any encoding
     });
@@ -520,11 +520,10 @@ namespace {
                 // skip
                 picojson::null_parse_context nullctx;
                 return picojson::_parse(nullctx, in);
-            } else {
-                m_setter_name = name;
-                // parse array
-                return picojson::_parse(*this, in);
             }
+            m_setter_name = name;
+            // parse array
+            return picojson::_parse(*this, in);
         }
     };
 

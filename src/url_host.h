@@ -177,10 +177,9 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     if (*first == '[') {
         if (*(last - 1) == ']') {
             return parse_ipv6(first + 1, last - 1, dest);
-        } else {
-            // TODO-ERR: validation error
-            return url_result::InvalidIpv6Address;
         }
+        // TODO-ERR: validation error
+        return url_result::InvalidIpv6Address;
     }
 
     if (isNotSpecial)
@@ -193,7 +192,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     // on the percent decoding of UTF-8 encode on input
     simple_buffer<char16_t> buff_uc;
     for (auto it = first; it != last;) {
-        const UCharT uch = static_cast<UCharT>(*it++);
+        const auto uch = static_cast<UCharT>(*it++);
         if (uch < 0x80) {
             if (uch != '%') {
                 buff_uc.push_back(static_cast<char16_t>(uch));
@@ -274,7 +273,7 @@ inline url_result host_parser::parse_opaque_host(const CharT* first, const CharT
     const CharT* pointer = first;
     while (pointer < last) {
         // UTF-8 percent encode c using the C0 control percent-encode set (U+0000 ... U+001F and >U+007E)
-        const UCharT uch = static_cast<UCharT>(*pointer);
+        const auto uch = static_cast<UCharT>(*pointer);
         if (uch >= 0x7f) {
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
             detail::AppendUTF8EscapedChar(pointer, last, str_host);

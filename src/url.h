@@ -35,7 +35,7 @@
 #include <vector>
 
 // not yet
-#define WHATWG_URL_USE_ENCODING 0
+// #define WHATWG_URL_USE_ENCODING
 
 namespace whatwg {
 
@@ -907,7 +907,7 @@ inline bool starts_with(const CharT* first, const CharT* last, url::str_view_typ
 
 inline url::url(url&& other) noexcept
     : norm_url_(std::move(other.norm_url_))
-    , part_end_(std::move(other.part_end_))
+    , part_end_(other.part_end_)
     , scheme_inf_(other.scheme_inf_)
     , flags_(other.flags_)
     , path_segment_count_(other.path_segment_count_)
@@ -946,7 +946,7 @@ inline url& url::safe_assign(url&& other) {
 
 inline void url::move_record(url& other) WHATWG_NOEXCEPT_17 {
     norm_url_ = std::move(other.norm_url_);
-    part_end_ = std::move(other.part_end_);
+    part_end_ = other.part_end_;
     scheme_inf_ = other.scheme_inf_;
     flags_ = other.flags_;
     path_segment_count_ = other.path_segment_count_;
@@ -1413,7 +1413,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     const auto length = std::distance(first, last);
     urls.reserve(length + 32);
 
-#if WHATWG_URL_USE_ENCODING
+#ifdef WHATWG_URL_USE_ENCODING
     const char* encoding = "UTF-8";
     // TODO: If encoding override is given, set encoding to the result of getting an output encoding from encoding override.
 #endif
@@ -1910,10 +1910,10 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     if (state == path_start_state) {
         if (urls.is_special_scheme()) {
             if (pointer != last) {
-                const CharT ch = *pointer;
-                if (ch == '/') ++pointer;
-                else if (ch == '\\') {
+                switch (*pointer) {
+                case '\\':
                     // TODO-WARN: validation error
+                case '/':
                     ++pointer;
                 }
             }
@@ -2011,7 +2011,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         //  // 2. If c is "%" and remaining does not start with two ASCII hex digits, validation error.
         //}
 
-#if WHATWG_URL_USE_ENCODING
+#ifdef WHATWG_URL_USE_ENCODING
         // scheme_inf_ == nullptr, if unknown scheme
         if (!urls.scheme_inf() || !urls.scheme_inf()->is_special || urls.scheme_inf()->is_ws)
             encoding = "UTF-8";

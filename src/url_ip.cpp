@@ -56,7 +56,8 @@ void ipv6_serialize(const uint16_t(&address)[8], std::string& output) {
     for (auto it = first; true;) {
         if (it == compress) {
             output.append("::", it == first ? 2 : 1);
-            if ((it = compress_end) == last) break;
+            it = compress_end;
+            if (it == last) break;
         }
         unsigned_to_str<uint32_t>(*it, output, 16);
         if (++it == last) break;

@@ -26,7 +26,7 @@ namespace {
 
 // Return UTS46 ICU handler opened with uidna_openUTS46()
 
-static UIDNA* uidna_ptr = nullptr;
+UIDNA* uidna_ptr = nullptr;
 
 const UIDNA* getUIDNA() {
     // initialize uidna_ptr
@@ -45,7 +45,7 @@ const UIDNA* getUIDNA() {
                 | UIDNA_NONTRANSITIONAL_TO_UNICODE, &err);
             assert(U_SUCCESS(err) && uidna_ptr != nullptr);
         }
-    } once;
+    } const once;
 
     return uidna_ptr;
 }

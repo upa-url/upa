@@ -53,7 +53,7 @@ void url_utf::check_fix_utf8(std::string& str) {
         // replace invalid UTF-8 byte sequences with replacement char
         std::string buff;
         buff.append(first, ptr);
-        buff.append(kReplacementCharUtf8);
+        buff.append(static_cast<const char*>(kReplacementCharUtf8));
 
         const char* bgn = it;
         ptr = it;
@@ -62,7 +62,7 @@ void url_utf::check_fix_utf8(std::string& str) {
                 ptr = it;
             } else {
                 buff.append(bgn, ptr);
-                buff.append(kReplacementCharUtf8);
+                buff.append(static_cast<const char*>(kReplacementCharUtf8));
                 bgn = it;
                 ptr = it;
             }
@@ -87,7 +87,8 @@ int url_utf::compare_by_code_units(const char* first1, const char* last1, const 
         }
 
         // read code points
-        uint32_t cp1, cp2;
+        uint32_t cp1;
+        uint32_t cp2;
         read_utf_char(it1, last1, cp1);
         read_utf_char(it2, last2, cp2);
         if (cp1 == cp2) continue;
