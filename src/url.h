@@ -1215,8 +1215,7 @@ inline void url::swap(url& other) WHATWG_NOEXCEPT_17 {
 
 template <typename CharT>
 inline url_result url::do_parse(const CharT* first, const CharT* last, const url* base) {
-    url_result res;
-    {
+    const url_result res = [&]() {
         detail::url_serializer urls(*this);
 
         // reset URL
@@ -1230,10 +1229,12 @@ inline url_result url::do_parse(const CharT* first, const CharT* last, const url
         detail::do_trim(first, last);
         //TODO-WARN: validation error if trimmed
 
-        res = detail::url_parser::url_parse(urls, first, last, base);
-        if (res == url_result::Ok) set_flag(VALID_FLAG);
+        return detail::url_parser::url_parse(urls, first, last, base);
+    }();
+    if (res == url_result::Ok) {
+        set_flag(VALID_FLAG);
+        parse_search_params();
     }
-    parse_search_params();
     return res;
 }
 
@@ -2483,21 +2484,19 @@ inline void url_serializer::hostDone(HostType ht) {
 inline void url_serializer::append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn) {
     // See URL serializing
     // https://url.spec.whatwg.org/#concept-url-serializer
-    url::PartType ifirst;
-    if (t1 <= url::HOST) {
-        // authority, host
-        if (!src.is_null(url::HOST)) {
-            if (t1 == url::USERNAME && src.has_credentials())
-                ifirst = url::USERNAME;
-            else
-                ifirst = url::HOST;
-        } else {
-            ifirst = url::PATH_PREFIX;
+    const url::PartType ifirst = [&]() {
+        if (t1 <= url::HOST) {
+            // authority, host
+            if (!src.is_null(url::HOST)) {
+                if (t1 == url::USERNAME && src.has_credentials())
+                    return url::USERNAME;
+                return url::HOST;
+            }
+            return url::PATH_PREFIX;
         }
-    } else {
         // t1 == PATH
-        ifirst = t1;
-    }
+        return t1;
+    }();
 
     // copy flags; they can be used when copying / serializing url parts below
     unsigned mask = 0;

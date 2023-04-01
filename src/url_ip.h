@@ -81,7 +81,7 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
         return url_result::InvalidIpv4Address;
 
     // Figure out the base
-    uint32_t radix;
+    uint32_t radix = 10;
     if (first[0] == '0') {
         const std::size_t len = last - first;
         if (len == 1) {
@@ -99,8 +99,6 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
         // Skip leading zeros (*)
         while (first < last && first[0] == '0')
             ++first;
-    } else {
-        radix = 10;
     }
     // if all characters '0' (*) OR
     // if input is the empty string, then return zero
@@ -190,12 +188,12 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
     // 3. If the last item in parts is the empty string, then:
     //    1. Set validationError to true.
     //    2. If parts’s size is greater than 1, then remove the last item from parts.
-    int part_count;
+    int part_count = dot_count + 1;
     if (dot_count > 0 && part[dot_count] == last) {
-        part_count = dot_count;
+        --part_count;
     } else {
-        part_count = dot_count + 1;
-        part[part_count] = last + 1; // bus -1
+        // the part[part_count] - 1 must point to the end of last part:
+        part[part_count] = last + 1;
     }
     // 4. If parts’s size is greater than 4, then validation error, return failure.
     if (part_count > 4)
@@ -239,14 +237,15 @@ void ipv4_serialize(uint32_t ipv4, std::string& output);
 
 // IPv6
 
-template <typename CharT, typename IntT>
-inline void get_hex_number(const CharT*& pointer, const CharT* last, IntT& value) {
-    value = 0;
+template <typename IntT, typename CharT>
+inline IntT get_hex_number(const CharT*& pointer, const CharT* last) {
+    IntT value = 0;
     while (pointer != last && detail::isHexChar(*pointer)) {
         const auto uc = static_cast<unsigned char>(*pointer);
         value = value * 0x10 + detail::HexCharToValue(uc);
         ++pointer;
     }
+    return value;
 }
 
 // IPv6 parser
@@ -295,9 +294,8 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
         }
 
         // HEX
-        uint16_t value;
         auto pointer0 = pointer;
-        get_hex_number(pointer, (last - pointer <= 4 ? last : pointer + 4), value);
+        const auto value = get_hex_number<uint16_t>(pointer, (last - pointer <= 4 ? last : pointer + 4));
         if (pointer != last) {
             const CharT ch = *pointer;
             if (ch == '.') {
