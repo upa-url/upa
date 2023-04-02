@@ -219,10 +219,8 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
             // detected an invalid percent-encoding sequence
             buff_uc.push_back('%');
         } else { // uch >= 0x80
-            uint32_t code_point;
             --it;
-            url_utf::read_utf_char(it, last, code_point);
-            url_utf::append_utf16(code_point, buff_uc);
+            url_utf::append_utf16(url_utf::read_utf_char(it, last).value, buff_uc);
         }
     }
 

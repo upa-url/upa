@@ -11,9 +11,9 @@ namespace whatwg {
 bool url_utf::convert_utf8_to_utf16(const char* first, const char* last, simple_buffer<char16_t>& output) {
     bool success = true;
     for (auto it = first; it < last;) {
-        uint32_t code_point;
-        success &= read_utf_char(it, last, code_point);
-        append_utf16(code_point, output);
+        const auto cp_res = read_utf_char(it, last);
+        append_utf16(cp_res.value, output);
+        success &= cp_res.result;
     }
     return success;
 }
@@ -38,7 +38,7 @@ void url_utf::check_fix_utf8(std::string& str) {
     const char* first = str.data();
     const char* last = str.data() + str.length();
 
-    uint32_t code_point;
+    uint32_t code_point; // NOLINT(cppcoreguidelines-init-variables)
     const char* ptr = first;
     const char* it = first;
     while (it != last && read_code_point(it, last, code_point))
@@ -82,10 +82,8 @@ int url_utf::compare_by_code_units(const char* first1, const char* last1, const 
         }
 
         // read code points
-        uint32_t cp1;
-        uint32_t cp2;
-        read_utf_char(it1, last1, cp1);
-        read_utf_char(it2, last2, cp2);
+        const uint32_t cp1 = read_utf_char(it1, last1).value;
+        const uint32_t cp2 = read_utf_char(it2, last2).value;
         if (cp1 == cp2) continue;
 
         // code points not equal - compare code units

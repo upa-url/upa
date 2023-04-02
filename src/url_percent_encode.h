@@ -363,10 +363,9 @@ inline bool AppendUTF8EscapedChar(const CharT*& first, const CharT* last, std::s
     // url_util::read_utf_char(..) will handle invalid characters for us and give
     // us the kUnicodeReplacementCharacter, so we don't have to do special
     // checking after failure, just pass through the failure to the caller.
-    uint32_t code_point;
-    const bool success = url_utf::read_utf_char(first, last, code_point);
-    AppendUTF8EscapedValue(code_point, output);
-    return success;
+    const auto cp_res = url_utf::read_utf_char(first, last);
+    AppendUTF8EscapedValue(cp_res.value, output);
+    return cp_res.result;
 }
 
 // Appends the given string to the output, escaping characters that do not

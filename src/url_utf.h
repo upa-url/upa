@@ -7,6 +7,7 @@
 #define WHATWG_URL_UTF_H
 
 #include "buffer.h"
+#include "url_result.h"
 #include <cstdint> // uint32_t, [char16_t, char32_t]
 #include <string>
 
@@ -16,7 +17,7 @@ namespace whatwg {
 class url_utf {
 public:
     template <typename CharT>
-    static bool read_utf_char(const CharT*& first, const CharT* last, uint32_t& code_point);
+    static detail::result_value<uint32_t> read_utf_char(const CharT*& first, const CharT* last);
 
     template <typename CharT>
     static void read_char_append_utf8(const CharT*& it, const CharT* last, std::string& output);
@@ -75,12 +76,12 @@ private:
 // and advances `first` to point to the next character.
 
 template <typename CharT>
-inline bool url_utf::read_utf_char(const CharT*& first, const CharT* last, uint32_t& code_point) {
-    if (!read_code_point(first, last, code_point)) {
-        code_point = 0xFFFD; // REPLACEMENT CHARACTER
-        return false;
-    }
-    return true;
+inline detail::result_value<uint32_t> url_utf::read_utf_char(const CharT*& first, const CharT* last) {
+    // read_code_point always initializes code_point
+    uint32_t code_point; // NOLINT(cppcoreguidelines-init-variables)
+    if (read_code_point(first, last, code_point))
+        return { true, code_point };
+    return { false, 0xFFFD }; // REPLACEMENT CHARACTER
 }
 
 namespace detail {
@@ -91,15 +92,14 @@ namespace detail {
 
 template <typename CharT>
 inline void url_utf::read_char_append_utf8(const CharT*& it, const CharT* last, std::string& output) {
-    uint32_t code_point;
-    url_utf::read_utf_char(it, last, code_point);
-    url_utf::append_utf8<std::string, detail::append_to_string>(code_point, output);
+    const uint32_t code_point = read_utf_char(it, last).value;
+    append_utf8<std::string, detail::append_to_string>(code_point, output);
 }
 
 inline void url_utf::read_char_append_utf8(const char*& it, const char* last, std::string& output) {
-    uint32_t code_point;
+    uint32_t code_point; // NOLINT(cppcoreguidelines-init-variables)
     const char* start = it;
-    if (url_utf::read_code_point(it, last, code_point))
+    if (read_code_point(it, last, code_point))
         output.append(start, it);
     else
         output.append(static_cast<const char*>(kReplacementCharUtf8));

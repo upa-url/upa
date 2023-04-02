@@ -15,9 +15,7 @@ static uint32_t first_codepoint(T&& strUtf) {
     const auto inp = make_str_arg(strUtf);
     const auto* first = inp.begin();
     const auto* last = inp.end();
-    uint32_t code_point = 0;
-    url_utf::read_utf_char(first, last, code_point);
-    return code_point;
+    return url_utf::read_utf_char(first, last).value;
 }
 
 TEST_CASE("url_utf::read_utf_char with UTF-8") {

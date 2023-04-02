@@ -60,6 +60,25 @@ private:
     url_result res_;
 };
 
+namespace detail {
+
+/// @brief Result/value pair
+
+template<typename T, typename R = bool>
+struct result_value {
+    T value{};
+    R result{};
+
+    result_value(R res) noexcept
+        : result(res) {}
+    result_value(R res, T val) noexcept
+        : value(val), result(res) {}
+    operator R() const {
+        return result;
+    }
+};
+
+} // namespace detail
 } // namespace whatwg
 
 #endif // URL_RESULT_H
