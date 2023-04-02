@@ -9,7 +9,7 @@
 
 #include "url_percent_encode.h"
 
-namespace whatwg {
+namespace whatwg { // NOLINT(modernize-concat-nested-namespaces)
 
 #ifndef WHATWG_CPP_17
 

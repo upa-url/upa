@@ -26,7 +26,7 @@ namespace {
 
 // Return UTS46 ICU handler opened with uidna_openUTS46()
 
-UIDNA* uidna_ptr = nullptr;
+UIDNA* uidna_ptr = nullptr; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 const UIDNA* getUIDNA() {
     // initialize uidna_ptr

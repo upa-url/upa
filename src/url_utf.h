@@ -96,6 +96,7 @@ inline bool url_utf::read_code_point(const char*& first, const char* last, uint3
     c = static_cast<uint8_t>(*first++);
     if (c & 0x80) {
         uint8_t tmp = 0;
+        // NOLINTBEGIN(bugprone-assignment-in-if-condition)
         if (first != last &&
             // fetch/validate/assemble all but last trail byte
             (c >= 0xE0 ?
@@ -120,6 +121,7 @@ inline bool url_utf::read_code_point(const char*& first, const char* last, uint3
             // c = 0xfffd;
             return false;
         }
+        // NOLINTEND(bugprone-assignment-in-if-condition)
     }
     return true;
 }
@@ -170,10 +172,9 @@ namespace detail {
 inline bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) {
     c = *first++;
     if (detail::u16_is_surrogate(c)) {
-        uint16_t c2;
-        if (detail::u16_is_surrogate_lead(c) && first != last && detail::u16_is_trail(c2 = *first)) {
+        if (detail::u16_is_surrogate_lead(c) && first != last && detail::u16_is_trail(*first)) {
+            c = detail::u16_get_supplementary(c, *first);
             ++first;
-            c = detail::u16_get_supplementary(c, c2);
         } else {
             // c = 0xfffd;
             return false;

@@ -30,12 +30,17 @@ public:
     using difference_type = std::ptrdiff_t;
     // static constexpr size_type npos = size_type(-1);
 
-    // construction and assignment
+    // constructors
     str_view() noexcept = default;
     str_view(const str_view&) noexcept = default;
-    str_view& operator=(const str_view&) noexcept = default;
     str_view(const CharT* ptr, size_type len) : ptr_(ptr), len_(len) {}
     str_view(const CharT* ptr) : ptr_(ptr), len_(Traits::length(ptr)) {}
+
+    // assignment
+    str_view& operator=(const str_view&) noexcept = default;
+
+    // destructor
+    ~str_view() noexcept = default;
 
     // iterator support
     const_iterator begin() const noexcept { return ptr_; }

@@ -381,7 +381,7 @@ public:
     ~url_search_params_ptr() = default;
 
     void init(url* url_ptr) {
-        ptr_.reset(new url_search_params(url_ptr));
+        ptr_.reset(new url_search_params(url_ptr)); // NOLINT(cppcoreguidelines-owning-memory)
     }
 
     void set_url_ptr(url* url_ptr) noexcept {

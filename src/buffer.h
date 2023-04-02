@@ -35,7 +35,7 @@ public:
     using const_iterator = const value_type*;
 
     // default
-    simple_buffer() = default;
+    simple_buffer() = default; // NOLINT(cppcoreguidelines-pro-type-member-init,hicpp-member-init)
     explicit simple_buffer(const Allocator& alloc)
         : allocator_(alloc)
     {}
