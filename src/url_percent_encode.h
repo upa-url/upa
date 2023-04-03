@@ -445,12 +445,8 @@ inline std::string percent_decode(StrT&& str) {
             // detected invalid percent encoding
             out.push_back('%');
         } else { // uch >= 0x80
-            uint32_t code_point;
-            const auto start = --it;
-            if (url_utf::read_utf_char(it, last, code_point))
-                out.append(start, it);
-            else
-                out.append("\xEF\xBF\xBD"); // REPLACEMENT CHARATCTER
+            --it;
+            url_utf::read_char_append_utf8(it, last, out);
         }
     }
     return out;

@@ -74,4 +74,8 @@ TEST_CASE("percent_decode") {
         CHECK(whatwg::percent_decode("a%C2z") == "a\xEF\xBF\xBDz");
         CHECK(whatwg::percent_decode("a\xC2z") == "a\xEF\xBF\xBDz");
     }
+    SUBCASE("valid UTF-16/32") {
+        CHECK(whatwg::percent_decode(u"a\u0104z") == "a\xC4\x84z");
+        CHECK(whatwg::percent_decode(U"a\u0104z") == "a\xC4\x84z");
+    }
 }

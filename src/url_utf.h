@@ -18,6 +18,10 @@ public:
     template <typename CharT>
     static bool read_utf_char(const CharT*& first, const CharT* last, uint32_t& code_point);
 
+    template <typename CharT>
+    static void read_char_append_utf8(const CharT*& it, const CharT* last, std::string& output);
+    static void read_char_append_utf8(const char*& it, const char* last, std::string& output);
+
     template <class Output, void appendByte(unsigned char, Output&)>
     static void append_utf8(uint32_t code_point, Output& output);
 
@@ -79,6 +83,27 @@ inline bool url_utf::read_utf_char(const CharT*& first, const CharT* last, uint3
     return true;
 }
 
+namespace detail {
+    inline void append_to_string(uint8_t c, std::string& str) {
+        str.push_back(static_cast<char>(c));
+    };
+} // namespace detail
+
+template <typename CharT>
+inline void url_utf::read_char_append_utf8(const CharT*& it, const CharT* last, std::string& output) {
+    uint32_t code_point;
+    url_utf::read_utf_char(it, last, code_point);
+    url_utf::append_utf8<std::string, detail::append_to_string>(code_point, output);
+}
+
+inline void url_utf::read_char_append_utf8(const char*& it, const char* last, std::string& output) {
+    uint32_t code_point;
+    const char* start = it;
+    if (url_utf::read_code_point(it, last, code_point))
+        output.append(start, it);
+    else
+        output.append(static_cast<const char*>(kReplacementCharUtf8));
+}
 
 // ------------------------------------------------------------------------
 // The code bellow is based on the ICU 61.1 library's UTF macros in
