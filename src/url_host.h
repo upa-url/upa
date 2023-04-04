@@ -196,7 +196,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
                 continue;
             }
             // uch == '%'
-            unsigned char uc8;
+            unsigned char uc8; // NOLINT(cppcoreguidelines-init-variables)
             if (detail::DecodeEscaped(it, last, uc8)) {
                 if (uc8 < 0x80) {
                     buff_uc.push_back(static_cast<char16_t>(uc8));
@@ -288,7 +288,7 @@ inline url_result host_parser::parse_opaque_host(const CharT* first, const CharT
 
 template <typename CharT>
 inline url_result host_parser::parse_ipv4(const CharT* first, const CharT* last, host_output& dest) {
-    uint32_t ipv4;
+    uint32_t ipv4;  // NOLINT(cppcoreguidelines-init-variables)
 
     const url_result res = ipv4_parse(first, last, ipv4);
     if (res == url_result::Ok) {

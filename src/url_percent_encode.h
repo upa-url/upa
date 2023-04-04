@@ -422,7 +422,7 @@ inline std::string percent_decode(StrT&& str) {
                 continue;
             }
             // uch == '%'
-            unsigned char uc8;
+            unsigned char uc8; // NOLINT(cppcoreguidelines-init-variables)
             if (detail::DecodeEscaped(it, last, uc8)) {
                 if (uc8 < 0x80) {
                     out.push_back(static_cast<char>(uc8));
