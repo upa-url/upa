@@ -67,7 +67,7 @@ void url_utf::check_fix_utf8(std::string& str) {
     }
 }
 
-int url_utf::compare_by_code_units(const char* first1, const char* last1, const char* first2, const char* last2) {
+int url_utf::compare_by_code_units(const char* first1, const char* last1, const char* first2, const char* last2) noexcept {
     const auto* it1 = first1;
     const auto* it2 = first2;
     while (it1 != last1 && it2 != last2) {

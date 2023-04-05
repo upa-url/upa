@@ -21,14 +21,14 @@ namespace whatwg {
 // Utility class to get unsigned (abs) max, min values of (signed) integer type
 template <typename T, typename UT = typename std::make_unsigned<T>::type>
 struct unsigned_limit {
-    static constexpr UT max() {
+    static constexpr UT max() noexcept {
         return static_cast<UT>(std::numeric_limits<T>::max());
     }
 
 #if defined(__clang__)
     __attribute__((no_sanitize("unsigned-integer-overflow")))
 #endif
-    static constexpr UT min() {
+    static constexpr UT min() noexcept {
         // http://en.cppreference.com/w/cpp/language/implicit_conversion
         // Integral conversions: If the destination type is unsigned, the resulting
         // value is the smallest unsigned value equal to the source value modulo 2^n
@@ -65,7 +65,7 @@ namespace detail {
 // Cast integer value to corresponding unsigned type
 
 template <typename T, typename UT = typename std::make_unsigned<T>::type>
-constexpr auto to_unsigned(T n) -> UT {
+constexpr auto to_unsigned(T n) noexcept -> UT {
     return static_cast<UT>(n);
 }
 

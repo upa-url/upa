@@ -17,7 +17,7 @@ namespace whatwg {
 class url_utf {
 public:
     template <typename CharT>
-    static detail::result_value<uint32_t> read_utf_char(const CharT*& first, const CharT* last);
+    static detail::result_value<uint32_t> read_utf_char(const CharT*& first, const CharT* last) noexcept;
 
     template <typename CharT>
     static void read_char_append_utf8(const CharT*& it, const CharT* last, std::string& output);
@@ -44,12 +44,12 @@ public:
     // Invalid utf-8 bytes sequences are replaced with 0xFFFD character.
     static void check_fix_utf8(std::string& str);
 
-    static int compare_by_code_units(const char* first1, const char* last1, const char* first2, const char* last2);
+    static int compare_by_code_units(const char* first1, const char* last1, const char* first2, const char* last2) noexcept;
 protected:
     // low level
-    static bool read_code_point(const char*& first, const char* last, uint32_t& code_point);
-    static bool read_code_point(const char16_t*& first, const char16_t* last, uint32_t& code_point);
-    static bool read_code_point(const char32_t*& first, const char32_t* last, uint32_t& code_point);
+    static bool read_code_point(const char*& first, const char* last, uint32_t& code_point) noexcept;
+    static bool read_code_point(const char16_t*& first, const char16_t* last, uint32_t& code_point) noexcept;
+    static bool read_code_point(const char32_t*& first, const char32_t* last, uint32_t& code_point) noexcept;
 private:
     const static char kReplacementCharUtf8[];
     const static uint8_t k_U8_LEAD3_T1_BITS[16];
@@ -76,7 +76,7 @@ private:
 // and advances `first` to point to the next character.
 
 template <typename CharT>
-inline detail::result_value<uint32_t> url_utf::read_utf_char(const CharT*& first, const CharT* last) {
+inline detail::result_value<uint32_t> url_utf::read_utf_char(const CharT*& first, const CharT* last) noexcept {
     // read_code_point always initializes code_point
     uint32_t code_point; // NOLINT(cppcoreguidelines-init-variables)
     if (read_code_point(first, last, code_point))
@@ -117,7 +117,7 @@ inline void url_utf::read_char_append_utf8(const char*& it, const char* last, st
 
 // Modified version of the U8_INTERNAL_NEXT_OR_SUB macro in utf8.h from ICU
 
-inline bool url_utf::read_code_point(const char*& first, const char* last, uint32_t& c) {
+inline bool url_utf::read_code_point(const char*& first, const char* last, uint32_t& c) noexcept {
     c = static_cast<uint8_t>(*first++);
     if (c & 0x80) {
         uint8_t tmp = 0;
@@ -157,7 +157,7 @@ namespace detail {
     // Is this code unit/point a surrogate (U+d800..U+dfff)?
     // Based on U_IS_SURROGATE in utf.h from ICU
     template <typename T>
-    inline bool u16_is_surrogate(T c) {
+    inline bool u16_is_surrogate(T c) noexcept {
         return (c & 0xfffff800) == 0xd800;
     }
 
@@ -165,28 +165,28 @@ namespace detail {
     // is it a lead surrogate?
     // Based on U16_IS_SURROGATE_LEAD in utf16.h from ICU
     template <typename T>
-    inline bool u16_is_surrogate_lead(T c) {
+    inline bool u16_is_surrogate_lead(T c) noexcept {
         return (c & 0x400) == 0;
     }
 
     // Is this code unit a lead surrogate (U+d800..U+dbff)?
     // Based on U16_IS_LEAD in utf16.h from ICU
     template <typename T>
-    inline bool u16_is_lead(T c) {
+    inline bool u16_is_lead(T c) noexcept {
         return (c & 0xfffffc00) == 0xd800;
     }
 
     // Is this code unit a trail surrogate (U+dc00..U+dfff)?
     // Based on U16_IS_TRAIL in utf16.h from ICU
     template <typename T>
-    inline bool u16_is_trail(T c) {
+    inline bool u16_is_trail(T c) noexcept {
         return (c & 0xfffffc00) == 0xdc00;
     }
 
     // Get a supplementary code point value (U+10000..U+10ffff)
     // from its lead and trail surrogates.
     // Based on U16_GET_SUPPLEMENTARY in utf16.h from ICU
-    inline uint32_t u16_get_supplementary(uint32_t lead, uint32_t trail) {
+    inline uint32_t u16_get_supplementary(uint32_t lead, uint32_t trail) noexcept {
         const uint32_t u16_surrogate_offset = (0xd800 << 10UL) + 0xdc00 - 0x10000;
         return (lead << 10UL) + trail - u16_surrogate_offset;
     }
@@ -194,7 +194,7 @@ namespace detail {
 
 // Modified version of the U16_NEXT_OR_FFFD macro in utf16.h from ICU
 
-inline bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) {
+inline bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) noexcept {
     c = *first++;
     if (detail::u16_is_surrogate(c)) {
         if (detail::u16_is_surrogate_lead(c) && first != last && detail::u16_is_trail(*first)) {
@@ -208,7 +208,7 @@ inline bool url_utf::read_code_point(const char16_t*& first, const char16_t* las
     return true;
 }
 
-inline bool url_utf::read_code_point(const char32_t*& first, const char32_t*, uint32_t& c) {
+inline bool url_utf::read_code_point(const char32_t*& first, const char32_t*, uint32_t& c) noexcept {
     // no conversion
     c = *first++;
     // don't allow surogates (U+D800..U+DFFF) and too high values

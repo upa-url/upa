@@ -629,11 +629,11 @@ public:
         // path_segment_count_ has meaning only if path is a list (path isn't opaque)
         return url_.path_segment_count_ == 0;
     }
-    bool is_null(const url::PartType t) const  { return url_.is_null(t); }
-    bool is_special_scheme() const { return url_.is_special_scheme(); }
-    bool is_file_scheme() const { return url_.is_file_scheme(); }
+    bool is_null(const url::PartType t) const noexcept { return url_.is_null(t); }
+    bool is_special_scheme() const noexcept { return url_.is_special_scheme(); }
+    bool is_file_scheme() const noexcept { return url_.is_file_scheme(); }
     bool has_credentials() const { return url_.has_credentials(); }
-    const url::scheme_info* scheme_inf() const { return url_.scheme_inf_; }
+    const url::scheme_info* scheme_inf() const noexcept { return url_.scheme_inf_; }
     int port_int() const { return url_.port_int(); }
 
 protected:
@@ -775,13 +775,13 @@ inline int port_from_str(const char* first, const char* last) {
 
 // chars to trim (C0 control or space: U+0000 to U+001F or U+0020)
 template <typename CharT>
-inline bool is_trim_char(CharT ch) {
+inline bool is_trim_char(CharT ch) noexcept {
     return to_unsigned(ch) <= ' ';
 }
 
 // chars what should be removed from the URL (ASCII tab or newline: U+0009, U+000A, U+000D)
 template <typename CharT>
-inline bool is_removable_char(CharT ch) {
+inline bool is_removable_char(CharT ch) noexcept {
     return ch == '\r' || ch == '\n' || ch == '\t';
 }
 
@@ -832,24 +832,24 @@ inline InputIt find_last(InputIt first, InputIt last, const T& value) {
 // special chars
 
 template <typename CharT>
-inline bool is_slash(CharT ch) {
+inline bool is_slash(CharT ch) noexcept {
     return ch == '/' || ch == '\\';
 }
 
 // Scheme chars
 
 template <typename CharT>
-inline bool is_first_scheme_char(CharT ch) {
+inline bool is_first_scheme_char(CharT ch) noexcept {
     return is_ascii_alpha(ch);
 }
 
 template <typename CharT>
-inline bool is_authority_end_char(CharT c) {
+inline bool is_authority_end_char(CharT c) noexcept {
     return c == '/' || c == '?' || c == '#';
 }
 
 template <typename CharT>
-inline bool is_special_authority_end_char(CharT c) {
+inline bool is_special_authority_end_char(CharT c) noexcept {
     return c == '/' || c == '?' || c == '#' || c == '\\';
 }
 
@@ -858,18 +858,18 @@ inline bool is_special_authority_end_char(CharT c) {
 // https://url.spec.whatwg.org/#windows-drive-letter
 
 template <typename CharT>
-inline bool is_Windows_drive(CharT c1, CharT c2) {
+inline bool is_Windows_drive(CharT c1, CharT c2) noexcept {
     return is_ascii_alpha(c1) && (c2 == ':' || c2 == '|');
 }
 
 template <typename CharT>
-inline bool is_normalized_Windows_drive(CharT c1, CharT c2) {
+inline bool is_normalized_Windows_drive(CharT c1, CharT c2) noexcept {
     return is_ascii_alpha(c1) && c2 == ':';
 }
 
 // https://url.spec.whatwg.org/#start-with-a-windows-drive-letter
 template <typename CharT>
-inline bool starts_with_Windows_drive(const CharT* pointer, const CharT* last) {
+inline bool starts_with_Windows_drive(const CharT* pointer, const CharT* last) noexcept {
     const auto length = last - pointer;
 #if 1
     return
@@ -885,7 +885,7 @@ inline bool starts_with_Windows_drive(const CharT* pointer, const CharT* last) {
 
 // check string starts with absolute Windows drive path (for example: "C:\\path" or "C:/path")
 template <typename CharT>
-inline bool starts_with_Windows_drive_absolute_path(const CharT* pointer, const CharT* last) {
+inline bool starts_with_Windows_drive_absolute_path(const CharT* pointer, const CharT* last) noexcept {
     return
         last - pointer > 2 &&
         detail::is_Windows_drive(pointer[0], pointer[1]) &&
@@ -894,7 +894,7 @@ inline bool starts_with_Windows_drive_absolute_path(const CharT* pointer, const 
 
 // check string starts with sv (ASCII)
 template <typename CharT>
-inline bool starts_with(const CharT* first, const CharT* last, url::str_view_type sv) {
+inline bool starts_with(const CharT* first, const CharT* last, url::str_view_type sv) noexcept {
     if (last - first >= static_cast<std::ptrdiff_t>(sv.length())) {
         for (auto c : sv) {
             if (*first != c)
@@ -2631,6 +2631,7 @@ inline std::string& url_setter::start_part(url::PartType new_pt) {
         }
         return strp_;
     }
+
     use_strp_ = false;
     last_pt_ = find_last_part(new_pt);
     return url_serializer::start_part(new_pt);

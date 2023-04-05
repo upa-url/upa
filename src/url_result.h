@@ -35,7 +35,7 @@ enum class url_result {
 
 /// @brief Check result code indicates success
 /// @return `true` if result code is url_result::Ok, `false` otherwise
-inline bool success(url_result res) {
+constexpr bool success(url_result res) noexcept {
     return res == url_result::Ok;
 }
 
@@ -53,7 +53,7 @@ public:
     {}
 
     /// @return result code
-    url_result result() const {
+    url_result result() const noexcept {
         return res_;
     }
 private:
@@ -73,7 +73,7 @@ struct result_value {
         : result(res) {}
     result_value(R res, T val) noexcept
         : value(val), result(res) {}
-    operator R() const {
+    operator R() const noexcept {
         return result;
     }
 };

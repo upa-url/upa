@@ -88,7 +88,7 @@ public:
     }
 
     // for dump program
-    static constexpr std::size_t arr_size() { return arr_size_; }
+    static constexpr std::size_t arr_size() noexcept { return arr_size_; }
     constexpr uint8_t arr_val(std::size_t i) const { return arr_[i]; }
 #else
 
@@ -101,12 +101,12 @@ public:
 
 private:
     // Check code point value is 8 bit (<=0xFF)
-    static constexpr bool is_8bit(unsigned char) {
+    static constexpr bool is_8bit(unsigned char) noexcept {
         return true;
     }
 
     template <typename CharT>
-    static constexpr bool is_8bit(CharT c) {
+    static constexpr bool is_8bit(CharT c) noexcept {
         return c <= 0xFF;
     }
 
@@ -272,12 +272,12 @@ inline bool is_forbidden_host_char(CharT c) {
 // Char classification
 
 template <typename CharT>
-inline bool is_ascii_digit(CharT ch) {
+inline bool is_ascii_digit(CharT ch) noexcept {
     return ch <= '9' && ch >= '0';
 }
 
 template <typename CharT>
-inline bool is_ascii_alpha(CharT ch) {
+inline bool is_ascii_alpha(CharT ch) noexcept {
     return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
 }
 
@@ -299,7 +299,7 @@ extern const char kHexCharLookup[0x10];
 extern const char kCharToHexLookup[8];
 
 // Assumes the input is a valid hex digit! Call isHexChar before using this.
-inline unsigned char HexCharToValue(unsigned char c) {
+inline unsigned char HexCharToValue(unsigned char c) noexcept {
     return c - kCharToHexLookup[c / 0x20];
 }
 
