@@ -181,38 +181,6 @@ inline constexpr code_point_set component_no_encode_set{ [](code_point_set& self
     self.exclude({ 0x24, 0x25, 0x26, 0x2B, 0x2C });
     } };
 
-// Forbidden host code points: U+0000 NULL, U+0009 TAB, U+000A LF, U+000D CR,
-// U+0020 SPACE, U+0023 (#), U+002F (/), U+003A (:), U+003C (<), U+003E (>),
-// U+003F (?), U+0040 (@), U+005B ([), U+005C (\), U+005D (]), U+005E (^) and
-// U+007C (|).
-// https://url.spec.whatwg.org/#forbidden-host-code-point
-inline constexpr code_point_set host_forbidden_set{ [](code_point_set& self) constexpr {
-    self.include({
-        0x00, 0x09, 0x0A, 0x0D, 0x20, 0x23, 0x2F, 0x3A, 0x3C, 0x3E, 0x3F, 0x40, 0x5B,
-        0x5C, 0x5D, 0x5E, 0x7C });
-    } };
-
-// Forbidden domain code points: forbidden host code points, C0 controls, U+0025 (%)
-// and U+007F DELETE.
-// https://url.spec.whatwg.org/#forbidden-domain-code-point
-inline constexpr code_point_set domain_forbidden_set{ [](code_point_set& self) constexpr {
-    self.copy(host_forbidden_set);
-    self.include(0x00, 0x1F); // C0 controls
-    self.include({ 0x25, 0x7F });
-    } };
-
-// Hex digits
-inline constexpr code_point_set hex_digit_set{ [](code_point_set& self) constexpr {
-    self.include('0', '9');
-    self.include('A', 'F');
-    self.include('a', 'f');
-    } };
-
-// Characters allowed in IPv4
-inline constexpr code_point_set ipv4_char_set{ [](code_point_set& self) constexpr {
-    self.copy(hex_digit_set);
-    self.include({ '.', 'X', 'x' });
-    } };
 
 #else
 
@@ -234,8 +202,137 @@ extern const code_point_set ipv4_char_set;
 
 #endif
 
-
 namespace detail {
+
+// Code point sets in one bytes array
+
+enum CP_SET : std::uint8_t {
+    ASCII_DOMAIN_SET = 0x01,
+    DOMAIN_FORBIDDEN_SET = 0x02,
+    HOST_FORBIDDEN_SET = 0x04,
+    HEX_DIGIT_SET = 0x08,
+    IPV4_CHAR_SET = 0x10,
+};
+
+class code_points_multiset {
+public:
+#ifdef WHATWG_CPP_17
+    constexpr code_points_multiset() {
+        // Forbidden host code points: U+0000 NULL, U+0009 TAB, U+000A LF, U+000D CR,
+        // U+0020 SPACE, U+0023 (#), U+002F (/), U+003A (:), U+003C (<), U+003E (>),
+        // U+003F (?), U+0040 (@), U+005B ([), U+005C (\), U+005D (]), U+005E (^) and
+        // U+007C (|).
+        // https://url.spec.whatwg.org/#forbidden-host-code-point
+        include(static_cast<CP_SET>(HOST_FORBIDDEN_SET | DOMAIN_FORBIDDEN_SET), {
+            0x00, 0x09, 0x0A, 0x0D, 0x20, 0x23, 0x2F, 0x3A, 0x3C, 0x3E, 0x3F, 0x40, 0x5B,
+            0x5C, 0x5D, 0x5E, 0x7C });
+
+        // Forbidden domain code points: forbidden host code points, C0 controls, U+0025 (%)
+        // and U+007F DELETE.
+        // https://url.spec.whatwg.org/#forbidden-domain-code-point
+        include(DOMAIN_FORBIDDEN_SET, 0x00, 0x1F); // C0 controls
+        include(DOMAIN_FORBIDDEN_SET, { 0x25, 0x7F });
+
+        // ASCII domain code points
+
+        // All ASCII excluding C0 controls (forbidden in domains)
+        include(ASCII_DOMAIN_SET, 0x20, 0x7F);
+        // exclude forbidden host code points
+        exclude(ASCII_DOMAIN_SET, {
+            0x00, 0x09, 0x0A, 0x0D, 0x20, 0x23, 0x2F, 0x3A, 0x3C, 0x3E, 0x3F, 0x40, 0x5B,
+            0x5C, 0x5D, 0x5E, 0x7C });
+        // exclude forbidden domain code points
+        exclude(ASCII_DOMAIN_SET, { 0x25, 0x7F });
+
+        // Hex digits
+        include(static_cast<CP_SET>(HEX_DIGIT_SET | IPV4_CHAR_SET), '0', '9');
+        include(static_cast<CP_SET>(HEX_DIGIT_SET | IPV4_CHAR_SET), 'A', 'F');
+        include(static_cast<CP_SET>(HEX_DIGIT_SET | IPV4_CHAR_SET), 'a', 'f');
+
+        // Characters allowed in IPv4
+        include(IPV4_CHAR_SET, { '.', 'X', 'x' });
+    }
+
+    // for dump program
+    static constexpr std::size_t arr_size() noexcept { return arr_size_; }
+    constexpr uint8_t arr_val(std::size_t i) const { return arr_[i]; }
+#endif
+
+    /// @brief test the @a cps code points set contains code point @a c
+    /// @param[in] c code point to test
+    /// @param[in] cps code point set
+    template <typename CharT>
+    WHATWG_CONSTEXPR_17 bool char_in_set(CharT c, CP_SET cps) const {
+        const auto uc = detail::to_unsigned(c);
+        return is_8bit(uc) && (arr_[uc] & cps);
+    }
+
+private:
+#ifdef WHATWG_CPP_17
+    /// @brief include @a c code point to @a cpsbits sets
+    /// @param[in] cpsbits code points sets
+    /// @param[in] c code point to include
+    constexpr void include(CP_SET cpsbits, uint8_t c) {
+        arr_[c] |= cpsbits;
+    }
+
+    /// @brief include code points from list
+    /// @param[in] cpsbits code points sets
+    /// @param[in] clist list of code points to include
+    constexpr void include(CP_SET cpsbits, std::initializer_list<uint8_t> clist) {
+        for (auto c : clist)
+            include(cpsbits, c);
+    }
+
+    /// @brief include range of code points to set
+    /// @param[in] cpsbits code points sets
+    /// @param[in] from,to range of code points to include
+    constexpr void include(CP_SET cpsbits, uint8_t from, uint8_t to) {
+        for (auto c = from; c <= to; ++c)
+            include(cpsbits, c);
+    }
+
+    /// @brief exclude @a c code point from set
+    /// @param[in] cpsbits code points sets
+    /// @param[in] c code point to exclude
+    constexpr void exclude(CP_SET cpsbits, uint8_t c) {
+        arr_[c] &= ~cpsbits;
+    }
+
+    /// @brief exclude list of code points from set
+    /// @param[in] cpsbits code points sets
+    /// @param[in] clist list of code points to exclude
+    constexpr void exclude(CP_SET cpsbits, std::initializer_list<uint8_t> clist) {
+        for (auto c : clist)
+            exclude(cpsbits, c);
+    }
+#endif
+
+    // Check code point value is 8 bit (<=0xFF)
+    static constexpr bool is_8bit(unsigned char) noexcept {
+        return true;
+    }
+
+    template <typename CharT>
+    static constexpr bool is_8bit(CharT c) noexcept {
+        return c <= 0xFF;
+    }
+
+    // Data
+    static const std::size_t arr_size_ = 256;
+#ifdef WHATWG_CPP_17
+    uint8_t arr_[arr_size_] = {};
+#else
+public:
+    uint8_t arr_[arr_size_];
+#endif
+};
+
+#ifdef WHATWG_CPP_17
+inline constexpr code_points_multiset code_points;
+#else
+extern const code_points_multiset code_points;
+#endif
 
 // ----------------------------------------------------------------------------
 // Check char is in predefined set
@@ -247,22 +344,27 @@ inline bool isCharInSet(CharT c, const code_point_set& cpset) {
 
 template <typename CharT>
 inline bool isIPv4Char(CharT c) {
-    return isCharInSet(c, ipv4_char_set);
+    return code_points.char_in_set(c, IPV4_CHAR_SET);
 }
 
 template <typename CharT>
 inline bool isHexChar(CharT c) {
-    return isCharInSet(c, hex_digit_set);
+    return code_points.char_in_set(c, HEX_DIGIT_SET);
 }
 
 template <typename CharT>
 inline bool is_forbidden_domain_char(CharT c) {
-    return isCharInSet(c, domain_forbidden_set);
+    return code_points.char_in_set(c, DOMAIN_FORBIDDEN_SET);
 }
 
 template <typename CharT>
 inline bool is_forbidden_host_char(CharT c) {
-    return isCharInSet(c, host_forbidden_set);
+    return code_points.char_in_set(c, HOST_FORBIDDEN_SET);
+}
+
+template <typename CharT>
+inline bool is_ascii_domain_char(CharT c) {
+    return code_points.char_in_set(c, ASCII_DOMAIN_SET);
 }
 
 // Char classification
