@@ -15,6 +15,7 @@
 #include "str_arg.h"
 #include "url_utf.h"
 #include <array>
+#include <cstdint> // uint8_t
 #include <type_traits>
 
 
@@ -78,25 +79,20 @@ public:
         for (auto c = from; c <= to; ++c)
             include(c);
     }
+#endif
 
     /// @brief test code point set contains code point @a c
     /// @param[in] c code point to test
     template <typename CharT>
-    constexpr bool operator[](CharT c) const {
+    WHATWG_CONSTEXPR_17 bool operator[](CharT c) const {
         const auto uc = detail::to_unsigned(c);
         return is_8bit(uc) && (arr_[uc >> 3] & (1u << (uc & 0x07))) != 0;
     }
 
+#ifdef WHATWG_CPP_17
     // for dump program
     static constexpr std::size_t arr_size() noexcept { return arr_size_; }
     constexpr uint8_t arr_val(std::size_t i) const { return arr_[i]; }
-#else
-
-    template <typename CharT>
-    bool operator[](CharT c) const {
-        const auto uc = detail::to_unsigned(c);
-        return is_8bit(uc) && (arr_[uc >> 3] & (1u << (uc & 0x07))) != 0;
-    }
 #endif
 
 private:

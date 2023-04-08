@@ -16,9 +16,11 @@
 #if defined(_MSVC_LANG) ? (_MSVC_LANG >= 201703) : (__cplusplus >= 201703)
 # define WHATWG_CPP_17
 # define WHATWG_FALLTHROUGH [[fallthrough]];
+# define WHATWG_CONSTEXPR_17 constexpr
 # define WHATWG_NOEXCEPT_17 noexcept
 #else
 # define WHATWG_FALLTHROUGH
+# define WHATWG_CONSTEXPR_17
 # define WHATWG_NOEXCEPT_17
 #endif
 
