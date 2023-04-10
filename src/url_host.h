@@ -149,6 +149,11 @@ static inline void do_append(std::string& dest, const BuffT& src) {
 #endif
 }
 
+template <typename CharT>
+static inline CharT ascii_to_lower(CharT c) {
+    return (c <= 'Z' && c >= 'A') ? (c | 0x20) : c;
+}
+
 
 // The host parser
 // https://url.spec.whatwg.org/#concept-host-parser
@@ -182,13 +187,56 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     if (isNotSpecial)
         return parse_opaque_host(first, last, dest);
 
+    // Is ASCII domain?
+    const auto ptr = std::find_if_not(first, last, whatwg::detail::is_ascii_domain_char<CharT>);
+    if (ptr == last) {
+        bool is_ascii = true;
+        if (last - first >= 4) {
+            // search for labels starting with "xn--"
+            const auto end = last - 4;
+            for (auto p = first; ; ++p) { // skip '.'
+                // "XN--", "xn--", ...
+                if ((p[0] | 0x20) == 'x' && (p[1] | 0x20) == 'n' && p[2] == '-' && p[3] == '-') {
+                    is_ascii = false;
+                    break;
+                }
+                p = std::char_traits<CharT>::find(p, end - p, '.');
+                if (p == nullptr) break;
+            }
+        }
+        if (is_ascii) {
+            // Fast path for ASCII domain
+            simple_buffer<char> buff_ascii(last - first);
+            for (auto it = first; it != last; ++it) {
+                buff_ascii.push_back(static_cast<char>(ascii_to_lower(*it)));
+            }
 
-    //TODO: klaidų nustatymas pagal standartą
+            // If asciiDomain ends in a number, return the result of IPv4 parsing asciiDomain
+            if (hostname_ends_in_a_number(buff_ascii.begin(), buff_ascii.end()))
+                return parse_ipv4(buff_ascii.begin(), buff_ascii.end(), dest);
+
+            // Return asciiDomain
+            std::string& str_host = dest.hostStart();
+            str_host.append(buff_ascii.data(), buff_ascii.size());
+            dest.hostDone(HostType::Domain);
+            return url_result::Ok;
+        }
+    } else if (static_cast<UCharT>(*ptr) < 0x80 && *ptr != '%') {
+        return url_result::InvalidDomainCharacter;
+    }
+
+    // Input for IDNToASCII
+    simple_buffer<char16_t> buff_uc;
+
+    // copy ASCII chars
+    for (auto it = first; it != ptr; ++it) {
+        const auto uch = static_cast<UCharT>(*it);
+        buff_uc.push_back(static_cast<char16_t>(uch));
+    }
 
     // Let buff_uc be the result of running UTF-8 decode (to UTF-16) without BOM
     // on the percent decoding of UTF-8 encode on input
-    simple_buffer<char16_t> buff_uc;
-    for (auto it = first; it != last;) {
+    for (auto it = ptr; it != last;) {
         const auto uch = static_cast<UCharT>(*it++);
         if (uch < 0x80) {
             if (uch != '%') {
