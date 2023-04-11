@@ -188,7 +188,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
         return parse_opaque_host(first, last, dest);
 
     // Is ASCII domain?
-    const auto ptr = std::find_if_not(first, last, whatwg::detail::is_ascii_domain_char<CharT>);
+    const auto ptr = std::find_if_not(first, last, detail::is_ascii_domain_char<CharT>);
     if (ptr == last) {
         bool is_ascii = true;
         if (last - first >= 4) {
