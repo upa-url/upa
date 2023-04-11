@@ -74,7 +74,8 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = false)") {
 
     TEST_CASE("HostType::Domain with long host") {
         // Host length = 10 + 102 * 10 = 1030 > 1024 (simple_buffer's fixed buffer length)
-        std::string strHost = "abcde12345";
+        // Use "xn--" label to avoid ASCII fast path
+        std::string strHost = "xn--2da.90";
         for (int i = 0; i < 102; ++i)
             strHost.append(".bcde12345");
         host_out out;
