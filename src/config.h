@@ -6,6 +6,12 @@
 #ifndef WHATWG_CONFIG_H
 #define WHATWG_CONFIG_H
 
+#ifdef __has_include
+# if __has_include(<version>)
+#  include <version>
+# endif
+#endif
+
 // Define WHATWG_CPP_20 if compiler supports C++20 or later standard
 #if defined(_MSVC_LANG) ? (_MSVC_LANG >= 202002) : (__cplusplus >= 202002)
 # define WHATWG_CPP_20
@@ -20,7 +26,7 @@
 # define WHATWG_NOEXCEPT_17 noexcept
 #else
 # define WHATWG_FALLTHROUGH
-# define WHATWG_CONSTEXPR_17
+# define WHATWG_CONSTEXPR_17 inline
 # define WHATWG_NOEXCEPT_17
 #endif
 

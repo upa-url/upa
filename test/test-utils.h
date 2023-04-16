@@ -62,7 +62,7 @@ inline bool param_eq(const std::string* pval, const T& value) {
 
 template <class List, class T>
 inline bool list_eq(const List& val, std::initializer_list<T> lst) {
-#ifdef WHATWG__CPP_14
+#ifdef WHATWG_CPP_14
     return std::equal(std::begin(val), std::end(val), std::begin(lst), std::end(lst));
 #else
     return

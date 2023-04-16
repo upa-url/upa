@@ -203,7 +203,7 @@ public:
     /// Remove all name-value pairs whose name is @a name from list.
     ///
     /// It updates connected URL only if something is removed.
-    /// 
+    ///
     /// @param[in] name
     /// @return the number of pairs removed
     template <class TN>
@@ -212,7 +212,7 @@ public:
     /// Remove all name-value pairs whose name is @a name and value is @a value from list.
     ///
     /// It updates connected URL only if something is removed.
-    /// 
+    ///
     /// @param[in] name
     /// @param[in] value
     /// @return the number of pairs removed
@@ -530,7 +530,7 @@ inline url_search_params::size_type url_search_params::remove(const TN& name, co
 
 template <class UnaryPredicate>
 inline url_search_params::size_type url_search_params::remove_if(UnaryPredicate p) {
-#ifdef WHATWG_CPP_20
+#ifdef __cpp_lib_list_remove_return_type
     const size_type count = params_.remove_if(p);
 #else
     const size_type old_size = params_.size();
