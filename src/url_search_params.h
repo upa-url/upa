@@ -524,7 +524,7 @@ inline url_search_params::size_type url_search_params::remove(const TN& name, co
     const auto str_value = make_string(value);
 
     return remove_if([&](const value_type& item) {
-        return item.first == str_name & item.second == str_value;
+        return item.first == str_name && item.second == str_value;
     });
 }
 
