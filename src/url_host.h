@@ -12,6 +12,7 @@
 #include "url_ip.h"
 #include "url_result.h"
 #include "url_utf.h"
+#include "util.h"
 #include <algorithm> // any_of
 #include <cassert>
 #include <cstdint> // uint32_t
@@ -133,20 +134,6 @@ static inline bool contains_forbidden_domain_char(const CharT* first, const Char
 template <typename CharT>
 static inline bool contains_forbidden_host_char(const CharT* first, const CharT* last) {
     return std::any_of(first, last, detail::is_forbidden_host_char<CharT>);
-}
-
-template <class BuffT>
-static inline void do_append(std::string& dest, const BuffT& src) {
-#ifdef _MSC_VER
-    if (dest.max_size() - dest.size() < src.size())
-        throw std::length_error("too big size");
-    // now it is safe to add sizes
-    dest.reserve(dest.size() + src.size());
-    for (const auto c : src)
-        dest.push_back(static_cast<char>(c));
-#else
-    dest.append(src.begin(), src.end());
-#endif
 }
 
 template <typename CharT>
@@ -290,7 +277,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
 
     // Return asciiDomain
     std::string& str_host = dest.hostStart();
-    do_append(str_host, buff_ascii);
+    util::append(str_host, buff_ascii);
     dest.hostDone(HostType::Domain);
     return url_result::Ok;
 }
