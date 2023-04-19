@@ -136,11 +136,6 @@ static inline bool contains_forbidden_host_char(const CharT* first, const CharT*
     return std::any_of(first, last, detail::is_forbidden_host_char<CharT>);
 }
 
-template <typename CharT>
-static inline CharT ascii_to_lower(CharT c) {
-    return (c <= 'Z' && c >= 'A') ? (c | 0x20) : c;
-}
-
 
 // The host parser
 // https://url.spec.whatwg.org/#concept-host-parser
@@ -193,18 +188,14 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
         }
         if (is_ascii) {
             // Fast path for ASCII domain
-            simple_buffer<char> buff_ascii(last - first);
-            for (auto it = first; it != last; ++it) {
-                buff_ascii.push_back(static_cast<char>(ascii_to_lower(*it)));
-            }
 
             // If asciiDomain ends in a number, return the result of IPv4 parsing asciiDomain
-            if (hostname_ends_in_a_number(buff_ascii.begin(), buff_ascii.end()))
-                return parse_ipv4(buff_ascii.begin(), buff_ascii.end(), dest);
+            if (hostname_ends_in_a_number(first, last))
+                return parse_ipv4(first, last, dest);
 
-            // Return asciiDomain
+            // Return asciiDomain lower cased
             std::string& str_host = dest.hostStart();
-            str_host.append(buff_ascii.data(), buff_ascii.size());
+            util::append_ascii_lowercase(str_host, first, last);
             dest.hostDone(HostType::Domain);
             return url_result::Ok;
         }
