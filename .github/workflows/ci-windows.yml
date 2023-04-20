@@ -22,7 +22,7 @@ jobs:
             cmake_options: ""
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: get dependencies
       run: init.bat
       shell: cmd
