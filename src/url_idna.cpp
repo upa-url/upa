@@ -8,7 +8,7 @@
 //
 
 #include "url_idna.h"
-#include "int_cast.h"
+#include "util.h"
 // ICU
 #include "unicode/uidna.h"
 #if (U_ICU_VERSION_MAJOR_NUM) >= 59
@@ -106,11 +106,11 @@ url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<ch
 
     // uidna_nameToASCII uses int32_t length
     // https://unicode-org.github.io/icu-docs/apidoc/dev/icu4c/uidna_8h.html#ac45d3ad275df9e5a2c2e84561862d005
-    if (src_len > unsigned_limit<int32_t>::max())
+    if (src_len > util::unsigned_limit<int32_t>::max())
         return url_result::Overflow; // too long
 
     // The static_cast<int32_t>(output.capacity()) must be safe:
-    assert(output.capacity() <= unsigned_limit<int32_t>::max());
+    assert(output.capacity() <= util::unsigned_limit<int32_t>::max());
 
     const UIDNA* uidna = getUIDNA();
     assert(uidna != nullptr);
@@ -151,11 +151,11 @@ url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<ch
 url_result IDNToUnicode(const char* src, std::size_t src_len, simple_buffer<char>& output) {
     // uidna_nameToUnicodeUTF8 uses int32_t length
     // https://unicode-org.github.io/icu-docs/apidoc/dev/icu4c/uidna_8h.html#afd9ae1e0ae5318e20c87bcb0149c3ada
-    if (src_len > unsigned_limit<int32_t>::max())
+    if (src_len > util::unsigned_limit<int32_t>::max())
         return url_result::Overflow; // too long
 
     // The static_cast<int32_t>(output.capacity()) must be safe:
-    assert(output.capacity() <= unsigned_limit<int32_t>::max());
+    assert(output.capacity() <= util::unsigned_limit<int32_t>::max());
 
     const UIDNA* uidna = getUIDNA();
     assert(uidna != nullptr);

@@ -19,7 +19,6 @@
 
 #include "buffer.h"
 #include "config.h"
-#include "int_cast.h"
 #include "str_arg.h"
 #include "url_host.h"
 #include "url_idna.h"
@@ -27,6 +26,7 @@
 #include "url_result.h"
 #include "url_search_params.h"
 #include "url_utf.h"
+#include "util.h"
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -776,7 +776,7 @@ inline int port_from_str(const char* first, const char* last) {
 // chars to trim (C0 control or space: U+0000 to U+001F or U+0020)
 template <typename CharT>
 inline bool is_trim_char(CharT ch) noexcept {
-    return to_unsigned(ch) <= ' ';
+    return util::to_unsigned(ch) <= ' ';
 }
 
 // chars what should be removed from the URL (ASCII tab or newline: U+0009, U+000A, U+000D)
@@ -2533,7 +2533,7 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
             const char* const first = src.norm_url_.data() + offset;
             const char* const last = src.norm_url_.data() + lastp_end;
             // dest
-            const auto delta = checked_diff<std::ptrdiff_t>(norm_url.length(), offset);
+            const auto delta = util::checked_diff<std::ptrdiff_t>(norm_url.length(), offset);
             // copy normalized url string from src
             norm_url.append(first, last);
             // adjust url_.part_end_
@@ -2570,7 +2570,7 @@ inline void url_serializer::replace_part(const url::PartType last_pt, const char
     url_.norm_url_.replace(b, l, str, len);
     std::fill(std::begin(url_.part_end_) + first_pt, std::begin(url_.part_end_) + last_pt, b + len0);
     // adjust positions
-    const auto diff = checked_diff<std::ptrdiff_t>(len, l);
+    const auto diff = util::checked_diff<std::ptrdiff_t>(len, l);
     if (diff) {
         for (auto it = std::begin(url_.part_end_) + last_pt; it != std::end(url_.part_end_); ++it) {
             if (*it == 0) break;

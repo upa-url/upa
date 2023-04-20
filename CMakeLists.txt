@@ -100,11 +100,11 @@ if (URL_BUILD_TESTS)
 
   set(test_files
     test/test-buffer.cpp
-    test/test-int_cast.cpp
     test/test-ipv4.cpp
     test/test-ipv6.cpp
     test/test-str_arg.cpp
     test/test-utf.cpp
+    test/test-util.cpp
     test/test-url.cpp
     test/test-url-port.cpp
     test/test-url-setters.cpp

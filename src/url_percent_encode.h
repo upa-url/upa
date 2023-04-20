@@ -11,9 +11,9 @@
 #define WHATWG_URL_PERCENT_ENCODE_H
 
 #include "config.h"
-#include "int_cast.h"
 #include "str_arg.h"
 #include "url_utf.h"
+#include "util.h"
 #include <array>
 #include <cstdint> // uint8_t
 #include <type_traits>
@@ -85,7 +85,7 @@ public:
     /// @param[in] c code point to test
     template <typename CharT>
     WHATWG_CONSTEXPR_17 bool operator[](CharT c) const {
-        const auto uc = detail::to_unsigned(c);
+        const auto uc = util::to_unsigned(c);
         return is_8bit(uc) && (arr_[uc >> 3] & (1u << (uc & 0x07))) != 0;
     }
 
@@ -263,7 +263,7 @@ public:
     /// @param[in] cps code point set
     template <typename CharT>
     WHATWG_CONSTEXPR_17 bool char_in_set(CharT c, CP_SET cps) const {
-        const auto uc = detail::to_unsigned(c);
+        const auto uc = util::to_unsigned(c);
         return is_8bit(uc) && (arr_[uc] & cps);
     }
 
@@ -513,7 +513,7 @@ inline std::string percent_decode(StrT&& str) {
 
     std::string out;
     for (auto it = first; it != last;) {
-        const auto uch = detail::to_unsigned(*it); ++it;
+        const auto uch = util::to_unsigned(*it); ++it;
         if (uch < 0x80) {
             if (uch != '%') {
                 out.push_back(static_cast<char>(uch));
