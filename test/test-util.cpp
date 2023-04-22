@@ -71,3 +71,32 @@ TEST_CASE("whatwg::util::add_sizes") {
         CHECK_THROWS(whatwg::util::add_sizes(max_size, max_size, max_size));
     }
 }
+
+// whatwg::util::has_xn_label
+
+template <typename CharT>
+static bool has_xn_label(const CharT* domain) {
+    std::basic_string<CharT> str(domain);
+    return whatwg::util::has_xn_label(str.data(), str.data() + str.length());
+};
+
+TEST_CASE("whatwg::util::has_xn_label") {
+    // true
+    CHECK(has_xn_label("xn--"));
+    CHECK(has_xn_label("abc.XN--"));
+    CHECK(has_xn_label("abc.Xn--a"));
+    CHECK(has_xn_label("xN--a.cba"));
+    CHECK(has_xn_label(L"xn--"));
+    CHECK(has_xn_label(L"abc.xn--"));
+    CHECK(has_xn_label(L"abc.Xn--a"));
+    CHECK(has_xn_label(L"xN--a.cba"));
+    // false
+    CHECK_FALSE(has_xn_label("xn-"));
+    CHECK_FALSE(has_xn_label("abc.xn-"));
+    CHECK_FALSE(has_xn_label("an--"));
+    CHECK_FALSE(has_xn_label("abc.xz--"));
+    CHECK_FALSE(has_xn_label(L"xn-"));
+    CHECK_FALSE(has_xn_label(L"abc.xn-"));
+    CHECK_FALSE(has_xn_label(L"an--"));
+    CHECK_FALSE(has_xn_label(L"abc.xz--"));
+}

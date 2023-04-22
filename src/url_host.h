@@ -172,21 +172,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     // Is ASCII domain?
     const auto ptr = std::find_if_not(first, last, detail::is_ascii_domain_char<CharT>);
     if (ptr == last) {
-        bool is_ascii = true;
-        if (last - first >= 4) {
-            // search for labels starting with "xn--"
-            const auto end = last - 4;
-            for (auto p = first; ; ++p) { // skip '.'
-                // "XN--", "xn--", ...
-                if ((p[0] | 0x20) == 'x' && (p[1] | 0x20) == 'n' && p[2] == '-' && p[3] == '-') {
-                    is_ascii = false;
-                    break;
-                }
-                p = std::char_traits<CharT>::find(p, end - p, '.');
-                if (p == nullptr) break;
-            }
-        }
-        if (is_ascii) {
+        if (!util::has_xn_label(first, last)) {
             // Fast path for ASCII domain
 
             // If asciiDomain ends in a number, return the result of IPv4 parsing asciiDomain

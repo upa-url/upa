@@ -123,6 +123,24 @@ inline void append_ascii_lowercase(std::string& dest, const CharT* first, const 
     util::append_tr(dest, first, last, ascii_to_lower_char<CharT>);
 }
 
+// Finders
+
+template <class CharT>
+WHATWG_CONSTEXPR_17 bool has_xn_label(const CharT* first, const CharT* last) {
+    if (last - first >= 4) {
+        // search for labels starting with "xn--"
+        const auto end = last - 4;
+        for (auto p = first; ; ++p) { // skip '.'
+            // "XN--", "xn--", ...
+            if ((p[0] | 0x20) == 'x' && (p[1] | 0x20) == 'n' && p[2] == '-' && p[3] == '-')
+                return true;
+            p = std::char_traits<CharT>::find(p, end - p, '.');
+            if (p == nullptr) break;
+        }
+    }
+    return false;
+}
+
 
 } // namespace util
 } // namespace whatwg
