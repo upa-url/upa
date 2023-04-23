@@ -414,7 +414,7 @@ public:
 
     /// Function to get ASCII string of any URL's part (URL record member) defined here:
     /// https://url.spec.whatwg.org/#url-representation
-    /// 
+    ///
     /// @param[in] t URL's part
     /// @return URL's part string; it is empty if part is empty or null
     str_view_type get_part_view(PartType t) const;
@@ -756,9 +756,6 @@ private:
     static bool do_simple_path(const CharT* pointer, const CharT* last, std::string& output);
 };
 
-
-// canonical version of each possible input letter in the scheme
-extern const char kSchemeCanonical[0x80];
 
 // part start
 extern const uint8_t kPartStart[url::PART_COUNT];
@@ -1439,11 +1436,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         // https://github.com/nodejs/node/pull/11917#pullrequestreview-28061847
 
         // first scheme char has been checked in the scheme_start_state, so skip it
-        const auto end_of_scheme = std::find_if_not(pointer + 1, last,
-            [](CharT c) -> bool {
-                const auto uch = static_cast<UCharT>(c);
-                return uch < 0x80 && detail::kSchemeCanonical[uch];
-            });
+        const auto end_of_scheme = std::find_if_not(pointer + 1, last, detail::is_scheme_char<CharT>);
         const bool is_scheme = end_of_scheme != last
             ? *end_of_scheme == ':'
             : state_override != not_set_state;
@@ -1451,11 +1444,11 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         if (is_scheme) {
             // start of scheme
             std::string& str_scheme = urls.start_scheme();
-            // append scheme chars
-            for (auto it = pointer; it != end_of_scheme; ++it) {
-                const auto uch = static_cast<UCharT>(*it);
-                str_scheme.push_back(detail::kSchemeCanonical[uch]);
-            }
+            // Append scheme chars: it is safe to set the 0x20 bit on all code points -
+            // it lowercases ASCII alphas, while other code points allowed in a scheme
+            // (0 - 9, +, -, .) already have this bit set.
+            for (auto it = pointer; it != end_of_scheme; ++it)
+                str_scheme.push_back(static_cast<char>(*it | 0x20));
 
             if (state_override) {
                 const url::scheme_info* scheme_inf = url::get_scheme_info(str_scheme);

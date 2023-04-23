@@ -212,6 +212,7 @@ enum CP_SET : std::uint8_t {
     HOST_FORBIDDEN_SET = 0x04,
     HEX_DIGIT_SET = 0x08,
     IPV4_CHAR_SET = 0x10,
+    SCHEME_SET = 0x20,
 };
 
 class code_points_multiset {
@@ -251,6 +252,14 @@ public:
 
         // Characters allowed in IPv4
         include(IPV4_CHAR_SET, { '.', 'X', 'x' });
+
+        // Scheme code points
+        // ASCII alphanumeric, U+002B (+), U+002D (-), or U+002E (.)
+        // https://url.spec.whatwg.org/#scheme-state
+        include(SCHEME_SET, '0', '9');
+        include(SCHEME_SET, 'A', 'Z');
+        include(SCHEME_SET, 'a', 'z');
+        include(SCHEME_SET, { 0x2B, 0x2D, 0x2E });
     }
 
     // for dump program
@@ -350,6 +359,11 @@ inline bool isIPv4Char(CharT c) {
 template <typename CharT>
 inline bool isHexChar(CharT c) {
     return code_points.char_in_set(c, HEX_DIGIT_SET);
+}
+
+template <typename CharT>
+inline bool is_scheme_char(CharT c) {
+    return code_points.char_in_set(c, SCHEME_SET);
 }
 
 template <typename CharT>
