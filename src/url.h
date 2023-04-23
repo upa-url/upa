@@ -2439,19 +2439,13 @@ inline void url_serializer::set_empty_host() {
 }
 
 inline void url_serializer::empty_host() {
-    assert(last_pt_ >= url::HOST);
+    // It is called right after a host parsing
+    assert(last_pt_ == url::HOST);
+
     const std::size_t host_end = url_.part_end_[url::HOST_START];
-    if (last_pt_ == url::HOST) {
-        url_.part_end_[url::HOST] = host_end;
-        url_.norm_url_.resize(host_end);
-    } else if (last_pt_ > url::HOST) {
-        const std::size_t diff = url_.part_end_[url::HOST] - host_end;
-        if (diff) {
-            for (int pt = url::HOST; pt <= last_pt_; ++pt)
-                url_.part_end_[pt] -= diff;
-            url_.norm_url_.erase(host_end, diff);
-        }
-    }
+    url_.part_end_[url::HOST] = host_end;
+    url_.norm_url_.resize(host_end);
+
     url_.set_host_type(HostType::Empty);
 }
 
