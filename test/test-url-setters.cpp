@@ -119,3 +119,41 @@ TEST_CASE("Test host setter with file URL") {
         CHECK(url.host_type() == whatwg::HostType::Empty);
     }
 }
+
+TEST_CASE("Test setters (url_setter::start_part with use_strp_ = false)") {
+    SUBCASE("Special URL") {
+        whatwg::url url("http://h/p?query#frag");
+
+        url.hash("");
+        url.search("q");
+
+        CHECK(url.href() == "http://h/p?q");
+        CHECK(url.pathname() == "/p");
+        CHECK(url.search() == "?q");
+        CHECK(url.hash() == "");
+    }
+    SUBCASE("Non-special URL") {
+        whatwg::url url("nonspec://host:123/path?query#frag");
+
+        url.hash("");
+        url.search("");
+        url.pathname("");
+        url.port("");
+        url.hostname("h");
+
+        CHECK(url.href() == "nonspec://h");
+        CHECK(url.hostname() == "h");
+        CHECK(url.port() == "");
+        CHECK(url.pathname() == "");
+        CHECK(url.search() == "");
+        CHECK(url.hash() == "");
+
+        url.search("q");
+
+        CHECK(url.href() == "nonspec://h?q");
+        CHECK(url.port() == "");
+        CHECK(url.pathname() == "");
+        CHECK(url.search() == "?q");
+        CHECK(url.hash() == "");
+    }
+}

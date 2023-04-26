@@ -2594,33 +2594,41 @@ inline std::string& url_setter::start_part(url::PartType new_pt) {
     assert(new_pt > url::SCHEME);
     curr_pt_ = new_pt;
     if (url_.part_end_[new_pt]) {
-        use_strp_ = true;
-        switch (new_pt) {
-        case url::HOST:
-            if (get_part_len(url::SCHEME_SEP) < 3)
-                strp_ = "://";
-            else
+        // is there any part after new_pt?
+        if (new_pt < url::FRAGMENT && url_.part_end_[new_pt] < url_.norm_url_.length()) {
+            use_strp_ = true;
+            switch (new_pt) {
+            case url::HOST:
+                if (get_part_len(url::SCHEME_SEP) < 3)
+                    strp_ = "://";
+                else
+                    strp_.clear();
+                break;
+            case url::PASSWORD:
+            case url::PORT:
+                strp_ = ':';
+                break;
+            case url::QUERY:
+                strp_ = '?';
+                break;
+            default:
                 strp_.clear();
-            break;
-        case url::PASSWORD:
-        case url::PORT:
-            strp_ = ':';
-            break;
-        case url::QUERY:
-            strp_ = '?';
-            break;
-        case url::FRAGMENT:
-            strp_ = '#';
-            break;
-        default:
-            strp_.clear();
-            break;
+                break;
+            }
+            return strp_;
         }
-        return strp_;
+        // Remove new_pt part
+        last_pt_ = static_cast<url::PartType>(static_cast<int>(new_pt) - 1);
+        url_.norm_url_.resize(url_.part_end_[last_pt_]);
+        url_.part_end_[new_pt] = 0;
+        // if there are empty parts after new_pt, then set their end positions to zero
+        for (auto pt = static_cast<int>(new_pt) + 1; pt <= url::FRAGMENT && url_.part_end_[pt]; ++pt)
+            url_.part_end_[pt] = 0;
+    } else {
+        last_pt_ = find_last_part(new_pt);
     }
 
     use_strp_ = false;
-    last_pt_ = find_last_part(new_pt);
     return url_serializer::start_part(new_pt);
 }
 
