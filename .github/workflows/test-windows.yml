@@ -21,6 +21,12 @@ jobs:
             cxx_standard: 23
             cmake_options: ""
 
+          - name: VS 2022 Clang C++23
+            os: windows-2022
+            generator: "Visual Studio 17 2022"
+            cxx_standard: 23
+            cmake_options: "-T ClangCL"
+
     steps:
     - uses: actions/checkout@v3
     - name: get dependencies
