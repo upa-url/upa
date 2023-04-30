@@ -216,13 +216,13 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
                 }
                 // percent encoded utf-8 sequence
                 // TODO: gal po vieną code_point, tuomet užtektų utf-8 buferio vienam simboliui
-                simple_buffer<unsigned char> buff_utf8;
-                buff_utf8.push_back(uc8);
+                simple_buffer<char> buff_utf8;
+                buff_utf8.push_back(static_cast<char>(uc8));
                 while (it != last && *it == '%') {
                     ++it; // skip '%'
                     if (!detail::DecodeEscaped(it, last, uc8))
                         uc8 = '%';
-                    buff_utf8.push_back(uc8);
+                    buff_utf8.push_back(static_cast<char>(uc8));
                 }
                 url_utf::convert_utf8_to_utf16(buff_utf8.data(), buff_utf8.data() + buff_utf8.size(), buff_uc);
                 //buff_utf8.clear();

@@ -33,9 +33,6 @@ public:
     // Returns false if input contains invalid utf-8 byte sequence, or
     // true otherwise.
     static bool convert_utf8_to_utf16(const char* first, const char* last, simple_buffer<char16_t>& output);
-    static bool convert_utf8_to_utf16(const unsigned char* first, const unsigned char* last, simple_buffer<char16_t>& output) {
-        return convert_utf8_to_utf16(reinterpret_cast<const char*>(first), reinterpret_cast<const char*>(last), output);
-    }
 
     // Convert to utf-8 string
     static std::string to_utf8_string(const char16_t* first, const char16_t* last);
