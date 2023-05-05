@@ -201,6 +201,15 @@ public:
     template <class TN>
     void del(const TN& name);
 
+    /// Remove all name-value pairs whose name is @a name and value is @a value from list.
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-urlsearchparams-delete
+    ///
+    /// @param[in] name
+    /// @param[in] value
+    template <class TN, class TV>
+    void del(const TN& name, const TV& value);
+
     /// Remove all name-value pairs whose name is @a name from list.
     ///
     /// It updates connected URL only if something is removed.
@@ -257,6 +266,16 @@ public:
     /// @return `true`, if list contains such pair, `false` otherwise
     template <class TN>
     bool has(const TN& name) const;
+
+    /// Tests if list contains a name-value pair whose name is @a name and value is @a value.
+    ///
+    /// More info: https://url.spec.whatwg.org/#dom-urlsearchparams-has
+    ///
+    /// @param[in] name
+    /// @param[in] value
+    /// @return `true`, if list contains such pair, `false` otherwise
+    template <class TN, class TV>
+    bool has(const TN& name, const TV& value) const;
 
     /// Sets search parameter value
     ///
@@ -510,6 +529,17 @@ inline void url_search_params::del(const TN& name) {
     update();
 }
 
+template <class TN, class TV>
+inline void url_search_params::del(const TN& name, const TV& value) {
+    const auto str_name = make_string(name);
+    const auto str_value = make_string(value);
+
+    params_.remove_if([&](const value_type& item) {
+        return item.first == str_name && item.second == str_value;
+    });
+    update();
+}
+
 template <class TN>
 inline url_search_params::size_type url_search_params::remove(const TN& name) {
     const auto str_name = make_string(name);
@@ -568,6 +598,18 @@ inline bool url_search_params::has(const TN& name) const {
     const auto str_name = make_string(name);
     for (const auto& p : params_) {
         if (p.first == str_name)
+            return true;
+    }
+    return false;
+}
+
+template <class TN, class TV>
+inline bool url_search_params::has(const TN& name, const TV& value) const {
+    const auto str_name = make_string(name);
+    const auto str_value = make_string(value);
+
+    for (const auto& p : params_) {
+        if (p.first == str_name && p.second == str_value)
             return true;
     }
     return false;

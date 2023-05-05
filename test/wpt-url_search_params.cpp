@@ -12,7 +12,7 @@
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2023-02-23
+// Last checked for updates: 2023-05-05
 //
 
 
@@ -421,6 +421,15 @@ TEST_CASE("urlsearchparams-delete.any.js") {
         CHECK_EQ(url.pathname(), "space    ");
         CHECK_EQ(url.href(), "data:space    #test");
     }
+
+    SUBCASE("Two-argument del()") {
+        whatwg::url_search_params params;
+        params.append("a", "b");
+        params.append("a", "c");
+        params.append("a", "d");
+        params.del("a", "c");
+        CHECK_EQ(params.to_string(), "a=b&a=d");
+    }
 }
 
 //
@@ -527,6 +536,19 @@ TEST_CASE("urlsearchparams-has.any.js") {
         CHECK_FALSE_MESSAGE(params.has("d"), "Search params object has no name \"d\"");
         params.del("first");
         CHECK_FALSE_MESSAGE(params.has("first"), "Search params object has no name \"first\"");
+    }
+
+    SUBCASE("Two-argument has()") {
+        whatwg::url_search_params params("a=b&a=d&c&e&");
+        CHECK(params.has("a", "b"));
+        CHECK_FALSE(params.has("a", "c"));
+        CHECK(params.has("a", "d"));
+        CHECK(params.has("e", ""));
+        params.append("first", "null"); // todo: nullptr
+        CHECK_FALSE(params.has("first", ""));
+        CHECK(params.has("first", "null"));
+        params.del("a", "b");
+        CHECK(params.has("a", "d"));
     }
 }
 
