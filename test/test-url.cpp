@@ -137,6 +137,33 @@ TEST_CASE("url::parse must clear old URL data") {
     CHECK(url.href() == "http://host-2/");
 }
 
+// Can parse URL
+
+TEST_CASE("url::can_parse") {
+    SUBCASE("WPT: url-statics-canparse.any.js") {
+        // Adapted from:
+        // https://github.com/web-platform-tests/wpt/blob/master/url/url-statics-canparse.any.js
+        // https://github.com/web-platform-tests/wpt/pull/39069
+        CHECK_FALSE(whatwg::url::can_parse("undefined", nullptr));
+
+        CHECK(whatwg::url::can_parse("a:b", nullptr));
+        CHECK_FALSE(whatwg::url::can_parse("undefined", "a:b"));
+
+        CHECK(whatwg::url::can_parse("a:/b", nullptr));
+        CHECK(whatwg::url::can_parse("undefined", "a:/b"));
+
+        CHECK_FALSE(whatwg::url::can_parse("https://test:test", nullptr));
+        CHECK(whatwg::url::can_parse("a", "https://b/"));
+    }
+
+    SUBCASE("Additional tests") {
+        const whatwg::url base("a:b");
+
+        CHECK_FALSE(whatwg::url::can_parse("undefined", base));
+        CHECK(whatwg::url::can_parse("a:/b", base));
+    }
+}
+
 // Swap
 
 TEST_CASE("swap(url&, url&)") {

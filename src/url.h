@@ -177,6 +177,50 @@ public:
         return do_parse(inp.begin(), inp.end(), base);
     }
 
+    /// @brief Checks if a given URL string can be successfully parsed
+    ///
+    /// If @a pbase is not nullptr, then try to parse against *pbase URL.
+    /// More info: https://url.spec.whatwg.org/#dom-url-canparse
+    ///
+    /// @param[in] str_url URL string to parse
+    /// @param[in] pbase   pointer to base URL, may be `nullptr`
+    /// @return true if given @a str_url can be parsed against @a *pbase
+    template <class T, enable_if_str_arg_t<T> = 0>
+    static bool can_parse(T&& str_url, const url* pbase = nullptr) {
+        whatwg::url url;
+        return url.parse(str_url, pbase) == url_result::Ok;
+    }
+
+    /// @brief Checks if a given URL string can be successfully parsed
+    ///
+    /// Try to parse against base URL.
+    /// More info: https://url.spec.whatwg.org/#dom-url-canparse
+    ///
+    /// @param[in] str_url URL string to parse
+    /// @param[in] base    base URL
+    /// @return true if given @a str_url can be parsed against base URL
+    template <class T, enable_if_str_arg_t<T> = 0>
+    static bool can_parse(T&& str_url, const url& base) {
+        return can_parse(std::forward<T>(str_url), &base);
+    }
+
+    /// @brief Checks if a given URL string can be successfully parsed
+    ///
+    /// First try to parse @a str_base URL string, if it succeed, then
+    /// try to parse @a str_url against base URL.
+    /// More info: https://url.spec.whatwg.org/#dom-url-canparse
+    ///
+    /// @param[in] str_url  URL string to parse
+    /// @param[in] str_base base URL string
+    /// @return true if given @a str_url can be parsed against @a str_base URL string
+    template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
+    static bool can_parse(T&& str_url, TB&& str_base) {
+        whatwg::url base;
+        return
+            base.parse(str_base, nullptr) == url_result::Ok &&
+            can_parse(str_url, &base);
+    }
+
     // Setters
 
     /// @brief The href setter
