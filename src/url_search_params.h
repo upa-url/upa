@@ -9,6 +9,7 @@
 #include "config.h"
 #include "str_arg.h"
 #include "url_percent_encode.h"
+#include "url_utf.h"
 #include <cassert>
 #include <list>
 #include <memory>

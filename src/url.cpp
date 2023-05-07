@@ -4,7 +4,6 @@
 //
 
 #include "url.h"
-#include <algorithm>
 
 namespace whatwg {
 namespace detail {

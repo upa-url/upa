@@ -21,11 +21,9 @@
 #include "config.h"
 #include "str_arg.h"
 #include "url_host.h"
-#include "url_idna.h"
 #include "url_percent_encode.h"
 #include "url_result.h"
 #include "url_search_params.h"
-#include "url_utf.h"
 #include "util.h"
 #include <algorithm>
 #include <array>

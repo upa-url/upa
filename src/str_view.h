@@ -22,7 +22,7 @@ public:
     using const_pointer = const CharT*;
     using reference = CharT&;
     using const_reference = const CharT&;
-    using const_iterator = const CharT*; // implementation-defined; see 21.4.2.2
+    using const_iterator = const CharT*; // implementation-defined; see 21.4.2.2 in C++20 standard
     using iterator = const_iterator;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using reverse_iterator = const_reverse_iterator;
