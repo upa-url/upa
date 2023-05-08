@@ -188,7 +188,7 @@ public:
     template <class T, enable_if_str_arg_t<T> = 0>
     static bool can_parse(T&& str_url, const url* pbase = nullptr) {
         whatwg::url url;
-        return url.parse(str_url, pbase) == url_result::Ok;
+        return url.parse(std::forward<T>(str_url), pbase) == url_result::Ok;
     }
 
     /// @brief Checks if a given URL string can be successfully parsed
@@ -217,8 +217,8 @@ public:
     static bool can_parse(T&& str_url, TB&& str_base) {
         whatwg::url base;
         return
-            base.parse(str_base, nullptr) == url_result::Ok &&
-            can_parse(str_url, &base);
+            base.parse(std::forward<TB>(str_base), nullptr) == url_result::Ok &&
+            can_parse(std::forward<T>(str_url), &base);
     }
 
     // Setters
