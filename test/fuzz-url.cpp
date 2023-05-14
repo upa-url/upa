@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -11,22 +11,22 @@
 
 
 // Base URLs
-static const whatwg::url baseUrls[] = {
-    whatwg::url("http://h/p?q#f"),      // 1
-    whatwg::url("file://h/p?q#f"),      // 2
-    whatwg::url("non-spec://h/p?q#f"),  // 3
+static const whatwg::url base_urls[] = {
+    whatwg::url("http://h/p?q#f"),      // 0
+    whatwg::url("file://h/p?q#f"),      // 1
+    whatwg::url("non-spec://h/p?q#f"),  // 2
     // with empty host
-    whatwg::url("file:///p?q#f"),       // 4
-    whatwg::url("non-spec:///p?q#f"),   // 5
+    whatwg::url("file:///p?q#f"),       // 3
+    whatwg::url("non-spec:///p?q#f"),   // 4
     // with null host
-    whatwg::url("non-spec:/p?q#f"),     // 6
-    whatwg::url("non-spec:p?q#f"),      // 7
-    whatwg::url("non-spec:/.//p?q#f"),  // 8
+    whatwg::url("non-spec:/p?q#f"),     // 5
+    whatwg::url("non-spec:p?q#f"),      // 6
+    whatwg::url("non-spec:/.//p?q#f"),  // 7
 };
 
 
 template <typename T, std::size_t N>
-constexpr std::size_t arraySize(T (&)[N]) noexcept {
+constexpr std::size_t array_size(T (&)[N]) noexcept {
     return N;
 }
 
@@ -46,14 +46,9 @@ static void reparse_test(const whatwg::url& u1) {
 extern "C" int LLVMFuzzerTestOneInput(const char* data, std::size_t size) {
     // Get base URL
     if (size < 1) return 0;
-    // first byte (code) means what base URL to use:
-    // '0' - no base URL
-    // '1'... - base URL from baseUrls by index (code - '0' - 1)
-    const auto code = data[0];
-    if (code < '0') return 0;
-    const std::size_t ind = code - '0';
-    if (ind > arraySize(baseUrls)) return 0;
-    const whatwg::url* pbase = ind > 0 ? &baseUrls[ind - 1] : nullptr;
+    // first byte means what base URL to use:
+    const auto ind = static_cast<unsigned char>(data[0]) % 0x10U;
+    const whatwg::url* pbase = ind < array_size(base_urls) ? &base_urls[ind] : nullptr;
 
     // skip first byte of data
     ++data; --size;
