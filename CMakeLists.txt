@@ -26,16 +26,16 @@ option(URL_TEST_VALGRIND "Run tests with Valgrind" OFF)
 # AFL, Honggfuzz, or Clang libFuzzer
 if (URL_BUILD_FUZZER)
   set(URL_BUILD_TESTS OFF)
+  get_filename_component(cxx_name ${CMAKE_CXX_COMPILER} NAME)
+  # https://aflplus.plus/docs/env_variables/
+  string(REGEX MATCH "^afl-((c|clang|clang-fast|clang-lto|g)\\+\\+|g\\+\\+-fast)$" AFL ${cxx_name})
   if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    string(REGEX MATCH "(afl-clang-fast|afl-clang)\\+\\+$" AFL ${CMAKE_CXX_COMPILER})
-    string(REGEX MATCH "hfuzz-clang\\+\\+$" HFUZZ ${CMAKE_CXX_COMPILER})
+    string(REGEX MATCH "^hfuzz-clang\\+\\+$" HFUZZ ${cxx_name})
     if (NOT AFL AND NOT HFUZZ)
       # Clang libFuzzer
       add_compile_options(-O1 -g -fsanitize=fuzzer)
       add_link_options(-g -fsanitize=fuzzer)
     endif()
-  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    string(REGEX MATCH "afl-g\\+\\+$" AFL ${CMAKE_CXX_COMPILER})
   endif()
 endif()
 
