@@ -24,13 +24,13 @@ void check_url_contructor(whatwg::url_result expected_res, Args&&... args)
     const auto stringify_args = [&] { return urls_to_str(args...); };
     try {
         whatwg::url url(args...);
-        CHECK_MESSAGE(whatwg::url_result::Ok == expected_res, "URL: " << stringify_args());
+        CHECK_MESSAGE(whatwg::url_result::Ok == expected_res, "URL: ", stringify_args());
     }
     catch (whatwg::url_error& ex) {
-        CHECK_MESSAGE(ex.result() == expected_res, "URL: " << stringify_args());
+        CHECK_MESSAGE(ex.result() == expected_res, "URL: ", stringify_args());
     }
     catch (...) {
-        FAIL_CHECK("Unknown exception with URL: " << stringify_args());
+        FAIL_CHECK("Unknown exception with URL: ", stringify_args());
     }
 }
 

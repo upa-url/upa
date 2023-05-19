@@ -339,7 +339,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
             }
         };
         for (const auto& val : lst) {
-            INFO("Construct with: " << val.name);
+            INFO("Construct with: ", val.name);
             whatwg::url_search_params params(val.input);
             CHECK(list_eq(params, val.output));
         }
