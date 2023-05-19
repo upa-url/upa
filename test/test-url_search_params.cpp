@@ -280,7 +280,7 @@ TEST_CASE("url_search_params::sort()") {
         }
     };
     for (const auto& val : lst) {
-        INFO(val.comment);
+        INFO(std::string{val.comment});
         whatwg::url_search_params params(val.input);
         params.sort();
         CHECK(list_eq(params, val.output));

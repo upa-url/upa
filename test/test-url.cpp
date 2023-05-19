@@ -8,7 +8,7 @@
 #include "test-utils.h"
 
 
-const char* urls_to_str(const char* s1) {
+std::string urls_to_str(const char* s1) {
     return s1;
 }
 std::string urls_to_str(const char* s1, const char* s2) {
