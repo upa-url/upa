@@ -476,6 +476,9 @@ public:
     /// @return `true` if URL's scheme is "file", `false` otherwise
     bool is_file_scheme() const noexcept;
 
+    /// @return `true` if URL's scheme is "http" or "https", `false` otherwise
+    bool is_http_scheme() const noexcept;
+
     /// @return `true` if URL includes credentials (username, password), `false` otherwise
     bool has_credentials() const;
 
@@ -488,6 +491,7 @@ private:
         int default_port;           // -1 if none
         unsigned is_special : 1;    // "ftp", "file", "http", "https", "ws", "wss"
         unsigned is_file : 1;       // "file"
+        unsigned is_http : 1;       // "http", "https"
         unsigned is_ws : 1;         // "ws", "wss"
     };
 
@@ -1025,9 +1029,10 @@ inline std::string url::origin() const {
     if (get_part_view(SCHEME) == url::str_view_type{ "blob", 4 }) {
         // Warning: this library does not support blob URL store, so it allways assumes
         // URL's blob URL entry is null and retrieves origin from the URL's path.
-        url u;
-        if (u.parse(get_part_view(PATH), nullptr) == url_result::Ok)
-            return u.origin();
+        url path_url;
+        if (path_url.parse(get_part_view(PATH), nullptr) == url_result::Ok &&
+            path_url.is_http_scheme())
+            return path_url.origin();
     }
     return "null"; // opaque origin
 }
@@ -1170,6 +1175,10 @@ inline bool url::is_special_scheme() const noexcept {
 
 inline bool url::is_file_scheme() const noexcept {
     return scheme_inf_ && scheme_inf_->is_file;
+}
+
+inline bool url::is_http_scheme() const noexcept {
+    return scheme_inf_ && scheme_inf_->is_http;
 }
 
 inline bool url::has_credentials() const {

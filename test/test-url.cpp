@@ -383,7 +383,7 @@ TEST_SUITE("Check origin") {
     }
     TEST_CASE("blob: x 3") {
         whatwg::url url("blob:blob:blob:http://host:123/path");
-        CHECK(url.origin() == "http://host:123");
+        CHECK(url.origin() == "null");
     }
     TEST_CASE("file:") {
         whatwg::url url("file://host/path");

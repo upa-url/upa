@@ -46,13 +46,13 @@ const unsigned url::kPartFlagMask[url::PART_COUNT] = {
 
 // MUST be sorted by length
 const url::scheme_info url::kSchemes[] = {
-    // scheme,         port, is_special, is_file, is_ws
-    { { "ws", 2 },       80,          1,       0,     1 },
-    { { "wss", 3 },     443,          1,       0,     1 },
-    { { "ftp", 3 },      21,          1,       0,     0 },
-    { { "http", 4 },     80,          1,       0,     0 },
-    { { "file", 4 },     -1,          1,       1,     0 },
-    { { "https", 5 },   443,          1,       0,     0 },
+    // scheme,         port, is_special, is_file, is_http, is_ws
+    { { "ws", 2 },       80,          1,       0,       0,     1 },
+    { { "wss", 3 },     443,          1,       0,       0,     1 },
+    { { "ftp", 3 },      21,          1,       0,       0,     0 },
+    { { "http", 4 },     80,          1,       0,       1,     0 },
+    { { "file", 4 },     -1,          1,       1,       0,     0 },
+    { { "https", 5 },   443,          1,       0,       1,     0 },
 };
 
 static const std::size_t max_scheme_length = 5; // "https"
