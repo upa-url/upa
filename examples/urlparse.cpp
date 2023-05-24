@@ -123,9 +123,12 @@ void url_parse_to_json(json_writer& json, string_view str_url, whatwg::url* base
     json.object_start();
 
     json.name("input"); json.value(str_url);
-    if (base) {
-        json.name("base"); json.value(base->href());
-    }
+
+    json.name("base");
+    if (base)
+        json.value(base->href());
+    else
+        json.value_null();
 
     // url parse result
     whatwg::url url;
