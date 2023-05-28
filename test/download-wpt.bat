@@ -8,7 +8,7 @@ REM
 REM 1. Go to https://github.com/web-platform-tests/wpt/tree/master/url
 REM 2. Find "Latest commit" text and click link next to it.
 REM 3. Copy hash from URL
-set HASH=f415bd4b89e69e270d98a0caaac7f36fde99408d
+set HASH=b7e75b1f1a2b0f74e0e7bffb3005f133871c6aa6
 
 for %%f in (setters_tests.json toascii.json urltestdata.json percent-encoding.json IdnaTestV2.json) do (
   curl -fsS -o %p%\wpt\%%f https://raw.githubusercontent.com/web-platform-tests/wpt/%HASH%/url/resources/%%f
