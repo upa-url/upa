@@ -482,6 +482,10 @@ public:
     /// @return `true` if URL includes credentials (username, password), `false` otherwise
     bool has_credentials() const;
 
+    /// see: https://url.spec.whatwg.org/#url-opaque-path
+    /// @return `true` if URL's path is a URL path segment, `false` otherwise
+    bool has_opaque_path() const noexcept;
+
     /// @return serialized URL as `std::string`
     std::string to_string() const;
 
@@ -547,8 +551,7 @@ private:
     // flags
     void set_flag(UrlFlag flag) noexcept;
 
-    bool has_an_opaque_path() const noexcept;
-    void set_has_an_opaque_path() noexcept;
+    void set_has_opaque_path() noexcept;
 
     void set_host_type(HostType ht) noexcept;
 
@@ -662,16 +665,16 @@ public:
     void set_host_type(const HostType ht) { url_.set_host_type(ht); }
     // IMPORTANT: has-an-opaque-path flag must be set before or just after
     // SCHEME set; because other part's serialization depends on this flag
-    void set_has_an_opaque_path() {
+    void set_has_opaque_path() {
         assert(last_pt_ == url::SCHEME);
-        url_.set_has_an_opaque_path();
+        url_.set_has_opaque_path();
     }
 
     // get info
     str_view_type get_part_view(url::PartType t) const { return url_.get_part_view(t); }
     bool is_empty(const url::PartType t) const { return url_.is_empty(t); }
     virtual bool is_empty_path() const {
-        assert(!url_.has_an_opaque_path());
+        assert(!url_.has_opaque_path());
         // path_segment_count_ has meaning only if path is a list (path isn't opaque)
         return url_.path_segment_count_ == 0;
     }
@@ -1216,11 +1219,11 @@ inline void url::set_flag(const UrlFlag flag) noexcept {
     flags_ |= flag;
 }
 
-inline bool url::has_an_opaque_path() const noexcept {
+inline bool url::has_opaque_path() const noexcept {
     return !!(flags_ & OPAQUE_PATH_FLAG);
 }
 
-inline void url::set_has_an_opaque_path() noexcept {
+inline void url::set_has_opaque_path() noexcept {
     set_flag(OPAQUE_PATH_FLAG);
 }
 
@@ -1345,7 +1348,7 @@ inline bool url::password(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::host(StrT&& str) {
-    if (!has_an_opaque_path() && is_valid()) {
+    if (!has_opaque_path() && is_valid()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1356,7 +1359,7 @@ inline bool url::host(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::hostname(StrT&& str) {
-    if (!has_an_opaque_path() && is_valid()) {
+    if (!has_opaque_path() && is_valid()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1385,7 +1388,7 @@ inline bool url::port(StrT&& str) {
 
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline bool url::pathname(StrT&& str) {
-    if (!has_an_opaque_path() && is_valid()) {
+    if (!has_opaque_path() && is_valid()) {
         detail::url_setter urls(*this);
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
@@ -1549,7 +1552,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 } else {
                     // set url’s path to the empty string (so path becomes opaque,
                     // see: https://url.spec.whatwg.org/#url-opaque-path)
-                    urls.set_has_an_opaque_path();
+                    urls.set_has_opaque_path();
                     // To complete the set url's path to the empty string, following functions must be called:
                     //  urls.start_path_string();
                     //  urls.save_path_string();
@@ -1567,7 +1570,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
     if (state == no_scheme_state) {
         if (base) {
-            if (base->has_an_opaque_path()) {
+            if (base->has_opaque_path()) {
                 if (pointer < last && *pointer == '#') {
                     urls.set_scheme(*base);
                     urls.append_parts(*base, url::PATH, url::QUERY);
@@ -2274,7 +2277,7 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
 
 inline url::str_view_type url::get_path_first_string(std::size_t len) const {
     str_view_type pathv = get_part_view(PATH);
-    if (pathv.length() == 0 || has_an_opaque_path())
+    if (pathv.length() == 0 || has_opaque_path())
         return pathv;
     // skip '/'
     pathv.remove_prefix(1);
@@ -2304,7 +2307,7 @@ inline bool url::get_path_rem_last(std::size_t& path_end, std::size_t& path_segm
 // https://url.spec.whatwg.org/#shorten-a-urls-path
 
 inline bool url::get_shorten_path(std::size_t& path_end, std::size_t& path_segment_count) const {
-    assert(!has_an_opaque_path());
+    assert(!has_opaque_path());
     if (path_segment_count_ == 0)
         return false;
     if (is_file_scheme() && path_segment_count_ == 1) {
@@ -2792,7 +2795,7 @@ inline std::size_t url_setter::remove_leading_path_slashes() {
 #endif
 
 inline bool url_setter::is_empty_path() const {
-    assert(!url_.has_an_opaque_path());
+    assert(!url_.has_opaque_path());
     // path_seg_end_ has meaning only if path is a list (path isn't opaque)
     return path_seg_end_.empty();
 }
@@ -2800,7 +2803,7 @@ inline bool url_setter::is_empty_path() const {
 // https://url.spec.whatwg.org/#potentially-strip-trailing-spaces-from-an-opaque-path
 
 inline void url_setter::potentially_strip_trailing_spaces_from_an_opaque_path() {
-    if (url_.has_an_opaque_path() &&
+    if (url_.has_opaque_path() &&
         is_null(url::FRAGMENT) &&
         is_null(url::QUERY)) {
         // Remove all trailing U+0020 SPACE code points from URL’s path.

@@ -357,6 +357,22 @@ TEST_CASE("Empty URL") {
     CHECK(url.href() == "http://example.com/");
 }
 
+// URL has an opaque path
+// https://url.spec.whatwg.org/#url-opaque-path
+
+TEST_CASE("url::has_opaque_path") {
+    // Initially URL's path is empty list of URL path segments (non-opaque)
+    // see: https://url.spec.whatwg.org/#concept-url-path
+    whatwg::url url{};
+    CHECK_FALSE(url.has_opaque_path());
+
+    url.parse("about:blank", nullptr);
+    CHECK(url.has_opaque_path());
+
+    url.parse("non-spec:/path", nullptr);
+    CHECK_FALSE(url.has_opaque_path());
+}
+
 // URL parts
 
 TEST_CASE("url::is_empty and url::is_null") {
