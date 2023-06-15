@@ -33,7 +33,7 @@ jobs:
       run: init.bat
       shell: cmd
     - name: install ICU library
-      run: install-icu.bat C:\LIB 73
+      run: install-icu.bat C:\LIB 73 2
       shell: cmd
     - name: cmake
       run: cmake -S . -B build -G "${{ matrix.generator }}" -A x64 -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DICU_ROOT=C:\LIB\ICU ${{ matrix.cmake_options }}
