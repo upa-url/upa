@@ -2393,18 +2393,10 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
         }
         WHATWG_FALLTHROUGH
     case url::PASSWORD:
-        if (new_pt == url::HOST) {
+        if (new_pt == url::HOST)
             url_.norm_url_ += '@';
-            break;
-        }
-        // NOT REACHABLE (TODO: throw?)
         break;
     case url::HOST:
-        if (new_pt == url::PORT) {
-            url_.norm_url_ += ':';
-            break;
-        }
-        WHATWG_FALLTHROUGH
     case url::PORT:
         break;
     case url::PATH:
@@ -2417,6 +2409,9 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
     fill_parts_offset(fill_start_pt, new_pt, url_.norm_url_.length());
 
     switch (new_pt) {
+    case url::PORT:
+        url_.norm_url_ += ':';
+        break;
     case url::QUERY:
         url_.norm_url_ += '?';
         break;
