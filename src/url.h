@@ -336,6 +336,9 @@ public:
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-origin
     ///
+    /// Note: For file URLs, this implementation returns a serialized opaque
+    /// origin (null).
+    ///
     /// @return ASCII serialized URL's origin
     std::string origin() const;
 
@@ -1030,7 +1033,7 @@ inline std::string url::origin() const {
         return str_origin;
     }
     if (get_part_view(SCHEME) == url::str_view_type{ "blob", 4 }) {
-        // Warning: this library does not support blob URL store, so it allways assumes
+        // Note: this library does not support blob URL store, so it allways assumes
         // URL's blob URL entry is null and retrieves origin from the URL's path.
         url path_url;
         if (path_url.parse(get_part_view(PATH), nullptr) == url_result::Ok &&
