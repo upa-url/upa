@@ -14,19 +14,19 @@ std::string urls_to_str(const char* s1) {
 std::string urls_to_str(const char* s1, const char* s2) {
     return std::string(s1) + " AGAINST " + s2;
 }
-std::string urls_to_str(const char* s1, const whatwg::url& u2) {
+std::string urls_to_str(const char* s1, const upa::url& u2) {
     return urls_to_str(s1, u2.to_string().c_str());
 }
 
 template <class ...Args>
-void check_url_contructor(whatwg::url_result expected_res, Args&&... args)
+void check_url_contructor(upa::url_result expected_res, Args&&... args)
 {
     const auto stringify_args = [&] { return urls_to_str(args...); };
     try {
-        whatwg::url url(args...);
-        CHECK_MESSAGE(whatwg::url_result::Ok == expected_res, "URL: ", stringify_args());
+        upa::url url(args...);
+        CHECK_MESSAGE(upa::url_result::Ok == expected_res, "URL: ", stringify_args());
     }
-    catch (whatwg::url_error& ex) {
+    catch (upa::url_error& ex) {
         CHECK_MESSAGE(ex.result() == expected_res, "URL: ", stringify_args());
     }
     catch (...) {
@@ -36,20 +36,20 @@ void check_url_contructor(whatwg::url_result expected_res, Args&&... args)
 
 TEST_CASE("url constructor") {
     // valid URL
-    check_url_contructor(whatwg::url_result::Ok, "http://example.org/p");
+    check_url_contructor(upa::url_result::Ok, "http://example.org/p");
     // invalid URLs
-    check_url_contructor(whatwg::url_result::EmptyHost, "http:///");
-    check_url_contructor(whatwg::url_result::EmptyHost, "http://%C2%AD/p"); // U+00AD - IDNA ignored code point
-    check_url_contructor(whatwg::url_result::IdnaError, "http://xn--a/p");
-    check_url_contructor(whatwg::url_result::InvalidPort, "http://h:a/p");
-    check_url_contructor(whatwg::url_result::InvalidIpv4Address, "http://1.2.3.256/p");
-    check_url_contructor(whatwg::url_result::InvalidIpv6Address, "http://[1::2::3]/p");
-    check_url_contructor(whatwg::url_result::InvalidDomainCharacter, "http://h[]/p");
-    check_url_contructor(whatwg::url_result::RelativeUrlWithoutBase, "relative");
-    check_url_contructor(whatwg::url_result::RelativeUrlWithCannotBeABase, "relative", "about:blank");
+    check_url_contructor(upa::url_result::EmptyHost, "http:///");
+    check_url_contructor(upa::url_result::EmptyHost, "http://%C2%AD/p"); // U+00AD - IDNA ignored code point
+    check_url_contructor(upa::url_result::IdnaError, "http://xn--a/p");
+    check_url_contructor(upa::url_result::InvalidPort, "http://h:a/p");
+    check_url_contructor(upa::url_result::InvalidIpv4Address, "http://1.2.3.256/p");
+    check_url_contructor(upa::url_result::InvalidIpv6Address, "http://[1::2::3]/p");
+    check_url_contructor(upa::url_result::InvalidDomainCharacter, "http://h[]/p");
+    check_url_contructor(upa::url_result::RelativeUrlWithoutBase, "relative");
+    check_url_contructor(upa::url_result::RelativeUrlWithCannotBeABase, "relative", "about:blank");
     // empty (invalid) base
-    const whatwg::url base;
-    check_url_contructor(whatwg::url_result::InvalidBase, "http://h/", base);
+    const upa::url base;
+    check_url_contructor(upa::url_result::InvalidBase, "http://h/", base);
 }
 
 // Copy/move construction/assignment
@@ -59,7 +59,7 @@ const char test_rel_url[] = "//h:123/p?a=b&c=d#frag";
 const char test_base_url[] = "http://example.org/p";
 const pairs_list_t<std::string> test_url_params = { {"a","b"}, {"c","d"} };
 
-void check_test_url(whatwg::url& url) {
+void check_test_url(upa::url& url) {
     CHECK(url.href() == test_url);
     CHECK(url.origin() == "http://h:123");
     CHECK(url.protocol() == "http:");
@@ -74,16 +74,16 @@ void check_test_url(whatwg::url& url) {
 }
 
 TEST_CASE("url copy constructor") {
-    whatwg::url url1(test_url);
-    whatwg::url url2(url1);
+    upa::url url1(test_url);
+    upa::url url2(url1);
 
     // CHECK(url2 == url1);
     check_test_url(url2);
 }
 
 TEST_CASE("url copy assignment") {
-    whatwg::url url1(test_url);
-    whatwg::url url2;
+    upa::url url1(test_url);
+    upa::url url2;
 
     url2 = url1;
 
@@ -92,45 +92,45 @@ TEST_CASE("url copy assignment") {
 }
 
 TEST_CASE("url move constructor") {
-    whatwg::url url0(test_url);
-    whatwg::url url{ std::move(url0) };
+    upa::url url0(test_url);
+    upa::url url{ std::move(url0) };
     check_test_url(url);
 }
 
 TEST_CASE("url move assignment") {
-    whatwg::url url;
-    url = whatwg::url(test_url);
+    upa::url url;
+    url = upa::url(test_url);
     check_test_url(url);
 }
 
 // url parsing constructor with base URL
 
 TEST_CASE("url parsing constructor with base URL") {
-    const whatwg::url base(test_base_url);
+    const upa::url base(test_base_url);
     {
         // pointer to base URL
-        whatwg::url url(test_rel_url, &base);
+        upa::url url(test_rel_url, &base);
         check_test_url(url);
     } {
-        whatwg::url url(test_rel_url, base);
+        upa::url url(test_rel_url, base);
         check_test_url(url);
     }
 }
 
 TEST_CASE("url parsing constructor with base URL string") {
-    whatwg::url url(test_rel_url, test_base_url);
+    upa::url url(test_rel_url, test_base_url);
     check_test_url(url);
 }
 
 // Parse URL
 
 TEST_CASE("url::parse must clear old URL data") {
-    whatwg::url url;
+    upa::url url;
 
-    CHECK(whatwg::success(url.parse("about:blank", nullptr)));
+    CHECK(upa::success(url.parse("about:blank", nullptr)));
     CHECK_FALSE(url.empty());
 
-    CHECK(whatwg::success(url.parse("http://host-1/", nullptr)));
+    CHECK(upa::success(url.parse("http://host-1/", nullptr)));
     CHECK(url.host("host-2"));
 
     CHECK(url.host() == "host-2");
@@ -144,23 +144,23 @@ TEST_CASE("url::can_parse") {
         // Adapted from:
         // https://github.com/web-platform-tests/wpt/blob/master/url/url-statics-canparse.any.js
         // https://github.com/web-platform-tests/wpt/pull/39069
-        CHECK_FALSE(whatwg::url::can_parse("undefined", nullptr));
+        CHECK_FALSE(upa::url::can_parse("undefined", nullptr));
 
-        CHECK(whatwg::url::can_parse("a:b", nullptr));
-        CHECK_FALSE(whatwg::url::can_parse("undefined", "a:b"));
+        CHECK(upa::url::can_parse("a:b", nullptr));
+        CHECK_FALSE(upa::url::can_parse("undefined", "a:b"));
 
-        CHECK(whatwg::url::can_parse("a:/b", nullptr));
-        CHECK(whatwg::url::can_parse("undefined", "a:/b"));
+        CHECK(upa::url::can_parse("a:/b", nullptr));
+        CHECK(upa::url::can_parse("undefined", "a:/b"));
 
-        CHECK_FALSE(whatwg::url::can_parse("https://test:test", nullptr));
-        CHECK(whatwg::url::can_parse("a", "https://b/"));
+        CHECK_FALSE(upa::url::can_parse("https://test:test", nullptr));
+        CHECK(upa::url::can_parse("a", "https://b/"));
     }
 
     SUBCASE("Additional tests") {
-        const whatwg::url base("a:b");
+        const upa::url base("a:b");
 
-        CHECK_FALSE(whatwg::url::can_parse("undefined", base));
-        CHECK(whatwg::url::can_parse("a:/b", base));
+        CHECK_FALSE(upa::url::can_parse("undefined", base));
+        CHECK(upa::url::can_parse("a:/b", base));
     }
 }
 
@@ -170,8 +170,8 @@ TEST_CASE("swap(url&, url&)") {
     const std::string str_url_1 = "http://host-1:123/path-1?a=1&b=2#frag-1";
     const std::string str_url_2 = "http://host-2:321/path-2?c=3&d=4#frag-2";
 
-    whatwg::url url_1(str_url_1);
-    whatwg::url url_2(str_url_2);
+    upa::url url_1(str_url_1);
+    upa::url url_2(str_url_2);
 
     using std::swap;
 
@@ -188,33 +188,33 @@ TEST_CASE("swap(url&, url&)") {
     CHECK(url_2.href() == str_url_2);
 
     // Initialise both search parameters
-    CHECK(url_1.get_part_view(whatwg::url::QUERY) == url_1.search_params().to_string());
-    CHECK(url_2.get_part_view(whatwg::url::QUERY) == url_2.search_params().to_string());
+    CHECK(url_1.get_part_view(upa::url::QUERY) == url_1.search_params().to_string());
+    CHECK(url_2.get_part_view(upa::url::QUERY) == url_2.search_params().to_string());
 
     // Swap with both search parameters initialised
     swap(url_1, url_2);
     CHECK(url_1.href() == str_url_2);
     CHECK(url_2.href() == str_url_1);
-    CHECK(url_1.get_part_view(whatwg::url::QUERY) == url_1.search_params().to_string());
-    CHECK(url_2.get_part_view(whatwg::url::QUERY) == url_2.search_params().to_string());
+    CHECK(url_1.get_part_view(upa::url::QUERY) == url_1.search_params().to_string());
+    CHECK(url_2.get_part_view(upa::url::QUERY) == url_2.search_params().to_string());
 
     // Are url and url_search_params still linked correctly?
     url_1.search_params().append("e", "10");
     url_2.search_params().append("f", "20");
-    CHECK(url_1.get_part_view(whatwg::url::QUERY) == url_1.search_params().to_string());
-    CHECK(url_2.get_part_view(whatwg::url::QUERY) == url_2.search_params().to_string());
+    CHECK(url_1.get_part_view(upa::url::QUERY) == url_1.search_params().to_string());
+    CHECK(url_2.get_part_view(upa::url::QUERY) == url_2.search_params().to_string());
 }
 
 // Valid or invalid URL
 
 TEST_CASE("url::is_valid()") {
     // empty url invalid
-    whatwg::url url;
+    upa::url url;
     CHECK(url.empty());
     CHECK_FALSE(url.is_valid());
 
     // parse valid URL
-    CHECK(url.parse("wss://host:88/path", nullptr) == whatwg::url_result::Ok);
+    CHECK(url.parse("wss://host:88/path", nullptr) == upa::url_result::Ok);
     CHECK(url.href() == "wss://host:88/path");
     CHECK(url.is_valid());
 
@@ -224,7 +224,7 @@ TEST_CASE("url::is_valid()") {
     CHECK(url.is_valid());
 
     // url::parse must reset VALID_FLAG on failure
-    CHECK(url.parse("http://h:8a/p", nullptr) == whatwg::url_result::InvalidPort);
+    CHECK(url.parse("http://h:8a/p", nullptr) == upa::url_result::InvalidPort);
     CHECK_FALSE(url.is_valid());
 
     // invalid URL must ignore setters (except href)
@@ -280,33 +280,33 @@ TEST_CASE("url::is_valid()") {
 
 TEST_CASE("Parse URL with invalid base") {
     SUBCASE("Empty base") {
-        const whatwg::url base;
+        const upa::url base;
         CHECK_FALSE(base.is_valid());
 
-        whatwg::url url;
-        CHECK(url.parse("https://h/", &base) == whatwg::url_result::InvalidBase);
+        upa::url url;
+        CHECK(url.parse("https://h/", &base) == upa::url_result::InvalidBase);
         CHECK_FALSE(url.is_valid());
 
-        CHECK(url.parse("http://host/", nullptr) == whatwg::url_result::Ok);
+        CHECK(url.parse("http://host/", nullptr) == upa::url_result::Ok);
         CHECK(url.is_valid());
-        CHECK(url.parse("https://h/", &base) == whatwg::url_result::InvalidBase);
+        CHECK(url.parse("https://h/", &base) == upa::url_result::InvalidBase);
         CHECK_FALSE(url.is_valid());
     }
     SUBCASE("Invalid base") {
-        whatwg::url base;
-        CHECK_FALSE(whatwg::success(base.parse("http://h:65616/p", nullptr)));
+        upa::url base;
+        CHECK_FALSE(upa::success(base.parse("http://h:65616/p", nullptr)));
         CHECK_FALSE(base.is_valid());
 
-        whatwg::url url;
-        CHECK(url.parse("https://h/", &base) == whatwg::url_result::InvalidBase);
+        upa::url url;
+        CHECK(url.parse("https://h/", &base) == upa::url_result::InvalidBase);
         CHECK_FALSE(url.is_valid());
 
-        CHECK(url.parse("/path", &base) == whatwg::url_result::InvalidBase);
+        CHECK(url.parse("/path", &base) == upa::url_result::InvalidBase);
         CHECK_FALSE(url.is_valid());
 
-        CHECK(url.parse("http://host/", nullptr) == whatwg::url_result::Ok);
+        CHECK(url.parse("http://host/", nullptr) == upa::url_result::Ok);
         CHECK(url.is_valid());
-        CHECK(url.parse("https://h/", &base) == whatwg::url_result::InvalidBase);
+        CHECK(url.parse("https://h/", &base) == upa::url_result::InvalidBase);
         CHECK_FALSE(url.is_valid());
     }
 }
@@ -314,7 +314,7 @@ TEST_CASE("Parse URL with invalid base") {
 // Empty URL
 
 TEST_CASE("Empty URL") {
-    whatwg::url url;
+    upa::url url;
     CHECK(url.empty());
 
     url.protocol("http");
@@ -363,7 +363,7 @@ TEST_CASE("Empty URL") {
 TEST_CASE("url::has_opaque_path") {
     // Initially URL's path is empty list of URL path segments (non-opaque)
     // see: https://url.spec.whatwg.org/#concept-url-path
-    whatwg::url url{};
+    upa::url url{};
     CHECK_FALSE(url.has_opaque_path());
 
     url.parse("about:blank", nullptr);
@@ -376,37 +376,37 @@ TEST_CASE("url::has_opaque_path") {
 // URL parts
 
 TEST_CASE("url::is_empty and url::is_null") {
-    whatwg::url url;
+    upa::url url;
 
-    CHECK(url.is_empty(whatwg::url::SCHEME));
-    CHECK(url.is_null(whatwg::url::HOST));
+    CHECK(url.is_empty(upa::url::SCHEME));
+    CHECK(url.is_null(upa::url::HOST));
 
-    CHECK(whatwg::success(url.parse("http://example.org/", nullptr)));
-    CHECK_FALSE(url.is_empty(whatwg::url::SCHEME));
-    CHECK_FALSE(url.is_null(whatwg::url::HOST));
+    CHECK(upa::success(url.parse("http://example.org/", nullptr)));
+    CHECK_FALSE(url.is_empty(upa::url::SCHEME));
+    CHECK_FALSE(url.is_null(upa::url::HOST));
 }
 
 // Origin tests
 
 TEST_SUITE("Check origin") {
     TEST_CASE("http:") {
-        whatwg::url url("http://host:123/path");
+        upa::url url("http://host:123/path");
         CHECK(url.origin() == "http://host:123");
     }
     TEST_CASE("blob:") {
-        whatwg::url url("blob:http://host:123/path");
+        upa::url url("blob:http://host:123/path");
         CHECK(url.origin() == "http://host:123");
     }
     TEST_CASE("blob: x 3") {
-        whatwg::url url("blob:blob:blob:http://host:123/path");
+        upa::url url("blob:blob:blob:http://host:123/path");
         CHECK(url.origin() == "null");
     }
     TEST_CASE("file:") {
-        whatwg::url url("file://host/path");
+        upa::url url("file://host/path");
         CHECK(url.origin() == "null");
     }
     TEST_CASE("non-spec:") {
-        whatwg::url url("non-spec://host:123/path");
+        upa::url url("non-spec://host:123/path");
         CHECK(url.origin() == "null");
     }
 }
@@ -414,7 +414,7 @@ TEST_SUITE("Check origin") {
 // URL serializing
 
 static void check_serialize(std::string str_url, std::string str_hash) {
-    whatwg::url u(str_url + str_hash);
+    upa::url u(str_url + str_hash);
     CHECK(u.serialize(false) == str_url + str_hash);
     CHECK(u.serialize(true) == str_url);
 }
@@ -431,9 +431,9 @@ TEST_CASE("URL serializing") {
 // URL equivalence
 
 static bool are_equal(std::string atr_a, std::string atr_b, bool exclude_fragments) {
-    whatwg::url a(atr_a);
-    whatwg::url b(atr_b);
-    return whatwg::equals(a, b, exclude_fragments);
+    upa::url a(atr_a);
+    upa::url b(atr_b);
+    return upa::equals(a, b, exclude_fragments);
 }
 
 TEST_CASE("URL equivalence") {
@@ -461,23 +461,23 @@ TEST_CASE("URL equivalence") {
 TEST_CASE("Valid UTF-8 in hostname") {
     static const char szUrl[] = { 'h', 't', 't', 'p', ':', '/', '/', char(0xC4), char(0x84), '/', '\0' }; // valid
 
-    whatwg::url url;
-    REQUIRE(whatwg::success(url.parse(szUrl, nullptr)));
+    upa::url url;
+    REQUIRE(upa::success(url.parse(szUrl, nullptr)));
     CHECK(url.hostname() == "xn--2da");
 }
 TEST_CASE("Valid percent encoded utf-8 in hostname") {
     static const char szUrl[] = { 'h', 't', 't', 'p', ':', '/', '/', '%', 'C', '4', '%', '8', '4', '/', '\0' }; // valid
 
-    whatwg::url url;
-    REQUIRE(whatwg::success(url.parse(szUrl, nullptr)));
+    upa::url url;
+    REQUIRE(upa::success(url.parse(szUrl, nullptr)));
     CHECK(url.hostname() == "xn--2da");
 }
 TEST_CASE("Invalid utf-8 in hostname") {
     static const char szUrl1[] = { 'h', 't', 't', 'p', ':', '/', '/', '%', 'C', '4', char(0x84), '/', '\0' }; // invalid
     static const char szUrl2[] = { 'h', 't', 't', 'p', ':', '/', '/', char(0xC4), '%', '8', '4', '/', '\0' }; // invalid
 
-    check_url_contructor(whatwg::url_result::IdnaError, szUrl1);
-    check_url_contructor(whatwg::url_result::IdnaError, szUrl2);
+    check_url_contructor(upa::url_result::IdnaError, szUrl1);
+    check_url_contructor(upa::url_result::IdnaError, szUrl2);
 }
 
 // UTF-16 in hostname
@@ -485,16 +485,16 @@ TEST_CASE("Invalid utf-8 in hostname") {
 TEST_CASE("Valid UTF-16 in hostname") {
     static const char16_t szUrl[] = { 'h', 't', 't', 'p', ':', '/', '/', char16_t(0xD800), char16_t(0xDC00), '/', '\0' };
 
-    whatwg::url url;
-    REQUIRE(whatwg::success(url.parse(szUrl, nullptr)));
+    upa::url url;
+    REQUIRE(upa::success(url.parse(szUrl, nullptr)));
     CHECK(url.hostname() == "xn--2n7c");
 }
 TEST_CASE("Invalid UTF-16 in hostname") {
     static const char16_t szUrl1[] = { 'h', 't', 't', 'p', ':', '/', '/', char16_t(0xD800), '/', '\0' };
     static const char16_t szUrl2[] = { 'h', 't', 't', 'p', ':', '/', '/', char16_t(0xDC00), '/', '\0' };
 
-    CHECK_THROWS_AS(whatwg::url{ szUrl1 }, whatwg::url_error);
-    CHECK_THROWS_AS(whatwg::url{ szUrl2 }, whatwg::url_error);
+    CHECK_THROWS_AS(upa::url{ szUrl1 }, upa::url_error);
+    CHECK_THROWS_AS(upa::url{ szUrl2 }, upa::url_error);
 }
 
 // UTF-32 in hostname
@@ -502,8 +502,8 @@ TEST_CASE("Invalid UTF-16 in hostname") {
 TEST_CASE("Valid UTF-32 in hostname") {
     static const char32_t szUrl[] = { 'h', 't', 't', 'p', ':', '/', '/', char32_t(0x10000u), '/', '\0' };
 
-    whatwg::url url;
-    REQUIRE(whatwg::success(url.parse(szUrl, nullptr)));
+    upa::url url;
+    REQUIRE(upa::success(url.parse(szUrl, nullptr)));
     CHECK(url.hostname() == "xn--2n7c");
 }
 TEST_CASE("Invalid UTF-32 in hostname") {
@@ -511,58 +511,58 @@ TEST_CASE("Invalid UTF-32 in hostname") {
     static const char32_t szUrl2[] = { 'h', 't', 't', 'p', ':', '/', '/', char32_t(0xDFFF), '/', '\0' };
     static const char32_t szUrl3[] = { 'h', 't', 't', 'p', ':', '/', '/', char32_t(0x110000u), '/', '\0' };
 
-    CHECK_THROWS_AS(whatwg::url{ szUrl1 }, whatwg::url_error);
-    CHECK_THROWS_AS(whatwg::url{ szUrl2 }, whatwg::url_error);
-    CHECK_THROWS_AS(whatwg::url{ szUrl3 }, whatwg::url_error);
+    CHECK_THROWS_AS(upa::url{ szUrl1 }, upa::url_error);
+    CHECK_THROWS_AS(upa::url{ szUrl2 }, upa::url_error);
+    CHECK_THROWS_AS(upa::url{ szUrl3 }, upa::url_error);
 }
 
 // URL utilities
 
 TEST_CASE("url_from_file_path") {
     SUBCASE("POSIX path") {
-        CHECK(whatwg::url_from_file_path("/").href() == "file:///");
-        CHECK(whatwg::url_from_file_path("/path").href() == "file:///path");
-        CHECK(whatwg::url_from_file_path("/path %#?").href() == "file:///path%20%25%23%3F");
-        CHECK(whatwg::url_from_file_path("/c:\\end").href() == "file:///c%3A%5Cend");
-        CHECK(whatwg::url_from_file_path("/c|\\end").href() == "file:///c%7C%5Cend");
-        CHECK(whatwg::url_from_file_path("/c:/last").href() == "file:///c%3A/last");
-        CHECK(whatwg::url_from_file_path("/c|/last").href() == "file:///c%7C/last");
+        CHECK(upa::url_from_file_path("/").href() == "file:///");
+        CHECK(upa::url_from_file_path("/path").href() == "file:///path");
+        CHECK(upa::url_from_file_path("/path %#?").href() == "file:///path%20%25%23%3F");
+        CHECK(upa::url_from_file_path("/c:\\end").href() == "file:///c%3A%5Cend");
+        CHECK(upa::url_from_file_path("/c|\\end").href() == "file:///c%7C%5Cend");
+        CHECK(upa::url_from_file_path("/c:/last").href() == "file:///c%3A/last");
+        CHECK(upa::url_from_file_path("/c|/last").href() == "file:///c%7C/last");
         // empty path
-        CHECK_THROWS_AS(whatwg::url_from_file_path(""), whatwg::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path(""), upa::url_error);
         // non absolute path
-        CHECK_THROWS_AS(whatwg::url_from_file_path("path"), whatwg::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("path"), upa::url_error);
     }
     SUBCASE("Windows path") {
         // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
-        CHECK(whatwg::url_from_file_path("C:\\").href() == "file:///C:/");
-        CHECK(whatwg::url_from_file_path("C:\\path").href() == "file:///C:/path");
-        CHECK(whatwg::url_from_file_path("C|\\path").href() == "file:///C:/path");
-        CHECK(whatwg::url_from_file_path("C:/path").href() == "file:///C:/path");
-        CHECK(whatwg::url_from_file_path("C:\\path %#").href() == "file:///C:/path%20%25%23");
-        CHECK(whatwg::url_from_file_path("\\\\h\\path").href() == "file://h/path");
+        CHECK(upa::url_from_file_path("C:\\").href() == "file:///C:/");
+        CHECK(upa::url_from_file_path("C:\\path").href() == "file:///C:/path");
+        CHECK(upa::url_from_file_path("C|\\path").href() == "file:///C:/path");
+        CHECK(upa::url_from_file_path("C:/path").href() == "file:///C:/path");
+        CHECK(upa::url_from_file_path("C:\\path %#").href() == "file:///C:/path%20%25%23");
+        CHECK(upa::url_from_file_path("\\\\h\\path").href() == "file://h/path");
         // https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats
         // https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
-        CHECK(whatwg::url_from_file_path("\\\\?\\D:\\very_long_path").href() == "file:///D:/very_long_path");
-        CHECK(whatwg::url_from_file_path("\\\\?\\UNC\\h\\very_long_path").href() == "file://h/very_long_path");
-        CHECK(whatwg::url_from_file_path("\\\\.\\D:\\very_long_path").href() == "file:///D:/very_long_path");
-        CHECK(whatwg::url_from_file_path("\\\\.\\UNC\\h\\very_long_path").href() == "file://h/very_long_path");
+        CHECK(upa::url_from_file_path("\\\\?\\D:\\very_long_path").href() == "file:///D:/very_long_path");
+        CHECK(upa::url_from_file_path("\\\\?\\UNC\\h\\very_long_path").href() == "file://h/very_long_path");
+        CHECK(upa::url_from_file_path("\\\\.\\D:\\very_long_path").href() == "file:///D:/very_long_path");
+        CHECK(upa::url_from_file_path("\\\\.\\UNC\\h\\very_long_path").href() == "file://h/very_long_path");
         // non absolute path
-        CHECK_THROWS_AS(whatwg::url_from_file_path("\\"), whatwg::url_error);
-        CHECK_THROWS_AS(whatwg::url_from_file_path("C:path"), whatwg::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("C:path"), upa::url_error);
         // invalid UNC
-        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\"), whatwg::url_error);
-        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\h"), whatwg::url_error);
-        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\h\\"), whatwg::url_error);
-        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\h\\\\"), whatwg::url_error);
-        CHECK_THROWS_AS(whatwg::url_from_file_path(std::string{ '\\', '\\', 'h', '\\', 'a', '\0', 'b' }), whatwg::url_error);
-        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\h\\a/b"), whatwg::url_error);
-        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\a/b\\path"), whatwg::url_error);
-        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\C:\\path"), whatwg::url_error);
-        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\C|\\path"), whatwg::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\\\"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path(std::string{ '\\', '\\', 'h', '\\', 'a', '\0', 'b' }), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\a/b"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\a/b\\path"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\C:\\path"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\C|\\path"), upa::url_error);
         // invalid hostname
-        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\a b\\path"), whatwg::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\a b\\path"), upa::url_error);
         // unsupported pathes
-        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\?\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), whatwg::url_error);
-        CHECK_THROWS_AS(whatwg::url_from_file_path("\\\\.\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), whatwg::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\.\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), upa::url_error);
     }
 }

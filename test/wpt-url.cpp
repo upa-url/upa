@@ -51,7 +51,7 @@ int main(int argc, char** argv)
     err |= test_from_file(run_setter_tests, "data/my-setters_tests.json");
 
     // Free memory
-    whatwg::url_cleanup();
+    upa::url_cleanup();
 
     return err;
 }
@@ -97,16 +97,16 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
     const std::string str_case("Parsing <" + input + "> " + (base.empty() ? "without base" : "against <" + base + ">"));
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
-        whatwg::url url;
+        upa::url url;
 
         bool parse_success;
         if (!base.empty()) {
-            whatwg::url url_base;
+            upa::url url_base;
             parse_success =
-                url_base.parse(base, nullptr) == whatwg::url_result::Ok &&
-                url.parse(input, &url_base) == whatwg::url_result::Ok;
+                url_base.parse(base, nullptr) == upa::url_result::Ok &&
+                url.parse(input, &url_base) == upa::url_result::Ok;
         } else {
-            parse_success = url.parse(input, nullptr) == whatwg::url_result::Ok;
+            parse_success = url.parse(input, nullptr) == upa::url_result::Ok;
         }
 
         // check "failure"
@@ -137,7 +137,7 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
         // If a URL fails to parse with any valid base, it must also fail to parse with no base,
         // i.e. when used as a base URL itself.
         if (obj.failure && !base.empty()) {
-            parse_success = url.parse(input, nullptr) == whatwg::url_result::Ok;
+            parse_success = url.parse(input, nullptr) == upa::url_result::Ok;
             // check "failure"
             tc.assert_equal(obj.failure, !parse_success, "parse failure WITH NO BASE");
         }
@@ -165,8 +165,8 @@ void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         const std::string input_url(make_url(input));
 
-        whatwg::url url;
-        const bool parse_success = url.parse(input_url, nullptr) == whatwg::url_result::Ok;
+        upa::url url;
+        const bool parse_success = url.parse(input_url, nullptr) == upa::url_result::Ok;
 
         // check "failure"
         tc.assert_equal(obj.failure, !parse_success, "parse failure");
@@ -185,7 +185,7 @@ void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
 
     str_case = "Set URL.host to: \"" + input + "\"";
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
-        whatwg::url url(make_url("x"), nullptr);
+        upa::url url(make_url("x"), nullptr);
 
         url.host(input);
         if (!obj.failure) {
@@ -198,7 +198,7 @@ void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
 
     str_case = "Set URL.hostname to: \"" + input + "\"";
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
-        whatwg::url url(make_url("x"), nullptr);
+        upa::url url(make_url("x"), nullptr);
 
         url.hostname(input);
         if (!obj.failure) {
@@ -240,8 +240,8 @@ void test_idna_v2(DataDrivenTest& ddt, ParserObj& obj)
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         const std::string input_url(make_url(encodeHostEndingCodePoints(input)));
 
-        whatwg::url url;
-        const bool parse_success = url.parse(input_url, nullptr) == whatwg::url_result::Ok;
+        upa::url url;
+        const bool parse_success = url.parse(input_url, nullptr) == upa::url_result::Ok;
 
         // check "failure"
         tc.assert_equal(obj.failure, !parse_success, "parse failure");
@@ -281,7 +281,7 @@ void test_setter(DataDrivenTest& ddt, SetterObj& obj)
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         // url parsing must succeed
-        whatwg::url url(obj.m_href, nullptr);
+        upa::url url(obj.m_href, nullptr);
 
         // Attributes
 
@@ -348,14 +348,14 @@ void test_percent_encoding(DataDrivenTest& ddt, EncodingObj& obj)
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         // test percent_encode function
-        tc.assert_equal(output, whatwg::percent_encode(input, whatwg::special_query_no_encode_set), "percent_encode function");
+        tc.assert_equal(output, upa::percent_encode(input, upa::special_query_no_encode_set), "percent_encode function");
 
         // test URL parser
         std::string str_url("https://example.org/?");
         str_url += input;
         str_url += "#";
         str_url += input;
-        const whatwg::url url(str_url);
+        const upa::url url(str_url);
         tc.assert_equal("#" + output, url.hash(), "url.hash()"); // utf-8
         tc.assert_equal("?" + output, url.search(), "url.search()"); // any encoding
     });

@@ -7,7 +7,7 @@
 #include "url_search_params.h"
 
 
-namespace whatwg {
+namespace upa {
 
 
 // url_search_params class
@@ -79,4 +79,4 @@ url_search_params_ptr& url_search_params_ptr::operator=(const url_search_params_
 
 
 } // namespace detail
-} // namespace whatwg
+} // namespace upa

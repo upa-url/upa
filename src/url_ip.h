@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -14,7 +14,7 @@
 #include <limits>
 #include <string>
 
-namespace whatwg {
+namespace upa {
 
 // append unsigned integer to string
 
@@ -382,6 +382,6 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
 void ipv6_serialize(const uint16_t(&address)[8], std::string& output);
 
 
-} // namespace whatwg
+} // namespace upa
 
 #endif // WHATWG_URL_IP_H

@@ -6,7 +6,7 @@
 #include "url_utf.h"
 #include <cassert>
 
-namespace whatwg {
+namespace upa {
 
 bool url_utf::convert_utf8_to_utf16(const char* first, const char* last, simple_buffer<char16_t>& output) {
     bool success = true;
@@ -126,4 +126,4 @@ const uint8_t url_utf::k_U8_LEAD3_T1_BITS[16] = { 0x20, 0x30, 0x30, 0x30, 0x30, 
 // lead byte F0..F4 bits 2..0 are used as bit index into that byte.
 const uint8_t url_utf::k_U8_LEAD4_T1_BITS[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E, 0x0F, 0x0F, 0x0F, 0x00, 0x00, 0x00, 0x00 };
 
-} // namespace whatwg
+} // namespace upa

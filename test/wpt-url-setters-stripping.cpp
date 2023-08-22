@@ -37,11 +37,11 @@ static std::string urlString(url_args urlArgs) {
         + "/" + urlArgs["pathname"] + "?" + urlArgs["search"] + "#" + urlArgs["hash"];
 }
 
-static whatwg::url urlRecord(std::string scheme) {
-    return whatwg::url(urlString({ { "scheme", scheme } }), nullptr);
+static upa::url urlRecord(std::string scheme) {
+    return upa::url(urlString({ { "scheme", scheme } }), nullptr);
 }
 
-static std::string get_url_property(const whatwg::url& url, const std::string& property) {
+static std::string get_url_property(const upa::url& url, const std::string& property) {
     // empty value, if property is invalid
     std::string value;
     if (property == "prtocol")
@@ -67,7 +67,7 @@ static std::string get_url_property(const whatwg::url& url, const std::string& p
     return value;
 }
 
-static void set_url_property(whatwg::url& url, const std::string& property, const std::string& value) {
+static void set_url_property(upa::url& url, const std::string& property, const std::string& value) {
     if (property == "prtocol")
         url.protocol(value);
     else if (property == "username")

@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -10,7 +10,7 @@
 #include <string>
 #include <type_traits>
 
-namespace whatwg {
+namespace upa {
 
 template<typename CharT, typename Traits = std::char_traits<CharT>>
 class str_view {
@@ -133,6 +133,6 @@ std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>&
 }
 
 
-} // namespace whatwg
+} // namespace upa
 
 #endif // STR_VIEW_H

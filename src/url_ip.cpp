@@ -1,11 +1,11 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
 
 #include "url_ip.h"
 
-namespace whatwg {
+namespace upa {
 
 // IPv4 serializer
 // https://url.spec.whatwg.org/#concept-ipv4-serializer
@@ -65,4 +65,4 @@ void ipv6_serialize(const uint16_t(&address)[8], std::string& output) {
 }
 
 
-} // namespace whatwg
+} // namespace upa

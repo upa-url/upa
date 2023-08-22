@@ -1,4 +1,4 @@
-// Copyright 2016-2022 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -18,7 +18,7 @@
 template <class CharT, class Traits>
 std::basic_ostream<CharT, Traits>& operator<<(
     std::basic_ostream<CharT, Traits>& os,
-    const whatwg::url_search_params::name_value_pair& v);
+    const upa::url_search_params::name_value_pair& v);
 #include "ddt/DataDrivenTest.hpp"
 
 //
@@ -40,7 +40,7 @@ int main(int argc, char** argv)
     // urlsearchparams-sort.any.js is in the wpt-url_search_params.cpp
 
     // Free memory
-    whatwg::url_cleanup();
+    upa::url_cleanup();
 
     return err;
 }
@@ -49,21 +49,21 @@ int main(int argc, char** argv)
 
 struct TestObj {
     std::string m_input;
-    whatwg::url_search_params::name_value_list m_output;
+    upa::url_search_params::name_value_list m_output;
 };
 
 // url_search_params::name_value_pair stream output function for DataDrivenTest
 template <class CharT, class Traits>
 std::basic_ostream<CharT, Traits>& operator<<(
     std::basic_ostream<CharT, Traits>& os,
-    const whatwg::url_search_params::name_value_pair& v)
+    const upa::url_search_params::name_value_pair& v)
 {
     return os << "[\"" << v.first << "\", \"" << v.second << "\"]";
 }
 
 static void do_assert_equal(DataDrivenTest::TestCase& tc,
-    const whatwg::url_search_params::name_value_list& expected,
-    const whatwg::url_search_params& sparams)
+    const upa::url_search_params::name_value_list& expected,
+    const upa::url_search_params& sparams)
 {
     const size_t n_sparams = sparams.size();
     const size_t n_expected = expected.size();
@@ -86,7 +86,7 @@ void test_urlencoded_parser(DataDrivenTest& ddt, const TestObj& obj) {
     std::string str_case("url_search_params constructed with: \"" + obj.m_input + "\"");
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
-        whatwg::url_search_params sparams(obj.m_input);
+        upa::url_search_params sparams(obj.m_input);
         do_assert_equal(tc, obj.m_output, sparams);
     });
 }
@@ -96,18 +96,18 @@ void test_urlencoded_parser(DataDrivenTest& ddt, const TestObj& obj) {
 void test_urlsearchparams_sort(DataDrivenTest& ddt, const TestObj& obj) {
     std::string str_case("Parse and sort: \"" + obj.m_input + "\"");
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
-        whatwg::url_search_params sparams(obj.m_input);
+        upa::url_search_params sparams(obj.m_input);
         sparams.sort();
         do_assert_equal(tc, obj.m_output, sparams);
     });
 
     str_case = "URL parse and sort: \"" + obj.m_input + "\"";
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
-        whatwg::url url("?" + obj.m_input, "https://example/");
+        upa::url url("?" + obj.m_input, "https://example/");
 
         url.search_params().sort();
 
-        whatwg::url_search_params sparams(url.search());
+        upa::url_search_params sparams(url.search());
         do_assert_equal(tc, obj.m_output, sparams);
     });
 }

@@ -14,7 +14,7 @@
 #include <string>
 #include <type_traits>
 
-namespace whatwg { // NOLINT(modernize-concat-nested-namespaces)
+namespace upa { // NOLINT(modernize-concat-nested-namespaces)
 namespace util {
 
 // Integers
@@ -143,6 +143,6 @@ WHATWG_CONSTEXPR_17 bool has_xn_label(const CharT* first, const CharT* last) {
 
 
 } // namespace util
-} // namespace whatwg
+} // namespace upa
 
 #endif // WHATWG_UTIL_H

@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     const int res = context.run();
 
     // Free memory
-    whatwg::url_cleanup();
+    upa::url_cleanup();
 
     return res;
 }

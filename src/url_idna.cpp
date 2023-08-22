@@ -20,7 +20,7 @@
 
 #include <cassert>
 
-namespace whatwg {
+namespace upa {
 
 namespace {
 
@@ -182,4 +182,4 @@ url_result IDNToUnicode(const char* src, std::size_t src_len, simple_buffer<char
 }
 
 
-} // namespace whatwg
+} // namespace upa

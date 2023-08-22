@@ -53,22 +53,22 @@ TEST_CASE_TEMPLATE_DEFINE("Various string pairs iterable containers", CharT, tes
 
     SUBCASE("array") {
         const std::pair<string_t, string_t> arr_pairs[] = TEST_ITERABLES_DATA;
-        whatwg::url_search_params params(arr_pairs);
+        upa::url_search_params params(arr_pairs);
         CHECK(list_eq(params, output));
     }
     SUBCASE("std::initializer_list") {
         const pairs_list_t<string_t> lst_pairs = TEST_ITERABLES_DATA;
-        whatwg::url_search_params params(lst_pairs);
+        upa::url_search_params params(lst_pairs);
         CHECK(list_eq(params, output));
     }
     SUBCASE("std::map") {
         const std::map<string_t, string_t> map_pairs(TEST_ITERABLES_DATA);
-        whatwg::url_search_params params(map_pairs);
+        upa::url_search_params params(map_pairs);
         CHECK(list_eq(params, output));
     }
     SUBCASE("std::vector") {
         const std::vector<std::pair<string_t, string_t>> vec_pairs(TEST_ITERABLES_DATA);
-        whatwg::url_search_params params(vec_pairs);
+        upa::url_search_params params(vec_pairs);
         CHECK(list_eq(params, output));
     }
 
@@ -80,7 +80,7 @@ TEST_CASE_TEMPLATE_DEFINE("Various string pairs iterable containers", CharT, tes
                 co_yield p;
         };
 
-        whatwg::url_search_params params(pairs_gen());
+        upa::url_search_params params(pairs_gen());
         CHECK(list_eq(params, output));
     }
 #endif
@@ -88,7 +88,7 @@ TEST_CASE_TEMPLATE_DEFINE("Various string pairs iterable containers", CharT, tes
 #ifdef TEST_RANGES
     SUBCASE("ranges") {
         const pairs_list_t<string_t> lst_pairs = TEST_ITERABLES_DATA;
-        whatwg::url_search_params params(std::ranges::subrange(lst_pairs.begin(), lst_pairs.end()));
+        upa::url_search_params params(std::ranges::subrange(lst_pairs.begin(), lst_pairs.end()));
         CHECK(list_eq(params, output));
     }
 #endif
@@ -106,31 +106,31 @@ TEST_CASE("url_search_params constructors") {
     const pairs_list_t<std::string> lst_pairs = TEST_ITERABLES_DATA;
 
     SUBCASE("default constructor") {
-        const whatwg::url_search_params params;
+        const upa::url_search_params params;
 
         CHECK(params.empty());
         CHECK(params.size() == 0);
         CHECK(params.to_string() == "");
     }
     SUBCASE("copy constructor from const") {
-        const whatwg::url_search_params params(lst_pairs);
+        const upa::url_search_params params(lst_pairs);
         CHECK(list_eq(params, lst_pairs));
 
-        whatwg::url_search_params paramsC(params);
+        upa::url_search_params paramsC(params);
         CHECK(list_eq(paramsC, lst_pairs));
     }
     SUBCASE("copy constructor") {
-        whatwg::url_search_params params(lst_pairs);
+        upa::url_search_params params(lst_pairs);
         CHECK(list_eq(params, lst_pairs));
 
-        whatwg::url_search_params paramsC(params);
+        upa::url_search_params paramsC(params);
         CHECK(list_eq(paramsC, lst_pairs));
     }
     SUBCASE("move constructor") {
-        whatwg::url_search_params params(lst_pairs);
+        upa::url_search_params params(lst_pairs);
         CHECK(list_eq(params, lst_pairs));
 
-        whatwg::url_search_params paramsM(std::move(params));
+        upa::url_search_params paramsM(std::move(params));
         CHECK(list_eq(paramsM, lst_pairs));
     }
 }
@@ -141,8 +141,8 @@ TEST_CASE("url_search_params assignment") {
     const pairs_list_t<std::string> lst_pairs = TEST_ITERABLES_DATA;
 
     SUBCASE("copy assignment") {
-        const whatwg::url_search_params params(lst_pairs);
-        whatwg::url_search_params paramsC("x=y");
+        const upa::url_search_params params(lst_pairs);
+        upa::url_search_params paramsC("x=y");
         REQUIRE(list_eq(params, lst_pairs));
 
         paramsC = params;
@@ -150,8 +150,8 @@ TEST_CASE("url_search_params assignment") {
     }
 
     SUBCASE("move assignment") {
-        whatwg::url_search_params params(lst_pairs);
-        whatwg::url_search_params paramsM("x=y");
+        upa::url_search_params params(lst_pairs);
+        upa::url_search_params paramsM("x=y");
         REQUIRE(list_eq(params, lst_pairs));
 
         paramsM = std::move(params);
@@ -159,8 +159,8 @@ TEST_CASE("url_search_params assignment") {
     }
 
     SUBCASE("safe move assignment") {
-        whatwg::url_search_params params(lst_pairs);
-        whatwg::url_search_params paramsM("x=y");
+        upa::url_search_params params(lst_pairs);
+        upa::url_search_params paramsM("x=y");
         REQUIRE(list_eq(params, lst_pairs));
 
         paramsM.safe_assign(std::move(params));
@@ -172,10 +172,10 @@ TEST_CASE("url_search_params assignment to url::search_params()") {
     const pairs_list_t<std::string> lst_pairs = TEST_ITERABLES_DATA;
 
     SUBCASE("copy assignment") {
-        const whatwg::url_search_params params(lst_pairs);
+        const upa::url_search_params params(lst_pairs);
         REQUIRE(list_eq(params, lst_pairs));
 
-        whatwg::url url("http://h/?y=x");
+        upa::url url("http://h/?y=x");
         url.search_params() = params;
 
         CHECK(list_eq(url.search_params(), lst_pairs));
@@ -183,10 +183,10 @@ TEST_CASE("url_search_params assignment to url::search_params()") {
     }
 
     SUBCASE("safe move assignment") {
-        whatwg::url_search_params params(lst_pairs);
+        upa::url_search_params params(lst_pairs);
         REQUIRE(list_eq(params, lst_pairs));
 
-        whatwg::url url("http://h/?y=x");
+        upa::url url("http://h/?y=x");
         url.search_params().safe_assign(std::move(params));
 
         CHECK(list_eq(url.search_params(), lst_pairs));
@@ -200,8 +200,8 @@ TEST_CASE("swap(url_search_params&, url_search_params&)") {
     const std::string str_params_1 = "a=1&b=2&c=3";
     const std::string str_params_2 = "d=4";
 
-    whatwg::url_search_params params_1(str_params_1);
-    whatwg::url_search_params params_2(str_params_2);
+    upa::url_search_params params_1(str_params_1);
+    upa::url_search_params params_2(str_params_2);
 
     using std::swap;
 
@@ -211,7 +211,7 @@ TEST_CASE("swap(url_search_params&, url_search_params&)") {
 }
 
 TEST_CASE("url_search_params::parse") {
-    whatwg::url_search_params params;
+    upa::url_search_params params;
 
     params.parse("a=b");
     CHECK(params.to_string() == "a=b");
@@ -222,7 +222,7 @@ TEST_CASE("url_search_params::parse") {
 
 TEST_CASE("url_search_params::remove...") {
     SUBCASE("url_search_params::remove") {
-        whatwg::url_search_params params("a=a&a=A&b=b&b=B");
+        upa::url_search_params params("a=a&a=A&b=b&b=B");
 
         CHECK(params.remove("a") == 2);
         CHECK(params.to_string() == "b=b&b=B");
@@ -231,15 +231,15 @@ TEST_CASE("url_search_params::remove...") {
         CHECK(params.to_string() == "b=b");
     }
     SUBCASE("url_search_params::remove_if") {
-        whatwg::url_search_params params("a=a&a=A&b=b&b=B");
+        upa::url_search_params params("a=a&a=A&b=b&b=B");
 
-        CHECK(params.remove_if([](whatwg::url_search_params::value_type& item) {
+        CHECK(params.remove_if([](upa::url_search_params::value_type& item) {
             return item.first == item.second;
         }) == 2);
         CHECK(params.to_string() == "a=A&b=B");
     }
     SUBCASE("url::search_params") {
-        whatwg::url url("http://h?a&b=B");
+        upa::url url("http://h?a&b=B");
 
         CHECK(url.search_params().remove("A") == 0);
         CHECK(url.search() == "?a&b=B");
@@ -281,7 +281,7 @@ TEST_CASE("url_search_params::sort()") {
     };
     for (const auto& val : lst) {
         INFO(std::string{val.comment});
-        whatwg::url_search_params params(val.input);
+        upa::url_search_params params(val.input);
         params.sort();
         CHECK(list_eq(params, val.output));
     }
@@ -291,7 +291,7 @@ TEST_CASE("url_search_params::sort()") {
 // Test url::search_params()
 
 TEST_CASE("url::search_params()") {
-    whatwg::url url("http://h/p?a=A");
+    upa::url url("http://h/p?a=A");
     auto& params = url.search_params();
 
     INFO("url::search(...) -> url::search_params()");
@@ -331,13 +331,13 @@ TEST_CASE("url::search_params()") {
 
 TEST_CASE("url::search_params() and url::operator=(const url&)") {
     // test copy assignment to url with initialized url_search_params
-    whatwg::url url_ca("http://dest/");
+    upa::url url_ca("http://dest/");
     auto& ca_search_params = url_ca.search_params();
     ca_search_params.append("ca", "CA");
     CHECK(url_ca.search() == "?ca=CA");
 
     // copy assign url with not initialized url_search_params
-    whatwg::url url("http://src/?a=A");
+    upa::url url("http://src/?a=A");
     url_ca = url;
     REQUIRE(std::addressof(ca_search_params) == std::addressof(url_ca.search_params()));
     CHECK(ca_search_params.to_string() == "a=A");
@@ -352,24 +352,24 @@ TEST_CASE("url::search_params() and url::operator=(const url&)") {
 
 TEST_CASE("url::search_params() and url::url(url&&)") {
     // test move constructor from url with initialized url_search_params
-    whatwg::url url("http://example.org/");
+    upa::url url("http://example.org/");
     url.search_params().append("a", "A");
     CHECK(url.search() == "?a=A");
 
     // move constructor
-    whatwg::url url_m(std::move(url));
+    upa::url url_m(std::move(url));
     url_m.search_params().append("m", "M");
     CHECK(url_m.search() == "?a=A&m=M");
 }
 
 TEST_CASE("url::search_params() and url::operator=(url&&)") {
     // test move assignment from url with initialized url_search_params
-    whatwg::url url("http://example.org/");
+    upa::url url("http://example.org/");
     url.search_params().append("a", "A");
     CHECK(url.search() == "?a=A");
 
     // move assignment
-    whatwg::url url_m;
+    upa::url url_m;
     url_m = std::move(url);
     url_m.search_params().append("m", "M");
     CHECK(url_m.search() == "?a=A&m=M");
@@ -377,18 +377,18 @@ TEST_CASE("url::search_params() and url::operator=(url&&)") {
 
 TEST_CASE("url::search_params() and url::safe_assign(url&&)") {
     // test safe_assign(...) to url with initialized url_search_params
-    whatwg::url url_sa("http://dest/");
+    upa::url url_sa("http://dest/");
     auto& sa_search_params = url_sa.search_params();
     sa_search_params.append("sa", "SA");
     CHECK(url_sa.search() == "?sa=SA");
 
     // safe_assign url with not initialized url_search_params
-    url_sa.safe_assign(whatwg::url("http://src/?a=A"));
+    url_sa.safe_assign(upa::url("http://src/?a=A"));
     REQUIRE(std::addressof(sa_search_params) == std::addressof(url_sa.search_params()));
     CHECK(sa_search_params.to_string() == "a=A");
 
     // safe_assign url with initialized url_search_params
-    whatwg::url url("http://src/");
+    upa::url url("http://src/");
     url.search_params().append("b", "B");
     url_sa.safe_assign(std::move(url));
     REQUIRE(std::addressof(sa_search_params) == std::addressof(url_sa.search_params()));
@@ -397,7 +397,7 @@ TEST_CASE("url::search_params() and url::safe_assign(url&&)") {
 
 TEST_CASE("url::search_params() and url::href(...)") {
     // test href setter on url with initialized url_search_params
-    whatwg::url url("http://dest/");
+    upa::url url("http://dest/");
     auto& search_params = url.search_params();
     search_params.append("hr", "HR");
     CHECK(url.search() == "?hr=HR");
@@ -408,7 +408,7 @@ TEST_CASE("url::search_params() and url::href(...)") {
 }
 
 TEST_CASE("url::search_params() and url::search(...)") {
-    whatwg::url url("http://h/p");
+    upa::url url("http://h/p");
     auto& params = url.search_params();
 
     url.search("??a=b&c=d");
@@ -417,7 +417,7 @@ TEST_CASE("url::search_params() and url::search(...)") {
 }
 
 TEST_CASE("url::search_params() and url::clear()") {
-    whatwg::url url("http://h/p?a=A&b=B");
+    upa::url url("http://h/p?a=A&b=B");
     auto& params = url.search_params();
 
     CHECK_FALSE(url.empty());

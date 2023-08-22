@@ -5,7 +5,7 @@
 
 #include "url.h"
 
-namespace whatwg {
+namespace upa {
 namespace detail {
 
 // url_error exception what() values
@@ -82,4 +82,4 @@ const url::scheme_info* url::get_scheme_info(const str_view_type src) {
 }
 
 
-} // namespace whatwg
+} // namespace upa

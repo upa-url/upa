@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -16,7 +16,7 @@
 #include <string>
 #include <type_traits>
 
-namespace whatwg {
+namespace upa {
 
 template <
     class T,
@@ -193,6 +193,6 @@ private:
     std::array<value_type, fixed_capacity> fixed_buffer_;
 };
 
-} // namespace whatwg
+} // namespace upa
 
 #endif // WHATWG_BUFFER_H

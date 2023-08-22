@@ -12,7 +12,7 @@
 #include <string>
 
 
-namespace whatwg {
+namespace upa {
 
 class url_utf {
 public:
@@ -256,6 +256,6 @@ inline void url_utf::append_utf16(uint32_t code_point, simple_buffer<char16_t, N
 }
 
 
-} // namespace whatwg
+} // namespace upa
 
 #endif // WHATWG_URL_UTF_H

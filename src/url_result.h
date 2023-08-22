@@ -8,7 +8,7 @@
 
 #include <stdexcept>
 
-namespace whatwg {
+namespace upa {
 
 /// @brief URL result codes
 
@@ -79,6 +79,6 @@ struct result_value {
 };
 
 } // namespace detail
-} // namespace whatwg
+} // namespace upa
 
 #endif // URL_RESULT_H

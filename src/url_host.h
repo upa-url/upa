@@ -19,7 +19,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace whatwg {
+namespace upa {
 
 enum class HostType {
     Empty = 0,
@@ -327,6 +327,6 @@ inline url_result host_parser::parse_ipv6(const CharT* first, const CharT* last,
 }
 
 
-} // namespace whatwg
+} // namespace upa
 
 #endif // WHATWG_URL_HOST_H

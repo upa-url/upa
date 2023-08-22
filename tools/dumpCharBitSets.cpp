@@ -11,7 +11,7 @@
 #error "This file requires C++17 compiler"
 #endif
 
-using namespace whatwg;
+using namespace upa;
 
 template <typename CodePointSet>
 void dumpSet(std::ostream& out, const char* type, const char* name, const CodePointSet& cpset) {

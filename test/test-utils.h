@@ -29,7 +29,7 @@ inline /* constexpr */ bool operator==(std::string_view lhs, std::u8string_view 
 // to convert char8_t* literal to std::string
 template <class T>
 inline std::string mk_string(T&& val) {
-    return std::string(whatwg::make_string(std::forward<T>(val)));
+    return std::string(upa::make_string(std::forward<T>(val)));
 }
 
 // encodeURIComponent(...) implementation as described in ECMAScript Language Specification (ECMA-262):

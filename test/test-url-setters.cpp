@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -8,9 +8,9 @@
 
 
 TEST_CASE("Test setters with special URL's") {
-    whatwg::url url;
+    upa::url url;
 
-    REQUIRE(whatwg::success(url.parse("ws://example.org/foo/bar", nullptr)));
+    REQUIRE(upa::success(url.parse("ws://example.org/foo/bar", nullptr)));
 
     SUBCASE("Check getters") {
         CHECK_EQ(url.href(), "ws://example.org/foo/bar");
@@ -83,10 +83,10 @@ TEST_CASE("Test setters with special URL's") {
 }
 
 TEST_CASE("Test setters with non-special URL's") {
-    whatwg::url url;
+    upa::url url;
 
     SUBCASE("non-special: protocol") {
-        REQUIRE(whatwg::success(url.parse("non-special:/path", nullptr)));
+        REQUIRE(upa::success(url.parse("non-special:/path", nullptr)));
         CHECK_EQ(url.href(), "non-special:/path");
 
         CHECK(url.hostname("example.net"));
@@ -97,7 +97,7 @@ TEST_CASE("Test setters with non-special URL's") {
     }
 
     SUBCASE("javascript: protocol") {
-        REQUIRE(whatwg::success(url.parse("JavaScript:alert(1)", nullptr)));
+        REQUIRE(upa::success(url.parse("JavaScript:alert(1)", nullptr)));
         CHECK_EQ(url.href(), "javascript:alert(1)");
 
         CHECK(url.hash("#frag"));
@@ -106,23 +106,23 @@ TEST_CASE("Test setters with non-special URL's") {
 }
 
 TEST_CASE("Test host setter with file URL") {
-    whatwg::url url("file://h/p");
+    upa::url url("file://h/p");
 
     SUBCASE("localhost") {
         CHECK(url.host("localhost"));
         CHECK(url.host() == "");
-        CHECK(url.host_type() == whatwg::HostType::Empty);
+        CHECK(url.host_type() == upa::HostType::Empty);
     }
     SUBCASE("empty host") {
         CHECK(url.host(""));
         CHECK(url.host() == "");
-        CHECK(url.host_type() == whatwg::HostType::Empty);
+        CHECK(url.host_type() == upa::HostType::Empty);
     }
 }
 
 TEST_CASE("Test setters (url_setter::start_part with use_strp_ = false)") {
     SUBCASE("Special URL") {
-        whatwg::url url("http://h/p?query#frag");
+        upa::url url("http://h/p?query#frag");
 
         url.hash("");
         url.search("q");
@@ -133,7 +133,7 @@ TEST_CASE("Test setters (url_setter::start_part with use_strp_ = false)") {
         CHECK(url.hash() == "");
     }
     SUBCASE("Non-special URL") {
-        whatwg::url url("nonspec://host:123/path?query#frag");
+        upa::url url("nonspec://host:123/path?query#frag");
 
         url.hash("");
         url.search("");

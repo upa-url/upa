@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -12,12 +12,12 @@
 
 static bool ipv6_parse(const char* szInput, uint16_t(&address)[8]) {
     using str = std::char_traits<char>;
-    return whatwg::ipv6_parse(szInput, szInput + str::length(szInput), address);
+    return upa::ipv6_parse(szInput, szInput + str::length(szInput), address);
 };
 
 static std::string ipv6_serialize(uint16_t(&address)[8]) {
     std::string strout;
-    whatwg::ipv6_serialize(address, strout);
+    upa::ipv6_serialize(address, strout);
     return strout;
 }
 

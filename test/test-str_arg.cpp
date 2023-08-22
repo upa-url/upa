@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -13,7 +13,7 @@
 
 // Function to test
 
-using namespace whatwg;
+using namespace upa;
 
 template <class ...Args, enable_if_str_arg_t<Args...> = 0>
 inline std::size_t procfn(Args&&... args) {
@@ -36,7 +36,7 @@ private:
     std::size_t length_ = 0;
 };
 
-namespace whatwg {
+namespace upa {
 
 template<typename CharT>
 struct str_arg_char<CustomString<CharT>> {
@@ -47,7 +47,7 @@ struct str_arg_char<CustomString<CharT>> {
     }
 };
 
-} // namespace whatwg
+} // namespace upa
 
 
 // Test char type
@@ -87,7 +87,7 @@ inline void test_char() {
     procfn(str);
     procfn(std::basic_string<CharT>(arr));
 
-    whatwg::str_arg<CharT> arg(arr);
+    upa::str_arg<CharT> arg(arr);
     procfn(arg);
 
     // test custom string

@@ -9,7 +9,7 @@
 
 #include "url_percent_encode.h"
 
-namespace whatwg { // NOLINT(modernize-concat-nested-namespaces)
+namespace upa { // NOLINT(modernize-concat-nested-namespaces)
 
 #ifndef WHATWG_CPP_17
 
@@ -76,4 +76,4 @@ const char kCharToHexLookup[8] = {
 
 
 } // namespace detail
-} // namespace whatwg
+} // namespace upa

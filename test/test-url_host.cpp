@@ -11,15 +11,15 @@
 // * parse_host
 // * parse_opaque_host
 
-class host_out : public whatwg::host_output {
+class host_out : public upa::host_output {
 public:
     std::string host;
-    whatwg::HostType host_type = whatwg::HostType::Empty;
+    upa::HostType host_type = upa::HostType::Empty;
 
     std::string& hostStart() override {
         return host;
     }
-    void hostDone(whatwg::HostType ht) override {
+    void hostDone(upa::HostType ht) override {
         host_type = ht;
     }
 };
@@ -29,27 +29,27 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = true)") {
         const std::string strHost = "";
         host_out out;
 
-        REQUIRE(whatwg::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), true, out) == whatwg::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), true, out) == upa::url_result::Ok);
         CHECK(out.host == "");
-        CHECK(out.host_type == whatwg::HostType::Empty);
+        CHECK(out.host_type == upa::HostType::Empty);
     }
 
     TEST_CASE("HostType::Opaque") {
         const std::string strHost = "host";
         host_out out;
 
-        REQUIRE(whatwg::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), true, out) == whatwg::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), true, out) == upa::url_result::Ok);
         CHECK(out.host == "host");
-        CHECK(out.host_type == whatwg::HostType::Opaque);
+        CHECK(out.host_type == upa::HostType::Opaque);
     }
 
     TEST_CASE("HostType::IPv6") {
         const std::string strHost = "[1::0]";
         host_out out;
 
-        REQUIRE(whatwg::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), true, out) == whatwg::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), true, out) == upa::url_result::Ok);
         CHECK(out.host == "[1::]");
-        CHECK(out.host_type == whatwg::HostType::IPv6);
+        CHECK(out.host_type == upa::HostType::IPv6);
     }
 }
 
@@ -58,18 +58,18 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = false)") {
         const std::string strHost = "";
         host_out out;
 
-        REQUIRE(whatwg::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == whatwg::url_result::EmptyHost);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::url_result::EmptyHost);
         CHECK(out.host == "");
-        CHECK(out.host_type == whatwg::HostType::Empty);
+        CHECK(out.host_type == upa::HostType::Empty);
     }
 
     TEST_CASE("HostType::Domain") {
         const std::string strHost = "host";
         host_out out;
 
-        REQUIRE(whatwg::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == whatwg::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::url_result::Ok);
         CHECK(out.host == "host");
-        CHECK(out.host_type == whatwg::HostType::Domain);
+        CHECK(out.host_type == upa::HostType::Domain);
     }
 
     TEST_CASE("HostType::Domain with long host") {
@@ -80,27 +80,27 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = false)") {
             strHost.append(".bcde12345");
         host_out out;
 
-        REQUIRE(whatwg::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == whatwg::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::url_result::Ok);
         CHECK(out.host == strHost);
-        CHECK(out.host_type == whatwg::HostType::Domain);
+        CHECK(out.host_type == upa::HostType::Domain);
     }
 
     TEST_CASE("HostType::IPv4") {
         const std::string strHost = "127.0.0.1";
         host_out out;
 
-        REQUIRE(whatwg::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == whatwg::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::url_result::Ok);
         CHECK(out.host == "127.0.0.1");
-        CHECK(out.host_type == whatwg::HostType::IPv4);
+        CHECK(out.host_type == upa::HostType::IPv4);
     }
 
     TEST_CASE("HostType::IPv6") {
         const std::string strHost = "[1::0]";
         host_out out;
 
-        REQUIRE(whatwg::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == whatwg::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::url_result::Ok);
         CHECK(out.host == "[1::]");
-        CHECK(out.host_type == whatwg::HostType::IPv6);
+        CHECK(out.host_type == upa::HostType::IPv6);
     }
 }
 
@@ -109,97 +109,97 @@ TEST_SUITE("host_parser::parse_opaque_host") {
         const std::string strHost = "";
         host_out out;
 
-        REQUIRE(whatwg::host_parser::parse_opaque_host(strHost.data(), strHost.data() + strHost.length(), out) == whatwg::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_opaque_host(strHost.data(), strHost.data() + strHost.length(), out) == upa::url_result::Ok);
         CHECK(out.host == "");
-        CHECK(out.host_type == whatwg::HostType::Empty);
+        CHECK(out.host_type == upa::HostType::Empty);
     }
 
     TEST_CASE("HostType::Opaque") {
         const std::string strHost = "host";
         host_out out;
 
-        REQUIRE(whatwg::host_parser::parse_opaque_host(strHost.data(), strHost.data() + strHost.length(), out) == whatwg::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_opaque_host(strHost.data(), strHost.data() + strHost.length(), out) == upa::url_result::Ok);
         CHECK(out.host == "host");
-        CHECK(out.host_type == whatwg::HostType::Opaque);
+        CHECK(out.host_type == upa::HostType::Opaque);
     }
 }
 
 
-// Test whatwg::url_host class
+// Test upa::url_host class
 
 template <class ...Args>
-whatwg::url_result construct_url_host(Args&&... args) {
+upa::url_result construct_url_host(Args&&... args) {
     try {
-        whatwg::url_host h{ std::forward<Args>(args)... };
-        return whatwg::url_result::Ok;
+        upa::url_host h{ std::forward<Args>(args)... };
+        return upa::url_result::Ok;
     }
-    catch (whatwg::url_error& ex) {
+    catch (upa::url_error& ex) {
         return ex.result();
     }
 }
 
 TEST_SUITE("url_host") {
     TEST_CASE("Invalid host") {
-        CHECK(construct_url_host("") == whatwg::url_result::EmptyHost);
-        CHECK(construct_url_host("xn--a") == whatwg::url_result::IdnaError);
-        CHECK(construct_url_host("0x100000000") == whatwg::url_result::InvalidIpv4Address);
-        CHECK(construct_url_host("[1") == whatwg::url_result::InvalidIpv6Address);
-        CHECK(construct_url_host("a^2") == whatwg::url_result::InvalidDomainCharacter);
+        CHECK(construct_url_host("") == upa::url_result::EmptyHost);
+        CHECK(construct_url_host("xn--a") == upa::url_result::IdnaError);
+        CHECK(construct_url_host("0x100000000") == upa::url_result::InvalidIpv4Address);
+        CHECK(construct_url_host("[1") == upa::url_result::InvalidIpv6Address);
+        CHECK(construct_url_host("a^2") == upa::url_result::InvalidDomainCharacter);
     }
 
     TEST_CASE("HostType::Domain") {
-        whatwg::url_host h{ "host" };
+        upa::url_host h{ "host" };
         CHECK(h.to_string() == "host");
-        CHECK(h.type() == whatwg::HostType::Domain);
+        CHECK(h.type() == upa::HostType::Domain);
     }
 
     TEST_CASE("HostType::IPv4") {
-        whatwg::url_host h{ "127.0.0.1" };
+        upa::url_host h{ "127.0.0.1" };
         CHECK(h.to_string() == "127.0.0.1");
-        CHECK(h.type() == whatwg::HostType::IPv4);
+        CHECK(h.type() == upa::HostType::IPv4);
     }
 
     TEST_CASE("HostType::IPv6") {
-        whatwg::url_host h{ "[1::0]" };
+        upa::url_host h{ "[1::0]" };
         CHECK(h.to_string() == "[1::]");
-        CHECK(h.type() == whatwg::HostType::IPv6);
+        CHECK(h.type() == upa::HostType::IPv6);
     }
 
     TEST_CASE("Copy constructor") {
-        whatwg::url_host h{ "example.org" };
+        upa::url_host h{ "example.org" };
         CHECK(h.to_string() == "example.org");
-        CHECK(h.type() == whatwg::HostType::Domain);
+        CHECK(h.type() == upa::HostType::Domain);
 
-        whatwg::url_host hc{ h };
+        upa::url_host hc{ h };
         CHECK(hc.to_string() == "example.org");
-        CHECK(hc.type() == whatwg::HostType::Domain);
+        CHECK(hc.type() == upa::HostType::Domain);
     }
 
     TEST_CASE("Move constructor") {
-        whatwg::url_host h{ "[1:2::3]" };
+        upa::url_host h{ "[1:2::3]" };
         CHECK(h.to_string() == "[1:2::3]");
-        CHECK(h.type() == whatwg::HostType::IPv6);
+        CHECK(h.type() == upa::HostType::IPv6);
 
-        whatwg::url_host hm{ std::move(h) };
+        upa::url_host hm{ std::move(h) };
         CHECK(hm.to_string() == "[1:2::3]");
-        CHECK(hm.type() == whatwg::HostType::IPv6);
+        CHECK(hm.type() == upa::HostType::IPv6);
     }
 
     TEST_CASE("Copy assignment") {
-        const whatwg::url_host h{ "example.org" };
+        const upa::url_host h{ "example.org" };
         CHECK(h.to_string() == "example.org");
-        CHECK(h.type() == whatwg::HostType::Domain);
+        CHECK(h.type() == upa::HostType::Domain);
 
-        whatwg::url_host hc{ "[1::2]" };
+        upa::url_host hc{ "[1::2]" };
         hc = h;
         CHECK(hc.to_string() == "example.org");
-        CHECK(hc.type() == whatwg::HostType::Domain);
+        CHECK(hc.type() == upa::HostType::Domain);
     }
 
     TEST_CASE("Move assignment") {
-        whatwg::url_host hm{ "[1::2]" };
-        hm = whatwg::url_host{ "1.2.3.4" };
+        upa::url_host hm{ "[1::2]" };
+        hm = upa::url_host{ "1.2.3.4" };
         CHECK(hm.to_string() == "1.2.3.4");
-        CHECK(hm.type() == whatwg::HostType::IPv4);
+        CHECK(hm.type() == upa::HostType::IPv4);
     }
 }

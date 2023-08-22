@@ -35,7 +35,7 @@
 // not yet
 // #define WHATWG_URL_USE_ENCODING
 
-namespace whatwg {
+namespace upa {
 
 // forward declarations
 
@@ -187,7 +187,7 @@ public:
     /// @return true if given @a str_url can be parsed against @a *pbase
     template <class T, enable_if_str_arg_t<T> = 0>
     static bool can_parse(T&& str_url, const url* pbase = nullptr) {
-        whatwg::url url;
+        upa::url url;
         return url.parse(std::forward<T>(str_url), pbase) == url_result::Ok;
     }
 
@@ -215,7 +215,7 @@ public:
     /// @return true if given @a str_url can be parsed against @a str_base URL string
     template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
     static bool can_parse(T&& str_url, TB&& str_base) {
-        whatwg::url base;
+        upa::url base;
         return
             base.parse(std::forward<TB>(str_base), nullptr) == url_result::Ok &&
             can_parse(std::forward<T>(str_url), &base);
@@ -2947,6 +2947,6 @@ inline url url_from_file_path(StrT&& str) {
 }
 
 
-} // namespace whatwg
+} // namespace upa
 
 #endif // WHATWG_URL_H

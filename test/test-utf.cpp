@@ -1,4 +1,4 @@
-// Copyright 2016-2021 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -8,7 +8,7 @@
 #include "doctest-main.h"
 
 
-using namespace whatwg;
+using namespace upa;
 
 template <typename T>
 static uint32_t first_codepoint(T&& strUtf) {

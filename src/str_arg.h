@@ -30,10 +30,10 @@ inline void procfn(Args&&... args) {
 # define WHATWG_URL_STR_VIEW_TYPE  std::string_view
 #else
 # include "str_view.h"
-# define WHATWG_URL_STR_VIEW_TYPE  whatwg::str_view<char>
+# define WHATWG_URL_STR_VIEW_TYPE  upa::str_view<char>
 #endif
 
-namespace whatwg {
+namespace upa {
 
 // String view type
 
@@ -277,6 +277,6 @@ inline std::string make_string(Args&&... args) {
 }
 
 
-} // namespace whatwg
+} // namespace upa
 
 #endif // WHATWG_STR_ARG_H

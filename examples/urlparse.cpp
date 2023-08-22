@@ -11,7 +11,7 @@
 // https://github.com/kazuho/picojson
 # include "picojson/picojson.h"
 
-using string_view = whatwg::url::str_view_type;
+using string_view = upa::url::str_view_type;
 
 
 // Parse URL and output result to console
@@ -23,23 +23,23 @@ void cout_name_str(const char* name, StrT&& str) {
     }
 }
 
-void cout_host_type(const whatwg::url& url){
+void cout_host_type(const upa::url& url){
     const char* szHostType = "?";
-    if (url.is_null(whatwg::url::HOST)) {
+    if (url.is_null(upa::url::HOST)) {
         szHostType = "null";
     } else {
         switch (url.host_type()) {
-        case whatwg::HostType::Empty: szHostType = "Empty"; break;
-        case whatwg::HostType::Opaque: szHostType = "Opaque"; break;
-        case whatwg::HostType::Domain: szHostType = "Domain"; break;
-        case whatwg::HostType::IPv4: szHostType = "IPv4"; break;
-        case whatwg::HostType::IPv6: szHostType = "IPv6"; break;
+        case upa::HostType::Empty: szHostType = "Empty"; break;
+        case upa::HostType::Opaque: szHostType = "Opaque"; break;
+        case upa::HostType::Domain: szHostType = "Domain"; break;
+        case upa::HostType::IPv4: szHostType = "IPv4"; break;
+        case upa::HostType::IPv6: szHostType = "IPv6"; break;
         }
     }
     std::cout << "host_type: " << szHostType << "\n";
 }
 
-void cout_url(const whatwg::url& url) {
+void cout_url(const upa::url& url) {
 #if 1
     cout_name_str("HREF", url.href());
     cout_name_str("origin", url.origin());
@@ -56,32 +56,32 @@ void cout_url(const whatwg::url& url) {
     cout_name_str("search", url.search());
     cout_name_str("hash", url.hash());
 #else
-    static const std::initializer_list<std::pair<whatwg::url::PartType, const char*>> parts{
-        { whatwg::url::SCHEME, "SCHEME" },
-        { whatwg::url::USERNAME, "USERNAME" },
-        { whatwg::url::PASSWORD, "PASSWORD" },
-        { whatwg::url::HOST, "HOST" },
-        { whatwg::url::PORT, "PORT" },
-        { whatwg::url::PATH, "PATH" },
-        { whatwg::url::QUERY, "QUERY" },
-        { whatwg::url::FRAGMENT, "FRAGMENT" }
+    static const std::initializer_list<std::pair<upa::url::PartType, const char*>> parts{
+        { upa::url::SCHEME, "SCHEME" },
+        { upa::url::USERNAME, "USERNAME" },
+        { upa::url::PASSWORD, "PASSWORD" },
+        { upa::url::HOST, "HOST" },
+        { upa::url::PORT, "PORT" },
+        { upa::url::PATH, "PATH" },
+        { upa::url::QUERY, "QUERY" },
+        { upa::url::FRAGMENT, "FRAGMENT" }
     };
 
     cout_name_str("HREF", url.href());
     for (const auto& part : parts) {
-        if (part.first == whatwg::url::HOST)
+        if (part.first == upa::url::HOST)
             cout_host_type(url);
         cout_name_str(part.second, url.get_part_view(part.first));
     }
 #endif
 }
 
-void cout_url_eol(const whatwg::url& url) {
+void cout_url_eol(const upa::url& url) {
     cout_url(url);
     std::cout << std::endl;
 }
 
-void url_testas(string_view str_url, whatwg::url* base = nullptr)
+void url_testas(string_view str_url, upa::url* base = nullptr)
 {
     // source data
     std::cout << str_url << "\n";
@@ -90,8 +90,8 @@ void url_testas(string_view str_url, whatwg::url* base = nullptr)
     }
 
     // url parse result
-    whatwg::url url;
-    if (whatwg::success(url.parse(str_url, base))) {
+    upa::url url;
+    if (upa::success(url.parse(str_url, base))) {
         // serialized
         cout_url(url);
     } else {
@@ -110,7 +110,7 @@ public:
             std::cout << '~';
         std::cout << std::endl;
     }
-    virtual void output(string_view str_url, whatwg::url* base) {
+    virtual void output(string_view str_url, upa::url* base) {
         url_testas(str_url, base);
     }
 };
@@ -118,7 +118,7 @@ public:
 
 // Parse URL and output result to JSON file
 
-void url_parse_to_json(json_writer& json, string_view str_url, whatwg::url* base = nullptr)
+void url_parse_to_json(json_writer& json, string_view str_url, upa::url* base = nullptr)
 {
     json.object_start();
 
@@ -131,8 +131,8 @@ void url_parse_to_json(json_writer& json, string_view str_url, whatwg::url* base
         json.value_null();
 
     // url parse result
-    whatwg::url url;
-    if (whatwg::success(url.parse(str_url, base))) {
+    upa::url url;
+    if (upa::success(url.parse(str_url, base))) {
         json.name("href");     json.value(url.href());
         json.name("origin");   json.value(url.origin()); // ne visada reikia
         json.name("protocol"); json.value(url.protocol());
@@ -175,7 +175,7 @@ public:
     void comment(string_view sv) override {
         json_.value(sv.data(), sv.data() + sv.length());
     }
-    void output(string_view str_url, whatwg::url* base) override {
+    void output(string_view str_url, upa::url* base) override {
         url_parse_to_json(json_, str_url, base);
     }
 private:
@@ -218,7 +218,7 @@ void read_samples(const char* file_name, SamplesOutput& out)
     enum class State {
         before_header, header, url
     } state = State::before_header;
-    whatwg::url url_base;
+    upa::url url_base;
 
     std::string line;
     while (std::getline(file, line)) {
@@ -236,7 +236,7 @@ void read_samples(const char* file_name, SamplesOutput& out)
                 string_view val{line.data() + icolon + 1, line.length() - (icolon + 1) };
                 if (line.compare(0, icolon, "BASE") == 0) {
                     const auto res = url_base.parse(val, nullptr);
-                    ok = whatwg::success(res);
+                    ok = upa::success(res);
                 } else if (line.compare(0, icolon, "COMMENT") == 0) {
                     out.comment(val);
                 } else if (line.compare(0, icolon, "URL") == 0) {
@@ -292,7 +292,7 @@ bool read_setter(std::ifstream& file, const char* name, const char* name_end) {
     AsciiTrimWhiteSpace(name, name_end);
     std::string strName(name, name_end);
 
-    whatwg::url url;
+    upa::url url;
 
     std::string line;
     bool ok = true;
@@ -303,7 +303,7 @@ bool read_setter(std::ifstream& file, const char* name, const char* name_end) {
             string_view val{ line.data() + icolon + 1, line.length() - (icolon + 1) };
             if (line.compare(0, icolon, "url") == 0) {
                 std::cout << "URL=" << val << std::endl;
-                ok = whatwg::success(url.parse(val, nullptr));
+                ok = upa::success(url.parse(val, nullptr));
             } else if (line.compare(0, icolon, "val") == 0) {
                 // set value
                 if (strName == "protocol") {
@@ -379,9 +379,9 @@ void read_samples(const char* file_name) {
 void test_interactive(const char* szBaseUrl)
 {
     // parse base URL
-    whatwg::url url_base;
+    upa::url url_base;
     if (szBaseUrl) {
-        if (!whatwg::success(url_base.parse(szBaseUrl, nullptr))) {
+        if (!upa::success(url_base.parse(szBaseUrl, nullptr))) {
             std::cout << szBaseUrl << "\n";
             std::cout << " ^-BASE-PARSE-FAILURE\n";
             return;

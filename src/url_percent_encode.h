@@ -19,7 +19,7 @@
 #include <type_traits>
 
 
-namespace whatwg {
+namespace upa {
 
 
 /// @brief Represents code point set
@@ -599,6 +599,6 @@ inline std::string encode_url_component(StrT&& str) {
 }
 
 
-} // namespace whatwg
+} // namespace upa
 
 #endif // WHATWG_URL_PERCENT_ENCODE_H

@@ -17,7 +17,7 @@
 #include <type_traits>
 #include <utility>
 
-namespace whatwg {
+namespace upa {
 
 
 namespace detail {
@@ -772,6 +772,6 @@ inline void swap(url_search_params& lhs, url_search_params& rhs) WHATWG_NOEXCEPT
 }
 
 
-} // namespace whatwg
+} // namespace upa
 
 #endif // WHATWG_URL_SEARCH_PARAMS_H
