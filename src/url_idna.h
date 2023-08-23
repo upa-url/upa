@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 //
 
-#ifndef WHATWG_URL_IDNA_H
-#define WHATWG_URL_IDNA_H
+#ifndef UPA_URL_IDNA_H
+#define UPA_URL_IDNA_H
 
 #include "buffer.h"
 #include "url_result.h"
@@ -18,4 +18,4 @@ void IDNClose();
 
 } // namespace upa
 
-#endif // WHATWG_URL_IDNA_H
+#endif // UPA_URL_IDNA_H

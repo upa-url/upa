@@ -7,8 +7,8 @@
 // Copyright 2013 The Chromium Authors. All rights reserved.
 //
 
-#ifndef WHATWG_URL_PERCENT_ENCODE_H
-#define WHATWG_URL_PERCENT_ENCODE_H
+#ifndef UPA_URL_PERCENT_ENCODE_H
+#define UPA_URL_PERCENT_ENCODE_H
 
 #include "config.h"
 #include "str_arg.h"
@@ -29,7 +29,7 @@ namespace upa {
 ///
 class code_point_set {
 public:
-#ifdef WHATWG_CPP_17
+#ifdef UPA_CPP_17
     /// @brief constructor for code point set initialization
     ///
     /// Function @a fun must iniatialize @a self object by using code_point_set
@@ -84,12 +84,12 @@ public:
     /// @brief test code point set contains code point @a c
     /// @param[in] c code point to test
     template <typename CharT>
-    WHATWG_CONSTEXPR_17 bool operator[](CharT c) const {
+    UPA_CONSTEXPR_17 bool operator[](CharT c) const {
         const auto uc = util::to_unsigned(c);
         return is_8bit(uc) && (arr_[uc >> 3] & (1u << (uc & 0x07))) != 0;
     }
 
-#ifdef WHATWG_CPP_17
+#ifdef UPA_CPP_17
     // for dump program
     static constexpr std::size_t arr_size() noexcept { return arr_size_; }
     constexpr uint8_t arr_val(std::size_t i) const { return arr_[i]; }
@@ -108,7 +108,7 @@ private:
 
     // Data
     static const std::size_t arr_size_ = 32;
-#ifdef WHATWG_CPP_17
+#ifdef UPA_CPP_17
     uint8_t arr_[arr_size_] = {};
 #else
 public:
@@ -119,7 +119,7 @@ public:
 
 // Percent encode sets
 
-#ifdef WHATWG_CPP_17
+#ifdef UPA_CPP_17
 
 // If you edit following data, then please compile tools/dumpCharBitSets.cpp program
 // with C++17 compiler, run it and copy output to the url_percent_encode.cpp file.
@@ -217,7 +217,7 @@ enum CP_SET : std::uint8_t {
 
 class code_points_multiset {
 public:
-#ifdef WHATWG_CPP_17
+#ifdef UPA_CPP_17
     constexpr code_points_multiset() {
         // Forbidden host code points: U+0000 NULL, U+0009 TAB, U+000A LF, U+000D CR,
         // U+0020 SPACE, U+0023 (#), U+002F (/), U+003A (:), U+003C (<), U+003E (>),
@@ -271,13 +271,13 @@ public:
     /// @param[in] c code point to test
     /// @param[in] cps code point set
     template <typename CharT>
-    WHATWG_CONSTEXPR_17 bool char_in_set(CharT c, CP_SET cps) const {
+    UPA_CONSTEXPR_17 bool char_in_set(CharT c, CP_SET cps) const {
         const auto uc = util::to_unsigned(c);
         return is_8bit(uc) && (arr_[uc] & cps);
     }
 
 private:
-#ifdef WHATWG_CPP_17
+#ifdef UPA_CPP_17
     /// @brief include @a c code point to @a cpsbits sets
     /// @param[in] cpsbits code points sets
     /// @param[in] c code point to include
@@ -329,7 +329,7 @@ private:
 
     // Data
     static const std::size_t arr_size_ = 256;
-#ifdef WHATWG_CPP_17
+#ifdef UPA_CPP_17
     uint8_t arr_[arr_size_] = {};
 #else
 public:
@@ -337,7 +337,7 @@ public:
 #endif
 };
 
-#ifdef WHATWG_CPP_17
+#ifdef UPA_CPP_17
 inline constexpr code_points_multiset code_points;
 #else
 extern const code_points_multiset code_points;
@@ -601,4 +601,4 @@ inline std::string encode_url_component(StrT&& str) {
 
 } // namespace upa
 
-#endif // WHATWG_URL_PERCENT_ENCODE_H
+#endif // UPA_URL_PERCENT_ENCODE_H

@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 //
 
-#ifndef URL_RESULT_H
-#define URL_RESULT_H
+#ifndef UPA_URL_RESULT_H
+#define UPA_URL_RESULT_H
 
 #include <stdexcept>
 
@@ -81,4 +81,4 @@ struct result_value {
 } // namespace detail
 } // namespace upa
 
-#endif // URL_RESULT_H
+#endif // UPA_URL_RESULT_H

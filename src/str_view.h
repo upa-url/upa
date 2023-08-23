@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 //
 
-#ifndef STR_VIEW_H
-#define STR_VIEW_H
+#ifndef UPA_STR_VIEW_H
+#define UPA_STR_VIEW_H
 
 #include <algorithm>
 #include <string>
@@ -135,4 +135,4 @@ std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>&
 
 } // namespace upa
 
-#endif // STR_VIEW_H
+#endif // UPA_STR_VIEW_H

@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 //
 
-#ifndef WHATWG_URL_IP_H
-#define WHATWG_URL_IP_H
+#ifndef UPA_URL_IP_H
+#define UPA_URL_IP_H
 
 #include "url_percent_encode.h"
 #include "url_result.h"
@@ -384,4 +384,4 @@ void ipv6_serialize(const uint16_t(&address)[8], std::string& output);
 
 } // namespace upa
 
-#endif // WHATWG_URL_IP_H
+#endif // UPA_URL_IP_H

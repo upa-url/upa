@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 //
 
-#ifndef WHATWG_URL_UTF_H
-#define WHATWG_URL_UTF_H
+#ifndef UPA_URL_UTF_H
+#define UPA_URL_UTF_H
 
 #include "buffer.h"
 #include "url_result.h"
@@ -258,4 +258,4 @@ inline void url_utf::append_utf16(uint32_t code_point, simple_buffer<char16_t, N
 
 } // namespace upa
 
-#endif // WHATWG_URL_UTF_H
+#endif // UPA_URL_UTF_H

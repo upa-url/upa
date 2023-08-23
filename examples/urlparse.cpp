@@ -228,7 +228,7 @@ void read_samples(const char* file_name, SamplesOutput& out)
             if (line.empty())
                 break;
             state = State::header;
-            WHATWG_FALLTHROUGH
+            UPA_FALLTHROUGH
         case State::header: {
             bool ok = true;
             auto icolon = line.find(':');

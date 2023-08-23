@@ -7,7 +7,7 @@
 #include <iomanip>
 #include <iostream>
 
-#ifndef WHATWG_CPP_17
+#ifndef UPA_CPP_17
 #error "This file requires C++17 compiler"
 #endif
 

@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 //
 
-#ifndef WHATWG_URL_HOST_H
-#define WHATWG_URL_HOST_H
+#ifndef UPA_URL_HOST_H
+#define UPA_URL_HOST_H
 
 #include "buffer.h"
 #include "str_arg.h"
@@ -68,7 +68,7 @@ public:
     url_host(const url_host&) = default;
     url_host(url_host&&) noexcept = default;
     url_host& operator=(const url_host&) = default;
-    url_host& operator=(url_host&&) WHATWG_NOEXCEPT_17 = default;
+    url_host& operator=(url_host&&) UPA_NOEXCEPT_17 = default;
 
     /// Parsing constructor
     ///
@@ -329,4 +329,4 @@ inline url_result host_parser::parse_ipv6(const CharT* first, const CharT* last,
 
 } // namespace upa
 
-#endif // WHATWG_URL_HOST_H
+#endif // UPA_URL_HOST_H

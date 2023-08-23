@@ -14,8 +14,8 @@
 // https://infra.spec.whatwg.org/
 //
 
-#ifndef WHATWG_URL_H
-#define WHATWG_URL_H
+#ifndef UPA_URL_H
+#define UPA_URL_H
 
 #include "buffer.h"
 #include "config.h"
@@ -33,7 +33,7 @@
 #include <vector>
 
 // not yet
-// #define WHATWG_URL_USE_ENCODING
+// #define UPA_URL_USE_ENCODING
 
 namespace upa {
 
@@ -105,7 +105,7 @@ public:
     ///
     /// @param[in,out] other  URL to move to this object
     /// @return *this
-    url& operator=(url&& other) WHATWG_NOEXCEPT_17;
+    url& operator=(url&& other) UPA_NOEXCEPT_17;
 
     /// @brief Safe move assignment.
     ///
@@ -162,7 +162,7 @@ public:
     /// @brief Swaps the contents of two URLs
     ///
     /// @param[in,out] other URL to exchange the contents with
-    void swap(url& other) WHATWG_NOEXCEPT_17;
+    void swap(url& other) UPA_NOEXCEPT_17;
 
     // Parser
 
@@ -562,7 +562,7 @@ private:
     bool canHaveUsernamePasswordPort() const;
 
     // url record
-    void move_record(url& other) WHATWG_NOEXCEPT_17;
+    void move_record(url& other) UPA_NOEXCEPT_17;
 
     // search params
     void clear_search_params() noexcept;
@@ -971,7 +971,7 @@ inline url::url(url&& other) noexcept
     search_params_ptr_.set_url_ptr(this);
 }
 
-inline url& url::operator=(url&& other) WHATWG_NOEXCEPT_17 {
+inline url& url::operator=(url&& other) UPA_NOEXCEPT_17 {
     // move data
     move_record(other);
     search_params_ptr_ = std::move(other.search_params_ptr_);
@@ -999,7 +999,7 @@ inline url& url::safe_assign(url&& other) {
     return *this;
 }
 
-inline void url::move_record(url& other) WHATWG_NOEXCEPT_17 {
+inline void url::move_record(url& other) UPA_NOEXCEPT_17 {
     norm_url_ = std::move(other.norm_url_);
     part_end_ = other.part_end_;
     scheme_inf_ = other.scheme_inf_;
@@ -1259,7 +1259,7 @@ inline void url::clear() {
     clear_search_params();
 }
 
-inline void url::swap(url& other) WHATWG_NOEXCEPT_17 {
+inline void url::swap(url& other) UPA_NOEXCEPT_17 {
     url tmp{ std::move(*this) };
     *this = std::move(other);
     other = std::move(tmp);
@@ -1465,7 +1465,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
     const auto length = std::distance(first, last);
     urls.reserve(length + 32);
 
-#ifdef WHATWG_URL_USE_ENCODING
+#ifdef UPA_URL_USE_ENCODING
     const char* encoding = "UTF-8";
     // TODO: If encoding override is given, set encoding to the result of getting an output encoding from encoding override.
 #endif
@@ -1645,7 +1645,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 state = relative_slash_state;
                 break;
             }
-            WHATWG_FALLTHROUGH
+            UPA_FALLTHROUGH
         default:
             // Set url's username to base's username, url's password to base's password, url's host to base's host,
             // url's port to base's port, url's path to base's path, and then remove url's path's last entry, if any
@@ -1672,7 +1672,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 ++pointer;
                 break;
             }
-            WHATWG_FALLTHROUGH
+            UPA_FALLTHROUGH
         default:
             // set url's username to base's username, url's password to base's password, url's host to base's host,
             // url's port to base's port
@@ -1981,7 +1981,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                     break;
                 case '/':
                     ++pointer;
-                    WHATWG_FALLTHROUGH
+                    UPA_FALLTHROUGH
                 default:
                     state = path_state;
                     break;
@@ -2059,7 +2059,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
         //  // 2. If c is "%" and remaining does not start with two ASCII hex digits, validation error.
         //}
 
-#ifdef WHATWG_URL_USE_ENCODING
+#ifdef UPA_URL_USE_ENCODING
         // scheme_inf_ == nullptr, if unknown scheme
         if (!urls.scheme_inf() || !urls.scheme_inf()->is_special || urls.scheme_inf()->is_ws)
             encoding = "UTF-8";
@@ -2394,7 +2394,7 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
             url_.part_end_[url::PASSWORD] = url_.norm_url_.length();
             fill_start_pt = url::HOST_START; // (url::PASSWORD + 1)
         }
-        WHATWG_FALLTHROUGH
+        UPA_FALLTHROUGH
     case url::PASSWORD:
         if (new_pt == url::HOST)
             url_.norm_url_ += '@';
@@ -2707,7 +2707,7 @@ inline void url_setter::save_part() {
                     replace_part(url::HOST_START, "", 0, curr_pt_, 0);
                     break;
                 }
-                WHATWG_FALLTHROUGH
+                UPA_FALLTHROUGH
             default:
                 if ((curr_pt_ == url::PASSWORD || curr_pt_ == url::PORT) && empty_val)
                     strp_.clear(); // drop ':'
@@ -2880,7 +2880,7 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
 ///
 /// @param[in,out] lhs
 /// @param[in,out] rhs
-inline void swap(url& lhs, url& rhs) WHATWG_NOEXCEPT_17 {
+inline void swap(url& lhs, url& rhs) UPA_NOEXCEPT_17 {
     lhs.swap(rhs);
 }
 
@@ -2949,4 +2949,4 @@ inline url url_from_file_path(StrT&& str) {
 
 } // namespace upa
 
-#endif // WHATWG_URL_H
+#endif // UPA_URL_H

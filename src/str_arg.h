@@ -15,8 +15,8 @@ inline void procfn(Args&&... args) {
 }
 
 **************************************************************/
-#ifndef WHATWG_STR_ARG_H
-#define WHATWG_STR_ARG_H
+#ifndef UPA_STR_ARG_H
+#define UPA_STR_ARG_H
 
 #include "config.h"
 #include "url_utf.h"
@@ -25,19 +25,19 @@ inline void procfn(Args&&... args) {
 #include <string>
 #include <type_traits>
 
-#ifdef WHATWG_CPP_17
+#ifdef UPA_CPP_17
 # include <string_view>
-# define WHATWG_URL_STR_VIEW_TYPE  std::string_view
+# define UPA_URL_STR_VIEW_TYPE  std::string_view
 #else
 # include "str_view.h"
-# define WHATWG_URL_STR_VIEW_TYPE  upa::str_view<char>
+# define UPA_URL_STR_VIEW_TYPE  upa::str_view<char>
 #endif
 
 namespace upa {
 
 // String view type
 
-using url_str_view_t = WHATWG_URL_STR_VIEW_TYPE;
+using url_str_view_t = UPA_URL_STR_VIEW_TYPE;
 
 // Supported char and size types
 
@@ -279,4 +279,4 @@ inline std::string make_string(Args&&... args) {
 
 } // namespace upa
 
-#endif // WHATWG_STR_ARG_H
+#endif // UPA_STR_ARG_H

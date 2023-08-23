@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 //
 
-#ifndef WHATWG_URL_CLEANUP_H
-#define WHATWG_URL_CLEANUP_H
+#ifndef UPA_URL_CLEANUP_H
+#define UPA_URL_CLEANUP_H
 
 // For ICU cleanup
 #include "url_idna.h"
@@ -21,4 +21,4 @@ inline void url_cleanup()
 
 }
 
-#endif // WHATWG_URL_CLEANUP_H
+#endif // UPA_URL_CLEANUP_H

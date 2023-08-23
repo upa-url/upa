@@ -7,8 +7,8 @@
 // Copyright 2013 The Chromium Authors. All rights reserved.
 //
 
-#ifndef WHATWG_BUFFER_H
-#define WHATWG_BUFFER_H
+#ifndef UPA_BUFFER_H
+#define UPA_BUFFER_H
 
 #include <array>
 #include <memory>
@@ -195,4 +195,4 @@ private:
 
 } // namespace upa
 
-#endif // WHATWG_BUFFER_H
+#endif // UPA_BUFFER_H

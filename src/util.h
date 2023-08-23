@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 //
 
-#ifndef WHATWG_UTIL_H
-#define WHATWG_UTIL_H
+#ifndef UPA_UTIL_H
+#define UPA_UTIL_H
 
 #include "config.h"
 #include <algorithm>
@@ -104,7 +104,7 @@ inline void append_tr(std::string& dest, const CharT* first, const CharT* last, 
         std::transform(first, last, buff + old_size, unary_op);
         return new_size;
     });
-#elif defined(WHATWG_CPP_17) 
+#elif defined(UPA_CPP_17)
     dest.resize(new_size);
     std::transform(first, last, dest.data() + old_size, unary_op);
 #else
@@ -126,7 +126,7 @@ inline void append_ascii_lowercase(std::string& dest, const CharT* first, const 
 // Finders
 
 template <class CharT>
-WHATWG_CONSTEXPR_17 bool has_xn_label(const CharT* first, const CharT* last) {
+UPA_CONSTEXPR_17 bool has_xn_label(const CharT* first, const CharT* last) {
     if (last - first >= 4) {
         // search for labels starting with "xn--"
         const auto end = last - 4;
@@ -145,4 +145,4 @@ WHATWG_CONSTEXPR_17 bool has_xn_label(const CharT* first, const CharT* last) {
 } // namespace util
 } // namespace upa
 
-#endif // WHATWG_UTIL_H
+#endif // UPA_UTIL_H
