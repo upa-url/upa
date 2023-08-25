@@ -12,8 +12,6 @@
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
 //
-// Last checked for updates: 2023-05-05
-//
 
 
 //
@@ -430,6 +428,17 @@ TEST_CASE("urlsearchparams-delete.any.js") {
         params.del("a", "c");
         CHECK_EQ(params.to_string(), "a=b&a=d");
     }
+
+    SUBCASE("Two-argument del() respects undefined as second arg") {
+        whatwg::url_search_params params;
+        params.append("a", "b");
+        params.append("a", "c");
+        params.append("b", "c");
+        params.append("b", "d");
+        params.del("b", "c");
+        params.del("a" /*, undefined*/); // TODO: undefined
+        CHECK_EQ(params.to_string(), "b=d");
+    }
 }
 
 //
@@ -549,6 +558,14 @@ TEST_CASE("urlsearchparams-has.any.js") {
         CHECK(params.has("first", "null"));
         params.del("a", "b");
         CHECK(params.has("a", "d"));
+    }
+
+    SUBCASE("Two-argument has() respects undefined as second arg") {
+        whatwg::url_search_params params("a=b&a=d&c&e&");
+        CHECK(params.has("a", "b"));
+        CHECK_FALSE(params.has("a", "c"));
+        CHECK(params.has("a", "d"));
+        CHECK(params.has("a" /*, undefined*/)); // TODO: undefined
     }
 }
 
