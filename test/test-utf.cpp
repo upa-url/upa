@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 //
 
-#include "url_utf.h"
-#include "str_arg.h"
+#include "upa/str_arg.h"
+#include "upa/url_utf.h"
 #include "doctest-main.h"
 
 

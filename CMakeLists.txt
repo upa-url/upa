@@ -80,7 +80,7 @@ endif()
 
 include_directories(
   deps
-  src)
+  include)
 
 if (URL_USE_LIBS)
   find_package(ICU REQUIRED COMPONENTS i18n uc)

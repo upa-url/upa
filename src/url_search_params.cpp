@@ -3,8 +3,7 @@
 // found in the LICENSE file.
 //
 
-#include "url.h"
-#include "url_search_params.h"
+#include "upa/url.h"
 
 
 namespace upa {

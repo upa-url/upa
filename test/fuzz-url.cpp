@@ -5,7 +5,7 @@
 
 // Relative URL parsing fuzzer
 
-#include "url.h"
+#include "upa/url.h"
 #include <cassert>
 #include <type_traits>
 

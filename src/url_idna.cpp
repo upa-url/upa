@@ -7,8 +7,8 @@
 // Copyright 2013 The Chromium Authors. All rights reserved.
 //
 
-#include "url_idna.h"
-#include "util.h"
+#include "upa/url_idna.h"
+#include "upa/util.h"
 // ICU
 #include "unicode/uidna.h"
 #if (U_ICU_VERSION_MAJOR_NUM) >= 59

@@ -7,7 +7,7 @@
 #define UPA_URL_CLEANUP_H
 
 // For ICU cleanup
-#include "url_idna.h"
+#include "upa/url_idna.h"
 #include "unicode/uclean.h"
 
 namespace upa {

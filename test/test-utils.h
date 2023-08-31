@@ -6,16 +6,16 @@
 #ifndef UPA_TEST_UTILS_H
 #define UPA_TEST_UTILS_H
 
-#include "config.h"
+#include "upa/config.h"
 #include <algorithm>
 #include <initializer_list>
 #include <iomanip>
-#include <utility> // std::pair
-#include <string>
 #include <sstream>
+#include <string>
 #ifdef __cpp_char8_t
 # include <string_view>
 #endif
+#include <utility> // std::pair
 
 
 #ifdef __cpp_char8_t

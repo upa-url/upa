@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 //
 
-#include <string>
 #include "doctest-main.h"
-#include "buffer.h" // must be included after doctest.h
+#include "upa/buffer.h" // must be included after doctest.h
+#include <string>
 
 using str = std::char_traits<char>;
 

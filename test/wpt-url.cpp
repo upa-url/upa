@@ -7,10 +7,10 @@
 // url library tests
 //
 
-#include "url.h"
-#include "url_cleanup.h"
+#include "upa/url.h"
 #include "ddt/DataDrivenTest.hpp"
 #include "test-utils.h"
+#include "url_cleanup.h"
 
 #include "picojson_fffd.h"
 
