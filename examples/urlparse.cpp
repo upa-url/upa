@@ -1,73 +1,45 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
 
-#include "url.h"
-#include "url_search_params.h"
+#include "upa/url.h"
 #include <fstream>
 #include <iostream>
-// conversion
-#include <codecvt>
-#include <locale>
 // json
 #include "json_writer/json_writer.h"
 // https://github.com/kazuho/picojson
 # include "picojson/picojson.h"
 
+using string_view = upa::url::str_view_type;
 
-template <class ...Args>
-std::wstring to_wstr(Args&& ...args) {
-    try {
-        static std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> convW;
-        return convW.from_bytes(std::forward<Args>(args)...);
-    }
-    catch (std::exception&) {
-        return L"<invalid UTF-8>";
-    }
-}
 
-void cout_str(const wchar_t* str) {
-    std::wcout << str;
-}
+// Parse URL and output result to console
 
-void cout_str(const char* str) {
-    std::wcout << to_wstr(str);
-}
-
-void cout_str(const char16_t* str) {
-    std::wcout << (const wchar_t*)str;
-}
-
-void cout_str(const char32_t* str) {
-    for (; *str; str++)
-        std::wcout.put(static_cast<wchar_t>(*str));
-}
-
-template <class T>
-void cout_name_str(const char* name, T&& str) {
+template <class StrT>
+void cout_name_str(const char* name, StrT&& str) {
     if (!str.empty()) {
-        std::wcout << name << ": " << to_wstr(std::forward<T>(str)) << "\n";
+        std::cout << name << ": " << str << "\n";
     }
 }
 
-void cout_host_type(const whatwg::url& url){
-    const char* szHostType;
-    if (url.is_null(whatwg::url::HOST)) {
+void cout_host_type(const upa::url& url){
+    const char* szHostType = "?";
+    if (url.is_null(upa::url::HOST)) {
         szHostType = "null";
     } else {
         switch (url.host_type()) {
-        case whatwg::HostType::Empty: szHostType = "Empty"; break;
-        case whatwg::HostType::Opaque: szHostType = "Opaque"; break;
-        case whatwg::HostType::Domain: szHostType = "Domain"; break;
-        case whatwg::HostType::IPv4: szHostType = "IPv4"; break;
-        case whatwg::HostType::IPv6: szHostType = "IPv6"; break;
+        case upa::HostType::Empty: szHostType = "Empty"; break;
+        case upa::HostType::Opaque: szHostType = "Opaque"; break;
+        case upa::HostType::Domain: szHostType = "Domain"; break;
+        case upa::HostType::IPv4: szHostType = "IPv4"; break;
+        case upa::HostType::IPv6: szHostType = "IPv6"; break;
         }
     }
-    std::wcout << "host_type: " << szHostType << "\n";
+    std::cout << "host_type: " << szHostType << "\n";
 }
 
-void cout_url(const whatwg::url& url) {
+void cout_url(const upa::url& url) {
 #if 1
     cout_name_str("HREF", url.href());
     cout_name_str("origin", url.origin());
@@ -84,80 +56,83 @@ void cout_url(const whatwg::url& url) {
     cout_name_str("search", url.search());
     cout_name_str("hash", url.hash());
 #else
-    static const std::initializer_list<std::pair<whatwg::url::PartType, const char*>> parts{
-        { whatwg::url::SCHEME, "SCHEME" },
-        { whatwg::url::USERNAME, "USERNAME" },
-        { whatwg::url::PASSWORD, "PASSWORD" },
-        { whatwg::url::HOST, "HOST" },
-        { whatwg::url::PORT, "PORT" },
-        { whatwg::url::PATH, "PATH" },
-        { whatwg::url::QUERY, "QUERY" },
-        { whatwg::url::FRAGMENT, "FRAGMENT" }
+    static const std::initializer_list<std::pair<upa::url::PartType, const char*>> parts{
+        { upa::url::SCHEME, "SCHEME" },
+        { upa::url::USERNAME, "USERNAME" },
+        { upa::url::PASSWORD, "PASSWORD" },
+        { upa::url::HOST, "HOST" },
+        { upa::url::PORT, "PORT" },
+        { upa::url::PATH, "PATH" },
+        { upa::url::QUERY, "QUERY" },
+        { upa::url::FRAGMENT, "FRAGMENT" }
     };
 
     cout_name_str("HREF", url.href());
     for (const auto& part : parts) {
-        if (part.first == whatwg::url::HOST)
+        if (part.first == upa::url::HOST)
             cout_host_type(url);
         cout_name_str(part.second, url.get_part_view(part.first));
     }
 #endif
 }
 
-void cout_url_eol(const whatwg::url& url) {
+void cout_url_eol(const upa::url& url) {
     cout_url(url);
-    std::wcout << std::endl;
+    std::cout << std::endl;
 }
 
-template <typename CharT>
-void url_testas(const CharT* str_url, whatwg::url* base = nullptr)
+void url_testas(string_view str_url, upa::url* base = nullptr)
 {
     // source data
-    cout_str(str_url);  std::wcout << "\n";
+    std::cout << str_url << "\n";
     if (base) {
-        std::wcout << "BASE: " << to_wstr(base->href()) << "\n";
+        std::cout << "BASE: " << base->href() << "\n";
     }
 
     // url parse result
-    whatwg::url url;
-    if (whatwg::success(url.parse(str_url, base))) {
+    upa::url url;
+    if (upa::success(url.parse(str_url, base))) {
         // serialized
         cout_url(url);
     } else {
-        std::wcout << " ^--FAILURE\n";
+        std::cout << " ^--FAILURE\n";
     }
-    std::wcout << std::endl;
+    std::cout << std::endl;
 }
 
-template <typename CharT>
-void url_testas(const CharT* str_url, const CharT* str_base)
-{
-    if (str_base) {
-        whatwg::url url_base;
-        if (whatwg::success(url_base.parse(str_base, nullptr))) {
-            url_testas(str_url, &url_base);
-        } else {
-            cout_str(str_base);  std::wcout << "\n";
-            std::wcout << " ^-BASE-PARSE-FAILURE\n";
-        }
-    } else {
-        url_testas(str_url);
+class SamplesOutput {
+public:
+    virtual bool open() { return true; };
+    virtual void close() {};
+    virtual void comment(string_view sv) {
+        std::cout << sv << std::endl;
+        for (auto len = sv.length(); len; --len)
+            std::cout << '~';
+        std::cout << std::endl;
     }
-}
+    virtual void output(string_view str_url, upa::url* base) {
+        url_testas(str_url, base);
+    }
+};
 
-template <typename CharT>
-void url_parse_to_json(json_writer& json, const CharT* str_url, whatwg::url* base = nullptr)
+
+// Parse URL and output result to JSON file
+
+void url_parse_to_json(json_writer& json, string_view str_url, upa::url* base = nullptr)
 {
     json.object_start();
 
     json.name("input"); json.value(str_url);
-    if (base) {
-        json.name("base"); json.value(base->href());
-    }
+
+    json.name("base");
+    if (base)
+        json.value(base->href());
+    else
+        json.value_null();
 
     // url parse result
-    whatwg::url url;
-    if (whatwg::success(url.parse(str_url, base))) {
+    upa::url url;
+    if (upa::success(url.parse(str_url, base))) {
         json.name("href");     json.value(url.href());
         json.name("origin");   json.value(url.origin()); // ne visada reikia
         json.name("protocol"); json.value(url.protocol());
@@ -175,20 +150,6 @@ void url_parse_to_json(json_writer& json, const CharT* str_url, whatwg::url* bas
 
     json.object_end();
 }
-
-class SamplesOutput {
-public:
-    virtual bool open() { return true; };
-    virtual void close() {};
-    virtual void comment(const char* sz) {
-        std::wcout << sz << std::endl;
-        while (*sz) std::wcout << '~', sz++;
-        std::wcout << std::endl;
-    }
-    virtual void output(const char* str_url, whatwg::url* base) {
-        url_testas(str_url, base);
-    }
-};
 
 class SamplesOutputJson : public SamplesOutput {
 public:
@@ -211,10 +172,10 @@ public:
         json_.array_end();
     }
 
-    virtual void comment(const char* sz) {
-        json_.value(sz);
+    void comment(string_view sv) override {
+        json_.value(sv.data(), sv.data() + sv.length());
     }
-    void output(const char* str_url, whatwg::url* base) override {
+    void output(string_view str_url, upa::url* base) override {
         url_parse_to_json(json_, str_url, base);
     }
 private:
@@ -255,26 +216,33 @@ void read_samples(const char* file_name, SamplesOutput& out)
         return;
 
     enum class State {
-        header, url
-    } state = State::header;
-    whatwg::url url_base;
+        before_header, header, url
+    } state = State::before_header;
+    upa::url url_base;
 
     std::string line;
     while (std::getline(file, line)) {
         switch (state) {
+        case State::before_header:
+            // skip empty lines before header
+            if (line.empty())
+                break;
+            state = State::header;
+            UPA_FALLTHROUGH
         case State::header: {
             bool ok = true;
             auto icolon = line.find(':');
             if (icolon != line.npos) {
+                string_view val{line.data() + icolon + 1, line.length() - (icolon + 1) };
                 if (line.compare(0, icolon, "BASE") == 0) {
-                    const auto res = url_base.parse(line.data() + icolon + 1, line.data() + line.length(), nullptr);
-                    ok = whatwg::success(res);
+                    const auto res = url_base.parse(val, nullptr);
+                    ok = upa::success(res);
                 } else if (line.compare(0, icolon, "COMMENT") == 0) {
-                    out.comment(line.data() + icolon + 1);
+                    out.comment(val);
                 } else if (line.compare(0, icolon, "URL") == 0) {
                     state = State::url;
                 } else if (line.compare(0, icolon, "SET") == 0) {
-                    if (!read_setter(file, line.data() + icolon + 1, line.data() + line.length()))
+                    if (!read_setter(file, val.data(), val.data() + val.length()))
                         return;
                 } else {
                     ok = false;
@@ -283,7 +251,7 @@ void read_samples(const char* file_name, SamplesOutput& out)
                 ok = false;
             }
             if (!ok) {
-                std::cerr << "Error in header" << std::endl;
+                std::cerr << "Error in header line:\n" << line << std::endl;
                 return;
             }
             break;
@@ -295,14 +263,14 @@ void read_samples(const char* file_name, SamplesOutput& out)
                     picojson::value v;
                     std::string err = picojson::parse(v, line);
                     if (!err.empty()) {
-                        std::cerr << "Skip invalid line: " << line << std::endl;
+                        std::cerr << "Skip invalid line:\n" << line << std::endl;
                         continue;
                     }
                     line = v.get<std::string>();
                 }
-                out.output(line.c_str(), (url_base.href().empty() ? nullptr : &url_base));
+                out.output(line, url_base.empty() ? nullptr : &url_base);
             } else {
-                state = State::header;
+                state = State::before_header;
                 url_base.clear();
             }
             break;
@@ -314,17 +282,17 @@ void read_samples(const char* file_name, SamplesOutput& out)
 }
 
 inline static void AsciiTrimWhiteSpace(const char*& first, const char*& last) {
-    auto ascii_ws = [](char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r'; };
+    const auto ascii_ws = [](char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r'; };
     // trim space
-    while (first < last && ascii_ws(*first)) first++;
-    while (first < last && ascii_ws(*(last - 1))) last--;
+    while (first < last && ascii_ws(*first)) ++first;
+    while (first < last && ascii_ws(*(last - 1))) --last;
 }
 
 bool read_setter(std::ifstream& file, const char* name, const char* name_end) {
     AsciiTrimWhiteSpace(name, name_end);
     std::string strName(name, name_end);
 
-    whatwg::url url;
+    upa::url url;
 
     std::string line;
     bool ok = true;
@@ -332,40 +300,35 @@ bool read_setter(std::ifstream& file, const char* name, const char* name_end) {
         if (line.length() == 0) break;
         auto icolon = line.find(':');
         if (icolon != line.npos) {
-            const char* val = line.data() + icolon + 1;
-            const char* val_end = line.data() + line.length();
+            string_view val{ line.data() + icolon + 1, line.length() - (icolon + 1) };
             if (line.compare(0, icolon, "url") == 0) {
-                std::cout << "URL=";
-                std::cout.write(val, val_end - val);
-                std::cout << std::endl;
-                ok = whatwg::success(url.parse(val, val_end, nullptr));
+                std::cout << "URL=" << val << std::endl;
+                ok = upa::success(url.parse(val, nullptr));
             } else if (line.compare(0, icolon, "val") == 0) {
                 // set value
                 if (strName == "protocol") {
-                    url.protocol(val, val_end);
+                    url.protocol(val);
                 } else if (strName == "username") {
-                    url.username(val, val_end);
+                    url.username(val);
                 } else if (strName == "password") {
-                    url.password(val, val_end);
+                    url.password(val);
                 } else if (strName == "host") {
-                    url.host(val, val_end);
+                    url.host(val);
                 } else if (strName == "hostname") {
-                    url.hostname(val, val_end);
+                    url.hostname(val);
                 } else if (strName == "port") {
-                    url.port(val, val_end);
+                    url.port(val);
                 } else if (strName == "pathname") {
-                    url.pathname(val, val_end);
+                    url.pathname(val);
                 } else if (strName == "search") {
-                    url.search(val, val_end);
+                    url.search(val);
                 } else if (strName == "hash") {
-                    url.hash(val, val_end);
+                    url.hash(val);
                 } else {
                     std::cerr << "Unknown setter: " << strName << std::endl;
                     return false;
                 }
-                std::cout << strName << "=";
-                std::cout.write(val, val_end - val);
-                std::cout << std::endl;
+                std::cout << strName << "=" << val << std::endl;
                 cout_url_eol(url);
             }
         }
@@ -378,15 +341,15 @@ bool read_setter(std::ifstream& file, const char* name, const char* name_end) {
 }
 
 bool AsciiEqualsIgnoreCase(const char* test, const char* lcase) {
-    auto ascii_lc = [](char c) { return (c >= 'A' && c <= 'Z') ? c + ('a' - 'A') : c; };
-    while (*test && ascii_lc(*test) == *lcase) test++, lcase++;
+    const auto ascii_lc = [](char c) { return (c >= 'A' && c <= 'Z') ? c + ('a' - 'A') : c; };
+    while (*test && ascii_lc(*test) == *lcase) ++test, ++lcase;
     return *test == 0 && *lcase == 0;
 }
 
 const char* end_of_file_name(const char* fname) {
     const char* last = fname + std::strlen(fname);
     for (const char* p = last; p > fname; ) {
-        p--;
+        --p;
         switch (p[0]) {
         case '.':
             return p;
@@ -410,16 +373,28 @@ void read_samples(const char* file_name) {
     }
 }
 
-// interactive url parsing
+
+// Interactive URL parsing
 
 void test_interactive(const char* szBaseUrl)
 {
+    // parse base URL
+    upa::url url_base;
+    if (szBaseUrl) {
+        if (!upa::success(url_base.parse(szBaseUrl, nullptr))) {
+            std::cout << szBaseUrl << "\n";
+            std::cout << " ^-BASE-PARSE-FAILURE\n";
+            return;
+        }
+    }
+
+    // parse entered URL's
     std::cout << "Enter URL; enter empty line to exit\n";
 
     std::string str;
     while (std::getline(std::cin, str)) {
         if (str.empty()) break;
-        url_testas(str.c_str(), szBaseUrl);
+        url_testas(str, url_base.empty() ? nullptr : &url_base);
     }
 }
 
@@ -427,9 +402,6 @@ void test_interactive(const char* szBaseUrl)
 
 int main(int argc, char *argv[])
 {
-    // set user-preferred locale
-    setlocale(LC_ALL, "");
-
     if (argc > 1) {
         const char* flag = argv[1];
         if (flag[0] == '-') {
@@ -439,12 +411,14 @@ int main(int argc, char *argv[])
                     read_samples(argv[2]);
                     return 0;
                 }
+                break;
             case 't':
                 if (argc > 2) {
                     SamplesOutput out;
                     read_samples(argv[2], out);
                     return 0;
                 }
+                break;
             }
         } else if (argc == 2) {
             test_interactive(argv[1]);

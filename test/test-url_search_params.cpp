@@ -1,661 +1,434 @@
-#include "url.h"
-#include "url_search_params.h"
+// Copyright 2016-2023 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+
+#include "upa/url.h"
 #include "doctest-main.h"
-#include <algorithm>
+#include "test-utils.h"
 #include <map>
 
-// Tests based on "urlsearchparams-*.any.js" files from
-// https://github.com/web-platform-tests/wpt/tree/master/url
-//
-// Last checked for updates: 2020-06-08
-//
+#if defined(__has_include)
 
+#if __has_include(<version>)
+# include <version>
+#endif
+
+#if defined(__cpp_impl_coroutine)
+#if __has_include(<experimental/generator>)
+# include <experimental/generator>
+# define TEST_COROUTINE_GENERATOR
+using std::experimental::generator;
+#endif
+#endif
+
+// ranges requires libc++ when compile with Clang
+#if !defined(__clang__) || defined(_LIBCPP_VERSION)
+#if defined(__cpp_lib_ranges)
+#if __has_include(<ranges>)
+# include <ranges>
+# define TEST_RANGES
+#endif
+#endif
+#endif
+
+#endif // defined(__has_include)
+
+
+// Iterable containers tests
+
+#define TEST_ITERABLES_DATA {    \
+        {{ 'a' }, { 'a', 'a' }}, \
+        {{ 'b' }, { 'b', 'b' }}  \
+    }
+
+#define TEST_SEARCH_STR "?a=aa&b=bb"
+
+
+TEST_CASE_TEMPLATE_DEFINE("Various string pairs iterable containers", CharT, test_iterables) {
+    using string_t = std::basic_string<CharT>;
+
+    const pairs_list_t<std::string> output = TEST_ITERABLES_DATA;
+
+    SUBCASE("array") {
+        const std::pair<string_t, string_t> arr_pairs[] = TEST_ITERABLES_DATA;
+        upa::url_search_params params(arr_pairs);
+        CHECK(list_eq(params, output));
+    }
+    SUBCASE("std::initializer_list") {
+        const pairs_list_t<string_t> lst_pairs = TEST_ITERABLES_DATA;
+        upa::url_search_params params(lst_pairs);
+        CHECK(list_eq(params, output));
+    }
+    SUBCASE("std::map") {
+        const std::map<string_t, string_t> map_pairs(TEST_ITERABLES_DATA);
+        upa::url_search_params params(map_pairs);
+        CHECK(list_eq(params, output));
+    }
+    SUBCASE("std::vector") {
+        const std::vector<std::pair<string_t, string_t>> vec_pairs(TEST_ITERABLES_DATA);
+        upa::url_search_params params(vec_pairs);
+        CHECK(list_eq(params, output));
+    }
+
+#ifdef TEST_COROUTINE_GENERATOR
+    SUBCASE("coroutine generator") {
+        auto pairs_gen = []() -> generator<std::pair<string_t, string_t>> {
+            const pairs_list_t<string_t> lst_pairs = TEST_ITERABLES_DATA;
+            for (const auto& p : lst_pairs)
+                co_yield p;
+        };
+
+        upa::url_search_params params(pairs_gen());
+        CHECK(list_eq(params, output));
+    }
+#endif
+
+#ifdef TEST_RANGES
+    SUBCASE("ranges") {
+        const pairs_list_t<string_t> lst_pairs = TEST_ITERABLES_DATA;
+        upa::url_search_params params(std::ranges::subrange(lst_pairs.begin(), lst_pairs.end()));
+        CHECK(list_eq(params, output));
+    }
+#endif
+}
+
+TEST_CASE_TEMPLATE_INVOKE(test_iterables, char, wchar_t, char16_t, char32_t);
 #ifdef __cpp_char8_t
-constexpr bool operator==(std::string_view lhs, std::u8string_view rhs) noexcept {
-    return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
-        [](char a, char8_t b) { return a == char(b) && char8_t(a) == b; }
-    );
-}
+TEST_CASE_TEMPLATE_INVOKE(test_iterables, char8_t);
 #endif
 
-template <class T>
-static bool param_eq(const std::string* pval, const T& value) {
-    return pval != nullptr && *pval == value;
-}
 
-template <class List, class T>
-static bool list_eq(const List& val, std::initializer_list<T> lst) {
-#ifdef WHATWG__CPP_14
-    return std::equal(std::begin(val), std::end(val), std::begin(lst), std::end(lst));
-#else
-    return
-        val.size() == lst.size() &&
-        std::equal(std::begin(val), std::end(val), std::begin(lst));
-#endif
-}
+// Constructors
 
+TEST_CASE("url_search_params constructors") {
+    const pairs_list_t<std::string> lst_pairs = TEST_ITERABLES_DATA;
 
-//
-// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-append.any.js
-//
-TEST_CASE("urlsearchparams-append.any.js") {
-    SUBCASE("Append same name") {
-        whatwg::url_search_params params;
+    SUBCASE("default constructor") {
+        const upa::url_search_params params;
 
-        params.append("a", "b");
-        CHECK(params.to_string() == "a=b");
-
-        params.append("a", "b");
-        CHECK(params.to_string() == "a=b&a=b");
-
-        params.append("a", "c");
-        CHECK(params.to_string() == "a=b&a=b&a=c");
+        CHECK(params.empty());
+        CHECK(params.size() == 0);
+        CHECK(params.to_string() == "");
     }
+    SUBCASE("copy constructor from const") {
+        const upa::url_search_params params(lst_pairs);
+        CHECK(list_eq(params, lst_pairs));
 
-    SUBCASE("Append empty strings") {
-        whatwg::url_search_params params;
-
-        params.append("", "");
-        CHECK(params.to_string() == "=");
-        params.append("", "");
-        CHECK(params.to_string() == "=&=");
+        upa::url_search_params paramsC(params);
+        CHECK(list_eq(paramsC, lst_pairs));
     }
+    SUBCASE("copy constructor") {
+        upa::url_search_params params(lst_pairs);
+        CHECK(list_eq(params, lst_pairs));
 
-#if 0
-    // TODO: fix whatwg::url_search_params
-    // https://developer.mozilla.org/en-US/docs/Web/API/USVString
-    // https://developer.mozilla.org/en-US/docs/Web/API/DOMString
-    // Passing null to a method or parameter accepting a DOMString typically stringifies to "null".
-    SUBCASE("Append null") {
-        whatwg::url_search_params params;
-
-        params.append(nullptr, nullptr);
-        CHECK(params.to_string() == "null=null");
-
-        params.append(nullptr, nullptr);
-        CHECK(params.to_string() == "null=null&null=null");
+        upa::url_search_params paramsC(params);
+        CHECK(list_eq(paramsC, lst_pairs));
     }
-#endif
+    SUBCASE("move constructor") {
+        upa::url_search_params params(lst_pairs);
+        CHECK(list_eq(params, lst_pairs));
 
-    SUBCASE("Append multiple") {
-        whatwg::url_search_params params;
-
-        params.append("first", "1"); // TODO: 1
-        params.append("second", "2"); // TODO: 2
-        params.append("third", "");
-        params.append("first", "10"); // TODO: 10
-
-        CHECK_MESSAGE(params.has("first"), "Search params object has name \"first\"");
-        CHECK_MESSAGE(param_eq(params.get("first"), "1"), "Search params object has name \"first\" with value \"1\"");
-        CHECK_MESSAGE(param_eq(params.get("second"), "2"), "Search params object has name \"second\" with value \"2\"");
-        CHECK_MESSAGE(param_eq(params.get("third"), ""), "Search params object has name \"third\" with value \"\"");
-        params.append("first", "10"); // TODO: 10
-        CHECK_MESSAGE(param_eq(params.get("first"), "1"), "Search params object has name \"first\" with value \"1\"");
+        upa::url_search_params paramsM(std::move(params));
+        CHECK(list_eq(paramsM, lst_pairs));
     }
 }
 
-//
-// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-constructor.any.js
-//
-TEST_CASE("urlsearchparams-constructor.any.js") {
-    SUBCASE("Basic URLSearchParams construction") {
-        {
-            whatwg::url_search_params params;
-            CHECK_EQ(params.to_string(), "");
-        } {
-            whatwg::url_search_params params("");
-            CHECK_EQ(params.to_string(), "");
-        } {
-            whatwg::url_search_params params("a=b");
-            CHECK_EQ(params.to_string(), "a=b");
+// Assignment
 
-            // copy constructor
-            whatwg::url_search_params paramsC(params);
-            CHECK_EQ(paramsC.to_string(), "a=b");
+TEST_CASE("url_search_params assignment") {
+    const pairs_list_t<std::string> lst_pairs = TEST_ITERABLES_DATA;
 
-            // move constructor
-            whatwg::url_search_params paramsM(std::move(params));
-            CHECK_EQ(paramsM.to_string(), "a=b");
-        }
+    SUBCASE("copy assignment") {
+        const upa::url_search_params params(lst_pairs);
+        upa::url_search_params paramsC("x=y");
+        REQUIRE(list_eq(params, lst_pairs));
+
+        paramsC = params;
+        CHECK(list_eq(paramsC, lst_pairs));
     }
 
-    // The first SUBCASE contains the same Check
-    SUBCASE("URLSearchParams constructor, no arguments") {
-        whatwg::url_search_params params;
-        CHECK_EQ(params.to_string(), "");
+    SUBCASE("move assignment") {
+        upa::url_search_params params(lst_pairs);
+        upa::url_search_params paramsM("x=y");
+        REQUIRE(list_eq(params, lst_pairs));
+
+        paramsM = std::move(params);
+        CHECK(list_eq(paramsM, lst_pairs));
     }
 
-    SUBCASE("URLSearchParams constructor, remove leading \"?\"") {
-        whatwg::url_search_params params("?a=b");
-        CHECK_EQ(params.to_string(), "a=b");
-    }
+    SUBCASE("safe move assignment") {
+        upa::url_search_params params(lst_pairs);
+        upa::url_search_params paramsM("x=y");
+        REQUIRE(list_eq(params, lst_pairs));
 
-    // Skip JavaScript specific tests:
-    // 1) new URLSearchParams(DOMException)
-    // 2) assert_equals(params.__proto__, URLSearchParams.prototype, ...)
-
-    SUBCASE("URLSearchParams constructor, {} as argument") {
-        // {} - JS object; use std::map in C++
-        whatwg::url_search_params params(std::map<std::string, std::string>{});
-        CHECK_EQ(params.to_string(), "");
-    }
-
-    SUBCASE("URLSearchParams constructor, string.") {
-        {
-            whatwg::url_search_params params("a=b");
-            CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
-            CHECK_FALSE_MESSAGE(params.has("b"), "Search params object has not got name \"b\"");
-        } {
-            whatwg::url_search_params params("a=b&c");
-            CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
-            CHECK_MESSAGE(params.has("c"), "Search params object has name \"c\"");
-        } {
-            whatwg::url_search_params params("&a&&& &&&&&a+b=& c&m%c3%b8%c3%b8");
-            CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
-            CHECK_MESSAGE(params.has("a b"), "Search params object has name \"a b\"");
-            CHECK_MESSAGE(params.has(" "), "Search params object has name \" \"");
-            CHECK_FALSE_MESSAGE(params.has("c"), "Search params object did not have the name \"c\"");
-            CHECK_MESSAGE(params.has(" c"), "Search params object has name \" c\"");
-            CHECK_MESSAGE(params.has(u8"m\u00F8\u00F8"), "Search params object has name \"m\\u00F8\\u00F8\"");
-        }
-    }
-
-    SUBCASE("URLSearchParams constructor, object.") {
-        whatwg::url_search_params seed("a=b&c=d");
-        whatwg::url_search_params params(seed);
-        CHECK(param_eq(params.get("a"), "b"));
-        CHECK(param_eq(params.get("c"), "d"));
-        CHECK_FALSE(params.has("d"));
-        // The name-value pairs are copied when created; later updates
-        // should not be observable.
-        seed.append("e", "f");
-        CHECK_FALSE(params.has("e"));
-        params.append("g", "h");
-        CHECK_FALSE(seed.has("g"));
-    }
-
-    // Skip browsers specific test:
-    // "URLSearchParams constructor, FormData."
-    // See: https://github.com/web-platform-tests/wpt/pull/23382
-
-    SUBCASE("Parse +") {
-        {
-            whatwg::url_search_params params("a=b+c");
-            CHECK(param_eq(params.get("a"), "b c"));
-        } {
-            whatwg::url_search_params params("a+b=c");
-            CHECK(param_eq(params.get("a b"), "c"));
-        }
-    }
-
-    SUBCASE("Parse encoded +") {
-        const std::string testValue = "+15555555555";
-
-        whatwg::url_search_params params;
-        params.set("query", testValue);
-        whatwg::url_search_params newParams(params.to_string());
-
-        CHECK_EQ(params.to_string(), "query=%2B15555555555");
-        CHECK(param_eq(params.get("query"), testValue));
-        CHECK(param_eq(newParams.get("query"), testValue));
-    }
-
-    SUBCASE("Parse space") {
-        {
-            whatwg::url_search_params params("a=b c");
-            CHECK(param_eq(params.get("a"), "b c"));
-        } {
-            whatwg::url_search_params params("a b=c");
-            CHECK(param_eq(params.get("a b"), "c"));
-        }
-    }
-
-    SUBCASE("Parse %20") {
-        {
-            whatwg::url_search_params params("a=b%20c");
-            CHECK(param_eq(params.get("a"), "b c"));
-        } {
-            whatwg::url_search_params params("a%20b=c");
-            CHECK(param_eq(params.get("a b"), "c"));
-        }
-    }
-
-    // TODO:
-    // C++14 has string literal: "..."s
-    // https://en.cppreference.com/w/cpp/string/basic_string/operator%22%22s
-    // C++17 has string_view literal: "..."sv
-    // https://en.cppreference.com/w/cpp/string/basic_string_view/operator%22%22sv
-    SUBCASE("Parse \\0") {
-        {
-            whatwg::url_search_params params(std::string("a=b\0c", 5));
-            CHECK(param_eq(params.get("a"), std::string("b\0c", 3)));
-        } {
-            whatwg::url_search_params params(std::string("a\0b=c", 5));
-            CHECK(param_eq(params.get(std::string("a\0b", 3)), "c"));
-        }
-    }
-
-    SUBCASE("Parse %00") {
-        {
-            whatwg::url_search_params params("a=b%00c");
-            CHECK(param_eq(params.get("a"), std::string("b\0c", 3)));
-        } {
-            whatwg::url_search_params params("a%00b=c");
-            CHECK(param_eq(params.get(std::string("a\0b", 3)), "c"));
-        }
-    }
-
-    // Unicode Character 'COMPOSITION SYMBOL' (U+2384)
-    SUBCASE("Parse 'COMPOSITION SYMBOL' (U+2384)") {
-        {
-            whatwg::url_search_params params(u8"a=b\u2384");
-            CHECK(param_eq(params.get("a"), u8"b\u2384"));
-        } {
-            whatwg::url_search_params params(u8"a\u2384b=c");
-            CHECK(param_eq(params.get(u8"a\u2384b"), "c"));
-        }
-    }
-
-    // Unicode Character 'COMPOSITION SYMBOL' (U+2384)
-    SUBCASE("Parse %e2%8e%84") {
-        {
-            whatwg::url_search_params params("a=b%e2%8e%84");
-            CHECK(param_eq(params.get("a"), u8"b\u2384"));
-        } {
-            whatwg::url_search_params params("a%e2%8e%84b=c");
-            CHECK(param_eq(params.get(u8"a\u2384b"), "c"));
-        }
-    }
-
-    // Unicode Character 'PILE OF POO' (U+1F4A9)
-    SUBCASE("Parse 'PILE OF POO' (U+1F4A9)") {
-        {
-            whatwg::url_search_params params(u8"a=b\U0001F4A9");
-            CHECK(param_eq(params.get("a"), u8"b\U0001F4A9"));
-        } {
-            whatwg::url_search_params params(u8"a\U0001F4A9b=c");
-            CHECK(param_eq(params.get(u8"a\U0001F4A9b"), "c"));
-        }
-    }
-
-    // Unicode Character 'PILE OF POO' (U+1F4A9)
-    SUBCASE("Parse %f0%9f%92%a9") {
-        {
-            whatwg::url_search_params params("a=b%f0%9f%92%a9c");
-            CHECK(param_eq(params.get("a"), u8"b\U0001F4A9c"));
-        } {
-            whatwg::url_search_params params("a%f0%9f%92%a9b=c");
-            CHECK(param_eq(params.get(u8"a\U0001F4A9b"), "c"));
-        }
-    }
-
-    SUBCASE("Constructor with sequence of sequences of strings") {
-        {
-            using init_list_t = std::initializer_list<std::pair<const char*, const char*>>;
-            {
-                whatwg::url_search_params params(init_list_t{}); // []
-                //JS: assert_true(params != null, 'constructor returned non-null value.');
-                CHECK_EQ(params.to_string(), "");
-            } {
-                whatwg::url_search_params params(init_list_t{ {"a", "b"}, {"c", "d"} });
-                CHECK(param_eq(params.get("a"), "b"));
-                CHECK(param_eq(params.get("c"), "d"));
-            }
-            // TODO
-            //assert_throws(new TypeError(), function(){ new URLSearchParams([[1]]); });
-            //assert_throws(new TypeError(), function(){ new URLSearchParams([[1,2,3]]); });
-        }
-    }
-
-    // TODO: other tests
-}
-
-//
-// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-delete.any.js
-//
-TEST_CASE("urlsearchparams-delete.any.js") {
-    SUBCASE("Delete basics") {
-        {
-            whatwg::url_search_params params("a=b&c=d");
-            params.del("a");
-            CHECK_EQ(params.to_string(), "c=d");
-        } {
-            whatwg::url_search_params params("a=a&b=b&a=a&c=c");
-            params.del("a");
-            CHECK_EQ(params.to_string(), "b=b&c=c");
-        } {
-            whatwg::url_search_params params("a=a&=&b=b&c=c");
-            params.del("");
-            CHECK_EQ(params.to_string(), "a=a&b=b&c=c");
-        } {
-            whatwg::url_search_params params("a=a&null=null&b=b");
-            params.del("null"); // TODO: nullptr
-            CHECK_EQ(params.to_string(), "a=a&b=b");
-        } {
-            whatwg::url_search_params params("a=a&undefined=undefined&b=b");
-            params.del("undefined"); // TODO: undefined
-            CHECK_EQ(params.to_string(), "a=a&b=b");
-        }
-    }
-
-    SUBCASE("Deleting appended multiple") {
-        whatwg::url_search_params params;
-        params.append("first", "1"); // TODO: 1
-        CHECK_MESSAGE(params.has("first"), "Search params object has name \"first\"");
-        CHECK_MESSAGE(param_eq(params.get("first"), "1"), "Search params object has name \"first\" with value \"1\"");
-        params.del("first");
-        CHECK_FALSE_MESSAGE(params.has("first"), "Search params object has no \"first\" name");
-        params.append("first", "1"); // TODO: 1
-        params.append("first", "10"); // TODO: 10
-        params.del("first");
-        CHECK_FALSE_MESSAGE(params.has("first"), "Search params object has no \"first\" name");
-    }
-
-    SUBCASE("Deleting all params removes ? from URL") {
-        // whatwg::url url("http://example.com/?param1&param2");
-        whatwg::url url;
-        REQUIRE(whatwg::success(url.parse("http://example.com/?param1&param2", nullptr)));
-        url.searchParams().del("param1");
-        url.searchParams().del("param2");
-        CHECK_MESSAGE(url.href() == "http://example.com/", "url.href does not have ?");
-        CHECK_MESSAGE(url.search() == "", "url.search does not have ?");
-    }
-
-    SUBCASE("Removing non-existent param removes ? from URL") {
-        // whatwg::url url("http://example.com/?");
-        whatwg::url url;
-        REQUIRE(whatwg::success(url.parse("http://example.com/?", nullptr)));
-        url.searchParams().del("param1");
-        CHECK_MESSAGE(url.href() == "http://example.com/", "url.href does not have ?");
-        CHECK_MESSAGE(url.search() == "", "url.search does not have ?");
+        paramsM.safe_assign(std::move(params));
+        CHECK(list_eq(paramsM, lst_pairs));
     }
 }
 
-//
-// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-foreach.any.js
-//
-// TODO
+TEST_CASE("url_search_params assignment to url::search_params()") {
+    const pairs_list_t<std::string> lst_pairs = TEST_ITERABLES_DATA;
 
-//
-// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-get.any.js
-//
-TEST_CASE("urlsearchparams-get.any.js") {
-    SUBCASE("Get basics") {
-        {
-            whatwg::url_search_params params("a=b&c=d");
-            CHECK(param_eq(params.get("a"), "b"));
-            CHECK(param_eq(params.get("c"), "d"));
-            CHECK(params.get("e") == nullptr);
-        } {
-            whatwg::url_search_params params("a=b&c=d&a=e");
-            CHECK(param_eq(params.get("a"), "b"));
-        } {
-            whatwg::url_search_params params("=b&c=d");
-            CHECK(param_eq(params.get(""), "b"));
-        } {
-            whatwg::url_search_params params("a=&c=d&a=e");
-            CHECK(param_eq(params.get("a"), ""));
-        }
+    SUBCASE("copy assignment") {
+        const upa::url_search_params params(lst_pairs);
+        REQUIRE(list_eq(params, lst_pairs));
+
+        upa::url url("http://h/?y=x");
+        url.search_params() = params;
+
+        CHECK(list_eq(url.search_params(), lst_pairs));
+        CHECK(url.search() == TEST_SEARCH_STR);
     }
 
-    SUBCASE("More get() basics") {
-        whatwg::url_search_params params("first=second&third&&");
-        CHECK_MESSAGE(params.has("first"), "Search params object has name \"first\"");
-        CHECK_MESSAGE(param_eq(params.get("first"), "second"), "Search params object has name \"first\" with value \"second\"");
-        CHECK_MESSAGE(param_eq(params.get("third"), ""), "Search params object has name \"third\" with the empty value.");
-        CHECK_MESSAGE(params.get("fourth") == nullptr, "Search params object has no \"fourth\" name and value.");
+    SUBCASE("safe move assignment") {
+        upa::url_search_params params(lst_pairs);
+        REQUIRE(list_eq(params, lst_pairs));
+
+        upa::url url("http://h/?y=x");
+        url.search_params().safe_assign(std::move(params));
+
+        CHECK(list_eq(url.search_params(), lst_pairs));
+        CHECK(url.search() == TEST_SEARCH_STR);
     }
 }
 
-//
-// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-getall.any.js
-//
-TEST_CASE("urlsearchparams-getall.any.js") {
-    SUBCASE("getAll() basics") {
-        {
-            whatwg::url_search_params params("a=b&c=d");
-            CHECK(list_eq(params.getAll("a"), { "b" }));
-            CHECK(list_eq(params.getAll("c"), { "d" }));
-            CHECK(params.getAll("e").empty()); // empty list
-        } {
-            whatwg::url_search_params params("a=b&c=d&a=e");
-            CHECK(list_eq(params.getAll("a"), { "b", "e" }));
-        } {
-            whatwg::url_search_params params("=b&c=d");
-            CHECK(list_eq(params.getAll(""), { "b" }));
-        } {
-            whatwg::url_search_params params("a=&c=d&a=e");
-            CHECK(list_eq(params.getAll("a"), { "", "e" }));
-        }
-    }
+// Operations
 
-    SUBCASE("getAll() multiples") {
-        whatwg::url_search_params params("a=1&a=2&a=3&a");
-        CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
-        auto matches = params.getAll("a");
-        CHECK_MESSAGE(matches.size() == 4, "Search params object has values for name \"a\"");
-        CHECK_MESSAGE(list_eq(matches, { "1", "2", "3", "" }), "Search params object has expected name \"a\" values");
-        params.set("a", "one");
-        CHECK_MESSAGE(param_eq(params.get("a"), "one"), "Search params object has name \"a\" with value \"one\"");
-        matches = params.getAll("a");
-        CHECK_MESSAGE(matches.size() == 1, "Search params object has values for name \"a\"");
-        CHECK_MESSAGE(list_eq(matches, { "one" }), "Search params object has expected name \"a\" values");
+TEST_CASE("swap(url_search_params&, url_search_params&)") {
+    const std::string str_params_1 = "a=1&b=2&c=3";
+    const std::string str_params_2 = "d=4";
+
+    upa::url_search_params params_1(str_params_1);
+    upa::url_search_params params_2(str_params_2);
+
+    using std::swap;
+
+    swap(params_1, params_2);
+    CHECK(params_1.to_string() == str_params_2);
+    CHECK(params_2.to_string() == str_params_1);
+}
+
+TEST_CASE("url_search_params::parse") {
+    upa::url_search_params params;
+
+    params.parse("a=b");
+    CHECK(params.to_string() == "a=b");
+
+    params.parse("?c=d");
+    CHECK(params.to_string() == "c=d");
+}
+
+TEST_CASE("url_search_params::remove...") {
+    SUBCASE("url_search_params::remove") {
+        upa::url_search_params params("a=a&a=A&b=b&b=B");
+
+        CHECK(params.remove("a") == 2);
+        CHECK(params.to_string() == "b=b&b=B");
+
+        CHECK(params.remove("b", "B") == 1);
+        CHECK(params.to_string() == "b=b");
+    }
+    SUBCASE("url_search_params::remove_if") {
+        upa::url_search_params params("a=a&a=A&b=b&b=B");
+
+        CHECK(params.remove_if([](upa::url_search_params::value_type& item) {
+            return item.first == item.second;
+        }) == 2);
+        CHECK(params.to_string() == "a=A&b=B");
+    }
+    SUBCASE("url::search_params") {
+        upa::url url("http://h?a&b=B");
+
+        CHECK(url.search_params().remove("A") == 0);
+        CHECK(url.search() == "?a&b=B");
+
+        CHECK(url.search_params().remove("b") == 1);
+        CHECK(url.search() == "?a=");
     }
 }
 
-//
-// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-has.any.js
-//
-TEST_CASE("urlsearchparams-has.any.js") {
-    SUBCASE("Has basics") {
-        {
-            whatwg::url_search_params params("a=b&c=d");
-            CHECK(params.has("a"));
-            CHECK(params.has("c"));
-            CHECK_FALSE(params.has("e"));
-        } {
-            whatwg::url_search_params params("a=b&c=d&a=e");
-            CHECK(params.has("a"));
-        } {
-            whatwg::url_search_params params("=b&c=d");
-            CHECK(params.has(""));
-        } {
-            whatwg::url_search_params params("null=a");
-            CHECK(params.has("null")); // todo: nullptr
-        }
-    }
+// Sort test
 
-    SUBCASE("has() following delete()") {
-        whatwg::url_search_params params("a=b&c=d&&");
-        params.append("first", "1"); // TODO: 1
-        params.append("first", "2"); // TODO: 2
-        CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
-        CHECK_MESSAGE(params.has("c"), "Search params object has name \"c\"");
-        CHECK_MESSAGE(params.has("first"), "Search params object has name \"first\"");
-        CHECK_FALSE_MESSAGE(params.has("d"), "Search params object has no name \"d\"");
-        params.del("first");
-        CHECK_FALSE_MESSAGE(params.has("first"), "Search params object has no name \"first\"");
+TEST_CASE("url_search_params::sort()") {
+    struct {
+        const char* comment;
+        pairs_list_t<std::u32string> input;
+        pairs_list_t<std::string> output;
+    } lst[] = {
+        {
+            "Sort U+104 before U+41104",
+            {{U"a\U00041104", U"2"}, {U"a\u0104", U"1"}},
+            {{mk_string(u8"a\u0104"), "1"}, {mk_string(u8"a\U00041104"), "2"}},
+        }, {
+            "Sort U+105 before U+41104",
+            {{U"a\U00041104", U"2"}, {U"a\u0105", U"1"}},
+            {{mk_string(u8"a\u0105"), "1"}, {mk_string(u8"a\U00041104"), "2"}},
+        }, {
+            "Sort U+D7FF before U+10000",
+            {{U"a\U00010000", U"2"}, {U"a\uD7FF", U"1"}},
+            {{mk_string(u8"a\uD7FF"), "1"}, {mk_string(u8"a\U00010000"), "2"}},
+        }, {
+            "Sort U+10FFFF before U+E000",
+            {{U"a\uE000", U"2"}, {U"a\U0010FFFF", U"1"}},
+            {{mk_string(u8"a\U0010FFFF"), "1"}, {mk_string(u8"a\uE000"), "2"}},
+        }, {
+            "Sort U+10FFFE before U+10FFFF",
+            {{U"a\U0010FFFF", U"2"}, {U"a\U0010FFFE", U"1"}},
+            {{mk_string(u8"a\U0010FFFE"), "1"}, {mk_string(u8"a\U0010FFFF"), "2"}},
+        }
+    };
+    for (const auto& val : lst) {
+        INFO(std::string{val.comment});
+        upa::url_search_params params(val.input);
+        params.sort();
+        CHECK(list_eq(params, val.output));
     }
 }
 
-//
-// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-set.any.js
-//
-TEST_CASE("urlsearchparams-set.any.js") {
-    SUBCASE("Set basics") {
-        {
-            whatwg::url_search_params params("a=b&c=d");
-            params.set("a", "B");
-            CHECK_EQ(params.to_string(), "a=B&c=d");
-        } {
-            whatwg::url_search_params params("a=b&c=d&a=e");
-            params.set("a", "B");
-            CHECK_EQ(params.to_string(), "a=B&c=d");
-            params.set("e", "f");
-            CHECK_EQ(params.to_string(), "a=B&c=d&e=f");
-        }
-    }
 
-    SUBCASE("URLSearchParams.set") {
-        whatwg::url_search_params params("a=1&a=2&a=3");
-        CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
-        CHECK_MESSAGE(param_eq(params.get("a"), "1"), "Search params object has name \"a\" with value \"1\"");
-        params.set("first", "4"); // TODO: 4
-        CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
-        CHECK_MESSAGE(param_eq(params.get("a"), "1"), "Search params object has name \"a\" with value \"1\"");
-        params.set("a", "4"); // TODO: 4
-        CHECK_MESSAGE(params.has("a"), "Search params object has name \"a\"");
-        CHECK_MESSAGE(param_eq(params.get("a"), "4"), "Search params object has name \"a\" with value \"4\"");
-    }
+// Test url::search_params()
+
+TEST_CASE("url::search_params()") {
+    upa::url url("http://h/p?a=A");
+    auto& params = url.search_params();
+
+    INFO("url::search(...) -> url::search_params()");
+
+    // initial
+    CHECK(list_eq(params, pairs_list_t<std::string>{ {"a", "A"} }));
+
+    // replace search
+    url.search("b=B");
+    CHECK(list_eq(params, pairs_list_t<std::string>{ {"b", "B"} }));
+
+    // clear search
+    url.search("");
+    CHECK(params.empty());
+
+    INFO("url::search_params() -> url::search()");
+
+    // add parameters
+    params.append("c", "C");
+    params.append("d", "D");
+    params.append("e", "E");
+    CHECK(url.search() == "?c=C&d=D&e=E");
+
+    // delete parameter
+    params.del("d");
+    CHECK(url.search() == "?c=C&e=E");
+
+    // set parameters
+    params.set("c", "CC");
+    params.set("d", "DD");
+    CHECK(url.search() == "?c=CC&e=E&d=DD");
+
+    // clear parameters
+    params.clear();
+    CHECK(url.search() == "");
 }
 
-//
-// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-stringifier.any.js
-//
-TEST_CASE("urlsearchparams-stringifier.any.js") {
-    SUBCASE("Serialize space") {
-        whatwg::url_search_params params;
-        params.append("a", "b c");
-        CHECK_EQ(params.to_string(), "a=b+c");
-        params.del("a");
-        params.append("a b", "c");
-        CHECK_EQ(params.to_string(), "a+b=c");
-    }
+TEST_CASE("url::search_params() and url::operator=(const url&)") {
+    // test copy assignment to url with initialized url_search_params
+    upa::url url_ca("http://dest/");
+    auto& ca_search_params = url_ca.search_params();
+    ca_search_params.append("ca", "CA");
+    CHECK(url_ca.search() == "?ca=CA");
 
-    SUBCASE("Serialize empty value") {
-        whatwg::url_search_params params;
-        params.append("a", "");
-        CHECK_EQ(params.to_string(), "a=");
-        params.append("a", "");
-        CHECK_EQ(params.to_string(), "a=&a=");
-        params.append("", "b");
-        CHECK_EQ(params.to_string(), "a=&a=&=b");
-        params.append("", "");
-        CHECK_EQ(params.to_string(), "a=&a=&=b&=");
-        params.append("", "");
-        CHECK_EQ(params.to_string(), "a=&a=&=b&=&=");
-    }
+    // copy assign url with not initialized url_search_params
+    upa::url url("http://src/?a=A");
+    url_ca = url;
+    REQUIRE(std::addressof(ca_search_params) == std::addressof(url_ca.search_params()));
+    CHECK(ca_search_params.to_string() == "a=A");
 
-    SUBCASE("Serialize empty name") {
-        whatwg::url_search_params params;
-        params.append("", "b");
-        CHECK_EQ(params.to_string(), "=b");
-        params.append("", "b");
-        CHECK_EQ(params.to_string(), "=b&=b");
-    }
-
-    SUBCASE("Serialize empty name and value") {
-        whatwg::url_search_params params;
-        params.append("", "");
-        CHECK_EQ(params.to_string(), "=");
-        params.append("", "");
-        CHECK_EQ(params.to_string(), "=&=");
-    }
-
-    SUBCASE("Serialize +") {
-        whatwg::url_search_params params;
-        params.append("a", "b+c");
-        CHECK_EQ(params.to_string(), "a=b%2Bc");
-        params.del("a");
-        params.append("a+b", "c");
-        CHECK_EQ(params.to_string(), "a%2Bb=c");
-    }
-
-    SUBCASE("Serialize =") {
-        whatwg::url_search_params params;
-        params.append("=", "a");
-        CHECK_EQ(params.to_string(), "%3D=a");
-        params.append("b", "=");
-        CHECK_EQ(params.to_string(), "%3D=a&b=%3D");
-    }
-
-    SUBCASE("Serialize &") {
-        whatwg::url_search_params params;
-        params.append("&", "a");
-        CHECK_EQ(params.to_string(), "%26=a");
-        params.append("b", "&");
-        CHECK_EQ(params.to_string(), "%26=a&b=%26");
-    }
-
-    SUBCASE("Serialize *-._") {
-        whatwg::url_search_params params;
-        params.append("a", "*-._");
-        CHECK_EQ(params.to_string(), "a=*-._");
-        params.del("a");
-        params.append("*-._", "c");
-        CHECK_EQ(params.to_string(), "*-._=c");
-    }
-
-    SUBCASE("Serialize %") {
-        whatwg::url_search_params params;
-        params.append("a", "b%c");
-        CHECK_EQ(params.to_string(), "a=b%25c");
-        params.del("a");
-        params.append("a%b", "c");
-        CHECK_EQ(params.to_string(), "a%25b=c");
-    }
-
-    SUBCASE("Serialize \\0") {
-        whatwg::url_search_params params;
-        params.append("a", std::string("b\0c", 3));
-        CHECK_EQ(params.to_string(), "a=b%00c");
-        params.del("a");
-        params.append(std::string("a\0b", 3), "c");
-        CHECK_EQ(params.to_string(), "a%00b=c");
-    }
-
-    // Unicode Character 'PILE OF POO' (U+1F4A9)
-    SUBCASE("Serialize 'PILE OF POO' (U+1F4A9)") {
-        whatwg::url_search_params params;
-        params.append("a", u8"b\U0001F4A9c");
-        CHECK_EQ(params.to_string(), "a=b%F0%9F%92%A9c");
-        params.del("a");
-        params.append(u8"a\U0001F4A9b", "c");
-        CHECK_EQ(params.to_string(), "a%F0%9F%92%A9b=c");
-    }
-
-    SUBCASE("URLSearchParams.toString") {
-        {
-            whatwg::url_search_params params("a=b&c=d&&e&&");
-            CHECK_EQ(params.to_string(), "a=b&c=d&e=");
-        } {
-            whatwg::url_search_params params("a = b &a=b&c=d%20");
-            CHECK_EQ(params.to_string(), "a+=+b+&a=b&c=d+");
-        } {
-            // The lone "=" _does_ survive the roundtrip.
-            whatwg::url_search_params params("a=&a=b");
-            CHECK_EQ(params.to_string(), "a=&a=b");
-        }
-    }
-
-    SUBCASE("URLSearchParams connected to URL") {
-        // whatwg::url url("http://www.example.com/?a=b,c");
-        whatwg::url url;
-        REQUIRE(whatwg::success(url.parse("http://www.example.com/?a=b,c", nullptr)));
-        auto& params = url.searchParams();
-
-        CHECK_EQ(url.to_string(), "http://www.example.com/?a=b,c");
-        CHECK_EQ(params.to_string(), "a=b%2Cc");
-
-        params.append("x", "y");
-
-        CHECK_EQ(url.to_string(), "http://www.example.com/?a=b%2Cc&x=y");
-        CHECK_EQ(params.to_string(), "a=b%2Cc&x=y");
-    }
+    // copy assign url with initialized url_search_params
+    url.search_params().clear();
+    url.search_params().append("b", "B");
+    url_ca = url;
+    REQUIRE(std::addressof(ca_search_params) == std::addressof(url_ca.search_params()));
+    CHECK(ca_search_params.to_string() == "b=B");
 }
 
-//
-// https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-sort.any.js
-//
-TEST_CASE("urlsearchparams-sort.any.js") {
+TEST_CASE("url::search_params() and url::url(url&&)") {
+    // test move constructor from url with initialized url_search_params
+    upa::url url("http://example.org/");
+    url.search_params().append("a", "A");
+    CHECK(url.search() == "?a=A");
 
-    // Other sorting tests are in the test-urlencoded-parser.cpp
+    // move constructor
+    upa::url url_m(std::move(url));
+    url_m.search_params().append("m", "M");
+    CHECK(url_m.search() == "?a=A&m=M");
+}
 
-    SUBCASE("Sorting non-existent params removes ? from URL") {
-        whatwg::url url;
-        REQUIRE(whatwg::success(url.parse("http://example.com/?", nullptr)));
-        url.searchParams().sort();
-        CHECK_EQ(url.href(), "http://example.com/");
-        CHECK_EQ(url.search(), "");
-    }
+TEST_CASE("url::search_params() and url::operator=(url&&)") {
+    // test move assignment from url with initialized url_search_params
+    upa::url url("http://example.org/");
+    url.search_params().append("a", "A");
+    CHECK(url.search() == "?a=A");
+
+    // move assignment
+    upa::url url_m;
+    url_m = std::move(url);
+    url_m.search_params().append("m", "M");
+    CHECK(url_m.search() == "?a=A&m=M");
+}
+
+TEST_CASE("url::search_params() and url::safe_assign(url&&)") {
+    // test safe_assign(...) to url with initialized url_search_params
+    upa::url url_sa("http://dest/");
+    auto& sa_search_params = url_sa.search_params();
+    sa_search_params.append("sa", "SA");
+    CHECK(url_sa.search() == "?sa=SA");
+
+    // safe_assign url with not initialized url_search_params
+    url_sa.safe_assign(upa::url("http://src/?a=A"));
+    REQUIRE(std::addressof(sa_search_params) == std::addressof(url_sa.search_params()));
+    CHECK(sa_search_params.to_string() == "a=A");
+
+    // safe_assign url with initialized url_search_params
+    upa::url url("http://src/");
+    url.search_params().append("b", "B");
+    url_sa.safe_assign(std::move(url));
+    REQUIRE(std::addressof(sa_search_params) == std::addressof(url_sa.search_params()));
+    CHECK(sa_search_params.to_string() == "b=B");
+}
+
+TEST_CASE("url::search_params() and url::href(...)") {
+    // test href setter on url with initialized url_search_params
+    upa::url url("http://dest/");
+    auto& search_params = url.search_params();
+    search_params.append("hr", "HR");
+    CHECK(url.search() == "?hr=HR");
+
+    url.href("http://href/?a=A");
+    REQUIRE(std::addressof(search_params) == std::addressof(url.search_params()));
+    CHECK(search_params.to_string() == "a=A");
+}
+
+TEST_CASE("url::search_params() and url::search(...)") {
+    upa::url url("http://h/p");
+    auto& params = url.search_params();
+
+    url.search("??a=b&c=d");
+    CHECK(url.search() == "??a=b&c=d");
+    CHECK(params.to_string() == "%3Fa=b&c=d");
+}
+
+TEST_CASE("url::search_params() and url::clear()") {
+    upa::url url("http://h/p?a=A&b=B");
+    auto& params = url.search_params();
+
+    CHECK_FALSE(url.empty());
+    CHECK_FALSE(params.empty());
+    CHECK(list_eq(params, pairs_list_t<std::string>{ {"a", "A"}, { "b", "B" } }));
+    CHECK(params.size() == 2);
+
+    url.clear();
+
+    CHECK(url.href() == "");
+    CHECK(url.search() == "");
+    CHECK(url.empty());
+    CHECK(params.empty());
+    CHECK(params.size() == 0);
 }

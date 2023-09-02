@@ -1,0 +1,12 @@
+codecov:
+  require_ci_to_pass: false
+
+ignore:
+  - "deps"
+  - "test"
+
+coverage:
+  status:
+    project:
+      default:
+        threshold: 0.5%

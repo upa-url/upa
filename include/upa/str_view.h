@@ -1,16 +1,16 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
 
-#ifndef STR_VIEW_H
-#define STR_VIEW_H
+#ifndef UPA_STR_VIEW_H
+#define UPA_STR_VIEW_H
 
 #include <algorithm>
 #include <string>
 #include <type_traits>
 
-namespace whatwg {
+namespace upa {
 
 template<typename CharT, typename Traits = std::char_traits<CharT>>
 class str_view {
@@ -22,7 +22,7 @@ public:
     using const_pointer = const CharT*;
     using reference = CharT&;
     using const_reference = const CharT&;
-    using const_iterator = const CharT*; // implementation-defined; see 21.4.2.2
+    using const_iterator = const CharT*; // implementation-defined; see 21.4.2.2 in C++20 standard
     using iterator = const_iterator;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
     using reverse_iterator = const_reverse_iterator;
@@ -30,27 +30,32 @@ public:
     using difference_type = std::ptrdiff_t;
     // static constexpr size_type npos = size_type(-1);
 
-    // construction and assignment
-    str_view() : ptr_(nullptr), len_(0) {}
-    str_view(const str_view&) = default;
-    str_view& operator=(const str_view&) = default;
+    // constructors
+    str_view() noexcept = default;
+    str_view(const str_view&) noexcept = default;
     str_view(const CharT* ptr, size_type len) : ptr_(ptr), len_(len) {}
     str_view(const CharT* ptr) : ptr_(ptr), len_(Traits::length(ptr)) {}
 
+    // assignment
+    str_view& operator=(const str_view&) noexcept = default;
+
+    // destructor
+    ~str_view() noexcept = default;
+
     // iterator support
-    const_iterator begin() const { return ptr_; }
-    const_iterator end() const { return ptr_ + len_; }
+    const_iterator begin() const noexcept { return ptr_; }
+    const_iterator end() const noexcept { return ptr_ + len_; }
 
     // capacity
-    size_type size() const { return len_; }
-    size_type length() const { return len_; }
-    bool empty() const { return len_ == 0; }
+    size_type size() const noexcept { return len_; }
+    size_type length() const noexcept { return len_; }
+    bool empty() const noexcept { return len_ == 0; }
 
     // element access
     const_reference operator[](size_type ind) const {
         return ptr_[ind];
     }
-    const_pointer data() const { return ptr_; }
+    const_pointer data() const noexcept { return ptr_; }
 
     // modifiers
     void remove_prefix(size_type n) {
@@ -60,7 +65,7 @@ public:
     void remove_suffix(size_type n) {
         len_ -= n;
     }
-    void swap(str_view& x) {
+    void swap(str_view& x) noexcept {
         const str_view tmp{x};
         x = *this;
         *this = tmp;
@@ -79,10 +84,10 @@ public:
     }
 
     // basic_string, basic_string_view support
-    template <class StrT, typename = typename std::enable_if<std::is_same<typename StrT::value_type, value_type>::value>::type>
+    template <class StrT, typename std::enable_if<std::is_same<typename StrT::value_type, value_type>::value, int>::type = 0>
     str_view(const StrT& str) : ptr_(str.data()), len_(str.length()) {}
 
-    //template <class StrT, typename = typename std::enable_if<std::is_same<typename StrT::value_type, value_type>::value>::type>
+    //template <class StrT, typename std::enable_if<std::is_same<typename StrT::value_type, value_type>::value, int>::type = 0>
     //operator StrT() const { return StrT(ptr_, len_); }
     template <class Allocator>
     operator std::basic_string<CharT, Traits, Allocator>() const {
@@ -90,8 +95,8 @@ public:
     }
 
 private:
-    const_pointer ptr_;
-    size_type len_;
+    const_pointer ptr_ = nullptr;
+    size_type len_ = 0;
 };
 
 
@@ -108,13 +113,13 @@ template<class CharT, class Traits>
 
 // compare objects convertible to str_view for equality
 template<class CharT, class Traits, class StrT,
-class = typename std::enable_if<std::is_convertible<StrT, str_view<CharT, Traits>>::value>::type>
+    typename std::enable_if<std::is_convertible<StrT, str_view<CharT, Traits>>::value, int>::type = 0>
 /*constexpr*/ bool operator==(StrT&& lhs, const str_view<CharT, Traits> rhs) {
     return rhs.equal(std::forward<StrT>(lhs));
 }
 
 template<class CharT, class Traits, class StrT,
-class = typename std::enable_if<std::is_convertible<StrT, str_view<CharT, Traits>>::value>::type>
+    typename std::enable_if<std::is_convertible<StrT, str_view<CharT, Traits>>::value, int>::type = 0>
 /*constexpr*/ bool operator==(const str_view<CharT, Traits> lhs, StrT&& rhs) {
     return lhs.equal(std::forward<StrT>(rhs));
 }
@@ -128,6 +133,6 @@ std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>&
 }
 
 
-} // namespace whatwg
+} // namespace upa
 
-#endif // STR_VIEW_H
+#endif // UPA_STR_VIEW_H

@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -7,45 +7,70 @@
 // Copyright 2013 The Chromium Authors. All rights reserved.
 //
 
-#include "url_idna.h"
-#include "int_cast.h"
-#include <cassert>
-#include <mutex>
+#include "upa/url_idna.h"
+#include "upa/util.h"
 // ICU
 #include "unicode/uidna.h"
+#if (U_ICU_VERSION_MAJOR_NUM) >= 59
+# include "unicode/char16ptr.h"
+#endif
+#if (U_ICU_VERSION_MAJOR_NUM) < 68
+# include <algorithm>
+#endif
 
-namespace whatwg {
+#include <cassert>
+
+namespace upa {
 
 namespace {
 
 // Return UTS46 ICU handler opened with uidna_openUTS46()
 
-const UIDNA* getUIDNA() {
-    static UIDNA* uidna;
-    static std::once_flag once;
+UIDNA* uidna_ptr = nullptr; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-    std::call_once(once, [] {
-        UErrorCode err = U_ZERO_ERROR;
-        // https://url.spec.whatwg.org/#idna
-        // UseSTD3ASCIIRules = false
-        // Nontransitional_Processing
-        // CheckBidi = true
-        // CheckJoiners = true
-        uidna = uidna_openUTS46(
-            UIDNA_CHECK_BIDI
-            | UIDNA_CHECK_CONTEXTJ
-            | UIDNA_NONTRANSITIONAL_TO_ASCII
-            | UIDNA_NONTRANSITIONAL_TO_UNICODE, &err);
-        if (U_FAILURE(err)) {
-            //todo: CHECK(false) << "failed to open UTS46 data with error: " << err;
-            uidna = nullptr;
+const UIDNA* getUIDNA() {
+    // initialize uidna_ptr
+    static struct Once {
+        Once() {
+            UErrorCode err = U_ZERO_ERROR;
+            // https://url.spec.whatwg.org/#idna
+            // UseSTD3ASCIIRules = false
+            // Nontransitional_Processing
+            // CheckBidi = true
+            // CheckJoiners = true
+            uidna_ptr = uidna_openUTS46(
+                UIDNA_CHECK_BIDI
+                | UIDNA_CHECK_CONTEXTJ
+                | UIDNA_NONTRANSITIONAL_TO_ASCII
+                | UIDNA_NONTRANSITIONAL_TO_UNICODE, &err);
+            assert(U_SUCCESS(err) && uidna_ptr != nullptr);
         }
-    });
-    return uidna;
+    } const once;
+
+    return uidna_ptr;
 }
 
 } // namespace
 
+
+void IDNClose() {
+    if (uidna_ptr) {
+        uidna_close(uidna_ptr);
+        uidna_ptr = nullptr;
+    }
+}
+
+// Conversion to ICU UChar
+
+static_assert(sizeof(UChar) == sizeof(char16_t), "UChar must be the same size as char16_t");
+
+#if (U_ICU_VERSION_MAJOR_NUM) < 59
+// toUCharPtr functions are defined in ICU 59
+namespace icu {
+    inline const UChar* toUCharPtr(const char16_t* p) { return reinterpret_cast<const UChar*>(p); }
+    inline UChar* toUCharPtr(char16_t* p) { return reinterpret_cast<UChar*>(p); }
+}
+#endif
 
 // Converts the Unicode input representing a hostname to ASCII using IDN rules.
 // The output must be ASCII, but is represented as wide characters.
@@ -65,12 +90,10 @@ const UIDNA* getUIDNA() {
 // https://url.spec.whatwg.org/#concept-domain-to-ascii
 // with beStrict = false
 
-static_assert(sizeof(char16_t) == sizeof(UChar), "");
-
 url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<char16_t>& output) {
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
-    // http://www.unicode.org/reports/tr46/#ToASCII
-    static const uint32_t UIDNA_ERR_MASK = ~(uint32_t)(
+    // https://www.unicode.org/reports/tr46/#ToASCII
+    static const uint32_t UIDNA_ERR_MASK = ~static_cast<uint32_t>(
         // VerifyDnsLength = false
         UIDNA_ERROR_EMPTY_LABEL
         | UIDNA_ERROR_LABEL_TOO_LONG
@@ -82,12 +105,12 @@ url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<ch
         );
 
     // uidna_nameToASCII uses int32_t length
-    // http://icu-project.org/apiref/icu4c/uidna_8h.html#a9cc0383836cc8b73d14e86d5014ee7ae
-    if (src_len > unsigned_limit<int32_t>::max())
+    // https://unicode-org.github.io/icu-docs/apidoc/dev/icu4c/uidna_8h.html#ac45d3ad275df9e5a2c2e84561862d005
+    if (src_len > util::unsigned_limit<int32_t>::max())
         return url_result::Overflow; // too long
 
     // The static_cast<int32_t>(output.capacity()) must be safe:
-    assert(output.capacity() <= unsigned_limit<int32_t>::max());
+    assert(output.capacity() <= util::unsigned_limit<int32_t>::max());
 
     const UIDNA* uidna = getUIDNA();
     assert(uidna != nullptr);
@@ -95,8 +118,8 @@ url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<ch
         UErrorCode err = U_ZERO_ERROR;
         UIDNAInfo info = UIDNA_INFO_INITIALIZER;
         const int32_t output_length = uidna_nameToASCII(uidna,
-            (const UChar*)src, static_cast<int32_t>(src_len),
-            (UChar*)output.data(), static_cast<int32_t>(output.capacity()),
+            icu::toUCharPtr(src), static_cast<int32_t>(src_len),
+            icu::toUCharPtr(output.data()), static_cast<int32_t>(output.capacity()),
             &info, &err);
         if (U_SUCCESS(err) && (info.errors & UIDNA_ERR_MASK) == 0) {
             output.resize(output_length);
@@ -105,6 +128,13 @@ url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<ch
             // 2) is "xn--".
             if (output_length == 0)
                 return url_result::EmptyHost;
+#if (U_ICU_VERSION_MAJOR_NUM) < 68
+            // Workaround of ICU bug ICU-21212: https://unicode-org.atlassian.net/browse/ICU-21212
+            // For some "xn--" labels which contain non ASCII chars, uidna_nameToASCII returns no error,
+            // and leaves these labels unchanged in the output. Bug fixed in ICU 68.1
+            if (std::any_of(output.begin(), output.end(), [](char16_t c) { return c >= 0x80; }))
+                return url_result::IdnaError;
+#endif
             return url_result::Ok;
         }
 
@@ -120,12 +150,12 @@ url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<ch
 
 url_result IDNToUnicode(const char* src, std::size_t src_len, simple_buffer<char>& output) {
     // uidna_nameToUnicodeUTF8 uses int32_t length
-    // http://icu-project.org/apiref/icu4c/uidna_8h.html#a61648a995cff1f8d626df1c16ad4f3b8
-    if (src_len > unsigned_limit<int32_t>::max())
+    // https://unicode-org.github.io/icu-docs/apidoc/dev/icu4c/uidna_8h.html#afd9ae1e0ae5318e20c87bcb0149c3ada
+    if (src_len > util::unsigned_limit<int32_t>::max())
         return url_result::Overflow; // too long
 
     // The static_cast<int32_t>(output.capacity()) must be safe:
-    assert(output.capacity() <= unsigned_limit<int32_t>::max());
+    assert(output.capacity() <= util::unsigned_limit<int32_t>::max());
 
     const UIDNA* uidna = getUIDNA();
     assert(uidna != nullptr);
@@ -152,4 +182,4 @@ url_result IDNToUnicode(const char* src, std::size_t src_len, simple_buffer<char
 }
 
 
-} // namespace whatwg
+} // namespace upa

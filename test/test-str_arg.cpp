@@ -1,11 +1,19 @@
+// Copyright 2016-2023 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+
 //
 // NOTE: To pass test this file must just compile without errors.
 //
-#include "str_arg.h"
+
+#include "upa/str_arg.h"
 //#include "doctest-main.h"
 
 
-using namespace whatwg;
+// Function to test
+
+using namespace upa;
 
 template <class ...Args, enable_if_str_arg_t<Args...> = 0>
 inline std::size_t procfn(Args&&... args) {
@@ -13,6 +21,36 @@ inline std::size_t procfn(Args&&... args) {
     return std::distance(inp.begin(), inp.end());
 }
 
+
+// Custom string class and it's specialization
+
+template <typename CharT>
+class CustomString {
+public:
+    CustomString(const CharT* data, std::size_t length)
+        : data_(data), length_(length) {}
+    const CharT* GetData() const { return data_; }
+    std::size_t GetLength() const { return length_; }
+private:
+    const CharT* data_ = nullptr;
+    std::size_t length_ = 0;
+};
+
+namespace upa {
+
+template<typename CharT>
+struct str_arg_char<CustomString<CharT>> {
+    using type = CharT;
+
+    static str_arg<CharT> to_str_arg(const CustomString<CharT>& str) {
+        return { str.GetData(), str.GetLength() };
+    }
+};
+
+} // namespace upa
+
+
+// Test char type
 
 template <class CharT>
 inline void test_char() {
@@ -40,7 +78,7 @@ inline void test_char() {
     procfn(cptr, int(N));
 
     procfn(arr, arr + N);
-    //procfn(carr, carr + N);
+    procfn(carr, carr + N);
     procfn(ptr, ptr + N);
     procfn(cptr, cptr + N);
     procfn(vptr, vptr + N);
@@ -49,8 +87,11 @@ inline void test_char() {
     procfn(str);
     procfn(std::basic_string<CharT>(arr));
 
-    whatwg::str_arg<CharT> arg(arr);
+    upa::str_arg<CharT> arg(arr);
     procfn(arg);
+
+    // test custom string
+    procfn(CustomString<CharT>{cptr, N});
 }
 
 int main() {

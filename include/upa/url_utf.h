@@ -1,22 +1,27 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
 
-#ifndef WHATWG_URL_UTF_H
-#define WHATWG_URL_UTF_H
+#ifndef UPA_URL_UTF_H
+#define UPA_URL_UTF_H
 
 #include "buffer.h"
+#include "url_result.h"
 #include <cstdint> // uint32_t, [char16_t, char32_t]
 #include <string>
 
 
-namespace whatwg {
+namespace upa {
 
 class url_utf {
 public:
     template <typename CharT>
-    static bool read_utf_char(const CharT*& first, const CharT* last, uint32_t& code_point);
+    static detail::result_value<uint32_t> read_utf_char(const CharT*& first, const CharT* last) noexcept;
+
+    template <typename CharT>
+    static void read_char_append_utf8(const CharT*& it, const CharT* last, std::string& output);
+    static void read_char_append_utf8(const char*& it, const char* last, std::string& output);
 
     template <class Output, void appendByte(unsigned char, Output&)>
     static void append_utf8(uint32_t code_point, Output& output);
@@ -28,9 +33,6 @@ public:
     // Returns false if input contains invalid utf-8 byte sequence, or
     // true otherwise.
     static bool convert_utf8_to_utf16(const char* first, const char* last, simple_buffer<char16_t>& output);
-    static bool convert_utf8_to_utf16(const unsigned char* first, const unsigned char* last, simple_buffer<char16_t>& output) {
-        return convert_utf8_to_utf16(reinterpret_cast<const char*>(first), reinterpret_cast<const char*>(last), output);
-    }
 
     // Convert to utf-8 string
     static std::string to_utf8_string(const char16_t* first, const char16_t* last);
@@ -39,12 +41,12 @@ public:
     // Invalid utf-8 bytes sequences are replaced with 0xFFFD character.
     static void check_fix_utf8(std::string& str);
 
-    static int compare_by_code_units(const char* first1, const char* last1, const char* first2, const char* last2);
+    static int compare_by_code_units(const char* first1, const char* last1, const char* first2, const char* last2) noexcept;
 protected:
     // low level
-    static bool read_code_point(const char*& first, const char* last, uint32_t& code_point);
-    static bool read_code_point(const char16_t*& first, const char16_t* last, uint32_t& code_point);
-    static bool read_code_point(const char32_t*& first, const char32_t* last, uint32_t& code_point);
+    static bool read_code_point(const char*& first, const char* last, uint32_t& code_point) noexcept;
+    static bool read_code_point(const char16_t*& first, const char16_t* last, uint32_t& code_point) noexcept;
+    static bool read_code_point(const char32_t*& first, const char32_t* last, uint32_t& code_point) noexcept;
 private:
     const static char kReplacementCharUtf8[];
     const static uint8_t k_U8_LEAD3_T1_BITS[16];
@@ -71,66 +73,88 @@ private:
 // and advances `first` to point to the next character.
 
 template <typename CharT>
-inline bool url_utf::read_utf_char(const CharT*& first, const CharT* last, uint32_t& code_point) {
-    if (!read_code_point(first, last, code_point)) {
-        code_point = 0xFFFD; // REPLACEMENT CHARACTER
-        return false;
-    }
-    return true;
+inline detail::result_value<uint32_t> url_utf::read_utf_char(const CharT*& first, const CharT* last) noexcept {
+    // read_code_point always initializes code_point
+    uint32_t code_point; // NOLINT(cppcoreguidelines-init-variables)
+    if (read_code_point(first, last, code_point))
+        return { true, code_point };
+    return { false, 0xFFFD }; // REPLACEMENT CHARACTER
 }
 
+namespace detail {
+    inline void append_to_string(uint8_t c, std::string& str) {
+        str.push_back(static_cast<char>(c));
+    };
+} // namespace detail
+
+template <typename CharT>
+inline void url_utf::read_char_append_utf8(const CharT*& it, const CharT* last, std::string& output) {
+    const uint32_t code_point = read_utf_char(it, last).value;
+    append_utf8<std::string, detail::append_to_string>(code_point, output);
+}
+
+inline void url_utf::read_char_append_utf8(const char*& it, const char* last, std::string& output) {
+    uint32_t code_point; // NOLINT(cppcoreguidelines-init-variables)
+    const char* start = it;
+    if (read_code_point(it, last, code_point))
+        output.append(start, it);
+    else
+        output.append(static_cast<const char*>(kReplacementCharUtf8));
+}
 
 // ------------------------------------------------------------------------
 // The code bellow is based on the ICU 61.1 library's UTF macros in
 // utf8.h, utf16.h and utf.h files.
 //
 // (c) 2016 and later: Unicode, Inc. and others.
-// License & terms of use: http://www.unicode.org/copyright.html
+// License & terms of use: https://www.unicode.org/copyright.html
 //
 
 // Decoding UTF-8, UTF-16, UTF-32
 
 // Modified version of the U8_INTERNAL_NEXT_OR_SUB macro in utf8.h from ICU
 
-inline bool url_utf::read_code_point(const char*& first, const char* last, uint32_t& c) {
+inline bool url_utf::read_code_point(const char*& first, const char* last, uint32_t& c) noexcept {
     c = static_cast<uint8_t>(*first++);
     if (c & 0x80) {
-        uint8_t __t = 0;
+        uint8_t tmp = 0;
+        // NOLINTBEGIN(bugprone-assignment-in-if-condition)
         if (first != last &&
             // fetch/validate/assemble all but last trail byte
             (c >= 0xE0 ?
                 (c < 0xF0 ? // U+0800..U+FFFF except surrogates
-                    k_U8_LEAD3_T1_BITS[c &= 0xF] & (1 << ((__t = static_cast<uint8_t>(*first)) >> 5)) &&
-                    (__t &= 0x3F, 1)
+                    k_U8_LEAD3_T1_BITS[c &= 0xF] & (1 << ((tmp = static_cast<uint8_t>(*first)) >> 5)) &&
+                    (tmp &= 0x3F, 1)
                     : // U+10000..U+10FFFF
                     (c -= 0xF0) <= 4 &&
-                    k_U8_LEAD4_T1_BITS[(__t = static_cast<uint8_t>(*first)) >> 4] & (1 << c) &&
-                    (c = (c << 6) | (__t & 0x3F), ++first != last) &&
-                    (__t = static_cast<uint8_t>(*first) - 0x80) <= 0x3F) &&
+                    k_U8_LEAD4_T1_BITS[(tmp = static_cast<uint8_t>(*first)) >> 4] & (1 << c) &&
+                    (c = (c << 6) | (tmp & 0x3F), ++first != last) &&
+                    (tmp = static_cast<uint8_t>(static_cast<uint8_t>(*first) - 0x80)) <= 0x3F) &&
                 // valid second-to-last trail byte
-                (c = (c << 6) | __t, ++first != last)
+                (c = (c << 6) | tmp, ++first != last)
                 : // U+0080..U+07FF
                 c >= 0xC2 && (c &= 0x1F, 1)) &&
             // last trail byte
-            (__t = static_cast<uint8_t>(*first) - 0x80) <= 0x3F &&
-            (c = (c << 6) | __t, ++first, 1)) {
+            (tmp = static_cast<uint8_t>(static_cast<uint8_t>(*first) - 0x80)) <= 0x3F &&
+            (c = (c << 6) | tmp, ++first, 1)) {
             // valid utf-8
         } else {
             // ill-formed
             // c = 0xfffd;
             return false;
         }
+        // NOLINTEND(bugprone-assignment-in-if-condition)
     }
     return true;
 }
 
-namespace {
+namespace detail {
     // UTF-16
 
     // Is this code unit/point a surrogate (U+d800..U+dfff)?
     // Based on U_IS_SURROGATE in utf.h from ICU
     template <typename T>
-    inline bool u16_is_surrogate(T c) {
+    inline bool u16_is_surrogate(T c) noexcept {
         return (c & 0xfffff800) == 0xd800;
     }
 
@@ -138,35 +162,41 @@ namespace {
     // is it a lead surrogate?
     // Based on U16_IS_SURROGATE_LEAD in utf16.h from ICU
     template <typename T>
-    inline bool u16_is_surrogate_lead(T c) {
+    inline bool u16_is_surrogate_lead(T c) noexcept {
         return (c & 0x400) == 0;
+    }
+
+    // Is this code unit a lead surrogate (U+d800..U+dbff)?
+    // Based on U16_IS_LEAD in utf16.h from ICU
+    template <typename T>
+    inline bool u16_is_lead(T c) noexcept {
+        return (c & 0xfffffc00) == 0xd800;
     }
 
     // Is this code unit a trail surrogate (U+dc00..U+dfff)?
     // Based on U16_IS_TRAIL in utf16.h from ICU
     template <typename T>
-    inline bool u16_is_trail(T c) {
+    inline bool u16_is_trail(T c) noexcept {
         return (c & 0xfffffc00) == 0xdc00;
     }
 
     // Get a supplementary code point value (U+10000..U+10ffff)
     // from its lead and trail surrogates.
     // Based on U16_GET_SUPPLEMENTARY in utf16.h from ICU
-    inline uint32_t u16_get_supplementary(uint32_t lead, uint32_t trail) {
+    inline uint32_t u16_get_supplementary(uint32_t lead, uint32_t trail) noexcept {
         const uint32_t u16_surrogate_offset = (0xd800 << 10UL) + 0xdc00 - 0x10000;
         return (lead << 10UL) + trail - u16_surrogate_offset;
     }
-}
+} // namespace detail
 
 // Modified version of the U16_NEXT_OR_FFFD macro in utf16.h from ICU
 
-inline bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) {
+inline bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) noexcept {
     c = *first++;
-    if (u16_is_surrogate(c)) {
-        uint16_t __c2;
-        if (u16_is_surrogate_lead(c) && first != last && u16_is_trail(__c2 = *first)) {
+    if (detail::u16_is_surrogate(c)) {
+        if (detail::u16_is_surrogate_lead(c) && first != last && detail::u16_is_trail(*first)) {
+            c = detail::u16_get_supplementary(c, *first);
             ++first;
-            c = u16_get_supplementary(c, __c2);
         } else {
             // c = 0xfffd;
             return false;
@@ -175,9 +205,9 @@ inline bool url_utf::read_code_point(const char16_t*& first, const char16_t* las
     return true;
 }
 
-inline bool url_utf::read_code_point(const char32_t*& first, const char32_t*, uint32_t& c) {
+inline bool url_utf::read_code_point(const char32_t*& first, const char32_t*, uint32_t& c) noexcept {
     // no conversion
-    c = *(first++);
+    c = *first++;
     // don't allow surogates (U+D800..U+DFFF) and too high values
     return c < 0xD800u || (c > 0xDFFFu && c <= 0x10FFFFu);
 }
@@ -226,6 +256,6 @@ inline void url_utf::append_utf16(uint32_t code_point, simple_buffer<char16_t, N
 }
 
 
-} // namespace whatwg
+} // namespace upa
 
-#endif // WHATWG_URL_UTF_H
+#endif // UPA_URL_UTF_H

@@ -1,16 +1,31 @@
-#include "url.h"
+// Copyright 2016-2023 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+
+#include "upa/url.h"
 #include "doctest-main.h"
 
 
 TEST_CASE("Test setters with special URL's") {
-    whatwg::url url;
+    upa::url url;
 
-    REQUIRE(whatwg::success(url.parse("ws://example.org/foo/bar", nullptr)));
-    CHECK_FALSE(url.href("wss://%00/foo/bar"));
-    CHECK_EQ(url.href(), "ws://example.org/foo/bar");
-    CHECK_EQ(url.protocol(), "ws:");
-    CHECK_EQ(url.host(), "example.org");
-    CHECK_EQ(url.pathname(), "/foo/bar");
+    REQUIRE(upa::success(url.parse("ws://example.org/foo/bar", nullptr)));
+
+    SUBCASE("Check getters") {
+        CHECK_EQ(url.href(), "ws://example.org/foo/bar");
+        CHECK_EQ(url.protocol(), "ws:");
+        CHECK_EQ(url.host(), "example.org");
+        CHECK_EQ(url.pathname(), "/foo/bar");
+    }
+
+    SUBCASE("url::href(...)") {
+        CHECK_FALSE(url.href("wss://%00/foo/bar"));
+        CHECK_EQ(url.href(), "ws://example.org/foo/bar");
+
+        CHECK(url.href("wss://host/foo/bar"));
+        CHECK_EQ(url.href(), "wss://host/foo/bar");
+    }
 
     SUBCASE("switch to http: protocol") {
         // if setter sets value, then returns true
@@ -68,10 +83,10 @@ TEST_CASE("Test setters with special URL's") {
 }
 
 TEST_CASE("Test setters with non-special URL's") {
-    whatwg::url url;
+    upa::url url;
 
     SUBCASE("non-special: protocol") {
-        REQUIRE(whatwg::success(url.parse("non-special:/path", nullptr)));
+        REQUIRE(upa::success(url.parse("non-special:/path", nullptr)));
         CHECK_EQ(url.href(), "non-special:/path");
 
         CHECK(url.hostname("example.net"));
@@ -82,10 +97,63 @@ TEST_CASE("Test setters with non-special URL's") {
     }
 
     SUBCASE("javascript: protocol") {
-        REQUIRE(whatwg::success(url.parse("JavaScript:alert(1)", nullptr)));
+        REQUIRE(upa::success(url.parse("JavaScript:alert(1)", nullptr)));
         CHECK_EQ(url.href(), "javascript:alert(1)");
 
         CHECK(url.hash("#frag"));
         CHECK_EQ(url.href(), "javascript:alert(1)#frag");
+    }
+}
+
+TEST_CASE("Test host setter with file URL") {
+    upa::url url("file://h/p");
+
+    SUBCASE("localhost") {
+        CHECK(url.host("localhost"));
+        CHECK(url.host() == "");
+        CHECK(url.host_type() == upa::HostType::Empty);
+    }
+    SUBCASE("empty host") {
+        CHECK(url.host(""));
+        CHECK(url.host() == "");
+        CHECK(url.host_type() == upa::HostType::Empty);
+    }
+}
+
+TEST_CASE("Test setters (url_setter::start_part with use_strp_ = false)") {
+    SUBCASE("Special URL") {
+        upa::url url("http://h/p?query#frag");
+
+        url.hash("");
+        url.search("q");
+
+        CHECK(url.href() == "http://h/p?q");
+        CHECK(url.pathname() == "/p");
+        CHECK(url.search() == "?q");
+        CHECK(url.hash() == "");
+    }
+    SUBCASE("Non-special URL") {
+        upa::url url("nonspec://host:123/path?query#frag");
+
+        url.hash("");
+        url.search("");
+        url.pathname("");
+        url.port("");
+        url.hostname("h");
+
+        CHECK(url.href() == "nonspec://h");
+        CHECK(url.hostname() == "h");
+        CHECK(url.port() == "");
+        CHECK(url.pathname() == "");
+        CHECK(url.search() == "");
+        CHECK(url.hash() == "");
+
+        url.search("q");
+
+        CHECK(url.href() == "nonspec://h?q");
+        CHECK(url.port() == "");
+        CHECK(url.pathname() == "");
+        CHECK(url.search() == "?q");
+        CHECK(url.hash() == "");
     }
 }

@@ -1,0 +1,14 @@
+task:
+  name: FreeBSD
+  freebsd_instance:
+    matrix:
+      image_family: freebsd-13-1
+      image_family: freebsd-12-3
+  install_script: |
+    pkg install -y cmake git
+  build_script: |
+    ./init.sh
+    cmake -S . -B build -DCMAKE_CXX_STANDARD=17
+    cmake --build build
+  test_script: |
+    cd build ; ctest -V

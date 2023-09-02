@@ -1,13 +1,14 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
 
-#include "url_ip.h"
+#include "upa/url_ip.h"
 
-namespace whatwg {
+namespace upa {
 
-// IPv4
+// IPv4 serializer
+// https://url.spec.whatwg.org/#concept-ipv4-serializer
 
 void ipv4_serialize(uint32_t ipv4, std::string& output) {
     for (unsigned shift = 24; shift != 0; shift -= 8) {
@@ -17,11 +18,12 @@ void ipv4_serialize(uint32_t ipv4, std::string& output) {
     unsigned_to_str<uint32_t>(ipv4 & 0xFF, output, 10);
 }
 
-// IPv6
+// IPv6 serializer
+// https://url.spec.whatwg.org/#concept-ipv6-serializer
 
 static std::size_t longest_zero_sequence(
     const uint16_t* first, const uint16_t* last,
-    const uint16_t*& compress, const uint16_t*& compress_end)
+    const uint16_t*& compress)
 {
     std::size_t last_count = 0;
     for (auto it = first; it != last; ++it) {
@@ -32,10 +34,9 @@ static std::size_t longest_zero_sequence(
             if (last_count < count) {
                 last_count = count;
                 compress = it;
-                compress_end = ite;
             }
             if (ite == last) break;
-            it = ite; // it++ in loop skips not 0
+            it = ite; // ++it in the loop skips non-zero number
         }
     }
     return last_count;
@@ -45,16 +46,17 @@ void ipv6_serialize(const uint16_t(&address)[8], std::string& output) {
     const uint16_t *first = std::begin(address);
     const uint16_t *last = std::end(address);
 
-    const uint16_t *compress;
-    const uint16_t *compress_end;
-    if (longest_zero_sequence(first, last, compress, compress_end) <= 1)
-        compress = compress_end = last;
+    const uint16_t *compress = nullptr;
+    const auto compress_length = longest_zero_sequence(first, last, compress);
+    if (compress_length == 1)
+        compress = nullptr;
 
     // "it" pointer corresponds to pieceIndex in the URL standard
     for (auto it = first; true;) {
         if (it == compress) {
             output.append("::", it == first ? 2 : 1);
-            if ((it = compress_end) == last) break;
+            it += compress_length;
+            if (it == last) break;
         }
         unsigned_to_str<uint32_t>(*it, output, 16);
         if (++it == last) break;
@@ -63,4 +65,4 @@ void ipv6_serialize(const uint16_t(&address)[8], std::string& output) {
 }
 
 
-} // namespace whatwg
+} // namespace upa

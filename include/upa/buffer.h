@@ -1,4 +1,4 @@
-// Copyright 2016-2019 Rimas Misevičius
+// Copyright 2016-2023 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -7,14 +7,16 @@
 // Copyright 2013 The Chromium Authors. All rights reserved.
 //
 
-#ifndef WHATWG_BUFFER_H
-#define WHATWG_BUFFER_H
+#ifndef UPA_BUFFER_H
+#define UPA_BUFFER_H
 
+#include <array>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <type_traits>
 
-namespace whatwg {
+namespace upa {
 
 template <
     class T,
@@ -24,68 +26,68 @@ template <
 >
 class simple_buffer {
 public:
-    typedef T value_type;
-    typedef Traits traits_type;
-    typedef Allocator allocator_type;
-    typedef std::allocator_traits<allocator_type> allocator_traits;
-    typedef std::size_t size_type;
+    using value_type = T ;
+    using traits_type = Traits;
+    using allocator_type = Allocator;
+    using allocator_traits = std::allocator_traits<allocator_type>;
+    using size_type = std::size_t;
     // iterator
-    typedef const value_type* const_iterator;
+    using const_iterator = const value_type*;
 
     // default
-    simple_buffer() : simple_buffer(Allocator()) {}
+    simple_buffer() = default; // NOLINT(cppcoreguidelines-pro-type-member-init,hicpp-member-init)
     explicit simple_buffer(const Allocator& alloc)
         : allocator_(alloc)
-        , data_(fixed_buffer_)
-        , size_(0)
-        , capacity_(fixed_capacity)
     {}
 
     // with initial capacity
     explicit simple_buffer(size_type new_cap, const Allocator& alloc = Allocator())
         : allocator_(alloc)
-        , data_(fixed_buffer_)
-        , size_(0)
-        , capacity_(fixed_capacity)
     {
         if (new_cap > fixed_capacity)
             init_capacity(new_cap);
     }
 
+    // disable copy/move
+    simple_buffer(const simple_buffer&) = delete;
+    simple_buffer(simple_buffer&&) = delete;
+    simple_buffer& operator=(const simple_buffer&) = delete;
+    simple_buffer& operator=(simple_buffer&&) = delete;
+
     ~simple_buffer() {
-        if (data_ != fixed_buffer_)
+        if (data_ != fixed_buffer())
             allocator_traits::deallocate(allocator_, data_, capacity_);
     }
 
-    allocator_type get_allocator() const {
+    allocator_type get_allocator() const noexcept {
         return allocator_;
     }
 
-    value_type* data() {
+    value_type* data() noexcept {
         return data_;
     }
-    const value_type* data() const {
+    const value_type* data() const noexcept {
         return data_;
     }
 
-    const_iterator begin() const {
+    const_iterator begin() const noexcept {
         return data_;
     }
-    const_iterator end() const {
+    const_iterator end() const noexcept {
         return data_ + size_;
     }
 
     // Capacity
-    bool empty() const {
+    bool empty() const noexcept {
         return size_ == 0;
     }
-    size_type size() const {
+    size_type size() const noexcept {
         return size_;
     }
-    size_type max_size() const {
+    size_type max_size() const noexcept {
         return allocator_traits::max_size(allocator_);
     }
-    size_type capacity() const {
+    size_type capacity() const noexcept {
         return capacity_;
     }
 
@@ -95,7 +97,7 @@ public:
     }
 
     // Modifiers
-    void clear() {
+    void clear() noexcept {
         size_ = 0;
     }
 
@@ -113,21 +115,31 @@ public:
     void push_back(const value_type& value) {
         if (size_ < capacity_) {
             data_[size_] = value;
-            size_++;
+            ++size_;
             return;
         }
         // grow buffer capacity
         grow(add_sizes(size_, 1));
         data_[size_] = value;
-        size_++;
+        ++size_;
     }
     void pop_back() {
-        size_--;
+        --size_;
     }
     void resize(size_type count) {
         reserve(count);
         size_ = count;
     }
+
+#ifdef DOCTEST_LIBRARY_INCLUDED
+    void internal_test() {
+        // https://en.cppreference.com/w/cpp/memory/allocator
+        // default allocator is stateless, i.e. instances compare equal:
+        CHECK(get_allocator() == allocator_);
+        CHECK_THROWS(grow(max_size() + 1));
+        CHECK_THROWS(add_sizes(max_size() - 1, 2));
+    }
+#endif
 
 protected:
     void init_capacity(size_type new_cap) {
@@ -139,7 +151,7 @@ protected:
         // copy data
         traits_type::copy(new_data, data(), size());
         // deallocate old data & assign new
-        if (data_ != fixed_buffer_)
+        if (data_ != fixed_buffer())
             allocator_traits::deallocate(allocator_, data_, capacity_);
         data_ = new_data;
         capacity_ = new_cap;
@@ -147,34 +159,40 @@ protected:
 
     // https://cs.chromium.org/chromium/src/url/url_canon.h
     // Grows the given buffer so that it can fit at least |min_cap|
-    // characters. Throws std::bad_alloc() on OOM.
+    // characters. Throws std::length_error() if min_cap is too big.
     void grow(size_type min_cap) {
         static const size_type kMinBufferLen = 16;
         size_type new_cap = (capacity_ == 0) ? kMinBufferLen : capacity_;
         do {
             if (new_cap > (max_size() >> 1))  // Prevent overflow below.
-                throw std::bad_alloc();
+                throw std::length_error("too big size");
             new_cap *= 2;
         } while (new_cap < min_cap);
         reserve(new_cap);
     }
 
     // add without overflow
-    size_type add_sizes(size_type n1, size_type n2) {
+    size_type add_sizes(size_type n1, size_type n2) const {
         if (max_size() - n1 >= n2)
             return n1 + n2;
-        throw std::bad_alloc();
+        throw std::length_error("too big size");
     }
+
+private:
+    value_type* fixed_buffer() noexcept {
+        return fixed_buffer_.data();
+    }
+
 private:
     allocator_type allocator_;
-    value_type* data_;
-    size_type size_;
-    size_type capacity_;
+    value_type* data_ = fixed_buffer();
+    size_type size_ = 0;
+    size_type capacity_ = fixed_capacity;
 
     // fixed size buffer
-    value_type fixed_buffer_[fixed_capacity];
+    std::array<value_type, fixed_capacity> fixed_buffer_;
 };
 
-} // namespace whatwg
+} // namespace upa
 
-#endif // WHATWG_BUFFER_H
+#endif // UPA_BUFFER_H

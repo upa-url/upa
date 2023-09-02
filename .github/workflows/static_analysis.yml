@@ -1,0 +1,29 @@
+name: Static Analysis
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: clang-tidy-14 C++17
+            cxx_compiler: clang++-14
+            cxx_standard: 17
+            cmake_options: "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: get dependencies
+      run: ./init.sh
+    - name: apt-get install
+      if: ${{ matrix.install }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ${{ matrix.install }}
+    - name: cmake
+      run: cmake -S . -B build -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
+    - name: static analysis
+      run: clang-tidy-14 -p build src/*.*

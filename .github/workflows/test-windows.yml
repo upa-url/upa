@@ -1,0 +1,47 @@
+name: Windows
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - name: VS 2019 C++20
+            os: windows-2019
+            generator: "Visual Studio 16 2019"
+            cxx_standard: 20
+            cmake_options: ""
+
+          - name: VS 2022 C++23
+            os: windows-2022
+            generator: "Visual Studio 17 2022"
+            cxx_standard: 23
+            cmake_options: ""
+
+          - name: VS 2022 Clang C++20
+            os: windows-2022
+            generator: "Visual Studio 17 2022"
+            cxx_standard: 20
+            cmake_options: "-T ClangCL"
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: get dependencies
+      run: init.bat
+      shell: cmd
+    - name: install ICU library
+      run: install-icu.bat C:\LIB 73 2
+      shell: cmd
+    - name: cmake
+      run: cmake -S . -B build -G "${{ matrix.generator }}" -A x64 -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DICU_ROOT=C:\LIB\ICU ${{ matrix.cmake_options }}
+    - name: build
+      run: cmake --build build --config Release
+    - name: test
+      run: |
+        set PATH=%PATH%;C:\LIB\ICU\bin64
+        cd build
+        ctest -C Release -V
+      shell: cmd

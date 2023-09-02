@@ -9,6 +9,7 @@
 
 *.bat   text eol=crlf
 *.sh    text eol=lf
+*.yml   text
 
 *.md    text
 *.txt   text

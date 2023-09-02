@@ -1,5 +1,11 @@
-#include "url.h"
+// Copyright 2016-2023 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+
+#include "upa/url.h"
 #include "doctest-main.h"
+#include "test-utils.h"
 #include <algorithm>
 #include <sstream>
 #include <string>
@@ -7,8 +13,6 @@
 
 // Tests based on "url-setters-stripping.any.js" file from
 // https://github.com/web-platform-tests/wpt/tree/master/url
-//
-// Last checked for updates: 2020-05-01
 //
 
 using url_args = std::unordered_map<std::string, std::string>;
@@ -33,13 +37,11 @@ static std::string urlString(url_args urlArgs) {
         + "/" + urlArgs["pathname"] + "?" + urlArgs["search"] + "#" + urlArgs["hash"];
 }
 
-static whatwg::url urlRecord(std::string scheme) {
-    whatwg::url u;
-    u.parse(urlString({ { "scheme", scheme } }), nullptr);
-    return u;
+static upa::url urlRecord(std::string scheme) {
+    return upa::url(urlString({ { "scheme", scheme } }), nullptr);
 }
 
-static std::string get_url_property(const whatwg::url& url, const std::string& property) {
+static std::string get_url_property(const upa::url& url, const std::string& property) {
     // empty value, if property is invalid
     std::string value;
     if (property == "prtocol")
@@ -65,7 +67,7 @@ static std::string get_url_property(const whatwg::url& url, const std::string& p
     return value;
 }
 
-static void set_url_property(whatwg::url& url, const std::string& property, const std::string& value) {
+static void set_url_property(upa::url& url, const std::string& property, const std::string& value) {
     if (property == "prtocol")
         url.protocol(value);
     else if (property == "username")
@@ -84,21 +86,6 @@ static void set_url_property(whatwg::url& url, const std::string& property, cons
         url.search(value);
     else if (property == "hash")
         url.hash(value);
-}
-
-static std::string encodeURIComponent(const std::string& str) {
-    std::stringstream strm;
-    for (char c : str) {
-        // Not escapes: A-Z a-z 0-9 - _ . ! ~ * ' ( )
-        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
-            c == '-' || c == '_' || c == '.' || c == '!' || c == '~' || c == '*' || c == '\'' || c == '(' || c == ')') {
-            strm << c;
-        } else {
-            // percent encode
-            strm << '%' << std::hex << std::uppercase << std::setfill('0') << std::setw(2) << int(c);
-        }
-    }
-    return strm.str();
 }
 
 //
@@ -125,14 +112,14 @@ TEST_CASE("url-setters-stripping.any.js") {
 
             std::string scheme_to_set = scheme == "https" ? "http" : "wpt--";
             std::string scheme_expected = stripped ? scheme_to_set : scheme;
-            INFO("Setting protocol with leading " << cpReference << " (" << scheme << ":)");
+            INFO("Setting protocol with leading ", cpReference, " (", scheme, ":)");
             {
                 auto url = urlRecord(scheme);
                 url.protocol(cpString + scheme_to_set);
                 CHECK(url.protocol() == scheme_expected + ":");
                 CHECK(url.href() == urlString({ {"scheme", scheme_expected } }));
             }
-            INFO("Setting protocol with " << cpReference << " before inserted colon (" << scheme << ":)");
+            INFO("Setting protocol with ", cpReference, " before inserted colon (", scheme, ":)");
             {
                 auto url = urlRecord(scheme);
                 url.protocol(scheme_to_set + cpString);
@@ -154,7 +141,7 @@ TEST_CASE("url-setters-stripping.any.js") {
                     TestData{"trailing", "test" + encodeURIComponent(cpString), "test" + cpString}
                     })
                 {
-                    INFO("Setting " << property << " with " << td.type << "  " << cpReference << " (" << scheme << ":)");
+                    INFO("Setting ", property, " with ", td.type, "  ", cpReference, " (", scheme, ":)");
                     auto url = urlRecord(scheme);
                     set_url_property(url, property, td.input);
                     CHECK(get_url_property(url, property) == td.expectedPart);
@@ -168,9 +155,10 @@ TEST_CASE("url-setters-stripping.any.js") {
                 TestData{"trailing", "test" + (scheme == "https" ? cpString : encodeURIComponent(cpString)), "test" + cpString}
                 })
             {
-                const std::string expected = i == 0x00 ? "host" : stripped ? "test" : td.expectedPart;
+                const std::string expected = i == 0x00 || (scheme == "https" && i == 0x1F) ? "host"
+                    : stripped ? "test" : td.expectedPart;
 
-                INFO("Setting host with " << td.type << "  " << cpReference << " (" << scheme << ":)");
+                INFO("Setting host with ", td.type, "  ", cpReference, " (", scheme, ":)");
                 {
                     auto url = urlRecord(scheme);
                     url.host(td.input);
@@ -179,7 +167,7 @@ TEST_CASE("url-setters-stripping.any.js") {
 
                 }
 
-                INFO("Setting hostname with " << td.type << "  " << cpReference << " (" << scheme << ":)");
+                INFO("Setting hostname with ", td.type, "  ", cpReference, " (", scheme, ":)");
                 {
                     auto url = urlRecord(scheme);
                     url.hostname(td.input);
@@ -188,7 +176,7 @@ TEST_CASE("url-setters-stripping.any.js") {
                 }
             }
 
-            INFO("Setting port with leading " << cpReference << " (" << scheme << ":)");
+            INFO("Setting port with leading ", cpReference, " (", scheme, ":)");
             {
                 const std::string expected = stripped ? "9000" : "8000";
                 auto url = urlRecord(scheme);
@@ -197,7 +185,7 @@ TEST_CASE("url-setters-stripping.any.js") {
                 CHECK(url.href() == urlString({ {"scheme", scheme }, { "port", expected } }));
             }
 
-            INFO("Setting port with middle " << cpReference << " (" << scheme << ":)");
+            INFO("Setting port with middle ", cpReference, " (", scheme, ":)");
             {
                 const std::string expected = stripped ? "9000" : "90";
                 auto url = urlRecord(scheme);
@@ -206,7 +194,7 @@ TEST_CASE("url-setters-stripping.any.js") {
                 CHECK(url.href() == urlString({ {"scheme", scheme }, { "port", expected } }));
             }
 
-            INFO("Setting port with trailing " << cpReference << " (" << scheme << ":)");
+            INFO("Setting port with trailing ", cpReference, " (", scheme, ":)");
             {
                 const std::string expected = "9000";
                 auto url = urlRecord(scheme);
@@ -231,7 +219,7 @@ TEST_CASE("url-setters-stripping.any.js") {
                     TestData{"trailing", "test" + encodeURIComponent(cpString), "test" + cpString}
                     })
                 {
-                    INFO("Setting " << ps.property << " with " << td.type << " " << cpReference << " (" << scheme << ":)");
+                    INFO("Setting ", ps.property, " with ", td.type, " ", cpReference, " (", scheme, ":)");
 
                     const std::string  expected = stripped ? "test" : td.expectedPart;
                     auto url = urlRecord(scheme);

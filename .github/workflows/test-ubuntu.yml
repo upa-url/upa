@@ -1,0 +1,67 @@
+name: Ubuntu
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: clang++ C++20
+            cxx_compiler: clang++
+            cxx_standard: 20
+            cmake_options: ""
+
+          - name: clang++ C++17 with sanitizer
+            cxx_compiler: clang++
+            cxx_standard: 17
+            cmake_options: "-DURL_TEST_SANITIZER=ON"
+
+          - name: clang++ C++17 with valgrind
+            cxx_compiler: clang++
+            cxx_standard: 17
+            cmake_options: "-DURL_TEST_VALGRIND=ON"
+            install: "valgrind"
+
+          - name: g++-12 C++20
+            cxx_compiler: g++-12
+            cxx_standard: 20
+            cmake_options: ""
+
+          - name: g++ C++17 Codecov
+            cxx_compiler: g++
+            cxx_standard: 17
+            cmake_options: "-DURL_TEST_COVERAGE=ON"
+            install: "lcov"
+            after_test: |
+              # See: https://github.com/codecov/example-cpp11-cmake
+              lcov --capture --directory . --output-file coverage.info
+              lcov --remove coverage.info '/usr/*' '*/deps/*' '*/test/*' --output-file coverage.info
+              lcov --list coverage.info
+              bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
+
+          - name: g++-9 C++11
+            cxx_compiler: g++-9
+            cxx_standard: 11
+            cmake_options: "-DURL_BUILD_EXAMPLES=ON"
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: get dependencies
+      run: ./init.sh
+    - name: apt-get install
+      if: ${{ matrix.install }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ${{ matrix.install }}
+    - name: cmake
+      run: cmake -S . -B build -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
+    - name: build
+      run: cmake --build build --config Release
+    - name: test
+      run: cd build ; ctest -C Release -V
+    - name: after test
+      if: ${{ matrix.after_test }}
+      run: ${{ matrix.after_test }}

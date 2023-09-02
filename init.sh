@@ -1,11 +1,11 @@
 #!/bin/sh
 
-# Download dependances and tests
+# Download dependencies and tests
 
 # Download submodules
 git submodule update --init --recursive
 
-# Download dependances
+# Download dependencies
 deps/download-deps.sh
 
 # Download web-platform-tests

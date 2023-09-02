@@ -1,0 +1,225 @@
+[
+  "Invalid sheme with cannot be base URL",
+  {
+    "input": "",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": ":p",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "1:p",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "a$:p",
+    "base": "about:blank",
+    "failure": true
+  },
+  "Invalid sheme with base URL",
+  {
+    "input": ":p",
+    "base": "https://host/path",
+    "href": "https://host/:p",
+    "origin": "https://host",
+    "protocol": "https:",
+    "username": "",
+    "password": "",
+    "host": "host",
+    "hostname": "host",
+    "port": "",
+    "pathname": "/:p",
+    "search": "",
+    "hash": ""
+  },
+  {
+    "input": "1:p",
+    "base": "https://host/path",
+    "href": "https://host/1:p",
+    "origin": "https://host",
+    "protocol": "https:",
+    "username": "",
+    "password": "",
+    "host": "host",
+    "hostname": "host",
+    "port": "",
+    "pathname": "/1:p",
+    "search": "",
+    "hash": ""
+  },
+  {
+    "input": "a$:p",
+    "base": "https://host/path",
+    "href": "https://host/a$:p",
+    "origin": "https://host",
+    "protocol": "https:",
+    "username": "",
+    "password": "",
+    "host": "host",
+    "hostname": "host",
+    "port": "",
+    "pathname": "/a$:p",
+    "search": "",
+    "hash": ""
+  },
+  "Invalid percent-encode sequence (%xx) in hostname",
+  {
+    "input": "non-spec://%C4%84%xx",
+    "base": "about:blank",
+    "href": "non-spec://%C4%84%xx",
+    "protocol": "non-spec:",
+    "username": "",
+    "password": "",
+    "host": "%C4%84%xx",
+    "hostname": "%C4%84%xx",
+    "port": "",
+    "pathname": "",
+    "search": "",
+    "hash": ""
+  },
+  {
+    "input": "https://%C4%84%xx",
+    "base": "about:blank",
+    "failure": true
+  },
+  "Invalid IPv4 address number",
+  {
+    "input": "https://0100000000000/",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "https://0xAx/",
+    "base": "about:blank",
+    "href": "https://0xax/",
+    "origin": "https://0xax",
+    "protocol": "https:",
+    "username": "",
+    "password": "",
+    "host": "0xax",
+    "hostname": "0xax",
+    "port": "",
+    "pathname": "/",
+    "search": "",
+    "hash": ""
+  },
+  "Invalid IPv6 address",
+  {
+    "input": "https://[:1]/",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "https://[1:1]/",
+    "base": "about:blank",
+    "failure": true
+  },
+  "Non-IPv4 tests",
+  {
+    "input": "http://0xAX.1",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "http://0xAX.1.",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "http://a.0x",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "http://a.0x.",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "http://a.0x100000000000000000000000000000000",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "http://a.0x100000000000000000000000000000000.",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "http://1.0x100000000000000000000000000000000",
+    "base": "about:blank",
+    "failure": true
+  },
+  {
+    "input": "http://1.0x100000000000000000000000000000000.",
+    "base": "about:blank",
+    "failure": true
+  },
+  "IPv4",
+  {
+    "input": "http://1.0x",
+    "base": "about:blank",
+    "href": "http://1.0.0.0/",
+    "origin": "http://1.0.0.0",
+    "protocol": "http:",
+    "username": "",
+    "password": "",
+    "host": "1.0.0.0",
+    "hostname": "1.0.0.0",
+    "port": "",
+    "pathname": "/",
+    "search": "",
+    "hash": ""
+  },
+  {
+    "input": "http://1.0x.",
+    "base": "about:blank",
+    "href": "http://1.0.0.0/",
+    "origin": "http://1.0.0.0",
+    "protocol": "http:",
+    "username": "",
+    "password": "",
+    "host": "1.0.0.0",
+    "hostname": "1.0.0.0",
+    "port": "",
+    "pathname": "/",
+    "search": "",
+    "hash": ""
+  },
+  "IPv4 parser must not be invoked when there are two empty labels at the end",
+  {
+    "input": "http://1.0x..",
+    "base": "about:blank",
+    "href": "http://1.0x../",
+    "origin": "http://1.0x..",
+    "protocol": "http:",
+    "username": "",
+    "password": "",
+    "host": "1.0x..",
+    "hostname": "1.0x..",
+    "port": "",
+    "pathname": "/",
+    "search": "",
+    "hash": ""
+  },
+  {
+    "input": "http://a.1..",
+    "base": "about:blank",
+    "href": "http://a.1../",
+    "origin": "http://a.1..",
+    "protocol": "http:",
+    "username": "",
+    "password": "",
+    "host": "a.1..",
+    "hostname": "a.1..",
+    "port": "",
+    "pathname": "/",
+    "search": "",
+    "hash": ""
+  },
+  "[END OF TESTS]"
+]
