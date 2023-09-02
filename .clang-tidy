@@ -49,4 +49,4 @@ CheckOptions:
 
 WarningsAsErrors: '*'
 
-HeaderFilterRegex: 'src\/[^\/]+\.h$'
+HeaderFilterRegex: 'include\/upa\/[^\/]+\.h$'
