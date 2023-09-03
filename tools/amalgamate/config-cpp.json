@@ -1,16 +1,16 @@
 {
-  "project": "WHATWG URL C++",
-  "target": "url/url.cpp",
-  "head": [
-    "src/url.cpp"
-  ],
+  "project": "upa/url.cpp",
+  "target": "single_include/upa/url.cpp",
   "sources": [
+    "src/url.cpp",
     "src/url_idna.cpp",
     "src/url_ip.cpp",
     "src/url_percent_encode.cpp",
     "src/url_search_params.cpp",
     "src/url_utf.cpp"
   ],
-  "include_paths": [],
+  "include_paths": [
+    "include"
+  ],
   "ingnore_includes": true
 }

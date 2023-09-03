@@ -1,10 +1,10 @@
 {
-  "project": "WHATWG URL C++",
-  "target": "url/url.h",
+  "project": "upa/url.h",
+  "target": "single_include/upa/url.h",
   "sources": [
-    "src/url.h"
+    "include/upa/url.h"
   ],
   "include_paths": [
-    "src"
+    "include/upa"
   ]
 }
