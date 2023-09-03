@@ -49,13 +49,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: get dependencies
-      run: ./init.sh
     - name: apt-get install
       if: ${{ matrix.install }}
       run: |
         sudo apt-get update
         sudo apt-get install -y ${{ matrix.install }}
+    - name: get dependencies
+      run: ./init.sh
     - name: cmake
       run: cmake -S . -B build -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
     - name: build
