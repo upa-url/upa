@@ -1,0 +1,10 @@
+{
+  "project": "upa/url.h",
+  "target": "single_include/upa/url.h",
+  "sources": [
+    "include/upa/url.h"
+  ],
+  "include_paths": [
+    "include/upa"
+  ]
+}
