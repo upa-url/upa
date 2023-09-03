@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # amalgamate.py - Amalgamate C source and header files.
 # Copyright (c) 2012, Erik Edlund <erik.edlund@32767.se>
@@ -37,7 +37,6 @@ import datetime
 import json
 import os
 import re
-import sys
 import io
 
 class Amalgamation(object):
@@ -79,7 +78,7 @@ class Amalgamation(object):
         amalgamation = ""
 
         if self.prologue:
-            with open(self.prologue, 'r') as f:
+            with io.open(self.prologue, mode="r", encoding="utf-8") as f:
                 amalgamation += datetime.datetime.now().strftime(f.read())
 
         if self.verbose:
@@ -95,7 +94,7 @@ class Amalgamation(object):
         for file_path in self.sources:
             # Do not check the include paths while processing the source
             # list, all given source paths must be correct.
-            actual_path = self.actual_path(file_path)
+            # actual_path = self.actual_path(file_path)
             print(" - processing \"{0}\"".format(file_path))
             t = TranslationUnit(file_path, self, True)
             amalgamation += t.content
