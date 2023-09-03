@@ -42,6 +42,12 @@ jobs:
               lcov --list coverage.info
               bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
 
+          - name: g++ C++17 amalgamated
+            cxx_compiler: g++
+            cxx_standard: 17
+            cmake_options: "-DURL_AMALGAMATED=ON -DURL_BUILD_EXAMPLES=ON"
+            before_cmake: tools/amalgamate.sh
+
           - name: g++-9 C++11
             cxx_compiler: g++-9
             cxx_standard: 11
@@ -56,6 +62,9 @@ jobs:
         sudo apt-get install -y ${{ matrix.install }}
     - name: get dependencies
       run: ./init.sh
+    - name: before cmake
+      if: ${{ matrix.before_cmake }}
+      run: ${{ matrix.before_cmake }}
     - name: cmake
       run: cmake -S . -B build -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
     - name: build

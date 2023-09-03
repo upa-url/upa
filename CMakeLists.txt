@@ -17,6 +17,8 @@ option(URL_BUILD_TESTS "Build the URL tests." ON)
 option(URL_BUILD_FUZZER "Build the URL fuzzer." OFF)
 option(URL_BUILD_EXAMPLES "Build the URL examples." OFF)
 option(URL_BUILD_TOOLS "Build tools." OFF)
+# library options
+option(URL_AMALGAMATED "Use amalgamated URL library source." OFF)
 # tests build options
 option(URL_TEST_COVERAGE "Build tests with code coverage reporting" OFF)
 option(URL_TEST_COVERAGE_CLANG "Build tests with Clang source-based code coverage" OFF)
@@ -78,20 +80,31 @@ if (URL_BUILD_TESTS OR URL_BUILD_FUZZER OR URL_BUILD_EXAMPLES)
   set(URL_USE_LIBS ON)
 endif()
 
-include_directories(
-  deps
-  include)
+if (URL_AMALGAMATED)
+  include_directories(
+    deps
+    single_include)
+else()
+  include_directories(
+    deps
+    include)
+endif()
 
 if (URL_USE_LIBS)
   find_package(ICU REQUIRED COMPONENTS i18n uc)
 
-  add_library(cppurl STATIC
-    src/url.cpp
-    src/url_idna.cpp
-    src/url_ip.cpp
-    src/url_percent_encode.cpp
-    src/url_search_params.cpp
-    src/url_utf.cpp)
+  if (URL_AMALGAMATED)
+    add_library(cppurl STATIC
+      single_include/upa/url.cpp)
+  else()
+    add_library(cppurl STATIC
+      src/url.cpp
+      src/url_idna.cpp
+      src/url_ip.cpp
+      src/url_percent_encode.cpp
+      src/url_search_params.cpp
+      src/url_utf.cpp)
+  endif()
   target_include_directories(cppurl PRIVATE ${ICU_INCLUDE_DIR})
 endif()
 
@@ -100,24 +113,30 @@ endif()
 if (URL_BUILD_TESTS)
   enable_testing()
 
-  set(test_files
-    test/test-buffer.cpp
-    test/test-ipv4.cpp
-    test/test-ipv6.cpp
-    test/test-str_arg.cpp
-    test/test-utf.cpp
-    test/test-util.cpp
-    test/test-url.cpp
-    test/test-url-port.cpp
-    test/test-url-setters.cpp
-    test/test-url_host.cpp
-    test/test-url_percent_encode.cpp
-    test/test-url_search_params.cpp
-    test/wpt-url.cpp
-    test/wpt-url-setters-stripping.cpp
-    test/wpt-url_search_params.cpp
-    test/wpt-urlencoded-parser.cpp
-  )
+  if (URL_AMALGAMATED)
+    set(test_files
+      test/test-amalgamate.cpp
+    )
+  else()
+    set(test_files
+      test/test-buffer.cpp
+      test/test-ipv4.cpp
+      test/test-ipv6.cpp
+      test/test-str_arg.cpp
+      test/test-utf.cpp
+      test/test-util.cpp
+      test/test-url.cpp
+      test/test-url-port.cpp
+      test/test-url-setters.cpp
+      test/test-url_host.cpp
+      test/test-url_percent_encode.cpp
+      test/test-url_search_params.cpp
+      test/wpt-url.cpp
+      test/wpt-url-setters-stripping.cpp
+      test/wpt-url_search_params.cpp
+      test/wpt-urlencoded-parser.cpp
+    )
+  endif()
   foreach(file ${test_files})
     get_filename_component(test_name ${file} NAME_WE)
 
