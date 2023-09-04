@@ -232,6 +232,9 @@ public:
     /// @return `true` - on success; `false` - on failure
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool href(StrT&& str);
+    /// Equivalent to @link href(StrT&& str) @endlink
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool set_href(StrT&& str) { return href(str); }
 
     /// @brief The protocol setter
     ///
@@ -242,6 +245,9 @@ public:
     /// @return `true` - on success; `false` - on failure (URL protocol unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool protocol(StrT&& str);
+    /// Equivalent to @link protocol(StrT&& str) @endlink
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool set_protocol(StrT&& str) { return protocol(str); }
 
     /// @brief The username setter
     ///
@@ -252,6 +258,9 @@ public:
     /// @return `true` - on success; `false` - if username can not be set
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool username(StrT&& str);
+    /// Equivalent to @link username(StrT&& str) @endlink
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool set_username(StrT&& str) { return username(str); }
 
     /// @brief The password setter
     ///
@@ -262,6 +271,9 @@ public:
     /// @return `true` - on success; `false` - if password can not be set
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool password(StrT&& str);
+    /// Equivalent to @link password(StrT&& str) @endlink
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool set_password(StrT&& str) { return password(str); }
 
     /// @brief The host setter
     ///
@@ -272,6 +284,9 @@ public:
     /// @return `true` - on success; `false` - on failure (URL's host and port unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool host(StrT&& str);
+    /// Equivalent to @link host(StrT&& str) @endlink
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool set_host(StrT&& str) { return host(str); }
 
     /// @brief The hostname setter
     ///
@@ -282,6 +297,9 @@ public:
     /// @return `true` - on success; `false` - on failure (URL's host unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool hostname(StrT&& str);
+    /// Equivalent to @link hostname(StrT&& str) @endlink
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool set_hostname(StrT&& str) { return hostname(str); }
 
     /// @brief The port setter
     ///
@@ -292,6 +310,9 @@ public:
     /// @return `true` - on success; `false` - on failure (URL's port unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool port(StrT&& str);
+    /// Equivalent to @link port(StrT&& str) @endlink
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool set_port(StrT&& str) { return port(str); }
 
     /// @brief The pathname setter
     ///
@@ -302,6 +323,9 @@ public:
     /// @return `true` - on success; `false` - on failure (URL's path unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool pathname(StrT&& str);
+    /// Equivalent to @link pathname(StrT&& str) @endlink
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool set_pathname(StrT&& str) { return pathname(str); }
 
     /// @brief The search setter
     ///
@@ -312,6 +336,9 @@ public:
     /// @return `true` - on success; `false` - on failure (URL's query unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool search(StrT&& str);
+    /// Equivalent to @link search(StrT&& str) @endlink
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool set_search(StrT&& str) { return search(str); }
 
     /// @brief The hash setter
     ///
@@ -322,6 +349,9 @@ public:
     /// @return `true` - on success; `false` - on failure (URL's fragment unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     bool hash(StrT&& str);
+    /// Equivalent to @link hash(StrT&& str) @endlink
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    bool set_hash(StrT&& str) { return hash(str); }
 
     // Getters
 
@@ -331,6 +361,8 @@ public:
     ///
     /// @return serialized URL
     str_view_type href() const;
+    /// Equivalent to @link href() const @endlink
+    str_view_type get_href() const { return href(); }
 
     /// @brief The origin getter
     ///
@@ -348,6 +380,8 @@ public:
     ///
     /// @return URL's scheme, followed by U+003A (:)
     str_view_type protocol() const;
+    /// Equivalent to @link protocol() const @endlink
+    str_view_type get_protocol() const { return protocol(); }
 
     /// @brief The username getter
     ///
@@ -355,6 +389,8 @@ public:
     ///
     /// @return URL’s username
     str_view_type username() const;
+    /// Equivalent to @link username() const @endlink
+    str_view_type get_username() const { return username(); }
 
     /// @brief The password getter
     ///
@@ -362,6 +398,8 @@ public:
     ///
     /// @return URL’s password
     str_view_type password() const;
+    /// Equivalent to @link password() const @endlink
+    str_view_type get_password() const { return password(); }
 
     /// @brief The host getter
     ///
@@ -369,6 +407,8 @@ public:
     ///
     /// @return URL’s host, serialized, followed by U+003A (:) and URL’s port, serialized
     str_view_type host() const;
+    /// Equivalent to @link host() const @endlink
+    str_view_type get_host() const { return host(); }
 
     /// @brief The hostname getter
     ///
@@ -376,6 +416,8 @@ public:
     ///
     /// @return URL’s host, serialized
     str_view_type hostname() const;
+    /// Equivalent to @link hostname() const @endlink
+    str_view_type get_hostname() const { return hostname(); }
 
     /// @brief The host_type getter
     ///
@@ -388,6 +430,8 @@ public:
     ///
     /// @return URL’s port, serialized, if URL’s port is not null, otherwise empty string
     str_view_type port() const;
+    /// Equivalent to @link port() const @endlink
+    str_view_type get_port() const { return port(); }
 
     /// @return URL’s port, converted to `int` value, if URL’s port is not null,
     ///   otherwise `-1`
@@ -402,6 +446,8 @@ public:
     ///
     /// @return URL's path, serialized, followed by U+003F (?) and URL’s query
     str_view_type path() const;
+    /// Equivalent to @link path() const @endlink
+    str_view_type get_path() const { return path(); }
 
     /// @brief The pathname getter
     ///
@@ -409,6 +455,8 @@ public:
     ///
     /// @return URL’s path, serialized
     str_view_type pathname() const;
+    /// Equivalent to @link pathname() const @endlink
+    str_view_type get_pathname() const { return pathname(); }
 
     /// @brief The search getter
     ///
@@ -416,6 +464,8 @@ public:
     ///
     /// @return empty string or U+003F (?), followed by URL’s query
     str_view_type search() const;
+    /// Equivalent to @link search() const @endlink
+    str_view_type get_search() const { return search(); }
 
     /// @brief The hash getter
     ///
@@ -423,6 +473,8 @@ public:
     ///
     /// @return empty string or U+0023 (#), followed by URL’s fragment
     str_view_type hash() const;
+    /// Equivalent to @link hash() const @endlink
+    str_view_type get_hash() const { return hash(); }
 
     /// @brief The searchParams getter
     ///

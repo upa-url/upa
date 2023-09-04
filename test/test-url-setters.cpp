@@ -157,3 +157,60 @@ TEST_CASE("Test setters (url_setter::start_part with use_strp_ = false)") {
         CHECK(url.hash() == "");
     }
 }
+
+// Test alternative getters / setters
+
+TEST_CASE("Test url::get_... getters") {
+    upa::url url{ "ws://user:psw@h:54321\\p1\\p2?q#f" };
+
+    CHECK(url.get_href() == "ws://user:psw@h:54321/p1/p2?q#f");
+    CHECK(url.get_protocol() == "ws:");
+    CHECK(url.get_username() == "user");
+    CHECK(url.get_password() == "psw");
+    CHECK(url.get_host() == "h:54321");
+    CHECK(url.get_hostname() == "h");
+    CHECK(url.get_port() == "54321");
+    CHECK(url.get_path() == "/p1/p2?q");
+    CHECK(url.get_pathname() == "/p1/p2");
+    CHECK(url.get_search() == "?q");
+    CHECK(url.get_hash() == "#f");
+}
+
+TEST_CASE("Test url::set_... setters") {
+    upa::url url{ "ws://h" };
+
+    CHECK(url.set_href("wss://host"));
+    CHECK(url.get_href() == "wss://host/");
+
+    CHECK(url.set_protocol("http"));
+    CHECK(url.get_protocol() == "http:");
+
+    CHECK(url.set_username("user"));
+    CHECK(url.get_username() == "user");
+
+    CHECK(url.set_password("psw"));
+    CHECK(url.get_password() == "psw");
+
+    CHECK(url.set_host("h:54321"));
+    CHECK(url.get_host() == "h:54321");
+    CHECK(url.get_hostname() == "h");
+    CHECK(url.get_port() == "54321");
+
+    CHECK(url.set_hostname("hostname"));
+    CHECK(url.get_hostname() == "hostname");
+
+    CHECK(url.set_port("61234"));
+    CHECK(url.get_port() == "61234");
+
+    CHECK(url.set_pathname("\\p1\\p2"));
+    CHECK(url.get_pathname() == "/p1/p2");
+
+    CHECK(url.set_search("q"));
+    CHECK(url.get_search() == "?q");
+    CHECK(url.get_path() == "/p1/p2?q");
+
+    CHECK(url.set_hash("f"));
+    CHECK(url.get_hash() == "#f");
+
+    CHECK(url.href() == "http://user:psw@hostname:61234/p1/p2?q#f");
+}
