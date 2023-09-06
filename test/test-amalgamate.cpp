@@ -15,6 +15,8 @@ TEST_CASE("url constructor & getters") {
     CHECK(url.href() == "https://user:psw@example.com:321/seg0/seg1/seg2?a=b#frag");
     CHECK(url.origin() == "https://example.com:321");
     CHECK(url.protocol() == "https:");
+    CHECK(url.username() == "user");
+    CHECK(url.password() == "psw");
     CHECK(url.host() == "example.com:321");
     CHECK(url.hostname() == "example.com");
     CHECK(url.port() == "321");
