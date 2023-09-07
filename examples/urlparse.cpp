@@ -11,7 +11,7 @@
 // https://github.com/kazuho/picojson
 # include "picojson/picojson.h"
 
-using string_view = upa::url::str_view_type;
+using string_view = upa::string_view;
 
 
 // Parse URL and output result to console

@@ -56,9 +56,6 @@ namespace detail {
 ///
 class url {
 public:
-    // types
-    using str_view_type = url_str_view_t;
-
     /// Enumeration to identify URL's parts (URL record members) defined here:
     /// https://url.spec.whatwg.org/#url-representation
     enum PartType {
@@ -360,9 +357,9 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-href
     ///
     /// @return serialized URL
-    str_view_type href() const;
+    string_view href() const;
     /// Equivalent to @link href() const @endlink
-    str_view_type get_href() const { return href(); }
+    string_view get_href() const { return href(); }
 
     /// @brief The origin getter
     ///
@@ -379,45 +376,45 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-protocol
     ///
     /// @return URL's scheme, followed by U+003A (:)
-    str_view_type protocol() const;
+    string_view protocol() const;
     /// Equivalent to @link protocol() const @endlink
-    str_view_type get_protocol() const { return protocol(); }
+    string_view get_protocol() const { return protocol(); }
 
     /// @brief The username getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-username
     ///
     /// @return URL’s username
-    str_view_type username() const;
+    string_view username() const;
     /// Equivalent to @link username() const @endlink
-    str_view_type get_username() const { return username(); }
+    string_view get_username() const { return username(); }
 
     /// @brief The password getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-password
     ///
     /// @return URL’s password
-    str_view_type password() const;
+    string_view password() const;
     /// Equivalent to @link password() const @endlink
-    str_view_type get_password() const { return password(); }
+    string_view get_password() const { return password(); }
 
     /// @brief The host getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-host
     ///
     /// @return URL’s host, serialized, followed by U+003A (:) and URL’s port, serialized
-    str_view_type host() const;
+    string_view host() const;
     /// Equivalent to @link host() const @endlink
-    str_view_type get_host() const { return host(); }
+    string_view get_host() const { return host(); }
 
     /// @brief The hostname getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-hostname
     ///
     /// @return URL’s host, serialized
-    str_view_type hostname() const;
+    string_view hostname() const;
     /// Equivalent to @link hostname() const @endlink
-    str_view_type get_hostname() const { return hostname(); }
+    string_view get_hostname() const { return hostname(); }
 
     /// @brief The host_type getter
     ///
@@ -429,9 +426,9 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-port
     ///
     /// @return URL’s port, serialized, if URL’s port is not null, otherwise empty string
-    str_view_type port() const;
+    string_view port() const;
     /// Equivalent to @link port() const @endlink
-    str_view_type get_port() const { return port(); }
+    string_view get_port() const { return port(); }
 
     /// @return URL’s port, converted to `int` value, if URL’s port is not null,
     ///   otherwise `-1`
@@ -445,36 +442,36 @@ public:
     /// @brief The path getter
     ///
     /// @return URL's path, serialized, followed by U+003F (?) and URL’s query
-    str_view_type path() const;
+    string_view path() const;
     /// Equivalent to @link path() const @endlink
-    str_view_type get_path() const { return path(); }
+    string_view get_path() const { return path(); }
 
     /// @brief The pathname getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-pathname
     ///
     /// @return URL’s path, serialized
-    str_view_type pathname() const;
+    string_view pathname() const;
     /// Equivalent to @link pathname() const @endlink
-    str_view_type get_pathname() const { return pathname(); }
+    string_view get_pathname() const { return pathname(); }
 
     /// @brief The search getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-search
     ///
     /// @return empty string or U+003F (?), followed by URL’s query
-    str_view_type search() const;
+    string_view search() const;
     /// Equivalent to @link search() const @endlink
-    str_view_type get_search() const { return search(); }
+    string_view get_search() const { return search(); }
 
     /// @brief The hash getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-hash
     ///
     /// @return empty string or U+0023 (#), followed by URL’s fragment
-    str_view_type hash() const;
+    string_view hash() const;
     /// Equivalent to @link hash() const @endlink
-    str_view_type get_hash() const { return hash(); }
+    string_view get_hash() const { return hash(); }
 
     /// @brief The searchParams getter
     ///
@@ -493,7 +490,7 @@ public:
     ///
     /// @param[in] exclude_fragment exclude fragment when serializing
     /// @return serialized URL as string_view
-    str_view_type serialize(bool exclude_fragment = false) const;
+    string_view serialize(bool exclude_fragment = false) const;
 
     // Get url info
 
@@ -514,7 +511,7 @@ public:
     ///
     /// @param[in] t URL's part
     /// @return URL's part string; it is empty if part is empty or null
-    str_view_type get_part_view(PartType t) const;
+    string_view get_part_view(PartType t) const;
 
     /// @param[in] t URL's part
     /// @return `true` if URL's part @a t is empty or null, `false` otherwise
@@ -546,7 +543,7 @@ public:
 
 private:
     struct alignas(32) scheme_info {
-        str_view_type scheme;
+        string_view scheme;
         int default_port;           // -1 if none
         unsigned is_special : 1;    // "ftp", "file", "http", "https", "ws", "wss"
         unsigned is_file : 1;       // "file"
@@ -588,17 +585,17 @@ private:
 
     // get scheme info
     static const scheme_info kSchemes[];
-    static const scheme_info* get_scheme_info(str_view_type src);
+    static const scheme_info* get_scheme_info(string_view src);
 
     // set scheme
     template <class StringT>
     void set_scheme_str(StringT str);
     void set_scheme(const url& src);
-    void set_scheme(str_view_type str);
+    void set_scheme(string_view str);
     void set_scheme(std::size_t scheme_length);
 
     // path util
-    str_view_type get_path_first_string(std::size_t len) const;
+    string_view get_path_first_string(std::size_t len) const;
     // path shortening
     bool get_path_rem_last(std::size_t& path_end, std::size_t& path_segment_count) const;
     bool get_shorten_path(std::size_t& path_end, std::size_t& path_segment_count) const;
@@ -650,9 +647,6 @@ namespace detail {
 
 class url_serializer : public host_output {
 public:
-    // types
-    using str_view_type = url::str_view_type;
-
     url_serializer() = delete;
     url_serializer(const url_serializer&) = delete;
     url_serializer& operator=(const url_serializer&) = delete;
@@ -672,7 +666,7 @@ public:
 
     // set data
     void set_scheme(const url& src) { url_.set_scheme(src); }
-    void set_scheme(const str_view_type str) { url_.set_scheme(str); }
+    void set_scheme(const string_view str) { url_.set_scheme(str); }
     void set_scheme(std::size_t scheme_length) { url_.set_scheme(scheme_length); }
 
     // set scheme
@@ -726,7 +720,7 @@ public:
     }
 
     // get info
-    str_view_type get_part_view(url::PartType t) const { return url_.get_part_view(t); }
+    string_view get_part_view(url::PartType t) const { return url_.get_part_view(t); }
     bool is_empty(const url::PartType t) const { return url_.is_empty(t); }
     virtual bool is_empty_path() const {
         assert(!url_.has_opaque_path());
@@ -995,7 +989,7 @@ inline bool starts_with_Windows_drive_absolute_path(const CharT* pointer, const 
 
 // check string starts with sv (ASCII)
 template <typename CharT>
-inline bool starts_with(const CharT* first, const CharT* last, url::str_view_type sv) noexcept {
+inline bool starts_with(const CharT* first, const CharT* last, string_view sv) noexcept {
     if (last - first >= static_cast<std::ptrdiff_t>(sv.length())) {
         for (auto c : sv) {
             if (*first != c)
@@ -1061,7 +1055,7 @@ inline void url::move_record(url& other) UPA_NOEXCEPT_17 {
 
 // url getters
 
-inline url::str_view_type url::href() const {
+inline string_view url::href() const {
     return norm_url_;
 }
 
@@ -1084,7 +1078,7 @@ inline std::string url::origin() const {
         str_origin.append(norm_url_.data() + part_end_[HOST_START], norm_url_.data() + part_end_[PORT]);
         return str_origin;
     }
-    if (get_part_view(SCHEME) == url::str_view_type{ "blob", 4 }) {
+    if (get_part_view(SCHEME) == string_view{ "blob", 4 }) {
         // Note: this library does not support blob URL store, so it allways assumes
         // URL's blob URL entry is null and retrieves origin from the URL's path.
         url path_url;
@@ -1095,20 +1089,20 @@ inline std::string url::origin() const {
     return "null"; // opaque origin
 }
 
-inline url::str_view_type url::protocol() const {
+inline string_view url::protocol() const {
     // "scheme:"
     return { norm_url_.data(), part_end_[SCHEME] ? part_end_[SCHEME] + 1 : 0 };
 }
 
-inline url::str_view_type url::username() const {
+inline string_view url::username() const {
     return get_part_view(USERNAME);
 }
 
-inline url::str_view_type url::password() const {
+inline string_view url::password() const {
     return get_part_view(PASSWORD);
 }
 
-inline url::str_view_type url::host() const {
+inline string_view url::host() const {
     if (is_null(HOST))
         return {};
     // "hostname:port"
@@ -1117,7 +1111,7 @@ inline url::str_view_type url::host() const {
     return { norm_url_.data() + b, e - b };
 }
 
-inline url::str_view_type url::hostname() const {
+inline string_view url::hostname() const {
     return get_part_view(HOST);
 }
 
@@ -1125,7 +1119,7 @@ inline HostType url::host_type() const noexcept {
     return static_cast<HostType>((flags_ & HOST_TYPE_MASK) >> HOST_TYPE_SHIFT);
 }
 
-inline url::str_view_type url::port() const {
+inline string_view url::port() const {
     return get_part_view(PORT);
 }
 
@@ -1142,20 +1136,20 @@ inline int url::real_port_int() const {
 }
 
 // pathname + search
-inline url::str_view_type url::path() const {
+inline string_view url::path() const {
     // "pathname?query"
     const std::size_t b = part_end_[PATH - 1];
     const std::size_t e = part_end_[QUERY] ? part_end_[QUERY] : part_end_[PATH];
     return { norm_url_.data() + b, e ? e - b : 0 };
 }
 
-inline url::str_view_type url::pathname() const {
+inline string_view url::pathname() const {
     // https://url.spec.whatwg.org/#dom-url-pathname
     // already serialized as needed
     return get_part_view(PATH);
 }
 
-inline url::str_view_type url::search() const {
+inline string_view url::search() const {
     if (is_empty(QUERY))
         return {};
     // return with '?'
@@ -1164,7 +1158,7 @@ inline url::str_view_type url::search() const {
     return { norm_url_.data() + b, e - b };
 }
 
-inline url::str_view_type url::hash() const {
+inline string_view url::hash() const {
     if (is_empty(FRAGMENT))
         return {};
     // return with '#'
@@ -1189,7 +1183,7 @@ inline void url::parse_search_params() {
         search_params_ptr_.parse_params(get_part_view(QUERY));
 }
 
-inline url::str_view_type url::serialize(bool exclude_fragment) const {
+inline string_view url::serialize(bool exclude_fragment) const {
     if (exclude_fragment && part_end_[FRAGMENT])
         return { norm_url_.data(), part_end_[QUERY] };
     return norm_url_;
@@ -1205,7 +1199,7 @@ inline bool url::is_valid() const noexcept {
     return !!(flags_ & VALID_FLAG);
 }
 
-inline url::str_view_type url::get_part_view(PartType t) const {
+inline string_view url::get_part_view(PartType t) const {
     if (t == SCHEME)
         return { norm_url_.data(), part_end_[SCHEME] };
     // begin & end offsets
@@ -1258,7 +1252,7 @@ inline void url::set_scheme(const url& src) {
     scheme_inf_ = src.scheme_inf_;
 }
 
-inline void url::set_scheme(const str_view_type str) {
+inline void url::set_scheme(const string_view str) {
     set_scheme_str(str);
     scheme_inf_ = get_scheme_info(str);
 }
@@ -1884,7 +1878,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
 
     if (state == file_state) {
         if (!urls.is_file_scheme())
-            urls.set_scheme(url::str_view_type{ "file", 4 });
+            urls.set_scheme(string_view{ "file", 4 });
         // ensure file URL's host is not null
         urls.set_empty_host();
         // EOF ==> 0 ==> default:
@@ -1954,7 +1948,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
                 urls.append_parts(*base, url::HOST, url::HOST);
                 // path
                 if (!detail::starts_with_Windows_drive(pointer, last)) {
-                    const url::str_view_type base_path = base->get_path_first_string(2);
+                    const string_view base_path = base->get_path_first_string(2);
                     // if base's path[0] is a normalized Windows drive letter
                     if (base_path.length() == 2 &&
                         detail::is_normalized_Windows_drive(base_path[0], base_path[1])) {
@@ -1995,7 +1989,7 @@ inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first
             if (res != url_result::Ok)
                 return res; // TODO-ERR: failure
             // if host is "localhost", then set host to the empty string
-            if (urls.get_part_view(url::HOST) == url::str_view_type{ "localhost", 9 }) {
+            if (urls.get_part_view(url::HOST) == string_view{ "localhost", 9 }) {
                 // set empty host
                 urls.empty_host();
             }
@@ -2330,8 +2324,8 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
 
 // path util
 
-inline url::str_view_type url::get_path_first_string(std::size_t len) const {
-    str_view_type pathv = get_part_view(PATH);
+inline string_view url::get_path_first_string(std::size_t len) const {
+    string_view pathv = get_part_view(PATH);
     if (pathv.length() == 0 || has_opaque_path())
         return pathv;
     // skip '/'
@@ -2366,7 +2360,7 @@ inline bool url::get_shorten_path(std::size_t& path_end, std::size_t& path_segme
     if (path_segment_count_ == 0)
         return false;
     if (is_file_scheme() && path_segment_count_ == 1) {
-        const str_view_type path1 = get_path_first_string(2);
+        const string_view path1 = get_path_first_string(2);
         if (path1.length() == 2 &&
             detail::is_normalized_Windows_drive(path1[0], path1[1]))
             return false;
@@ -2516,7 +2510,7 @@ inline void url_serializer::commit_path() {
 inline void url_serializer::adjust_path_prefix() {
     // "/." path prefix
     // https://url.spec.whatwg.org/#url-serializing (4.1.)
-    str_view_type new_prefix;
+    string_view new_prefix;
     if (is_null(url::HOST) && url_.path_segment_count_ > 1) {
         const auto pathname = get_part_view(url::PATH);
         if (pathname.length() > 1 && pathname[0] == '/' && pathname[1] == '/')

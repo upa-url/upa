@@ -366,7 +366,7 @@ private:
     void clear_params() noexcept;
     void copy_params(const url_search_params& other);
     void move_params(url_search_params&& other) UPA_NOEXCEPT_17;
-    void parse_params(url_str_view_t query);
+    void parse_params(string_view query);
 
     void update();
 
@@ -413,7 +413,7 @@ public:
         assert(ptr_);
         ptr_->clear_params();
     }
-    void parse_params(url_str_view_t query) {
+    void parse_params(string_view query) {
         assert(ptr_);
         ptr_->parse_params(query);
     }
@@ -497,7 +497,7 @@ inline void url_search_params::move_params(url_search_params&& other) UPA_NOEXCE
     is_sorted_ = other.is_sorted_;
 }
 
-inline void url_search_params::parse_params(url_str_view_t query) {
+inline void url_search_params::parse_params(string_view query) {
     params_ = do_parse(false, query);
     is_sorted_ = false;
 }

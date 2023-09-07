@@ -68,13 +68,13 @@ static const uint8_t kLengthToSchemesInd[] = {
     6,  // the end
 };
 
-const url::scheme_info* url::get_scheme_info(const str_view_type src) {
+const url::scheme_info* url::get_scheme_info(const string_view src) {
     const std::size_t len = src.length();
     if (len <= max_scheme_length) {
         const int end = kLengthToSchemesInd[len + 1];
         for (int ind = kLengthToSchemesInd[len]; ind < end; ++ind) {
             // The src and kSchemes[ind].scheme lengths are the same, so compare data only
-            if (str_view_type::traits_type::compare(src.data(), kSchemes[ind].scheme.data(), len) == 0)
+            if (string_view::traits_type::compare(src.data(), kSchemes[ind].scheme.data(), len) == 0)
                 return &kSchemes[ind];
         }
     }

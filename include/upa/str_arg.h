@@ -27,17 +27,17 @@ inline void procfn(Args&&... args) {
 
 #ifdef UPA_CPP_17
 # include <string_view>
-# define UPA_URL_STR_VIEW_TYPE  std::string_view
+# define UPA_STRING_VIEW_TYPE  std::string_view
 #else
 # include "str_view.h"
-# define UPA_URL_STR_VIEW_TYPE  upa::str_view<char>
+# define UPA_STRING_VIEW_TYPE  upa::str_view<char>
 #endif
 
 namespace upa {
 
 // String view type
 
-using url_str_view_t = UPA_URL_STR_VIEW_TYPE;
+using string_view = UPA_STRING_VIEW_TYPE;
 
 // Supported char and size types
 
@@ -265,7 +265,7 @@ inline std::string&& make_string(std::string&& str) {
 }
 
 template <class ...Args, enable_if_str_arg_to_char8_t<Args...> = 0>
-inline url_str_view_t make_string(Args&&... args) {
+inline string_view make_string(Args&&... args) {
     const auto inp = make_str_arg(std::forward<Args>(args)...);
     return { inp.data(), inp.length() };
 }
