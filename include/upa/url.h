@@ -477,7 +477,7 @@ public:
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-searchparams
     ///
-    /// Returned reference is valid thru lifetime of url. or until url's move assignment
+    /// Returned reference is valid thru lifetime of url, or until url's move assignment
     /// operation (except @c safe_assign, which preserves reference validity).
     ///
     /// @return reference to this’s query object (url_search_params class)
@@ -1313,6 +1313,10 @@ inline void url::swap(url& other) UPA_NOEXCEPT_17 {
 
 // Parser
 
+// Implements "basic URL parser" https://url.spec.whatwg.org/#concept-basic-url-parser
+// without encoding, url and state override arguments. It resets this url object to
+// an empty value and then parses the input and modifies this url object.
+// Returns url_result::Ok on success, or an error value on parsing failure.
 template <typename CharT>
 inline url_result url::do_parse(const CharT* first, const CharT* last, const url* base) {
     const url_result res = [&]() {
@@ -1496,7 +1500,9 @@ inline bool url::hash(StrT&& str) {
 
 namespace detail {
 
-// https://url.spec.whatwg.org/#concept-basic-url-parser
+// Implements "basic URL parser" https://url.spec.whatwg.org/#concept-basic-url-parser
+// without 1 step. It modifies the URL stored in the urls object.
+// Returns url_result::Ok on success, or an error value on parsing failure.
 template <typename CharT>
 inline url_result url_parser::url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override)
 {
