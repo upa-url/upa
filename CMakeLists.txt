@@ -1,5 +1,6 @@
 # FindICU requires 3.7
-cmake_minimum_required(VERSION 3.7)
+# add_link_options() requires 3.13
+cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_SUPPRESS_REGENERATION true)
 
