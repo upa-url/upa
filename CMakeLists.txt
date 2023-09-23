@@ -81,15 +81,7 @@ if (URL_BUILD_TESTS OR URL_BUILD_FUZZER OR URL_BUILD_EXAMPLES)
   set(URL_USE_LIBS ON)
 endif()
 
-if (URL_AMALGAMATED)
-  include_directories(
-    deps
-    single_include)
-else()
-  include_directories(
-    deps
-    include)
-endif()
+include_directories(deps)
 
 if (URL_USE_LIBS)
   find_package(ICU REQUIRED COMPONENTS i18n uc)
@@ -97,6 +89,8 @@ if (URL_USE_LIBS)
   if (URL_AMALGAMATED)
     add_library(upaurl STATIC
       single_include/upa/url.cpp)
+    target_include_directories(upaurl
+      INTERFACE single_include)
   else()
     add_library(upaurl STATIC
       src/url.cpp
@@ -105,6 +99,8 @@ if (URL_USE_LIBS)
       src/url_percent_encode.cpp
       src/url_search_params.cpp
       src/url_utf.cpp)
+    target_include_directories(upaurl
+      PUBLIC include)
   endif()
   add_library(upa::url ALIAS upaurl)
   target_include_directories(upaurl PRIVATE ${ICU_INCLUDE_DIR})
@@ -187,4 +183,5 @@ endif()
 if (URL_BUILD_TOOLS)
   add_executable(dumpCharBitSets tools/dumpCharBitSets.cpp)
   set_property(TARGET dumpCharBitSets PROPERTY CXX_STANDARD 17)
+  target_include_directories(dumpCharBitSets PRIVATE include)
 endif()
