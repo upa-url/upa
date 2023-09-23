@@ -10,7 +10,7 @@ if(POLICY CMP0074)
 endif()
 
 # Project settings
-project(tests LANGUAGES CXX)
+project(upa_url LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ standard")
 
 # Options
@@ -95,10 +95,10 @@ if (URL_USE_LIBS)
   find_package(ICU REQUIRED COMPONENTS i18n uc)
 
   if (URL_AMALGAMATED)
-    add_library(cppurl STATIC
+    add_library(upaurl STATIC
       single_include/upa/url.cpp)
   else()
-    add_library(cppurl STATIC
+    add_library(upaurl STATIC
       src/url.cpp
       src/url_idna.cpp
       src/url_ip.cpp
@@ -106,7 +106,8 @@ if (URL_USE_LIBS)
       src/url_search_params.cpp
       src/url_utf.cpp)
   endif()
-  target_include_directories(cppurl PRIVATE ${ICU_INCLUDE_DIR})
+  add_library(upa::url ALIAS upaurl)
+  target_include_directories(upaurl PRIVATE ${ICU_INCLUDE_DIR})
 endif()
 
 # Test targets
@@ -142,7 +143,7 @@ if (URL_BUILD_TESTS)
     get_filename_component(test_name ${file} NAME_WE)
 
     add_executable(${test_name} ${file})
-    target_link_libraries(${test_name} cppurl ICU::i18n ICU::uc)
+    target_link_libraries(${test_name} upaurl ICU::i18n ICU::uc)
 
     add_test(NAME ${test_name}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
@@ -170,7 +171,7 @@ if (URL_BUILD_FUZZER)
     else()
       add_executable(${fuzz_name} ${file})
     endif()
-    target_link_libraries(${fuzz_name} cppurl ICU::i18n ICU::uc)
+    target_link_libraries(${fuzz_name} upaurl ICU::i18n ICU::uc)
   endforeach()
 endif()
 
@@ -178,7 +179,7 @@ endif()
 
 if (URL_BUILD_EXAMPLES)
   add_executable(urlparse examples/urlparse.cpp)
-  target_link_libraries(urlparse cppurl ICU::i18n ICU::uc)
+  target_link_libraries(urlparse upaurl ICU::i18n ICU::uc)
 endif()
 
 # Tool's targets
