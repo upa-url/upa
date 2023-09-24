@@ -10,7 +10,7 @@ if(POLICY CMP0074)
 endif()
 
 # Project settings
-project(upa_url LANGUAGES CXX)
+project(upa_url VERSION 0.0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ standard")
 
 # Options
@@ -99,8 +99,9 @@ if (URL_USE_LIBS)
       src/url_percent_encode.cpp
       src/url_search_params.cpp
       src/url_utf.cpp)
-    target_include_directories(upaurl
-      PUBLIC include)
+    target_include_directories(upaurl PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>)
   endif()
   add_library(upa::url ALIAS upaurl)
   target_include_directories(upaurl PRIVATE ${ICU_INCLUDE_DIR})
@@ -190,6 +191,7 @@ endif()
 # Install
 
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 install(
   DIRECTORY include/upa
@@ -198,5 +200,40 @@ install(
 
 install(
   TARGETS upaurl
+  EXPORT upaurl-targets
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
+
+install(
+  EXPORT upaurl-targets
+  FILE upaurl-targets.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/upaurl
+)
+
+# generate the config file that includes the exports
+configure_package_config_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/upaurl-config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/upaurl-config.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/upaurl
+  NO_SET_AND_CHECK_MACRO
+  NO_CHECK_REQUIRED_COMPONENTS_MACRO
+)
+# generate the version file for the config file
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/upaurl-config-version.cmake
+  COMPATIBILITY SameMinorVersion
+)
+
+# install the generated configuration files
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/upaurl-config.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/upaurl-config-version.cmake
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/upaurl"
+)
+
+# generate the export targets for the build tree
+# needs to be after the install(TARGETS) command
+export(
+  EXPORT upaurl-targets
+  FILE ${CMAKE_CURRENT_BINARY_DIR}/upaurl-targets.cmake
 )
