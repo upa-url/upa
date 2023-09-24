@@ -186,3 +186,17 @@ if (URL_BUILD_TOOLS)
   set_property(TARGET dumpCharBitSets PROPERTY CXX_STANDARD 17)
   target_include_directories(dumpCharBitSets PRIVATE include)
 endif()
+
+# Install
+
+include(GNUInstallDirs)
+
+install(
+  DIRECTORY include/upa
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(
+  TARGETS upaurl
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
