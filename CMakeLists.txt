@@ -190,7 +190,7 @@ endif()
 
 # Install
 
-if (URL_INSTALL)
+if (URL_INSTALL AND NOT URL_AMALGAMATED)
   include(GNUInstallDirs)
   include(CMakePackageConfigHelpers)
 
