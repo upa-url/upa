@@ -18,6 +18,7 @@ option(URL_BUILD_TESTS "Build the URL tests." ON)
 option(URL_BUILD_FUZZER "Build the URL fuzzer." OFF)
 option(URL_BUILD_EXAMPLES "Build the URL examples." OFF)
 option(URL_BUILD_TOOLS "Build tools." OFF)
+option(URL_INSTALL "Generate the install target." ON)
 # library options
 option(URL_AMALGAMATED "Use amalgamated URL library source." OFF)
 # tests build options
@@ -76,36 +77,35 @@ if (URL_TEST_VALGRIND)
   separate_arguments(MEMORYCHECK_COMMAND)
 endif()
 
-# are URL and ICU libraries needed
-if (URL_BUILD_TESTS OR URL_BUILD_FUZZER OR URL_BUILD_EXAMPLES)
-  set(URL_USE_LIBS ON)
-endif()
-
 include_directories(deps)
 
-if (URL_USE_LIBS)
+# Are Upa URL and ICU libraries needed?
+if (URL_BUILD_TESTS OR URL_BUILD_FUZZER OR URL_BUILD_EXAMPLES OR URL_INSTALL OR NOT URL_BUILD_TOOLS)
+  # Upa URL library name
+  set(upa_url_lib upa_url)
+
   find_package(ICU REQUIRED COMPONENTS i18n uc)
 
   if (URL_AMALGAMATED)
-    add_library(upaurl STATIC
+    add_library(${upa_url_lib} STATIC
       single_include/upa/url.cpp)
-    target_include_directories(upaurl
+    target_include_directories(${upa_url_lib}
       INTERFACE single_include)
   else()
-    add_library(upaurl STATIC
+    add_library(${upa_url_lib} STATIC
       src/url.cpp
       src/url_idna.cpp
       src/url_ip.cpp
       src/url_percent_encode.cpp
       src/url_search_params.cpp
       src/url_utf.cpp)
-    target_include_directories(upaurl PUBLIC
+    target_include_directories(${upa_url_lib} PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:include>)
   endif()
-  add_library(upa::url ALIAS upaurl)
-  target_include_directories(upaurl PRIVATE ${ICU_INCLUDE_DIR})
-  target_link_libraries(upaurl INTERFACE ICU::i18n ICU::uc)
+  add_library(upa::url ALIAS ${upa_url_lib})
+  target_include_directories(${upa_url_lib} PRIVATE ${ICU_INCLUDE_DIR})
+  target_link_libraries(${upa_url_lib} INTERFACE ICU::i18n ICU::uc)
 endif()
 
 # Test targets
@@ -141,7 +141,7 @@ if (URL_BUILD_TESTS)
     get_filename_component(test_name ${file} NAME_WE)
 
     add_executable(${test_name} ${file})
-    target_link_libraries(${test_name} upaurl)
+    target_link_libraries(${test_name} ${upa_url_lib})
 
     add_test(NAME ${test_name}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
@@ -169,7 +169,7 @@ if (URL_BUILD_FUZZER)
     else()
       add_executable(${fuzz_name} ${file})
     endif()
-    target_link_libraries(${fuzz_name} upaurl)
+    target_link_libraries(${fuzz_name} ${upa_url_lib})
   endforeach()
 endif()
 
@@ -177,7 +177,7 @@ endif()
 
 if (URL_BUILD_EXAMPLES)
   add_executable(urlparse examples/urlparse.cpp)
-  target_link_libraries(urlparse upaurl)
+  target_link_libraries(urlparse ${upa_url_lib})
 endif()
 
 # Tool's targets
@@ -190,50 +190,52 @@ endif()
 
 # Install
 
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
+if (URL_INSTALL)
+  include(GNUInstallDirs)
+  include(CMakePackageConfigHelpers)
 
-install(
-  DIRECTORY include/upa
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
+  install(
+    DIRECTORY include/upa
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  )
 
-install(
-  TARGETS upaurl
-  EXPORT upaurl-targets
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+  install(
+    TARGETS ${upa_url_lib}
+    EXPORT ${upa_url_lib}-targets
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
 
-install(
-  EXPORT upaurl-targets
-  FILE upaurl-targets.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/upaurl
-)
+  install(
+    EXPORT ${upa_url_lib}-targets
+    FILE ${upa_url_lib}-targets.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${upa_url_lib}
+  )
 
-# generate the config file that includes the exports
-configure_package_config_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/cmake/upaurl-config.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/upaurl-config.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/upaurl
-  NO_SET_AND_CHECK_MACRO
-  NO_CHECK_REQUIRED_COMPONENTS_MACRO
-)
-# generate the version file for the config file
-write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/upaurl-config-version.cmake
-  COMPATIBILITY SameMinorVersion
-)
+  # generate the config file that includes the exports
+  configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${upa_url_lib}-config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/${upa_url_lib}-config.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${upa_url_lib}
+    NO_SET_AND_CHECK_MACRO
+    NO_CHECK_REQUIRED_COMPONENTS_MACRO
+  )
+  # generate the version file for the config file
+  write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/${upa_url_lib}-config-version.cmake
+    COMPATIBILITY SameMinorVersion
+  )
 
-# install the generated configuration files
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/upaurl-config.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/upaurl-config-version.cmake
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/upaurl"
-)
+  # install the generated configuration files
+  install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${upa_url_lib}-config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/${upa_url_lib}-config-version.cmake
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${upa_url_lib}"
+  )
 
-# generate the export targets for the build tree
-# needs to be after the install(TARGETS) command
-export(
-  EXPORT upaurl-targets
-  FILE ${CMAKE_CURRENT_BINARY_DIR}/upaurl-targets.cmake
-)
+  # generate the export targets for the build tree
+  # needs to be after the install(TARGETS) command
+  export(
+    EXPORT ${upa_url_lib}-targets
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/${upa_url_lib}-targets.cmake
+  )
+endif()
