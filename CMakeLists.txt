@@ -13,8 +13,16 @@ endif()
 project(upa_url VERSION 0.0.1 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ standard")
 
+# Upa URL is top level project?
+if (NOT DEFINED URL_MAIN_PROJECT)
+  set(URL_MAIN_PROJECT OFF)
+  if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(URL_MAIN_PROJECT ON)
+  endif()
+endif()
+
 # Options
-option(URL_BUILD_TESTS "Build the URL tests." ON)
+option(URL_BUILD_TESTS "Build the URL tests." ${URL_MAIN_PROJECT})
 option(URL_BUILD_FUZZER "Build the URL fuzzer." OFF)
 option(URL_BUILD_EXAMPLES "Build the URL examples." OFF)
 option(URL_BUILD_TOOLS "Build tools." OFF)
