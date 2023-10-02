@@ -15,7 +15,7 @@ jobs:
             cmake_options: ""
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: install ICU library
       run: brew install icu4c
     - name: get dependencies

@@ -28,7 +28,7 @@ jobs:
             cmake_options: "-T ClangCL"
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: install ICU library
       run: install-icu.bat C:\LIB 73 2
       shell: cmd

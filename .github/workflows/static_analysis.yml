@@ -15,7 +15,7 @@ jobs:
             cmake_options: "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: apt-get install
       if: ${{ matrix.install }}
       run: |
