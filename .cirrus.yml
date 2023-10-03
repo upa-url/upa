@@ -1,8 +1,10 @@
 task:
+  skip: "changesIncludeOnly('.github/**' , 'doc/**', '**.md')"
+
   name: FreeBSD
   freebsd_instance:
     matrix:
-      image_family: freebsd-13-1
+      image_family: freebsd-13-2
       image_family: freebsd-12-3
   install_script: |
     pkg install -y cmake git
