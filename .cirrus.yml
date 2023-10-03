@@ -2,18 +2,16 @@ task:
   skip: "changesIncludeOnly('.github/**' , 'doc/**', '**.md')"
 
   matrix:
-    - name: Alpine
+    - name: Alpine arm64
       arm_container:
         image: alpine:latest
       install_script: |
         apk update
         apk add build-base cmake curl g++ git icu-dev
 
-    - name: FreeBSD
+    - name: FreeBSD 13.2
       freebsd_instance:
-        matrix:
-          image_family: freebsd-13-2
-          image_family: freebsd-12-3
+        image_family: freebsd-13-2
       install_script: |
         pkg install -y cmake git
 
