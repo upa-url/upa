@@ -1,13 +1,22 @@
 task:
   skip: "changesIncludeOnly('.github/**' , 'doc/**', '**.md')"
 
-  name: FreeBSD
-  freebsd_instance:
-    matrix:
-      image_family: freebsd-13-2
-      image_family: freebsd-12-3
-  install_script: |
-    pkg install -y cmake git
+  matrix:
+    - name: Alpine
+      arm_container:
+        image: alpine:latest
+      install_script: |
+        apk update
+        apk add build-base cmake curl g++ git icu-dev
+
+    - name: FreeBSD
+      freebsd_instance:
+        matrix:
+          image_family: freebsd-13-2
+          image_family: freebsd-12-3
+      install_script: |
+        pkg install -y cmake git
+
   build_script: |
     ./init.sh
     cmake -S . -B build -DCMAKE_CXX_STANDARD=17
