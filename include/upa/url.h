@@ -3001,4 +3001,7 @@ inline url url_from_file_path(StrT&& str) {
 
 } // namespace upa
 
+// Includes that require the url class declaration
+#include "url_search_params-inl.h"
+
 #endif // UPA_URL_H

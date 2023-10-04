@@ -3,36 +3,10 @@
 // found in the LICENSE file.
 //
 
-#include "upa/url.h"
+#include "upa/url_search_params.h"
 
 
 namespace upa {
-
-
-// url_search_params class
-
-url_search_params::url_search_params(url* url_ptr)
-    : params_(do_parse(false, url_ptr->get_part_view(url::QUERY)))
-    , url_ptr_(url_ptr)
-{}
-
-void url_search_params::update() {
-    if (url_ptr_ && url_ptr_->is_valid()) {
-        detail::url_setter urls(*url_ptr_);
-
-        if (empty()) {
-            // set query to null
-            urls.clear_part(url::QUERY);
-            urls.potentially_strip_trailing_spaces_from_an_opaque_path();
-        } else {
-            std::string& str_query = urls.start_part(url::QUERY);
-            serialize(str_query);
-            urls.save_part();
-            urls.set_flag(url::QUERY_FLAG); // not null query
-        }
-    }
-}
-
 
 // The percent encoding/mapping table of URL search parameter bytes. If
 // corresponding entry is '%', then byte must be percent encoded, otherwise -
@@ -60,22 +34,4 @@ const char url_search_params::kEncByte[0x100] = {
     '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%', '%'  // F
 };
 
-namespace detail {
-
- // url_search_params_ptr class
-
-url_search_params_ptr& url_search_params_ptr::operator=(const url_search_params_ptr& other) {
-    if (ptr_ && this != std::addressof(other)) {
-        if (other.ptr_) {
-            ptr_->copy_params(*other.ptr_);
-        } else {
-            assert(ptr_->url_ptr_);
-            ptr_->parse_params(ptr_->url_ptr_->get_part_view(url::QUERY));
-        }
-    }
-    return *this;
-}
-
-
-} // namespace detail
 } // namespace upa
