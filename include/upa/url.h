@@ -24,6 +24,7 @@
 #include "url_percent_encode.h"
 #include "url_result.h"
 #include "url_search_params.h"
+#include "url_version.h"
 #include "util.h"
 #include <algorithm>
 #include <array>
