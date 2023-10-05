@@ -626,6 +626,8 @@ private:
     std::size_t path_segment_count_ = 0;
     detail::url_search_params_ptr search_params_ptr_;
 
+    friend bool operator==(const url& lhs, const url& rhs);
+    friend struct std::hash<url>;
     friend detail::url_serializer;
     friend detail::url_setter;
     friend detail::url_parser;
@@ -2927,6 +2929,11 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
 
 // URL utilities (non-member functions)
 
+/// @brief Lexicographically compares two URL's
+inline bool operator==(const url& lhs, const url& rhs) {
+    return lhs.norm_url_ == rhs.norm_url_;
+}
+
 /// @brief Swaps the contents of two URLs
 ///
 /// Swaps the contents of the @a lhs and @a rhs URLs
@@ -3001,6 +3008,15 @@ inline url url_from_file_path(StrT&& str) {
 
 
 } // namespace upa
+
+
+/// @brief std::hash specialization for upa::url class
+template<>
+struct std::hash<upa::url> {
+    std::size_t operator()(const upa::url& url) const noexcept {
+        return std::hash<std::string>{}(url.norm_url_);
+    }
+};
 
 // Includes that require the url class declaration
 #include "url_search_params-inl.h"

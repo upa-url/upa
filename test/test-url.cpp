@@ -6,6 +6,7 @@
 #include "upa/url.h"
 #include "doctest-main.h"
 #include "test-utils.h"
+#include <unordered_map>
 
 
 std::string urls_to_str(const char* s1) {
@@ -565,4 +566,21 @@ TEST_CASE("url_from_file_path") {
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\.\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), upa::url_error);
     }
+}
+
+// Test operator== and std::hash specialization
+
+TEST_CASE("operator== && std::hash<upa::url>") {
+    std::unordered_map<upa::url, int> map;
+
+    map.emplace(upa::url{ "about:blank" }, 1);
+    map.emplace(upa::url{ "file:///path" }, 2);
+    map.emplace(upa::url{ "https://example.org/" }, 3);
+
+    CHECK(map.at(upa::url{ "about:blank" }) == 1);
+    CHECK(map.at(upa::url{ "file:///path" }) == 2);
+    CHECK(map.at(upa::url{ "https://example.org/" }) == 3);
+
+    CHECK(upa::url{ "about:blank" } == upa::url{ "about:blank" });
+    CHECK_FALSE(upa::url{ "about:blank" } == upa::url{ "https://example.org/" });
 }
