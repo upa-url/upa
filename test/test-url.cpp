@@ -568,9 +568,9 @@ TEST_CASE("url_from_file_path") {
     }
 }
 
-// Test operator== and std::hash specialization
+// Test std::hash specialization and operator==
 
-TEST_CASE("operator== && std::hash<upa::url>") {
+TEST_CASE("std::hash<upa::url> and operator==") {
     std::unordered_map<upa::url, int> map;
 
     map.emplace(upa::url{ "about:blank" }, 1);

@@ -626,7 +626,7 @@ private:
     std::size_t path_segment_count_ = 0;
     detail::url_search_params_ptr search_params_ptr_;
 
-    friend bool operator==(const url& lhs, const url& rhs);
+    friend bool operator==(const url& lhs, const url& rhs) noexcept;
     friend struct std::hash<url>;
     friend detail::url_serializer;
     friend detail::url_setter;
@@ -2930,7 +2930,7 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
 // URL utilities (non-member functions)
 
 /// @brief Lexicographically compares two URL's
-inline bool operator==(const url& lhs, const url& rhs) {
+inline bool operator==(const url& lhs, const url& rhs) noexcept {
     return lhs.norm_url_ == rhs.norm_url_;
 }
 
