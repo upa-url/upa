@@ -2,10 +2,13 @@
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-
 // This file should be included at the end of url.h.
 // It needs declarations of url, url_search_params and
 // url_search_params_ptr classes
+//
+
+#ifndef UPA_URL_SEARCH_PARAMS_INL_H
+#define UPA_URL_SEARCH_PARAMS_INL_H
 
 #include <memory> // std::addressof
 
@@ -55,3 +58,5 @@ inline url_search_params_ptr& url_search_params_ptr::operator=(const url_search_
 
 } // namespace detail
 } // namespace upa
+
+#endif // UPA_URL_SEARCH_PARAMS_INL_H
