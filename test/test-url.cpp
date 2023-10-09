@@ -20,12 +20,12 @@ std::string urls_to_str(const char* s1, const upa::url& u2) {
 }
 
 template <class ...Args>
-void check_url_contructor(upa::url_result expected_res, Args&&... args)
+void check_url_contructor(upa::validation_errc expected_res, Args&&... args)
 {
     const auto stringify_args = [&] { return urls_to_str(args...); };
     try {
         upa::url url(args...);
-        CHECK_MESSAGE(upa::url_result::Ok == expected_res, "URL: ", stringify_args());
+        CHECK_MESSAGE(upa::validation_errc::ok == expected_res, "URL: ", stringify_args());
     }
     catch (upa::url_error& ex) {
         CHECK_MESSAGE(ex.result() == expected_res, "URL: ", stringify_args());
@@ -37,20 +37,21 @@ void check_url_contructor(upa::url_result expected_res, Args&&... args)
 
 TEST_CASE("url constructor") {
     // valid URL
-    check_url_contructor(upa::url_result::Ok, "http://example.org/p");
+    check_url_contructor(upa::validation_errc::ok, "http://example.org/p");
     // invalid URLs
-    check_url_contructor(upa::url_result::EmptyHost, "http:///");
-    check_url_contructor(upa::url_result::EmptyHost, "http://%C2%AD/p"); // U+00AD - IDNA ignored code point
-    check_url_contructor(upa::url_result::IdnaError, "http://xn--a/p");
-    check_url_contructor(upa::url_result::InvalidPort, "http://h:a/p");
-    check_url_contructor(upa::url_result::InvalidIpv4Address, "http://1.2.3.256/p");
-    check_url_contructor(upa::url_result::InvalidIpv6Address, "http://[1::2::3]/p");
-    check_url_contructor(upa::url_result::InvalidDomainCharacter, "http://h[]/p");
-    check_url_contructor(upa::url_result::RelativeUrlWithoutBase, "relative");
-    check_url_contructor(upa::url_result::RelativeUrlWithCannotBeABase, "relative", "about:blank");
+    // TODO-TODO-TODO: test all errors
+    check_url_contructor(upa::validation_errc::host_missing, "http:///");
+    check_url_contructor(upa::validation_errc::domain_to_ascii, "http://%C2%AD/p"); // U+00AD - IDNA ignored code point
+    check_url_contructor(upa::validation_errc::domain_to_ascii, "http://xn--a/p");
+    check_url_contructor(upa::validation_errc::port_invalid, "http://h:a/p");
+    check_url_contructor(upa::validation_errc::ipv4_out_of_range_part, "http://1.2.3.256/p");
+    check_url_contructor(upa::validation_errc::ipv6_multiple_compression, "http://[1::2::3]/p");
+    check_url_contructor(upa::validation_errc::domain_invalid_code_point, "http://h[]/p");
+    check_url_contructor(upa::validation_errc::missing_scheme_non_relative_url, "relative");
+    check_url_contructor(upa::validation_errc::missing_scheme_non_relative_url, "relative", "about:blank");
     // empty (invalid) base
     const upa::url base;
-    check_url_contructor(upa::url_result::InvalidBase, "http://h/", base);
+    check_url_contructor(upa::validation_errc::invalid_base, "http://h/", base);
 }
 
 // Copy/move construction/assignment
@@ -215,7 +216,7 @@ TEST_CASE("url::is_valid()") {
     CHECK_FALSE(url.is_valid());
 
     // parse valid URL
-    CHECK(url.parse("wss://host:88/path", nullptr) == upa::url_result::Ok);
+    CHECK(url.parse("wss://host:88/path", nullptr) == upa::validation_errc::ok);
     CHECK(url.href() == "wss://host:88/path");
     CHECK(url.is_valid());
 
@@ -225,7 +226,7 @@ TEST_CASE("url::is_valid()") {
     CHECK(url.is_valid());
 
     // url::parse must reset VALID_FLAG on failure
-    CHECK(url.parse("http://h:8a/p", nullptr) == upa::url_result::InvalidPort);
+    CHECK(url.parse("http://h:8a/p", nullptr) == upa::validation_errc::port_invalid);
     CHECK_FALSE(url.is_valid());
 
     // invalid URL must ignore setters (except href)
@@ -285,12 +286,12 @@ TEST_CASE("Parse URL with invalid base") {
         CHECK_FALSE(base.is_valid());
 
         upa::url url;
-        CHECK(url.parse("https://h/", &base) == upa::url_result::InvalidBase);
+        CHECK(url.parse("https://h/", &base) == upa::validation_errc::invalid_base);
         CHECK_FALSE(url.is_valid());
 
-        CHECK(url.parse("http://host/", nullptr) == upa::url_result::Ok);
+        CHECK(url.parse("http://host/", nullptr) == upa::validation_errc::ok);
         CHECK(url.is_valid());
-        CHECK(url.parse("https://h/", &base) == upa::url_result::InvalidBase);
+        CHECK(url.parse("https://h/", &base) == upa::validation_errc::invalid_base);
         CHECK_FALSE(url.is_valid());
     }
     SUBCASE("Invalid base") {
@@ -299,15 +300,15 @@ TEST_CASE("Parse URL with invalid base") {
         CHECK_FALSE(base.is_valid());
 
         upa::url url;
-        CHECK(url.parse("https://h/", &base) == upa::url_result::InvalidBase);
+        CHECK(url.parse("https://h/", &base) == upa::validation_errc::invalid_base);
         CHECK_FALSE(url.is_valid());
 
-        CHECK(url.parse("/path", &base) == upa::url_result::InvalidBase);
+        CHECK(url.parse("/path", &base) == upa::validation_errc::invalid_base);
         CHECK_FALSE(url.is_valid());
 
-        CHECK(url.parse("http://host/", nullptr) == upa::url_result::Ok);
+        CHECK(url.parse("http://host/", nullptr) == upa::validation_errc::ok);
         CHECK(url.is_valid());
-        CHECK(url.parse("https://h/", &base) == upa::url_result::InvalidBase);
+        CHECK(url.parse("https://h/", &base) == upa::validation_errc::invalid_base);
         CHECK_FALSE(url.is_valid());
     }
 }
@@ -477,8 +478,8 @@ TEST_CASE("Invalid utf-8 in hostname") {
     static const char szUrl1[] = { 'h', 't', 't', 'p', ':', '/', '/', '%', 'C', '4', char(0x84), '/', '\0' }; // invalid
     static const char szUrl2[] = { 'h', 't', 't', 'p', ':', '/', '/', char(0xC4), '%', '8', '4', '/', '\0' }; // invalid
 
-    check_url_contructor(upa::url_result::IdnaError, szUrl1);
-    check_url_contructor(upa::url_result::IdnaError, szUrl2);
+    check_url_contructor(upa::validation_errc::domain_to_ascii, szUrl1);
+    check_url_contructor(upa::validation_errc::domain_to_ascii, szUrl2);
 }
 
 // UTF-16 in hostname

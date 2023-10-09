@@ -12,7 +12,7 @@
 
 static bool ipv6_parse(const char* szInput, uint16_t(&address)[8]) {
     using str = std::char_traits<char>;
-    return upa::ipv6_parse(szInput, szInput + str::length(szInput), address);
+    return upa::ipv6_parse(szInput, szInput + str::length(szInput), address) == upa::validation_errc::ok;
 };
 
 static std::string ipv6_serialize(uint16_t(&address)[8]) {

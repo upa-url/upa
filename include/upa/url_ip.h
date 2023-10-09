@@ -68,17 +68,17 @@ static inline bool hostname_ends_in_a_number(const CharT* first, const CharT* la
 // IPv4 number parser
 // https://url.spec.whatwg.org/#ipv4-number-parser
 //
-// - on success sets number value and returns url_result::Ok
+// - on success sets number value and returns validation_errc::ok
 // - if resulting number can not be represented by uint32_t value, then returns
-//   url_result::InvalidIpv4Address
+//   validation_errc::ipv4_non_numeric_part
 //
 // TODO-WARN: validationError
-
+//
 template <typename CharT>
-static inline url_result ipv4_parse_number(const CharT* first, const CharT* last, uint32_t& number) {
+static inline validation_errc ipv4_parse_number(const CharT* first, const CharT* last, uint32_t& number) {
     // If input is the empty string, then return failure
     if (first == last)
-        return url_result::InvalidIpv4Address;
+        return validation_errc::ipv4_non_numeric_part;
 
     // Figure out the base
     uint32_t radix = 10;
@@ -86,7 +86,7 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
         const std::size_t len = last - first;
         if (len == 1) {
             number = 0;
-            return url_result::Ok;
+            return validation_errc::ok;
         }
         // len >= 2
         if (first[1] == 'X' || first[1] == 'x') {
@@ -104,7 +104,7 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
     // if input is the empty string, then return zero
     if (first == last) {
         number = 0;
-        return url_result::Ok;
+        return validation_errc::ok;
     }
 
     // Check length - max 32-bit value is
@@ -112,7 +112,7 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
     // DEC: 4294967295  (10 digits)
     // OCT: 37777777777 (11 digits)
     if (last - first > 11)
-        return url_result::InvalidIpv4Address; // int overflow
+        return validation_errc::ipv4_out_of_range_part; // int overflow
 
     // Check chars are valid digits and convert its sequence to number.
     // Use the 64-bit to get a big number (no hex, decimal, or octal
@@ -123,7 +123,7 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
         for (auto it = first; it != last; ++it) {
             const auto ch = *it;
             if (ch > chmax || ch < '0')
-                return url_result::InvalidIpv4Address;
+                return validation_errc::ipv4_non_numeric_part;
             num = num * radix + (ch - '0');
         }
     } else {
@@ -132,36 +132,36 @@ static inline url_result ipv4_parse_number(const CharT* first, const CharT* last
             // This cast is safe because chars are ASCII
             const auto uch = static_cast<unsigned char>(*it);
             if (!detail::isHexChar(uch))
-                return url_result::InvalidIpv4Address;
+                return validation_errc::ipv4_non_numeric_part;
             num = num * radix + detail::HexCharToValue(uch);
         }
     }
 
     // Check for 32-bit overflow.
     if (num > std::numeric_limits<uint32_t>::max())
-        return url_result::InvalidIpv4Address; // int overflow
+        return validation_errc::ipv4_out_of_range_part; // int overflow
 
     number = static_cast<uint32_t>(num);
-    return url_result::Ok;
+    return validation_errc::ok;
 }
 
 // IPv4 parser
 // https://url.spec.whatwg.org/#concept-ipv4-parser
 //
-// - on success sets ipv4 value and returns url_result::Ok
-// - on failure (when all parts are valid numbers, but any of them is too big),
-//   returns url_result::InvalidIpv4Address
-// - if input is not IPv4 adrress (any part is empty or contains non digit),
-//   then returns url_result::InvalidIpv4Address
-
+// - on success sets ipv4 value and returns validation_errc::ok
+// - on failure returns validation error code
+//
 template <typename CharT>
-inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ipv4) {
+inline validation_errc ipv4_parse(const CharT* first, const CharT* last, uint32_t& ipv4) {
     using UCharT = typename std::make_unsigned<CharT>::type;
 
-    // Comes from: 6.1 & "IPv4 number parser":
-    // If input is the empty string, then return failure.
+    // 2. If the last item in parts is the empty string, then
+    //    1. IPv4-empty-part validation error. (TODO-WARN)
+    //
+    // Failure comes from: 5.2 & "IPv4 number parser":
+    // 1. If input is the empty string, then return failure.
     if (first == last)
-        return url_result::InvalidIpv4Address;
+        return validation_errc::ipv4_non_numeric_part;
 
     // <1>.<2>.<3>.<4>.<->
     const CharT* part[6];
@@ -173,20 +173,21 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
         const auto uc = static_cast<UCharT>(*it);
         if (uc == '.') {
             if (dot_count == 4)
-                // 4. If parts’s size is greater than 4, then validation error, return failure.
-                return url_result::InvalidIpv4Address;
+                // 3. If parts’s size is greater than 4, IPv4-too-many-parts validation error, return failure
+                return validation_errc::ipv4_too_many_parts;
             if (part[dot_count] == it)
-                // 6.1 & "IPv4 number parser": If input is the empty string, then return failure.
-                return url_result::InvalidIpv4Address;
+                // 5.2 & "IPv4 number parser":
+                // 1. If input is the empty string, then return failure.
+                return validation_errc::ipv4_non_numeric_part;
             part[++dot_count] = it + 1; // skip '.'
         } else if (!detail::isIPv4Char(uc)) {
             // non IPv4 character
-            return url_result::InvalidIpv4Address;
+            return validation_errc::ipv4_non_numeric_part;
         }
     }
 
-    // 3. If the last item in parts is the empty string, then:
-    //    1. Set validationError to true.
+    // 2. If the last item in parts is the empty string, then:
+    //    1. IPv4-empty-part validation error. (TODO-WARN)
     //    2. If parts’s size is greater than 1, then remove the last item from parts.
     int part_count = dot_count + 1;
     if (dot_count > 0 && part[dot_count] == last) {
@@ -195,38 +196,37 @@ inline url_result ipv4_parse(const CharT* first, const CharT* last, uint32_t& ip
         // the part[part_count] - 1 must point to the end of last part:
         part[part_count] = last + 1;
     }
-    // 4. If parts’s size is greater than 4, then validation error, return failure.
+    // 3. If parts’s size is greater than 4, IPv4-too-many-parts validation error, return failure
     if (part_count > 4)
-        return url_result::InvalidIpv4Address;
+        return validation_errc::ipv4_too_many_parts;
 
     // IPv4 numbers
     uint32_t number[4];
     for (int ind = 0; ind < part_count; ++ind) {
-        const url_result res = ipv4_parse_number(part[ind], part[ind + 1] - 1, number[ind]);
-        // 6.2. If result is failure, then validation error, return failure.
-        if (res != url_result::Ok) return res;
-        // TODO: 6.3. If result[1] is true, then set validationError to true
+        const auto res = ipv4_parse_number(part[ind], part[ind + 1] - 1, number[ind]);
+        // 5.2. If result is failure, IPv4-non-numeric-part validation error, return failure.
+        if (res != validation_errc::ok) return res;
+        // TODO-WARN: 5.3. If result[1] is true, IPv4-non-decimal-part validation error.
     }
     // TODO-WARN:
-    // 7. If validationError is true, validation error.
-    // 8. If any item in numbers is greater than 255, validation error.
+    // 6. If any item in numbers is greater than 255, IPv4-out-of-range-part validation error.
 
-    // 9. If any but the last item in numbers is greater than 255, then return failure.
+    // 7. If any but the last item in numbers is greater than 255, then return failure.
     for (int ind = 0; ind < part_count - 1; ++ind) {
-        if (number[ind] > 255) return url_result::InvalidIpv4Address;
+        if (number[ind] > 255) return validation_errc::ipv4_out_of_range_part;
     }
-    // 10. If the last item in numbers is greater than or equal to 256**(5 - numbers’s size),
-    // validation error, return failure.
+    // 8. If the last item in numbers is greater than or equal to 256(5 − numbers’s size),
+    // then return failure.
     ipv4 = number[part_count - 1];
     if (ipv4 > (std::numeric_limits<uint32_t>::max() >> (8 * (part_count - 1))))
-        return url_result::InvalidIpv4Address;
+        return validation_errc::ipv4_out_of_range_part;
 
     // 14.1. Increment ipv4 by n * 256**(3 - counter).
     for (int counter = 0; counter < part_count - 1; ++counter) {
         ipv4 += number[counter] << (8 * (3 - counter));
     }
 
-    return url_result::Ok;
+    return validation_errc::ok;
 }
 
 // IPv4 serializer
@@ -254,24 +254,37 @@ inline IntT get_hex_number(const CharT*& pointer, const CharT* last) {
 // - on success sets address value and returns true
 // - on failure returns false
 //
-
 template <typename CharT>
-inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)[8]) {
+inline validation_errc ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)[8]) {
     std::fill(std::begin(address), std::end(address), static_cast<uint16_t>(0));
     int piece_index = 0;    // zero
     int compress = 0;       // null
     bool is_ipv4 = false;
 
     const std::size_t len = last - first;
-    // minimalus yra "::"
-    if (len < 2) return false;
+    // the shortest valid IPv6 address is "::"
+    if (len < 2) {
+        if (len == 0)
+            return validation_errc::ipv6_too_few_pieces; // (8)
+        switch (first[0]) {
+        case ':':
+            return validation_errc::ipv6_invalid_compression; // (5-1)
+        case '.':
+            return validation_errc::ipv4_in_ipv6_invalid_code_point; // (6-5-1)
+        default:
+            return detail::isHexChar(first[0])
+                ? validation_errc::ipv6_too_few_pieces // (8)
+                : validation_errc::ipv6_invalid_code_point; // (6-7)
+        }
+    }
 
     const CharT* pointer = first;
-    // 5. If c is ":", run these substeps:
+    // 5. If c is U+003A (:), then:
     if (pointer[0] == ':') {
         if (pointer[1] != ':') {
-            // TODO-ERR: validation error
-            return false;
+            // 5.1. If remaining does not start with U+003A (:), IPv6-invalid-compression
+            // validation error, return failure.
+            return validation_errc::ipv6_invalid_compression;
         }
         pointer += 2;
         compress = ++piece_index;
@@ -280,13 +293,14 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
     // Main
     while (pointer < last) {
         if (piece_index == 8) {
-            // TODO-ERR: validation error
-            return false;
+            // 6.1. If pieceIndex is 8, IPv6-too-many-pieces validation error, return failure.
+            return validation_errc::ipv6_too_many_pieces;
         }
         if (pointer[0] == ':') {
             if (compress) {
-                // TODO-ERR: validation error
-                return false;
+                // 6.2.1. If compress is non-null, IPv6-multiple-compression validation error,
+                // return failure.
+                return validation_errc::ipv6_multiple_compression;
             }
             ++pointer;
             compress = ++piece_index;
@@ -300,8 +314,9 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
             const CharT ch = *pointer;
             if (ch == '.') {
                 if (pointer == pointer0) {
-                    // TODO-ERR: validation error
-                    return false;
+                    // 6.5.1. If length is 0, IPv4-in-IPv6-invalid-code-point
+                    // validation error, return failure.
+                    return validation_errc::ipv4_in_ipv6_invalid_code_point;
                 }
                 pointer = pointer0;
                 is_ipv4 = true;
@@ -309,12 +324,14 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
             }
             if (ch == ':') {
                 if (++pointer == last) {
-                    // TODO-ERR: validation error
-                    return false;
+                    // 6.6.2. If c is the EOF code point, IPv6-invalid-code-point
+                    // validation error, return failure.
+                    return validation_errc::ipv6_invalid_code_point;
                 }
             } else {
-                // TODO-ERR: validation error
-                return false;
+                // 6.7. Otherwise, if c is not the EOF code point, IPv6-invalid-code-point
+                // validation error, return failure.
+                return validation_errc::ipv6_invalid_code_point;
             }
         }
         address[piece_index++] = value;
@@ -322,8 +339,9 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
 
     if (is_ipv4) {
         if (piece_index > 6) {
-            // TODO-ERR: validation error
-            return false;
+            // 6.5.3. If pieceIndex is greater than 6, IPv4-in-IPv6-too-many-pieces
+            // validation error, return failure.
+            return validation_errc::ipv4_in_ipv6_too_many_pieces;
         }
         int numbers_seen = 0;
         while (pointer < last) {
@@ -331,22 +349,28 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
                 if (*pointer == '.' && numbers_seen < 4) {
                     ++pointer;
                 } else {
-                    // TODO-ERR: validation error
-                    return false;
+                    // 6.5.5.2.2. Otherwise, IPv4-in-IPv6-invalid-code-point
+                    // validation error, return failure.
+                    return validation_errc::ipv4_in_ipv6_invalid_code_point;
                 }
             }
             if (pointer == last || !detail::is_ascii_digit(*pointer)) {
-                // TODO-ERR: validation error
-                return false;
+                // 6.5.5.3. If c is not an ASCII digit, IPv4-in-IPv6-invalid-code-point
+                // validation error, return failure.
+                return validation_errc::ipv4_in_ipv6_invalid_code_point;
             }
             // While c is an ASCII digit, run these subsubsteps
             unsigned ipv4Piece = *(pointer++) - '0';
             while (pointer != last && detail::is_ascii_digit(*pointer)) {
+                // 6.5.5.4.2. Otherwise, if ipv4Piece is 0, IPv4-in-IPv6-invalid-code-point
+                // validation error, return failure.
                 if (ipv4Piece == 0) // leading zero
-                    return false; // TODO-ERR: validation error
+                    return validation_errc::ipv4_in_ipv6_invalid_code_point;
                 ipv4Piece = ipv4Piece * 10 + (*pointer - '0');
+                // 6.5.5.4.3. If ipv4Piece is greater than 255, IPv4-in-IPv6-out-of-range-part
+                // validation error, return failure.
                 if (ipv4Piece > 255)
-                    return false; // TODO-ERR: validation error
+                    return validation_errc::ipv4_in_ipv6_out_of_range_part;
                 ++pointer;
             }
             address[piece_index] = static_cast<uint16_t>(address[piece_index] * 0x100 + ipv4Piece);
@@ -354,11 +378,10 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
             if (!(numbers_seen & 1)) // 2 or 4
                 ++piece_index;
         }
-        // If c is the EOF code point and numbersSeen is not 4
-        if (numbers_seen != 4)  {
-            //TODO-ERR: validation error
-            return false;
-        }
+        // 6.5.6. If numbersSeen is not 4, IPv4-in-IPv6-too-few-parts
+        // validation error, return failure.
+        if (numbers_seen != 4)
+            return validation_errc::ipv4_in_ipv6_too_few_parts;
     }
 
     // Finale
@@ -370,10 +393,11 @@ inline bool ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)
             }
         }
     } else if (piece_index != 8) {
-        // TODO-ERR: validation error
-        return false;
+        // Otherwise, if compress is null and pieceIndex is not 8, IPv6-too-few-pieces
+        // validation error, return failure.
+        return validation_errc::ipv6_too_few_pieces;
     }
-    return true;
+    return validation_errc::ok;
 }
 
 // IPv6 serializer

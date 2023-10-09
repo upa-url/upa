@@ -29,7 +29,7 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = true)") {
         const std::string strHost = "";
         host_out out;
 
-        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), true, out) == upa::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), true, out) == upa::validation_errc::ok);
         CHECK(out.host == "");
         CHECK(out.host_type == upa::HostType::Empty);
     }
@@ -38,7 +38,7 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = true)") {
         const std::string strHost = "host";
         host_out out;
 
-        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), true, out) == upa::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), true, out) == upa::validation_errc::ok);
         CHECK(out.host == "host");
         CHECK(out.host_type == upa::HostType::Opaque);
     }
@@ -47,7 +47,7 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = true)") {
         const std::string strHost = "[1::0]";
         host_out out;
 
-        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), true, out) == upa::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), true, out) == upa::validation_errc::ok);
         CHECK(out.host == "[1::]");
         CHECK(out.host_type == upa::HostType::IPv6);
     }
@@ -58,7 +58,7 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = false)") {
         const std::string strHost = "";
         host_out out;
 
-        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::url_result::EmptyHost);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::validation_errc::host_missing);
         CHECK(out.host == "");
         CHECK(out.host_type == upa::HostType::Empty);
     }
@@ -67,7 +67,7 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = false)") {
         const std::string strHost = "host";
         host_out out;
 
-        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::validation_errc::ok);
         CHECK(out.host == "host");
         CHECK(out.host_type == upa::HostType::Domain);
     }
@@ -80,7 +80,7 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = false)") {
             strHost.append(".bcde12345");
         host_out out;
 
-        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::validation_errc::ok);
         CHECK(out.host == strHost);
         CHECK(out.host_type == upa::HostType::Domain);
     }
@@ -89,7 +89,7 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = false)") {
         const std::string strHost = "127.0.0.1";
         host_out out;
 
-        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::validation_errc::ok);
         CHECK(out.host == "127.0.0.1");
         CHECK(out.host_type == upa::HostType::IPv4);
     }
@@ -98,7 +98,7 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = false)") {
         const std::string strHost = "[1::0]";
         host_out out;
 
-        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::validation_errc::ok);
         CHECK(out.host == "[1::]");
         CHECK(out.host_type == upa::HostType::IPv6);
     }
@@ -109,7 +109,7 @@ TEST_SUITE("host_parser::parse_opaque_host") {
         const std::string strHost = "";
         host_out out;
 
-        REQUIRE(upa::host_parser::parse_opaque_host(strHost.data(), strHost.data() + strHost.length(), out) == upa::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_opaque_host(strHost.data(), strHost.data() + strHost.length(), out) == upa::validation_errc::ok);
         CHECK(out.host == "");
         CHECK(out.host_type == upa::HostType::Empty);
     }
@@ -118,7 +118,7 @@ TEST_SUITE("host_parser::parse_opaque_host") {
         const std::string strHost = "host";
         host_out out;
 
-        REQUIRE(upa::host_parser::parse_opaque_host(strHost.data(), strHost.data() + strHost.length(), out) == upa::url_result::Ok);
+        REQUIRE(upa::host_parser::parse_opaque_host(strHost.data(), strHost.data() + strHost.length(), out) == upa::validation_errc::ok);
         CHECK(out.host == "host");
         CHECK(out.host_type == upa::HostType::Opaque);
     }
@@ -128,10 +128,10 @@ TEST_SUITE("host_parser::parse_opaque_host") {
 // Test upa::url_host class
 
 template <class ...Args>
-upa::url_result construct_url_host(Args&&... args) {
+upa::validation_errc construct_url_host(Args&&... args) {
     try {
         upa::url_host h{ std::forward<Args>(args)... };
-        return upa::url_result::Ok;
+        return upa::validation_errc::ok;
     }
     catch (upa::url_error& ex) {
         return ex.result();
@@ -140,11 +140,12 @@ upa::url_result construct_url_host(Args&&... args) {
 
 TEST_SUITE("url_host") {
     TEST_CASE("Invalid host") {
-        CHECK(construct_url_host("") == upa::url_result::EmptyHost);
-        CHECK(construct_url_host("xn--a") == upa::url_result::IdnaError);
-        CHECK(construct_url_host("0x100000000") == upa::url_result::InvalidIpv4Address);
-        CHECK(construct_url_host("[1") == upa::url_result::InvalidIpv6Address);
-        CHECK(construct_url_host("a^2") == upa::url_result::InvalidDomainCharacter);
+        // TODO-TODO-TODO: test all errors
+        CHECK(construct_url_host("") == upa::validation_errc::host_missing);
+        CHECK(construct_url_host("xn--a") == upa::validation_errc::domain_to_ascii);
+        CHECK(construct_url_host("0x100000000") == upa::validation_errc::ipv4_out_of_range_part);
+        CHECK(construct_url_host("[1") == upa::validation_errc::ipv6_unclosed);
+        CHECK(construct_url_host("a^2") == upa::validation_errc::domain_invalid_code_point);
     }
 
     TEST_CASE("HostType::Domain") {

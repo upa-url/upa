@@ -90,7 +90,7 @@ namespace icu {
 // https://url.spec.whatwg.org/#concept-domain-to-ascii
 // with beStrict = false
 
-url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<char16_t>& output) {
+validation_errc IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<char16_t>& output) {
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
     // https://www.unicode.org/reports/tr46/#ToASCII
     static const uint32_t UIDNA_ERR_MASK = ~static_cast<uint32_t>(
@@ -107,7 +107,7 @@ url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<ch
     // uidna_nameToASCII uses int32_t length
     // https://unicode-org.github.io/icu-docs/apidoc/dev/icu4c/uidna_8h.html#ac45d3ad275df9e5a2c2e84561862d005
     if (src_len > util::unsigned_limit<int32_t>::max())
-        return url_result::Overflow; // too long
+        return validation_errc::overflow; // too long
 
     // The static_cast<int32_t>(output.capacity()) must be safe:
     assert(output.capacity() <= util::unsigned_limit<int32_t>::max());
@@ -123,23 +123,26 @@ url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<ch
             &info, &err);
         if (U_SUCCESS(err) && (info.errors & UIDNA_ERR_MASK) == 0) {
             output.resize(output_length);
-            // Result of uidna_nameToASCII can be the empty string if input:
+            // 3. If result is the empty string, domain-to-ASCII validation error, return failure.
+            //
+            // Note. Result of uidna_nameToASCII can be the empty string if input:
             // 1) consists entirely of IDNA ignored code points;
             // 2) is "xn--".
             if (output_length == 0)
-                return url_result::EmptyHost;
+                return validation_errc::domain_to_ascii;
 #if (U_ICU_VERSION_MAJOR_NUM) < 68
             // Workaround of ICU bug ICU-21212: https://unicode-org.atlassian.net/browse/ICU-21212
             // For some "xn--" labels which contain non ASCII chars, uidna_nameToASCII returns no error,
             // and leaves these labels unchanged in the output. Bug fixed in ICU 68.1
             if (std::any_of(output.begin(), output.end(), [](char16_t c) { return c >= 0x80; }))
-                return url_result::IdnaError;
+                return validation_errc::domain_to_ascii;
 #endif
-            return url_result::Ok;
+            return validation_errc::ok;
         }
 
         if (err != U_BUFFER_OVERFLOW_ERROR || (info.errors & UIDNA_ERR_MASK) != 0)
-            return url_result::IdnaError;  // IDNA error, give up.
+            // 2. If result is a failure value, domain-to-ASCII validation error, return failure.
+            return validation_errc::domain_to_ascii;
 
         // Not enough room in our buffer, expand.
         output.reserve(output_length);
@@ -148,11 +151,11 @@ url_result IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<ch
 
 // TODO: common function template for IDNToASCII and IDNToUnicode
 
-url_result IDNToUnicode(const char* src, std::size_t src_len, simple_buffer<char>& output) {
+validation_errc IDNToUnicode(const char* src, std::size_t src_len, simple_buffer<char>& output) {
     // uidna_nameToUnicodeUTF8 uses int32_t length
     // https://unicode-org.github.io/icu-docs/apidoc/dev/icu4c/uidna_8h.html#afd9ae1e0ae5318e20c87bcb0149c3ada
     if (src_len > util::unsigned_limit<int32_t>::max())
-        return url_result::Overflow; // too long
+        return validation_errc::overflow; // too long
 
     // The static_cast<int32_t>(output.capacity()) must be safe:
     assert(output.capacity() <= util::unsigned_limit<int32_t>::max());
@@ -168,13 +171,13 @@ url_result IDNToUnicode(const char* src, std::size_t src_len, simple_buffer<char
             &info, &err);
         if (U_SUCCESS(err)) {
             output.resize(output_length);
-            return url_result::Ok;
+            return validation_errc::ok;
         }
 
         // https://url.spec.whatwg.org/#concept-domain-to-unicode
-        // TODO: Signify validation errors for any returned errors, and then, return result
+        // TODO: Signify domain-to-Unicode validation errors for any returned errors, and then, return result.
         if (err != U_BUFFER_OVERFLOW_ERROR)
-            return url_result::IdnaError;  // Unknown error, give up.
+            return validation_errc::domain_to_unicode;
 
         // Not enough room in our buffer, expand.
         output.reserve(output_length);

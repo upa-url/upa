@@ -45,16 +45,16 @@ public:
 class host_parser {
 public:
     template <typename CharT>
-    static url_result parse_host(const CharT* first, const CharT* last, bool is_opaque, host_output& dest);
+    static validation_errc parse_host(const CharT* first, const CharT* last, bool is_opaque, host_output& dest);
 
     template <typename CharT>
-    static url_result parse_opaque_host(const CharT* first, const CharT* last, host_output& dest);
+    static validation_errc parse_opaque_host(const CharT* first, const CharT* last, host_output& dest);
 
     template <typename CharT>
-    static url_result parse_ipv4(const CharT* first, const CharT* last, host_output& dest);
+    static validation_errc parse_ipv4(const CharT* first, const CharT* last, host_output& dest);
 
     template <typename CharT>
-    static url_result parse_ipv6(const CharT* first, const CharT* last, host_output& dest);
+    static validation_errc parse_ipv6(const CharT* first, const CharT* last, host_output& dest);
 };
 
 
@@ -81,7 +81,7 @@ public:
 
         const auto inp = make_str_arg(std::forward<StrT>(str));
         const auto res = host_parser::parse_host(inp.begin(), inp.end(), false, out);
-        if (res != url_result::Ok)
+        if (res != validation_errc::ok)
             throw url_error(res, "Host parse error");
     }
 
@@ -141,7 +141,7 @@ static inline bool contains_forbidden_host_char(const CharT* first, const CharT*
 // https://url.spec.whatwg.org/#concept-host-parser
 
 template <typename CharT>
-inline url_result host_parser::parse_host(const CharT* first, const CharT* last, bool is_opaque, host_output& dest) {
+inline validation_errc host_parser::parse_host(const CharT* first, const CharT* last, bool is_opaque, host_output& dest) {
     using UCharT = typename std::make_unsigned<CharT>::type;
 
     // 1. Non-"file" special URL's cannot have an empty host.
@@ -154,7 +154,7 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
         // set empty host
         dest.hostStart();
         dest.hostDone(HostType::Empty);
-        return is_opaque ? url_result::Ok : url_result::EmptyHost;
+        return is_opaque ? validation_errc::ok : validation_errc::host_missing;
     }
     assert(first < last);
 
@@ -162,8 +162,9 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
         if (*(last - 1) == ']') {
             return parse_ipv6(first + 1, last - 1, dest);
         }
-        // TODO-ERR: validation error
-        return url_result::InvalidIpv6Address;
+        // 1.1. If input does not end with U+005D (]), IPv6-unclosed
+        // validation error, return failure.
+        return validation_errc::ipv6_unclosed;
     }
 
     if (is_opaque)
@@ -183,10 +184,12 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
             std::string& str_host = dest.hostStart();
             util::append_ascii_lowercase(str_host, first, last);
             dest.hostDone(HostType::Domain);
-            return url_result::Ok;
+            return validation_errc::ok;
         }
     } else if (static_cast<UCharT>(*ptr) < 0x80 && *ptr != '%') {
-        return url_result::InvalidDomainCharacter;
+        // 7. If asciiDomain contains a forbidden domain code point, domain-invalid-code-point
+        // validation error, return failure. 
+        return validation_errc::domain_invalid_code_point;
     }
 
     // Input for IDNToASCII
@@ -240,12 +243,13 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     // domain to ASCII
     simple_buffer<char16_t> buff_ascii;
 
-    const url_result res = IDNToASCII(buff_uc.data(), buff_uc.size(), buff_ascii);
-    if (res != url_result::Ok)
+    const auto res = IDNToASCII(buff_uc.data(), buff_uc.size(), buff_ascii);
+    if (res != validation_errc::ok)
         return res;
     if (contains_forbidden_domain_char(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
-        //TODO-ERR: validation error
-        return url_result::InvalidDomainCharacter;
+        // 7. If asciiDomain contains a forbidden domain code point, domain-invalid-code-point
+        // validation error, return failure. 
+        return validation_errc::domain_invalid_code_point;
     }
 
     // If asciiDomain ends in a number, return the result of IPv4 parsing asciiDomain
@@ -256,20 +260,24 @@ inline url_result host_parser::parse_host(const CharT* first, const CharT* last,
     std::string& str_host = dest.hostStart();
     util::append(str_host, buff_ascii);
     dest.hostDone(HostType::Domain);
-    return url_result::Ok;
+    return validation_errc::ok;
 }
 
 // The opaque-host parser
 // https://url.spec.whatwg.org/#concept-opaque-host-parser
 
 template <typename CharT>
-inline url_result host_parser::parse_opaque_host(const CharT* first, const CharT* last, host_output& dest) {
+inline validation_errc host_parser::parse_opaque_host(const CharT* first, const CharT* last, host_output& dest) {
+    // 1. If input contains a forbidden host code point, host-invalid-code-point
+    // validation error, return failure. 
     if (contains_forbidden_host_char(first, last))
-        return url_result::InvalidDomainCharacter; //TODO-ERR: failure
+        return validation_errc::host_invalid_code_point;
 
     // TODO-WARN:
-    // 2. If input contains a code point that is not a URL code point and not U+0025 (%), validation error.
-    // 3. If input contains a U+0025 (%) and the two code points following it are not ASCII hex digits, validation error.
+    // 2. If input contains a code point that is not a URL code point and not U+0025 (%),
+    // invalid-URL-unit validation error.
+    // 3. If input contains a U+0025 (%) and the two code points following it are not ASCII hex digits,
+    // invalid-URL-unit validation error.
 
     std::string& str_host = dest.hostStart();
 
@@ -295,15 +303,15 @@ inline url_result host_parser::parse_opaque_host(const CharT* first, const CharT
     }
 
     dest.hostDone(str_host.empty() ? HostType::Empty : HostType::Opaque);
-    return url_result::Ok;
+    return validation_errc::ok;
 }
 
 template <typename CharT>
-inline url_result host_parser::parse_ipv4(const CharT* first, const CharT* last, host_output& dest) {
+inline validation_errc host_parser::parse_ipv4(const CharT* first, const CharT* last, host_output& dest) {
     uint32_t ipv4;  // NOLINT(cppcoreguidelines-init-variables)
 
-    const url_result res = ipv4_parse(first, last, ipv4);
-    if (res == url_result::Ok) {
+    const auto res = ipv4_parse(first, last, ipv4);
+    if (res == validation_errc::ok) {
         std::string& str_ipv4 = dest.hostStart();
         ipv4_serialize(ipv4, str_ipv4);
         dest.hostDone(HostType::IPv4);
@@ -312,18 +320,18 @@ inline url_result host_parser::parse_ipv4(const CharT* first, const CharT* last,
 }
 
 template <typename CharT>
-inline url_result host_parser::parse_ipv6(const CharT* first, const CharT* last, host_output& dest) {
+inline validation_errc host_parser::parse_ipv6(const CharT* first, const CharT* last, host_output& dest) {
     uint16_t ipv6addr[8];
 
-    if (ipv6_parse(first, last, ipv6addr)) {
+    const auto res = ipv6_parse(first, last, ipv6addr);
+    if (res == validation_errc::ok) {
         std::string& str_ipv6 = dest.hostStart();
         str_ipv6.push_back('[');
         ipv6_serialize(ipv6addr, str_ipv6);
         str_ipv6.push_back(']');
         dest.hostDone(HostType::IPv6);
-        return url_result::Ok;
     }
-    return url_result::InvalidIpv6Address;
+    return res;
 }
 
 

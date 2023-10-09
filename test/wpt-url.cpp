@@ -103,10 +103,10 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
         if (!base.empty()) {
             upa::url url_base;
             parse_success =
-                url_base.parse(base, nullptr) == upa::url_result::Ok &&
-                url.parse(input, &url_base) == upa::url_result::Ok;
+                upa::success(url_base.parse(base, nullptr)) &&
+                upa::success(url.parse(input, &url_base));
         } else {
-            parse_success = url.parse(input, nullptr) == upa::url_result::Ok;
+            parse_success = upa::success(url.parse(input, nullptr));
         }
 
         // check "failure"
@@ -137,7 +137,7 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
         // If a URL fails to parse with any valid base, it must also fail to parse with no base,
         // i.e. when used as a base URL itself.
         if (obj.failure && !base.empty()) {
-            parse_success = url.parse(input, nullptr) == upa::url_result::Ok;
+            parse_success = upa::success(url.parse(input, nullptr));
             // check "failure"
             tc.assert_equal(obj.failure, !parse_success, "parse failure WITH NO BASE");
         }
@@ -166,7 +166,7 @@ void test_host_parser(DataDrivenTest& ddt, ParserObj& obj)
         const std::string input_url(make_url(input));
 
         upa::url url;
-        const bool parse_success = url.parse(input_url, nullptr) == upa::url_result::Ok;
+        const bool parse_success = upa::success(url.parse(input_url, nullptr));
 
         // check "failure"
         tc.assert_equal(obj.failure, !parse_success, "parse failure");
@@ -241,7 +241,7 @@ void test_idna_v2(DataDrivenTest& ddt, ParserObj& obj)
         const std::string input_url(make_url(encodeHostEndingCodePoints(input)));
 
         upa::url url;
-        const bool parse_success = url.parse(input_url, nullptr) == upa::url_result::Ok;
+        const bool parse_success = upa::success(url.parse(input_url, nullptr));
 
         // check "failure"
         tc.assert_equal(obj.failure, !parse_success, "parse failure");
