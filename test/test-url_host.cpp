@@ -140,12 +140,49 @@ upa::validation_errc construct_url_host(Args&&... args) {
 
 TEST_SUITE("url_host") {
     TEST_CASE("Invalid host") {
-        // TODO-TODO-TODO: test all errors
+        // IDNA
+        // https://url.spec.whatwg.org/#validation-error-domain-to-ascii
+        CHECK(construct_url_host("xn--a") == upa::validation_errc::domain_to_ascii); // MY
+
+        // Host parsing (only special hosts)
+        // https://url.spec.whatwg.org/#domain-invalid-code-point
+        CHECK(construct_url_host("exa#mple.org") == upa::validation_errc::domain_invalid_code_point);
+        // https://url.spec.whatwg.org/#ipv4-too-many-parts
+        CHECK(construct_url_host("1.2.3.4.5") == upa::validation_errc::ipv4_too_many_parts);
+        // https://url.spec.whatwg.org/#ipv4-non-numeric-part
+        CHECK(construct_url_host("test.42") == upa::validation_errc::ipv4_non_numeric_part);
+        // https://url.spec.whatwg.org/#ipv4-out-of-range-part
+        CHECK(construct_url_host("255.255.4000.1") == upa::validation_errc::ipv4_out_of_range_part);
+        CHECK(construct_url_host("0x100000000") == upa::validation_errc::ipv4_out_of_range_part); // MY
+        // https://url.spec.whatwg.org/#ipv6-unclosed
+        CHECK(construct_url_host("[::1") == upa::validation_errc::ipv6_unclosed);
+        CHECK(construct_url_host("[1") == upa::validation_errc::ipv6_unclosed); // MY
+        // https://url.spec.whatwg.org/#ipv6-invalid-compression
+        CHECK(construct_url_host("[:1]") == upa::validation_errc::ipv6_invalid_compression);
+        // https://url.spec.whatwg.org/#ipv6-too-many-pieces
+        CHECK(construct_url_host("[1:2:3:4:5:6:7:8:9]") == upa::validation_errc::ipv6_too_many_pieces);
+        // https://url.spec.whatwg.org/#ipv6-multiple-compression
+        CHECK(construct_url_host("[1::1::1]") == upa::validation_errc::ipv6_multiple_compression);
+        // https://url.spec.whatwg.org/#ipv6-invalid-code-point
+        CHECK(construct_url_host("[1:2:3!:4]") == upa::validation_errc::ipv6_invalid_code_point);
+        CHECK(construct_url_host("[1:2:3:]") == upa::validation_errc::ipv6_invalid_code_point);
+        // https://url.spec.whatwg.org/#ipv6-too-few-pieces
+        CHECK(construct_url_host("[1:2:3]") == upa::validation_errc::ipv6_too_few_pieces);
+        // https://url.spec.whatwg.org/#ipv4-in-ipv6-too-many-pieces
+        CHECK(construct_url_host("[1:1:1:1:1:1:1:127.0.0.1]") == upa::validation_errc::ipv4_in_ipv6_too_many_pieces);
+        // https://url.spec.whatwg.org/#ipv4-in-ipv6-invalid-code-point
+        CHECK(construct_url_host("[ffff::.0.0.1]") == upa::validation_errc::ipv4_in_ipv6_invalid_code_point);
+        CHECK(construct_url_host("[ffff::127.0.xyz.1]") == upa::validation_errc::ipv4_in_ipv6_invalid_code_point);
+        CHECK(construct_url_host("[ffff::127.0xyz]") == upa::validation_errc::ipv4_in_ipv6_invalid_code_point);
+        CHECK(construct_url_host("[ffff::127.00.0.1]") == upa::validation_errc::ipv4_in_ipv6_invalid_code_point);
+        CHECK(construct_url_host("[ffff::127.0.0.1.2]") == upa::validation_errc::ipv4_in_ipv6_invalid_code_point);
+        // https://url.spec.whatwg.org/#ipv4-in-ipv6-out-of-range-part
+        CHECK(construct_url_host("[ffff::127.0.0.4000]") == upa::validation_errc::ipv4_in_ipv6_out_of_range_part);
+        // https://url.spec.whatwg.org/#ipv4-in-ipv6-too-few-parts
+        CHECK(construct_url_host("[ffff::127.0.0]") == upa::validation_errc::ipv4_in_ipv6_too_few_parts);
+
+        // Empty host
         CHECK(construct_url_host("") == upa::validation_errc::host_missing);
-        CHECK(construct_url_host("xn--a") == upa::validation_errc::domain_to_ascii);
-        CHECK(construct_url_host("0x100000000") == upa::validation_errc::ipv4_out_of_range_part);
-        CHECK(construct_url_host("[1") == upa::validation_errc::ipv6_unclosed);
-        CHECK(construct_url_host("a^2") == upa::validation_errc::domain_invalid_code_point);
     }
 
     TEST_CASE("HostType::Domain") {

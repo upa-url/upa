@@ -36,20 +36,74 @@ void check_url_contructor(upa::validation_errc expected_res, Args&&... args)
 }
 
 TEST_CASE("url constructor") {
-    // valid URL
+    // Valid URL
     check_url_contructor(upa::validation_errc::ok, "http://example.org/p");
-    // invalid URLs
-    // TODO-TODO-TODO: test all errors
-    check_url_contructor(upa::validation_errc::host_missing, "http:///");
-    check_url_contructor(upa::validation_errc::domain_to_ascii, "http://%C2%AD/p"); // U+00AD - IDNA ignored code point
-    check_url_contructor(upa::validation_errc::domain_to_ascii, "http://xn--a/p");
-    check_url_contructor(upa::validation_errc::port_invalid, "http://h:a/p");
-    check_url_contructor(upa::validation_errc::ipv4_out_of_range_part, "http://1.2.3.256/p");
-    check_url_contructor(upa::validation_errc::ipv6_multiple_compression, "http://[1::2::3]/p");
-    check_url_contructor(upa::validation_errc::domain_invalid_code_point, "http://h[]/p");
-    check_url_contructor(upa::validation_errc::missing_scheme_non_relative_url, "relative");
-    check_url_contructor(upa::validation_errc::missing_scheme_non_relative_url, "relative", "about:blank");
-    // empty (invalid) base
+
+    // Invalid URLs (failure)
+
+    // IDNA
+    // https://url.spec.whatwg.org/#validation-error-domain-to-ascii
+    check_url_contructor(upa::validation_errc::domain_to_ascii, "http://%C2%AD/p"); // MY: U+00AD - IDNA ignored code point
+    check_url_contructor(upa::validation_errc::domain_to_ascii, "http://xn--a/p"); // MY
+
+    // Host parsing
+    // https://url.spec.whatwg.org/#domain-invalid-code-point
+    check_url_contructor(upa::validation_errc::domain_invalid_code_point, "https://exa%23mple.org");
+    check_url_contructor(upa::validation_errc::domain_invalid_code_point, "http://h[]/p"); // MY
+    // https://url.spec.whatwg.org/#host-invalid-code-point
+    check_url_contructor(upa::validation_errc::host_invalid_code_point, "foo://exa[mple.org");
+    // https://url.spec.whatwg.org/#ipv4-too-many-parts
+    check_url_contructor(upa::validation_errc::ipv4_too_many_parts, "https://1.2.3.4.5/");
+    // https://url.spec.whatwg.org/#ipv4-non-numeric-part
+    check_url_contructor(upa::validation_errc::ipv4_non_numeric_part, "https://test.42");
+    // https://url.spec.whatwg.org/#ipv4-out-of-range-part
+    check_url_contructor(upa::validation_errc::ipv4_out_of_range_part, "https://255.255.4000.1");
+    check_url_contructor(upa::validation_errc::ipv4_out_of_range_part, "http://1.2.3.256/p"); // MY
+    // https://url.spec.whatwg.org/#ipv6-unclosed
+    check_url_contructor(upa::validation_errc::ipv6_unclosed, "https://[::1");
+    // https://url.spec.whatwg.org/#ipv6-invalid-compression
+    check_url_contructor(upa::validation_errc::ipv6_invalid_compression, "https://[:1]");
+    check_url_contructor(upa::validation_errc::ipv6_invalid_compression, "https://[:]"); // MY
+    // https://url.spec.whatwg.org/#ipv6-too-many-pieces
+    check_url_contructor(upa::validation_errc::ipv6_too_many_pieces, "https://[1:2:3:4:5:6:7:8:9]");
+    // https://url.spec.whatwg.org/#ipv6-multiple-compression
+    check_url_contructor(upa::validation_errc::ipv6_multiple_compression, "https://[1::1::1]");
+    // https://url.spec.whatwg.org/#ipv6-invalid-code-point
+    check_url_contructor(upa::validation_errc::ipv6_invalid_code_point, "https://[1:2:3!:4]");
+    check_url_contructor(upa::validation_errc::ipv6_invalid_code_point, "https://[1:2:3:]");
+    check_url_contructor(upa::validation_errc::ipv6_invalid_code_point, "https://[-]"); // MY
+    // https://url.spec.whatwg.org/#ipv6-too-few-pieces
+    check_url_contructor(upa::validation_errc::ipv6_too_few_pieces, "https://[1:2:3]");
+    check_url_contructor(upa::validation_errc::ipv6_too_few_pieces, "https://[]"); // MY
+    check_url_contructor(upa::validation_errc::ipv6_too_few_pieces, "https://[F]"); // MY
+    // https://url.spec.whatwg.org/#ipv4-in-ipv6-too-many-pieces
+    check_url_contructor(upa::validation_errc::ipv4_in_ipv6_too_many_pieces, "https://[1:1:1:1:1:1:1:127.0.0.1]");
+    // https://url.spec.whatwg.org/#ipv4-in-ipv6-invalid-code-point
+    check_url_contructor(upa::validation_errc::ipv4_in_ipv6_invalid_code_point, "https://[ffff::.0.0.1]");
+    check_url_contructor(upa::validation_errc::ipv4_in_ipv6_invalid_code_point, "https://[ffff::127.0.xyz.1]");
+    check_url_contructor(upa::validation_errc::ipv4_in_ipv6_invalid_code_point, "https://[ffff::127.0xyz]");
+    check_url_contructor(upa::validation_errc::ipv4_in_ipv6_invalid_code_point, "https://[ffff::127.00.0.1]");
+    check_url_contructor(upa::validation_errc::ipv4_in_ipv6_invalid_code_point, "https://[ffff::127.0.0.1.2]");
+    check_url_contructor(upa::validation_errc::ipv4_in_ipv6_invalid_code_point, "https://[.]"); // MY
+    // https://url.spec.whatwg.org/#ipv4-in-ipv6-out-of-range-part
+    check_url_contructor(upa::validation_errc::ipv4_in_ipv6_out_of_range_part, "https://[ffff::127.0.0.4000]");
+    // https://url.spec.whatwg.org/#ipv4-in-ipv6-too-few-parts
+    check_url_contructor(upa::validation_errc::ipv4_in_ipv6_too_few_parts, "https://[ffff::127.0.0]");
+
+    // URL parsing
+    // https://url.spec.whatwg.org/#missing-scheme-non-relative-url
+    check_url_contructor(upa::validation_errc::missing_scheme_non_relative_url, "poomoji");
+    check_url_contructor(upa::validation_errc::missing_scheme_non_relative_url, "poomoji", "mailto:user@example.org");
+    // https://url.spec.whatwg.org/#host-missing
+    check_url_contructor(upa::validation_errc::host_missing, "https://#fragment");
+    check_url_contructor(upa::validation_errc::host_missing, "https://:443");
+    check_url_contructor(upa::validation_errc::host_missing, "https://user:pass@");
+    // https://url.spec.whatwg.org/#port-out-of-range
+    check_url_contructor(upa::validation_errc::port_out_of_range, "https://example.org:70000");
+    // https://url.spec.whatwg.org/#port-invalid
+    check_url_contructor(upa::validation_errc::port_invalid, "https://example.org:7z");
+
+    // Empty (invalid) base
     const upa::url base;
     check_url_contructor(upa::validation_errc::invalid_base, "http://h/", base);
 }
