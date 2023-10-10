@@ -24,7 +24,16 @@ public:
     }
 };
 
-TEST_SUITE("host_parser::parse_host (isNotSpecial = true)") {
+static std::string long_host() {
+    // Host length = 10 + 102 * 10 = 1030 > 1024 (simple_buffer's fixed buffer length)
+    // Use "xn--" label to avoid ASCII fast path
+    std::string strHost = "xn--2da.90";
+    for (int i = 0; i < 102; ++i)
+        strHost.append(".bcde12345");
+    return strHost;
+}
+
+TEST_SUITE("host_parser::parse_host (is_opaque = true)") {
     TEST_CASE("HostType::Empty") {
         const std::string strHost = "";
         host_out out;
@@ -53,7 +62,7 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = true)") {
     }
 }
 
-TEST_SUITE("host_parser::parse_host (isNotSpecial = false)") {
+TEST_SUITE("host_parser::parse_host (is_opaque = false)") {
     TEST_CASE("HostType::Empty") {
         const std::string strHost = "";
         host_out out;
@@ -73,11 +82,7 @@ TEST_SUITE("host_parser::parse_host (isNotSpecial = false)") {
     }
 
     TEST_CASE("HostType::Domain with long host") {
-        // Host length = 10 + 102 * 10 = 1030 > 1024 (simple_buffer's fixed buffer length)
-        // Use "xn--" label to avoid ASCII fast path
-        std::string strHost = "xn--2da.90";
-        for (int i = 0; i < 102; ++i)
-            strHost.append(".bcde12345");
+        std::string strHost = long_host();
         host_out out;
 
         REQUIRE(upa::host_parser::parse_host(strHost.data(), strHost.data() + strHost.length(), false, out) == upa::validation_errc::ok);
@@ -239,5 +244,28 @@ TEST_SUITE("url_host") {
         hm = upa::url_host{ "1.2.3.4" };
         CHECK(hm.to_string() == "1.2.3.4");
         CHECK(hm.type() == upa::HostType::IPv4);
+    }
+}
+
+
+// Test upa::IDNToUnicode function
+
+TEST_SUITE("IDNToUnicode") {
+    TEST_CASE("Valid input") {
+        upa::simple_buffer<char> output;
+        CHECK(upa::IDNToUnicode("abc", 3, output) == upa::validation_errc::ok);
+        CHECK(upa::string_view(output.data(), output.size()) == "abc");
+    }
+
+    TEST_CASE("Valid long input") {
+        const std::string input = long_host();
+        upa::simple_buffer<char> output;
+        CHECK(upa::IDNToUnicode(input.data(), input.length(), output) == upa::validation_errc::ok);
+    }
+
+    TEST_CASE("Invalid input") {
+        upa::simple_buffer<char> output;
+        // IDNA errors are not failures for this function, so it returns `ok`
+        CHECK(upa::IDNToUnicode("xn--a.op", 8, output) == upa::validation_errc::ok);
     }
 }

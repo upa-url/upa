@@ -35,7 +35,7 @@ const UIDNA* getUIDNA() {
             UErrorCode err = U_ZERO_ERROR;
             // https://url.spec.whatwg.org/#idna
             // UseSTD3ASCIIRules = false
-            // Nontransitional_Processing
+            // Transitional_Processing = false
             // CheckBidi = true
             // CheckJoiners = true
             uidna_ptr = uidna_openUTS46(
@@ -93,7 +93,7 @@ namespace icu {
 validation_errc IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<char16_t>& output) {
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
     // https://www.unicode.org/reports/tr46/#ToASCII
-    static const uint32_t UIDNA_ERR_MASK = ~static_cast<uint32_t>(
+    static constexpr uint32_t UIDNA_ERR_MASK = ~static_cast<uint32_t>(
         // VerifyDnsLength = false
         UIDNA_ERROR_EMPTY_LABEL
         | UIDNA_ERROR_LABEL_TOO_LONG
@@ -152,6 +152,21 @@ validation_errc IDNToASCII(const char16_t* src, std::size_t src_len, simple_buff
 // TODO: common function template for IDNToASCII and IDNToUnicode
 
 validation_errc IDNToUnicode(const char* src, std::size_t src_len, simple_buffer<char>& output) {
+#if 0
+    // https://url.spec.whatwg.org/#concept-domain-to-unicode
+    // https://www.unicode.org/reports/tr46/#ToUnicode
+    static constexpr uint32_t UIDNA_ERR_MASK = ~static_cast<uint32_t>(
+        // VerifyDnsLength = false
+        UIDNA_ERROR_EMPTY_LABEL
+        | UIDNA_ERROR_LABEL_TOO_LONG
+        | UIDNA_ERROR_DOMAIN_NAME_TOO_LONG
+        // CheckHyphens = false
+        | UIDNA_ERROR_LEADING_HYPHEN
+        | UIDNA_ERROR_TRAILING_HYPHEN
+        | UIDNA_ERROR_HYPHEN_3_4
+        );
+#endif
+
     // uidna_nameToUnicodeUTF8 uses int32_t length
     // https://unicode-org.github.io/icu-docs/apidoc/dev/icu4c/uidna_8h.html#afd9ae1e0ae5318e20c87bcb0149c3ada
     if (src_len > util::unsigned_limit<int32_t>::max())
@@ -171,11 +186,12 @@ validation_errc IDNToUnicode(const char* src, std::size_t src_len, simple_buffer
             &info, &err);
         if (U_SUCCESS(err)) {
             output.resize(output_length);
+            // https://url.spec.whatwg.org/#concept-domain-to-unicode
+            // TODO: Signify domain-to-Unicode validation errors for any returned errors (i.e.
+            // if (info.errors & UIDNA_ERR_MASK) != 0), and then, return result.
             return validation_errc::ok;
         }
 
-        // https://url.spec.whatwg.org/#concept-domain-to-unicode
-        // TODO: Signify domain-to-Unicode validation errors for any returned errors, and then, return result.
         if (err != U_BUFFER_OVERFLOW_ERROR)
             return validation_errc::domain_to_unicode;
 
