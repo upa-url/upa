@@ -111,7 +111,7 @@ const char url_utf::kReplacementCharUtf8[] = "\xEF\xBF\xBD";
 // License & terms of use: https://www.unicode.org/copyright.html
 //
 
-// Following two arrays have values from corresponding macros in ICU 61.1 library's
+// Following two arrays have values from corresponding macros in ICU 74.1 library's
 // include\unicode\utf8.h file.
 
 // Internal bit vector for 3-byte UTF-8 validity check, for use in U8_IS_VALID_LEAD3_AND_T1.

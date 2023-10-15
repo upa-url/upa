@@ -103,7 +103,7 @@ inline void url_utf::read_char_append_utf8(const char*& it, const char* last, st
 }
 
 // ------------------------------------------------------------------------
-// The code bellow is based on the ICU 61.1 library's UTF macros in
+// The code bellow is based on the ICU 74.1 library's UTF macros in
 // utf8.h, utf16.h and utf.h files.
 //
 // (c) 2016 and later: Unicode, Inc. and others.
@@ -240,7 +240,7 @@ inline void url_utf::append_utf8(uint32_t code_point, Output& output) {
     }
 }
 
-// Modified version of the U16_APPEND_UNSAFE macro in utf8.h from ICU
+// Modified version of the U16_APPEND_UNSAFE macro in utf16.h from ICU
 //
 // It converts code_point to UTF-16 code units sequence and appends to output.
 // It assumes a valid code point (https://infra.spec.whatwg.org/#scalar-value).
