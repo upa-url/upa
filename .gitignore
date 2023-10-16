@@ -1,6 +1,12 @@
+# CMake build directory
 /build/
+
 # downloadable dependencies
 /deps/doctest/
 /deps/picojson/
-# downloadable tests dir
+
+# downloadable tests directory
 /test/wpt/
+
+# Visual Studio
+.vs/
