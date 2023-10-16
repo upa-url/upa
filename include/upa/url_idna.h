@@ -18,7 +18,7 @@ namespace upa {
 ///
 /// @param[in]  src input domain string
 /// @param[in]  src_len input domain string length
-/// @param[out] output buffer to place result string
+/// @param[out] output buffer to store result string
 /// @return `validation_errc::ok` on success, or error code on failure
 validation_errc domain_to_ascii(const char16_t* src, std::size_t src_len, simple_buffer<char16_t>& output);
 
@@ -29,7 +29,7 @@ validation_errc domain_to_ascii(const char16_t* src, std::size_t src_len, simple
 ///
 /// @param[in]  src input domain string
 /// @param[in]  src_len input domain string length
-/// @param[out] output buffer to place result string
+/// @param[out] output buffer to store result string
 /// @return `validation_errc::ok` on success, or error code on failure
 validation_errc domain_to_unicode(const char* src, std::size_t src_len, simple_buffer<char>& output);
 
