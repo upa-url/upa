@@ -202,21 +202,21 @@ TEST_CASE("url::can_parse") {
         // https://github.com/web-platform-tests/wpt/pull/39069
         CHECK_FALSE(upa::url::can_parse("undefined", nullptr));
 
-        CHECK(upa::url::can_parse("a:b", nullptr));
-        CHECK_FALSE(upa::url::can_parse("undefined", "a:b"));
+        CHECK(upa::url::can_parse("aaa:b", nullptr));
+        CHECK_FALSE(upa::url::can_parse("undefined", "aaa:b"));
 
-        CHECK(upa::url::can_parse("a:/b", nullptr));
-        CHECK(upa::url::can_parse("undefined", "a:/b"));
+        CHECK(upa::url::can_parse("aaa:/b", nullptr));
+        CHECK(upa::url::can_parse("undefined", "aaa:/b"));
 
         CHECK_FALSE(upa::url::can_parse("https://test:test", nullptr));
         CHECK(upa::url::can_parse("a", "https://b/"));
     }
 
     SUBCASE("Additional tests") {
-        const upa::url base("a:b");
+        const upa::url base("aaa:b");
 
         CHECK_FALSE(upa::url::can_parse("undefined", base));
-        CHECK(upa::url::can_parse("a:/b", base));
+        CHECK(upa::url::can_parse("aaa:/b", base));
     }
 }
 
