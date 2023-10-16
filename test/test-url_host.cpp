@@ -248,24 +248,24 @@ TEST_SUITE("url_host") {
 }
 
 
-// Test upa::IDNToUnicode function
+// Test upa::domain_to_unicode function
 
-TEST_SUITE("IDNToUnicode") {
+TEST_SUITE("domain_to_unicode") {
     TEST_CASE("Valid input") {
         upa::simple_buffer<char> output;
-        CHECK(upa::IDNToUnicode("abc", 3, output) == upa::validation_errc::ok);
+        CHECK(upa::domain_to_unicode("abc", 3, output) == upa::validation_errc::ok);
         CHECK(upa::string_view(output.data(), output.size()) == "abc");
     }
 
     TEST_CASE("Valid long input") {
         const std::string input = long_host();
         upa::simple_buffer<char> output;
-        CHECK(upa::IDNToUnicode(input.data(), input.length(), output) == upa::validation_errc::ok);
+        CHECK(upa::domain_to_unicode(input.data(), input.length(), output) == upa::validation_errc::ok);
     }
 
     TEST_CASE("Invalid input") {
         upa::simple_buffer<char> output;
         // IDNA errors are not failures for this function, so it returns `ok`
-        CHECK(upa::IDNToUnicode("xn--a.op", 8, output) == upa::validation_errc::ok);
+        CHECK(upa::domain_to_unicode("xn--a.op", 8, output) == upa::validation_errc::ok);
     }
 }

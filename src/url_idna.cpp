@@ -10,6 +10,7 @@
 #include "upa/url_idna.h"
 #include "upa/util.h"
 // ICU
+#include "unicode/uclean.h"
 #include "unicode/uidna.h"
 #if (U_ICU_VERSION_MAJOR_NUM) >= 59
 # include "unicode/char16ptr.h"
@@ -29,7 +30,7 @@ namespace {
 
 UIDNA* uidna_ptr = nullptr; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
-const UIDNA* getUIDNA() {
+const UIDNA* get_uidna() {
     // initialize uidna_ptr
     static struct Once {
         Once() {
@@ -54,10 +55,14 @@ const UIDNA* getUIDNA() {
 } // namespace
 
 
-void IDNClose() {
+void idna_close(bool close_lib) {
     if (uidna_ptr) {
         uidna_close(uidna_ptr);
         uidna_ptr = nullptr;
+    }
+    if (close_lib) {
+        // ICU cleanup
+        u_cleanup();
     }
 }
 
@@ -73,25 +78,11 @@ namespace icu {
 }
 #endif
 
-// Converts the Unicode input representing a hostname to ASCII using IDN rules.
-// The output must be ASCII, but is represented as wide characters.
-//
-// On success, the output will be filled with the ASCII host name and it will
-// return true. Unlike most other canonicalization functions, this assumes that
-// the output is empty. The beginning of the host will be at offset 0, and
-// the length of the output will be set to the length of the new host name.
-//
-// On error, this will return false. The output in this case is undefined.
-// TODO(jungshik): use UTF-8/ASCII version of nameToASCII.
-// Change the function signature and callers accordingly to avoid unnecessary
-// conversions in our code. In addition, consider using icu::IDNA's UTF-8/ASCII
-// version with StringByteSink. That way, we can avoid C wrappers and additional
-// string conversion.
-
+// Implements the domain to ASCII algorithm
 // https://url.spec.whatwg.org/#concept-domain-to-ascii
 // with beStrict = false
 
-validation_errc IDNToASCII(const char16_t* src, std::size_t src_len, simple_buffer<char16_t>& output) {
+validation_errc domain_to_ascii(const char16_t* src, std::size_t src_len, simple_buffer<char16_t>& output) {
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
     // https://www.unicode.org/reports/tr46/#ToASCII
     static constexpr uint32_t UIDNA_ERR_MASK = ~static_cast<uint32_t>(
@@ -113,7 +104,7 @@ validation_errc IDNToASCII(const char16_t* src, std::size_t src_len, simple_buff
     // The static_cast<int32_t>(output.capacity()) must be safe:
     assert(output.capacity() <= util::unsigned_limit<int32_t>::max());
 
-    const UIDNA* uidna = getUIDNA();
+    const UIDNA* uidna = get_uidna();
     assert(uidna != nullptr);
     while (true) {
         UErrorCode err = U_ZERO_ERROR;
@@ -150,9 +141,11 @@ validation_errc IDNToASCII(const char16_t* src, std::size_t src_len, simple_buff
     }
 }
 
-// TODO: common function template for IDNToASCII and IDNToUnicode
+// Implements the domain to Unicode algorithm
+// https://url.spec.whatwg.org/#concept-domain-to-unicode
+// with beStrict = false
 
-validation_errc IDNToUnicode(const char* src, std::size_t src_len, simple_buffer<char>& output) {
+validation_errc domain_to_unicode(const char* src, std::size_t src_len, simple_buffer<char>& output) {
 #if 0
     // https://url.spec.whatwg.org/#concept-domain-to-unicode
     // https://www.unicode.org/reports/tr46/#ToUnicode
@@ -176,7 +169,7 @@ validation_errc IDNToUnicode(const char* src, std::size_t src_len, simple_buffer
     // The static_cast<int32_t>(output.capacity()) must be safe:
     assert(output.capacity() <= util::unsigned_limit<int32_t>::max());
 
-    const UIDNA* uidna = getUIDNA();
+    const UIDNA* uidna = get_uidna();
     assert(uidna != nullptr);
     while (true) {
         UErrorCode err = U_ZERO_ERROR;

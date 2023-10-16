@@ -192,7 +192,7 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
         return validation_errc::domain_invalid_code_point;
     }
 
-    // Input for IDNToASCII
+    // Input for domain_to_ascii
     simple_buffer<char16_t> buff_uc;
 
     // copy ASCII chars
@@ -243,7 +243,7 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
     // domain to ASCII
     simple_buffer<char16_t> buff_ascii;
 
-    const auto res = IDNToASCII(buff_uc.data(), buff_uc.size(), buff_ascii);
+    const auto res = domain_to_ascii(buff_uc.data(), buff_uc.size(), buff_ascii);
     if (res != validation_errc::ok)
         return res;
     if (contains_forbidden_domain_char(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {

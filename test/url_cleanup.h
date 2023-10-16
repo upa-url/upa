@@ -6,17 +6,14 @@
 #ifndef UPA_URL_CLEANUP_H
 #define UPA_URL_CLEANUP_H
 
-// For ICU cleanup
+// For IDNA library cleanup
 #include "upa/url_idna.h"
-#include "unicode/uclean.h"
 
 namespace upa {
 
 inline void url_cleanup()
 {
-    // ICU cleanup
-    upa::IDNClose();
-    u_cleanup();
+    upa::idna_close(true);
 }
 
 }
