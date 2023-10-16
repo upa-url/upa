@@ -19,6 +19,7 @@
 #endif
 
 #include <cassert>
+#include <cstdint> // uint32_t
 
 namespace upa {
 

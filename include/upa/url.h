@@ -29,6 +29,7 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cstdint> // uint8_t
 #include <string>
 #include <utility>
 #include <vector>
@@ -1768,7 +1769,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
         if (it_eta != end_of_authority) {
             if (std::distance(it_eta, end_of_authority) == 1) {
                 // 2.1. If atSignSeen is true and buffer is the empty string, host-missing
-                // validation error, return failure. 
+                // validation error, return failure.
                 // Example: "http://u:p@/"
                 return validation_errc::host_missing;
             }

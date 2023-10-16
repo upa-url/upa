@@ -8,7 +8,7 @@
 
 #include "buffer.h"
 #include "url_result.h"
-#include <cstdint> // uint32_t, [char16_t, char32_t]
+#include <cstdint> // uint8_t, uint32_t
 #include <string>
 
 

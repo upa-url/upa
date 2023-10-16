@@ -15,7 +15,7 @@
 #include "util.h"
 #include <algorithm> // any_of
 #include <cassert>
-#include <cstdint> // uint32_t
+#include <cstdint> // uint16_t, uint32_t
 #include <stdexcept>
 #include <string>
 

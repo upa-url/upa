@@ -10,7 +10,7 @@
 #include "url_result.h"
 #include <algorithm>
 #include <cassert>
-#include <cstdint> // uint32_t
+#include <cstdint> // uint16_t, uint32_t, uint64_t
 #include <limits>
 #include <string>
 
