@@ -10,7 +10,7 @@
 TEST_CASE("Test setters with special URL's") {
     upa::url url;
 
-    REQUIRE(upa::success(url.parse("ws://example.org/foo/bar", nullptr)));
+    REQUIRE(upa::success(url.parse("ws://example.org/foo/bar")));
 
     SUBCASE("Check getters") {
         CHECK_EQ(url.href(), "ws://example.org/foo/bar");
@@ -86,7 +86,7 @@ TEST_CASE("Test setters with non-special URL's") {
     upa::url url;
 
     SUBCASE("non-special: protocol") {
-        REQUIRE(upa::success(url.parse("non-special:/path", nullptr)));
+        REQUIRE(upa::success(url.parse("non-special:/path")));
         CHECK_EQ(url.href(), "non-special:/path");
 
         CHECK(url.hostname("example.net"));
@@ -97,7 +97,7 @@ TEST_CASE("Test setters with non-special URL's") {
     }
 
     SUBCASE("javascript: protocol") {
-        REQUIRE(upa::success(url.parse("JavaScript:alert(1)", nullptr)));
+        REQUIRE(upa::success(url.parse("JavaScript:alert(1)")));
         CHECK_EQ(url.href(), "javascript:alert(1)");
 
         CHECK(url.hash("#frag"));

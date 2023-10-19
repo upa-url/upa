@@ -235,7 +235,7 @@ void read_samples(const char* file_name, SamplesOutput& out)
             if (icolon != line.npos) {
                 string_view val{line.data() + icolon + 1, line.length() - (icolon + 1) };
                 if (line.compare(0, icolon, "BASE") == 0) {
-                    const auto res = url_base.parse(val, nullptr);
+                    const auto res = url_base.parse(val);
                     ok = upa::success(res);
                 } else if (line.compare(0, icolon, "COMMENT") == 0) {
                     out.comment(val);
@@ -303,7 +303,7 @@ bool read_setter(std::ifstream& file, const char* name, const char* name_end) {
             string_view val{ line.data() + icolon + 1, line.length() - (icolon + 1) };
             if (line.compare(0, icolon, "url") == 0) {
                 std::cout << "URL=" << val << std::endl;
-                ok = upa::success(url.parse(val, nullptr));
+                ok = upa::success(url.parse(val));
             } else if (line.compare(0, icolon, "val") == 0) {
                 // set value
                 if (strName == "protocol") {
@@ -381,7 +381,7 @@ void test_interactive(const char* szBaseUrl)
     // parse base URL
     upa::url url_base;
     if (szBaseUrl) {
-        if (!upa::success(url_base.parse(szBaseUrl, nullptr))) {
+        if (!upa::success(url_base.parse(szBaseUrl))) {
             std::cout << szBaseUrl << "\n";
             std::cout << " ^-BASE-PARSE-FAILURE\n";
             return;

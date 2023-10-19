@@ -54,10 +54,10 @@ TEST_CASE("127.0.0.1 percent encoded") {
     upa::url url;
 
     // 127.0.0.1 percent encoded
-    CHECK(upa::success(url.parse("http://12%37.0.0.1/", nullptr)));
+    CHECK(upa::success(url.parse("http://12%37.0.0.1/")));
     CHECK(url.hostname() == "127.0.0.1");
 
     // 0x7f.0.0.1 percent encoded
-    CHECK(upa::success(url.parse("http://%30%78%37%66.0.0.1/", nullptr)));
+    CHECK(upa::success(url.parse("http://%30%78%37%66.0.0.1/")));
     CHECK(url.hostname() == "127.0.0.1");
 }

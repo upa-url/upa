@@ -199,10 +199,10 @@ TEST_CASE("Two url::parse functions") {
 TEST_CASE("url::parse must clear old URL data") {
     upa::url url;
 
-    CHECK(upa::success(url.parse("about:blank", nullptr)));
+    CHECK(upa::success(url.parse("about:blank")));
     CHECK_FALSE(url.empty());
 
-    CHECK(upa::success(url.parse("http://host-1/", nullptr)));
+    CHECK(upa::success(url.parse("http://host-1/")));
     CHECK(url.host("host-2"));
 
     CHECK(url.host() == "host-2");
@@ -286,7 +286,7 @@ TEST_CASE("url::is_valid()") {
     CHECK_FALSE(url.is_valid());
 
     // parse valid URL
-    CHECK(url.parse("wss://host:88/path", nullptr) == upa::validation_errc::ok);
+    CHECK(url.parse("wss://host:88/path") == upa::validation_errc::ok);
     CHECK(url.href() == "wss://host:88/path");
     CHECK(url.is_valid());
 
@@ -296,7 +296,7 @@ TEST_CASE("url::is_valid()") {
     CHECK(url.is_valid());
 
     // url::parse must reset VALID_FLAG on failure
-    CHECK(url.parse("http://h:8a/p", nullptr) == upa::validation_errc::port_invalid);
+    CHECK(url.parse("http://h:8a/p") == upa::validation_errc::port_invalid);
     CHECK_FALSE(url.is_valid());
 
     // invalid URL must ignore setters (except href)
@@ -356,29 +356,29 @@ TEST_CASE("Parse URL with invalid base") {
         CHECK_FALSE(base.is_valid());
 
         upa::url url;
-        CHECK(url.parse("https://h/", &base) == upa::validation_errc::invalid_base);
+        CHECK(url.parse("https://h/", base) == upa::validation_errc::invalid_base);
         CHECK_FALSE(url.is_valid());
 
-        CHECK(url.parse("http://host/", nullptr) == upa::validation_errc::ok);
+        CHECK(url.parse("http://host/") == upa::validation_errc::ok);
         CHECK(url.is_valid());
-        CHECK(url.parse("https://h/", &base) == upa::validation_errc::invalid_base);
+        CHECK(url.parse("https://h/", base) == upa::validation_errc::invalid_base);
         CHECK_FALSE(url.is_valid());
     }
     SUBCASE("Invalid base") {
         upa::url base;
-        CHECK_FALSE(upa::success(base.parse("http://h:65616/p", nullptr)));
+        CHECK_FALSE(upa::success(base.parse("http://h:65616/p")));
         CHECK_FALSE(base.is_valid());
 
         upa::url url;
-        CHECK(url.parse("https://h/", &base) == upa::validation_errc::invalid_base);
+        CHECK(url.parse("https://h/", base) == upa::validation_errc::invalid_base);
         CHECK_FALSE(url.is_valid());
 
-        CHECK(url.parse("/path", &base) == upa::validation_errc::invalid_base);
+        CHECK(url.parse("/path", base) == upa::validation_errc::invalid_base);
         CHECK_FALSE(url.is_valid());
 
-        CHECK(url.parse("http://host/", nullptr) == upa::validation_errc::ok);
+        CHECK(url.parse("http://host/") == upa::validation_errc::ok);
         CHECK(url.is_valid());
-        CHECK(url.parse("https://h/", &base) == upa::validation_errc::invalid_base);
+        CHECK(url.parse("https://h/", base) == upa::validation_errc::invalid_base);
         CHECK_FALSE(url.is_valid());
     }
 }
@@ -438,10 +438,10 @@ TEST_CASE("url::has_opaque_path") {
     upa::url url{};
     CHECK_FALSE(url.has_opaque_path());
 
-    url.parse("about:blank", nullptr);
+    url.parse("about:blank");
     CHECK(url.has_opaque_path());
 
-    url.parse("non-spec:/path", nullptr);
+    url.parse("non-spec:/path");
     CHECK_FALSE(url.has_opaque_path());
 }
 
@@ -453,7 +453,7 @@ TEST_CASE("url::is_empty and url::is_null") {
     CHECK(url.is_empty(upa::url::SCHEME));
     CHECK(url.is_null(upa::url::HOST));
 
-    CHECK(upa::success(url.parse("http://example.org/", nullptr)));
+    CHECK(upa::success(url.parse("http://example.org/")));
     CHECK_FALSE(url.is_empty(upa::url::SCHEME));
     CHECK_FALSE(url.is_null(upa::url::HOST));
 }
@@ -534,14 +534,14 @@ TEST_CASE("Valid UTF-8 in hostname") {
     static const char szUrl[] = { 'h', 't', 't', 'p', ':', '/', '/', char(0xC4), char(0x84), '/', '\0' }; // valid
 
     upa::url url;
-    REQUIRE(upa::success(url.parse(szUrl, nullptr)));
+    REQUIRE(upa::success(url.parse(szUrl)));
     CHECK(url.hostname() == "xn--2da");
 }
 TEST_CASE("Valid percent encoded utf-8 in hostname") {
     static const char szUrl[] = { 'h', 't', 't', 'p', ':', '/', '/', '%', 'C', '4', '%', '8', '4', '/', '\0' }; // valid
 
     upa::url url;
-    REQUIRE(upa::success(url.parse(szUrl, nullptr)));
+    REQUIRE(upa::success(url.parse(szUrl)));
     CHECK(url.hostname() == "xn--2da");
 }
 TEST_CASE("Invalid utf-8 in hostname") {
@@ -558,7 +558,7 @@ TEST_CASE("Valid UTF-16 in hostname") {
     static const char16_t szUrl[] = { 'h', 't', 't', 'p', ':', '/', '/', char16_t(0xD800), char16_t(0xDC00), '/', '\0' };
 
     upa::url url;
-    REQUIRE(upa::success(url.parse(szUrl, nullptr)));
+    REQUIRE(upa::success(url.parse(szUrl)));
     CHECK(url.hostname() == "xn--2n7c");
 }
 TEST_CASE("Invalid UTF-16 in hostname") {
@@ -575,7 +575,7 @@ TEST_CASE("Valid UTF-32 in hostname") {
     static const char32_t szUrl[] = { 'h', 't', 't', 'p', ':', '/', '/', char32_t(0x10000u), '/', '\0' };
 
     upa::url url;
-    REQUIRE(upa::success(url.parse(szUrl, nullptr)));
+    REQUIRE(upa::success(url.parse(szUrl)));
     CHECK(url.hostname() == "xn--2n7c");
 }
 TEST_CASE("Invalid UTF-32 in hostname") {
