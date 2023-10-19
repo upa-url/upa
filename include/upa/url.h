@@ -171,9 +171,19 @@ public:
     /// @param[in] base    pointer to base URL, may be nullptr
     /// @return error code (@a validation_errc::ok on success)
     template <class T, enable_if_str_arg_t<T> = 0>
-    validation_errc parse(T&& str_url, const url* base) {
+    validation_errc parse(T&& str_url, const url* base = nullptr) {
         const auto inp = make_str_arg(std::forward<T>(str_url));
         return do_parse(inp.begin(), inp.end(), base);
+    }
+
+    /// @brief Parses given URL string against base URL.
+    ///
+    /// @param[in] str_url URL string to parse
+    /// @param[in] base    base URL
+    /// @return error code (@a validation_errc::ok on success)
+    template <class T, enable_if_str_arg_t<T> = 0>
+    validation_errc parse(T&& str_url, const url& base) {
+        return parse(std::forward<T>(str_url), &base);
     }
 
     /// @brief Checks if a given URL string can be successfully parsed
@@ -1086,7 +1096,7 @@ inline std::string url::origin() const {
         // Note: this library does not support blob URL store, so it allways assumes
         // URL's blob URL entry is null and retrieves origin from the URL's path.
         url path_url;
-        if (path_url.parse(get_part_view(PATH), nullptr) == validation_errc::ok &&
+        if (path_url.parse(get_part_view(PATH)) == validation_errc::ok &&
             path_url.is_http_scheme())
             return path_url.origin();
     }
