@@ -1,11 +1,170 @@
 # Upa URL
 
-[WHATWG URL Standard](https://url.spec.whatwg.org/) compliant **U**RL **pa**rser library in C++.
+Upa URL is [WHATWG URL Standard](https://url.spec.whatwg.org/) compliant <b>U</b>RL <b>pa</b>rser library written in C++.
+
+The library depends on the [ICU library](https://icu.unicode.org/) for IDNA processing and requires a compiler that supports C++11 or later. It is known to compile with Clang 4, GCC 7, Microsoft Visual Studio 2015 or later. It is recommended to use ICU 68 or later; to pass URL IDNA tests (IdnaTestV2.json) of [web-platform-tests](https://github.com/web-platform-tests/wpt/tree/master/url) use ICU 66 or later.
+
+## Features and standard conformance
 
 This library is up to date with the URL Standard published on
 [20 September 2023 (commit 9057992)](https://url.spec.whatwg.org/commit-snapshots/9057992dd6a050fb8af01fffb4d3c9df1ab89b70/).
 
-## API
+It implements:
+1. [URL class](https://url.spec.whatwg.org/#url-class): `upa::url`
+2. [URLSearchParams class](https://url.spec.whatwg.org/#interface-urlsearchparams): `upa::url_search_params`
+3. [URL record](https://url.spec.whatwg.org/#concept-url): `upa::url` has functions to examine URL record members
+4. [URL equivalence](https://url.spec.whatwg.org/#url-equivalence): `upa::equals` function
 
-- url class
-- url_search_params class
+It has some differences from the standard:
+1. Setters of the `upa::url` class are implemented as functions, which return `true` if value is accepted.
+2. The `href` setter does not throw on parsing failure, but returns `false`.
+
+Upa URL contains features not specified in the standard:
+1. The `upa::url` class has `path` getter (to get `pathname` concatenated with `search`)
+2. File system path converter to file URL: `url upa::url_from_file_path(StrT&& str)`
+3. Experimental URLHost class (see proposal: https://github.com/whatwg/url/pull/288): `upa::url_host`
+4. The `upa::url_search_params` class has a few additional functions: `remove`, `remove_if`
+
+For string input, the library supports UTF-8, UTF-16, UTF-32 encodings and several string types, including `std::basic_string`, `std::basic_string_view`, null-terminated strings of any char type: `char`, `char8_t`, `char16_t`, `char32_t`, or `wchar_t`.
+
+## Installation
+
+The simplest way is to use two amalgamated files: `url.h` and `url.cpp`. You can download them from [releases page](https://github.com/rmisev/url_whatwg/releases), or if you have installed Python, then generate them by running `tools/amalgamate.sh` script (`tools/amalgamate.bat` on Windows). The files will be created in the `single_include/upa` directory.
+
+### CMake
+
+The library can be built and installed using CMake 3.13 or later. To build and install to default directory (usualy `/usr/local` on Linux) run following commands:
+```sh
+cmake -B build -DURL_BUILD_TESTS=OFF
+cmake --build build
+cmake --install build
+```
+If ICU is installed in a non-default directory, then specify `-DICU_ROOT=<ICU directory>` parameter in the first command.
+
+To use iibrary add `find_package(upa REQUIRED)` and link to `upa::url` target in your CMake project:
+```cmake
+find_package(upa REQUIRED)
+...
+target_link_libraries(exe-target PRIVATE upa::url)
+```
+
+#### Embeding
+
+The entire library source tree can be placed in subdirectory (say `url/`) of your project and then included in it with `add_subdirectory()`:
+```cmake
+add_subdirectory(url)
+...
+target_link_libraries(exe-target PRIVATE upa::url)
+```
+
+#### Embeding with FetchContent
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(upa
+  GIT_REPOSITORY "https://github.com/rmisev/url_whatwg"
+  GIT_TAG main
+)
+FetchContent_MakeAvailable(upa)
+...
+target_link_libraries(exe-target PRIVATE upa::url)
+```
+
+## Usage
+
+In source files, that use this library, the `upa/url.h` must be  included:
+```cpp
+#include "upa/url.h"
+```
+
+If you are using CMake, see the [CMake section](#cmake) for how to link to the library. Alternatively, if you are using amalgamated files, then add the amalgamated `url.cpp` file to your project, otherwise add all the files from the `src/` directory to your project; and link to the ICU `i18n` and `uc` libraries.
+
+### Examples
+
+Parse input string using `url::parse` function and output URL components:
+```cpp
+#include "upa/url.h"
+#include <iostream>
+#include <string>
+
+int main() {
+    upa::url url;
+    std::string input;
+
+    std::cout << "Enter URL to parse, or empty line to exit\n";
+    while (std::getline(std::cin, input) && !input.empty()) {
+        if (upa::success(url.parse(input))) {
+            std::cout << "     href: " << url.href() << '\n';
+            std::cout << "   origin: " << url.origin() << '\n';
+            std::cout << " protocol: " << url.protocol() << '\n';
+            std::cout << " username: " << url.username() << '\n';
+            std::cout << " password: " << url.password() << '\n';
+            std::cout << " hostname: " << url.hostname() << '\n';
+            std::cout << "     port: " << url.port() << '\n';
+            std::cout << " pathname: " << url.pathname() << '\n';
+            std::cout << "   search: " << url.search() << '\n';
+            std::cout << "     hash: " << url.hash() << '\n';
+        } else {
+            std::cout << " URL parse error\n";
+        }
+    }
+}
+```
+
+Parse URL against base URL using `url` constructor:
+```cpp
+try {
+    upa::url url{ "/new path?query", "https://example.org/path" };
+    std::cout << url.href() << '\n';
+}
+catch (const std::exception& ex) {
+    std::cerr << "Error: " << ex.what() << '\n';
+}
+```
+
+Use setters of the url class:
+```cpp
+upa::url url;
+if (upa::success(url.parse("http://host/"))) {
+    url.protocol("https:");
+    url.host("example.com:443");
+    url.pathname("kelias");
+    url.search("z=7");
+    url.hash("top");
+    std::cout << url.href() << '\n';
+}
+```
+
+Enumerate search parameters of URL:
+```cpp
+upa::url url{ "wss://h?first=last&op=hop&a=b" };
+for (const auto& param : url.search_params()) {
+    std::cout << param.first << " = " << param.second << '\n';
+}
+```
+
+Remove search parameters whose names start with "utm_" (requires C++20):
+```cpp
+upa::url url{ "https://example.com/?id=1&utm_source=twitter.com&utm_medium=social" };
+url.search_params().remove_if([](const auto& param) {
+    return param.first.starts_with("utm_");
+});
+std::cout << url.href() << '\n'; // https://example.com/?id=1
+```
+
+Convert filesystem path to file URL:
+```cpp
+try {
+    auto url = upa::url_from_file_path("/home/opa/file.txt");
+    std::cout << url.href() << '\n';
+}
+catch (const std::exception& ex) {
+    std::cerr << "Error: " << ex.what() << '\n';
+}
+```
+
+## License
+
+This library is licensed under the [BSD 2-Clause License](https://opensource.org/license/bsd-2-clause/). It contains portions of modified source code from the Chromium project, licensed under the [BSD 3-Clause License](https://opensource.org/license/bsd-3-clause/), and the ICU project, licensed under the [UNICODE LICENSE V3](https://www.unicode.org/license.txt).
+
+See the `LICENSE` file for more information.
