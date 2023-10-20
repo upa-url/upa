@@ -85,10 +85,20 @@ TEST_CASE_TEMPLATE_DEFINE("Various string pairs iterable containers", CharT, tes
 #endif
 
 #ifdef TEST_RANGES
-    SUBCASE("ranges") {
+    SUBCASE("range as input to url_search_params ctor") {
         const pairs_list_t<string_t> lst_pairs = TEST_ITERABLES_DATA;
-        upa::url_search_params params(std::ranges::subrange(lst_pairs.begin(), lst_pairs.end()));
+        const upa::url_search_params params(std::ranges::subrange(lst_pairs.begin(), lst_pairs.end()));
         CHECK(list_eq(params, output));
+    }
+    SUBCASE("url_search_params object as range") {
+        const pairs_list_t<string_t> lst_pairs = TEST_ITERABLES_DATA;
+        const upa::url_search_params params(lst_pairs);
+        constexpr auto leave_a = [](const auto& param) {
+            return param.first == "a";
+        };
+        auto result = params | std::views::filter(leave_a);
+        auto expect = output | std::views::filter(leave_a);
+        CHECK(std::ranges::equal(result, expect));
     }
 #endif
 }
