@@ -21,12 +21,16 @@
 
 namespace upa {
 
+/// @brief Host representation
+///
+/// See: https://url.spec.whatwg.org/#host-representation
 enum class HostType {
-    Empty = 0,
-    Opaque,
-    Domain,
-    IPv4,
-    IPv6
+    Empty = 0, ///< **empty host** is the empty string
+    Opaque,    ///< **opaque host** is a non-empty ASCII string used in a not special URL
+    Domain,    ///< **domain** is a non-empty ASCII string that identifies a realm within a network
+               ///< (it is usually the host of a special URL)
+    IPv4,      ///< host is an **IPv4 address**
+    IPv6       ///< host is an **IPv6 address**
 };
 
 
