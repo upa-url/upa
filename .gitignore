@@ -5,6 +5,9 @@
 /deps/doctest/
 /deps/picojson/
 
+# generated documentation
+/doc/html/
+
 # downloadable tests directory
 /test/wpt/
 
