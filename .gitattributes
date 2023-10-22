@@ -11,6 +11,7 @@
 *.sh    text eol=lf
 *.yml   text
 
+Doxyfile text eol=lf
 *.md    text
 *.txt   text
 
