@@ -518,17 +518,39 @@ public:
     /// @return `true` if URL is valid, `false` otherwise
     bool is_valid() const noexcept;
 
+    /// @brief Gets URL's part (URL record member) as string
+    ///
     /// Function to get ASCII string of any URL's part (URL record member) defined here:
     /// https://url.spec.whatwg.org/#url-representation
+    ///
+    /// * `get_part_view(url::SCHEME)` - get a URL’s **scheme** string
+    /// * `get_part_view(url::USERNAME)` - get a URL’s **username** string
+    /// * `get_part_view(url::PASSWORD)` - get a URL’s **password** string
+    /// * `get_part_view(url::HOST)` - get a URL’s **host** serialized to string
+    /// * `get_part_view(url::PORT)` - get a URL’s **port** serialized to string
+    /// * `get_part_view(url::PATH)` - get a URL’s **path** serialized to string
+    /// * `get_part_view(url::QUERY)` - get a URL’s **query** string
+    /// * `get_part_view(url::FRAGMENT)` - get a URL’s **fragment** string
     ///
     /// @param[in] t URL's part
     /// @return URL's part string; it is empty if part is empty or null
     string_view get_part_view(PartType t) const;
 
+    /// @brief Checks whether the URL's part (URL record member) is empty or null
+    ///
     /// @param[in] t URL's part
     /// @return `true` if URL's part @a t is empty or null, `false` otherwise
     bool is_empty(PartType t) const;
 
+    /// @brief Checks whether the URL's part (URL record member) is null
+    ///
+    /// Only the following [URL record members](https://url.spec.whatwg.org/#concept-url)
+    /// can be null:
+    /// * **host** - check with `is_null(url::HOST)`
+    /// * **port** - check with `is_null(url::PORT)`
+    /// * **query** - check with `is_null(url::QUERY)`
+    /// * **fragment** - check with `is_null(url::FRAGMENT)`
+    ///
     /// @param[in] t URL's part
     /// @return `true` if URL's part @a t is null, `false` otherwise
     bool is_null(PartType t) const noexcept;

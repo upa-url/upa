@@ -12,7 +12,7 @@ This library is up to date with the URL Standard published on
 It implements:
 1. [URL class](https://url.spec.whatwg.org/#url-class): `upa::url`
 2. [URLSearchParams class](https://url.spec.whatwg.org/#interface-urlsearchparams): `upa::url_search_params`
-3. [URL record](https://url.spec.whatwg.org/#concept-url): `upa::url` has functions to examine URL record members
+3. [URL record](https://url.spec.whatwg.org/#concept-url): `upa::url` has functions to examine URL record members: `get_part_view(PartType t)`, `is_empty(PartType t)` and `is_null(PartType t)`
 4. [URL equivalence](https://url.spec.whatwg.org/#url-equivalence): `upa::equals` function
 
 It has some differences from the standard:
