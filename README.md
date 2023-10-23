@@ -48,7 +48,7 @@ find_package(upa REQUIRED)
 target_link_libraries(exe-target PRIVATE upa::url)
 ```
 
-#### Embeding
+#### Embedding
 
 The entire library source tree can be placed in subdirectory (say `url/`) of your project and then included in it with `add_subdirectory()`:
 ```cmake
@@ -57,7 +57,7 @@ add_subdirectory(url)
 target_link_libraries(exe-target PRIVATE upa::url)
 ```
 
-#### Embeding with FetchContent
+#### Embedding with FetchContent
 
 ```cmake
 include(FetchContent)
