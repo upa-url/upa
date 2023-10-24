@@ -133,7 +133,7 @@ static inline validation_errc ipv4_parse_number(const CharT* first, const CharT*
             const auto uch = static_cast<unsigned char>(*it);
             if (!detail::is_hex_char(uch))
                 return validation_errc::ipv4_non_numeric_part;
-            num = num * radix + detail::HexCharToValue(uch);
+            num = num * radix + detail::hex_char_to_num(uch);
         }
     }
 
@@ -242,7 +242,7 @@ inline IntT get_hex_number(const CharT*& pointer, const CharT* last) {
     IntT value = 0;
     while (pointer != last && detail::is_hex_char(*pointer)) {
         const auto uc = static_cast<unsigned char>(*pointer);
-        value = value * 0x10 + detail::HexCharToValue(uc);
+        value = value * 0x10 + detail::hex_char_to_num(uc);
         ++pointer;
     }
     return value;

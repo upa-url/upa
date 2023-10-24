@@ -701,7 +701,7 @@ inline url_search_params::name_value_list url_search_params::do_parse(bool rem_q
                 const auto uc1 = static_cast<unsigned char>(*(++itc));
                 const auto uc2 = static_cast<unsigned char>(*(++itc));
                 if (detail::is_hex_char(uc1) && detail::is_hex_char(uc2)) {
-                    const char c = static_cast<char>((detail::HexCharToValue(uc1) << 4) + detail::HexCharToValue(uc2));
+                    const char c = static_cast<char>((detail::hex_char_to_num(uc1) << 4) + detail::hex_char_to_num(uc2));
                     pval->push_back(c);
                     it = itc;
                     break;

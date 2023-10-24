@@ -407,11 +407,11 @@ extern const char kHexCharLookup[0x10];
 // contains the amount to subtract from characters in that range to get at
 // the corresponding numerical value.
 //
-// See HexDigitToValue for the lookup.
+// See hex_char_to_num for the lookup.
 extern const char kCharToHexLookup[8];
 
 // Assumes the input is a valid hex digit! Call is_hex_char before using this.
-inline unsigned char HexCharToValue(unsigned char c) noexcept {
+inline unsigned char hex_char_to_num(unsigned char c) noexcept {
     return c - kCharToHexLookup[c / 0x20];
 }
 
@@ -427,7 +427,7 @@ inline unsigned char HexCharToValue(unsigned char c) noexcept {
 // sequence. On failure, |*first| will be unchanged.
 
 template <typename CharT>
-inline bool DecodeEscaped(const CharT*& first, const CharT* last, unsigned char& unescaped_value) {
+inline bool decode_hex_to_byte(const CharT*& first, const CharT* last, unsigned char& unescaped_value) {
     if (last - first < 2 ||
         !is_hex_char(first[0]) || !is_hex_char(first[1])) {
         // not enough or invalid hex digits
@@ -437,7 +437,7 @@ inline bool DecodeEscaped(const CharT*& first, const CharT* last, unsigned char&
     // Valid escape sequence.
     const auto uc1 = static_cast<unsigned char>(first[0]);
     const auto uc2 = static_cast<unsigned char>(first[1]);
-    unescaped_value = (HexCharToValue(uc1) << 4) + HexCharToValue(uc2);
+    unescaped_value = (hex_char_to_num(uc1) << 4) + hex_char_to_num(uc2);
     first += 2;
     return true;
 }
@@ -535,7 +535,7 @@ inline std::string percent_decode(StrT&& str) {
             }
             // uch == '%'
             unsigned char uc8; // NOLINT(cppcoreguidelines-init-variables)
-            if (detail::DecodeEscaped(it, last, uc8)) {
+            if (detail::decode_hex_to_byte(it, last, uc8)) {
                 if (uc8 < 0x80) {
                     out.push_back(static_cast<char>(uc8));
                     continue;
@@ -545,7 +545,7 @@ inline std::string percent_decode(StrT&& str) {
                 buff_utf8.push_back(static_cast<char>(uc8));
                 while (it != last && *it == '%') {
                     ++it; // skip '%'
-                    if (!detail::DecodeEscaped(it, last, uc8))
+                    if (!detail::decode_hex_to_byte(it, last, uc8))
                         uc8 = '%';
                     buff_utf8.push_back(static_cast<char>(uc8));
                 }

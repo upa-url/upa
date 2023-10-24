@@ -216,7 +216,7 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
             }
             // uch == '%'
             unsigned char uc8; // NOLINT(cppcoreguidelines-init-variables)
-            if (detail::DecodeEscaped(it, last, uc8)) {
+            if (detail::decode_hex_to_byte(it, last, uc8)) {
                 if (uc8 < 0x80) {
                     buff_uc.push_back(static_cast<char16_t>(uc8));
                     continue;
@@ -227,7 +227,7 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
                 buff_utf8.push_back(static_cast<char>(uc8));
                 while (it != last && *it == '%') {
                     ++it; // skip '%'
-                    if (!detail::DecodeEscaped(it, last, uc8))
+                    if (!detail::decode_hex_to_byte(it, last, uc8))
                         uc8 = '%';
                     buff_utf8.push_back(static_cast<char>(uc8));
                 }
