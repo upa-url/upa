@@ -2184,7 +2184,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
             } else {
                 // Just append the 7-bit character, possibly escaping it.
                 const auto uc = static_cast<unsigned char>(uch);
-                if (!detail::isCharInSet(uc, query_cpset))
+                if (!detail::is_char_in_set(uc, query_cpset))
                     detail::AppendEscapedChar(uch, str_query);
                 else
                     str_query.push_back(uc);
@@ -2219,7 +2219,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
             } else {
                 // Just append the 7-bit character, possibly escaping it.
                 const auto uc = static_cast<unsigned char>(uch);
-                if (detail::isCharInSet(uc, fragment_no_encode_set)) {
+                if (detail::is_char_in_set(uc, fragment_no_encode_set)) {
                     str_frag.push_back(uc);
                 } else {
                     // other characters are escaped
@@ -2333,7 +2333,7 @@ inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last,
         } else {
             // Just append the 7-bit character, possibly escaping it.
             const auto uc = static_cast<unsigned char>(uch);
-            if (!detail::isCharInSet(uc, path_no_encode_set))
+            if (!detail::is_char_in_set(uc, path_no_encode_set))
                 detail::AppendEscapedChar(uc, output);
             else
                 output.push_back(uc);

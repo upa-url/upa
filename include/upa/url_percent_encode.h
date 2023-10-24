@@ -347,17 +347,17 @@ extern const code_points_multiset code_points;
 // Check char is in predefined set
 
 template <typename CharT>
-inline bool isCharInSet(CharT c, const code_point_set& cpset) {
+inline bool is_char_in_set(CharT c, const code_point_set& cpset) {
     return cpset[c];
 }
 
 template <typename CharT>
-inline bool isIPv4Char(CharT c) {
+inline bool is_ipv4_char(CharT c) {
     return code_points.char_in_set(c, IPV4_CHAR_SET);
 }
 
 template <typename CharT>
-inline bool isHexChar(CharT c) {
+inline bool is_hex_char(CharT c) {
     return code_points.char_in_set(c, HEX_DIGIT_SET);
 }
 
@@ -410,7 +410,7 @@ extern const char kHexCharLookup[0x10];
 // See HexDigitToValue for the lookup.
 extern const char kCharToHexLookup[8];
 
-// Assumes the input is a valid hex digit! Call isHexChar before using this.
+// Assumes the input is a valid hex digit! Call is_hex_char before using this.
 inline unsigned char HexCharToValue(unsigned char c) noexcept {
     return c - kCharToHexLookup[c / 0x20];
 }
@@ -429,7 +429,7 @@ inline unsigned char HexCharToValue(unsigned char c) noexcept {
 template <typename CharT>
 inline bool DecodeEscaped(const CharT*& first, const CharT* last, unsigned char& unescaped_value) {
     if (last - first < 2 ||
-        !isHexChar(first[0]) || !isHexChar(first[1])) {
+        !is_hex_char(first[0]) || !is_hex_char(first[1])) {
         // not enough or invalid hex digits
         return false;
     }
@@ -495,7 +495,7 @@ void AppendStringOfType(const CharT* first, const CharT* last, const code_point_
         } else {
             // Just append the 7-bit character, possibly escaping it.
             const auto uch = static_cast<unsigned char>(ch);
-            if (isCharInSet(uch, cpset)) {
+            if (is_char_in_set(uch, cpset)) {
                 output.push_back(uch);
             } else {
                 // other characters are escaped

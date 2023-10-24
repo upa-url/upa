@@ -56,7 +56,7 @@ static inline bool hostname_ends_in_a_number(const CharT* first, const CharT* la
         if (len) {
             if (len >= 2 && start_of_label[0] == '0' && (start_of_label[1] == 'X' || start_of_label[1] == 'x')) {
                 // "0x" is valid IPv4 number (std::all_of returns true if the range is empty)
-                return std::all_of(start_of_label + 2, last, detail::isHexChar<CharT>);
+                return std::all_of(start_of_label + 2, last, detail::is_hex_char<CharT>);
             }
             // decimal or octal number?
             return std::all_of(start_of_label, last, detail::is_ascii_digit<CharT>);
@@ -131,7 +131,7 @@ static inline validation_errc ipv4_parse_number(const CharT* first, const CharT*
         for (auto it = first; it != last; ++it) {
             // This cast is safe because chars are ASCII
             const auto uch = static_cast<unsigned char>(*it);
-            if (!detail::isHexChar(uch))
+            if (!detail::is_hex_char(uch))
                 return validation_errc::ipv4_non_numeric_part;
             num = num * radix + detail::HexCharToValue(uch);
         }
@@ -180,7 +180,7 @@ inline validation_errc ipv4_parse(const CharT* first, const CharT* last, uint32_
                 // 1. If input is the empty string, then return failure.
                 return validation_errc::ipv4_non_numeric_part;
             part[++dot_count] = it + 1; // skip '.'
-        } else if (!detail::isIPv4Char(uc)) {
+        } else if (!detail::is_ipv4_char(uc)) {
             // non IPv4 character
             return validation_errc::ipv4_non_numeric_part;
         }
@@ -240,7 +240,7 @@ void ipv4_serialize(uint32_t ipv4, std::string& output);
 template <typename IntT, typename CharT>
 inline IntT get_hex_number(const CharT*& pointer, const CharT* last) {
     IntT value = 0;
-    while (pointer != last && detail::isHexChar(*pointer)) {
+    while (pointer != last && detail::is_hex_char(*pointer)) {
         const auto uc = static_cast<unsigned char>(*pointer);
         value = value * 0x10 + detail::HexCharToValue(uc);
         ++pointer;
@@ -272,7 +272,7 @@ inline validation_errc ipv6_parse(const CharT* first, const CharT* last, uint16_
         case '.':
             return validation_errc::ipv4_in_ipv6_invalid_code_point; // (6-5-1)
         default:
-            return detail::isHexChar(first[0])
+            return detail::is_hex_char(first[0])
                 ? validation_errc::ipv6_too_few_pieces // (8)
                 : validation_errc::ipv6_invalid_code_point; // (6-7)
         }
