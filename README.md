@@ -7,7 +7,7 @@ The library depends on the [ICU library](https://icu.unicode.org/) for IDNA proc
 ## Features and standard conformance
 
 This library is up to date with the URL Standard published on
-[20 September 2023 (commit 9057992)](https://url.spec.whatwg.org/commit-snapshots/9057992dd6a050fb8af01fffb4d3c9df1ab89b70/).
+[27 September 2023 (commit aa64bb2)](https://url.spec.whatwg.org/commit-snapshots/aa64bb27d427cef0d87f134980ac762cced1f5bb/).
 
 It implements:
 1. [URL class](https://url.spec.whatwg.org/#url-class): `upa::url`
@@ -41,7 +41,7 @@ cmake --install build
 ```
 If ICU is installed in a non-default directory, then specify `-DICU_ROOT=<ICU directory>` parameter in the first command.
 
-To use iibrary add `find_package(upa REQUIRED)` and link to `upa::url` target in your CMake project:
+To use library add `find_package(upa REQUIRED)` and link to `upa::url` target in your CMake project:
 ```cmake
 find_package(upa REQUIRED)
 ...
