@@ -286,7 +286,7 @@ inline validation_errc host_parser::parse_opaque_host(const CharT* first, const 
     std::string& str_host = dest.hostStart();
 
     //TODO: UTF-8 percent encode it using the C0 control percent-encode set
-    //detail::AppendStringOfType(first, last, detail::CHAR_C0_CTRL, str_host);
+    //detail::append_utf8_percent_encoded(first, last, detail::CHAR_C0_CTRL, str_host);
     using UCharT = typename std::make_unsigned<CharT>::type;
 
     const CharT* pointer = first;
@@ -295,11 +295,11 @@ inline validation_errc host_parser::parse_opaque_host(const CharT* first, const 
         const auto uch = static_cast<UCharT>(*pointer);
         if (uch >= 0x7f) {
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
-            detail::AppendUTF8EscapedChar(pointer, last, str_host);
+            detail::append_utf8_percent_encoded_char(pointer, last, str_host);
         } else {
             // Just append the 7-bit character, escaping C0 control chars:
             if (uch <= 0x1f)
-                detail::AppendEscapedChar(uch, str_host);
+                detail::append_percent_encoded_byte(uch, str_host);
             else
                 str_host.push_back(static_cast<unsigned char>(uch));
             ++pointer;

@@ -445,61 +445,52 @@ inline bool decode_hex_to_byte(const CharT*& first, const CharT* last, unsigned 
 // ----------------------------------------------------------------------------
 // Percent encode
 
-// Write a single character, escaped, to the output. This always escapes: it
-// does no checking that thee character requires escaping.
-// Escaping makes sense only 8 bit chars, so code works in all cases of
-// input parameters (8/16bit).
+// Percent-encodes byte and appends to string
+// See: https://url.spec.whatwg.org/#percent-encode
+
 template<typename UINCHAR, typename OUTCHAR>
-inline void AppendEscapedChar(UINCHAR ch, std::basic_string<OUTCHAR>& output) {
+inline void append_percent_encoded_byte(UINCHAR ch, std::basic_string<OUTCHAR>& output) {
     output.push_back('%');
     output.push_back(kHexCharLookup[(ch >> 4) & 0xf]);
     output.push_back(kHexCharLookup[ch & 0xf]);
 }
 
-// Writes the given character to the output as UTF-8, escaping ALL
-// characters (even when they are ASCII). This does NO checking of the
-// validity of the Unicode characters; the caller should ensure that the value
-// it is appending is valid to append.
-inline void AppendUTF8EscapedValue(unsigned char_value, std::string& output) {
-    url_utf::append_utf8<std::string, AppendEscapedChar>(char_value, output);
-}
-
-// Writes the given character to the output as UTF-8, escaped. Call this
-// function only when the input is wide. Returns true on success. Failure
-// means there was some problem with the encoding, we'll still try to
-// update the |*begin| pointer and add a placeholder character to the
-// output so processing can continue.
+// Reads one character from string (first, last), converts to UTF-8, then
+// percent-encodes, and appends to `output`. Replaces invalid UTF-8, UTF-16 or UTF-32
+// sequences in input with Unicode replacement characters (U+FFFD) if present.
 
 template <typename CharT>
-inline bool AppendUTF8EscapedChar(const CharT*& first, const CharT* last, std::string& output) {
+inline bool append_utf8_percent_encoded_char(const CharT*& first, const CharT* last, std::string& output) {
     // url_util::read_utf_char(..) will handle invalid characters for us and give
     // us the kUnicodeReplacementCharacter, so we don't have to do special
     // checking after failure, just pass through the failure to the caller.
     const auto cp_res = url_utf::read_utf_char(first, last);
-    AppendUTF8EscapedValue(cp_res.value, output);
+    // convert cp_res.value code point to UTF-8, then percent encode and append to `output`
+    url_utf::append_utf8<std::string, append_percent_encoded_byte>(cp_res.value, output);
     return cp_res.result;
 }
 
-// Appends the given string to the output, escaping characters that do not
-// match the given |charsType| in CharsType.
+// Converts input string (first, last) to UTF-8, then percent encodes bytes not
+// in `cpset`, and appends to `output`. Replaces invalid UTF-8, UTF-16 or UTF-32
+// sequences in input with Unicode replacement characters (U+FFFD) if present.
 
 template<typename CharT>
-void AppendStringOfType(const CharT* first, const CharT* last, const code_point_set& cpset, std::string& output) {
+void append_utf8_percent_encoded(const CharT* first, const CharT* last, const code_point_set& cpset, std::string& output) {
     using UCharT = typename std::make_unsigned<CharT>::type;
 
     for (auto it = first; it < last; ) {
         const auto ch = static_cast<UCharT>(*it);
         if (ch >= 0x80) {
             // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
-            AppendUTF8EscapedChar(it, last, output);
+            append_utf8_percent_encoded_char(it, last, output);
         } else {
-            // Just append the 7-bit character, possibly escaping it.
+            // Just append the 7-bit character, possibly percent encoding it.
             const auto uch = static_cast<unsigned char>(ch);
             if (is_char_in_set(uch, cpset)) {
                 output.push_back(uch);
             } else {
-                // other characters are escaped
-                AppendEscapedChar(uch, output);
+                // other characters are percent encoded
+                append_percent_encoded_byte(uch, output);
             }
             ++it;
         }
@@ -579,7 +570,7 @@ inline std::string percent_encode(StrT&& str, const code_point_set& no_encode_se
     const auto inp = make_str_arg(std::forward<StrT>(str));
 
     std::string out;
-    detail::AppendStringOfType(inp.begin(), inp.end(), no_encode_set, out);
+    detail::append_utf8_percent_encoded(inp.begin(), inp.end(), no_encode_set, out);
     return out;
 }
 

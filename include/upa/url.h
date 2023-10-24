@@ -1412,7 +1412,7 @@ inline bool url::username(StrT&& str) {
 
         std::string& str_username = urls.start_part(url::USERNAME);
         // UTF-8 percent encode it using the userinfo encode set
-        detail::AppendStringOfType(inp.begin(), inp.end(), userinfo_no_encode_set, str_username);
+        detail::append_utf8_percent_encoded(inp.begin(), inp.end(), userinfo_no_encode_set, str_username);
         urls.save_part();
         return true;
     }
@@ -1428,7 +1428,7 @@ inline bool url::password(StrT&& str) {
 
         std::string& str_password = urls.start_part(url::PASSWORD);
         // UTF-8 percent encode it using the userinfo encode set
-        detail::AppendStringOfType(inp.begin(), inp.end(), userinfo_no_encode_set, str_password);
+        detail::append_utf8_percent_encoded(inp.begin(), inp.end(), userinfo_no_encode_set, str_password);
         urls.save_part();
         return true;
     }
@@ -1812,12 +1812,12 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
             if (not_empty_password || std::distance(pointer, it_colon) > 0 /*not empty username*/) {
                 // username
                 std::string& str_username = urls.start_part(url::USERNAME);
-                detail::AppendStringOfType(pointer, it_colon, userinfo_no_encode_set, str_username); // UTF-8 percent encode, @ -> %40
+                detail::append_utf8_percent_encoded(pointer, it_colon, userinfo_no_encode_set, str_username); // UTF-8 percent encode, @ -> %40
                 urls.save_part();
                 // password
                 if (not_empty_password) {
                     std::string& str_password = urls.start_part(url::PASSWORD);
-                    detail::AppendStringOfType(it_colon + 1, it_eta, userinfo_no_encode_set, str_password); // UTF-8 percent encode, @ -> %40
+                    detail::append_utf8_percent_encoded(it_colon + 1, it_eta, userinfo_no_encode_set, str_password); // UTF-8 percent encode, @ -> %40
                     urls.save_part();
                 }
             }
@@ -2173,19 +2173,19 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
         // the result to url’s query.
         // TODO: now supports UTF-8 encoding only, maybe later add other encodings
         std::string& str_query = urls.start_part(url::QUERY);
-        // detail::AppendStringOfType(pointer, end_of_query, query_cpset, str_query);
+        // detail::append_utf8_percent_encoded(pointer, end_of_query, query_cpset, str_query);
         while (pointer != end_of_query) {
             // UTF-8 percent encode c using the fragment percent-encode set
             // and ignore '\0'
             const auto uch = static_cast<UCharT>(*pointer);
             if (uch >= 0x80) {
                 // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
-                detail::AppendUTF8EscapedChar(pointer, end_of_query, str_query);
+                detail::append_utf8_percent_encoded_char(pointer, end_of_query, str_query);
             } else {
                 // Just append the 7-bit character, possibly escaping it.
                 const auto uc = static_cast<unsigned char>(uch);
                 if (!detail::is_char_in_set(uc, query_cpset))
-                    detail::AppendEscapedChar(uch, str_query);
+                    detail::append_percent_encoded_byte(uch, str_query);
                 else
                     str_query.push_back(uc);
                 ++pointer;
@@ -2215,7 +2215,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
             const auto uch = static_cast<UCharT>(*pointer);
             if (uch >= 0x80) {
                 // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
-                detail::AppendUTF8EscapedChar(pointer, last, str_frag);
+                detail::append_utf8_percent_encoded_char(pointer, last, str_frag);
             } else {
                 // Just append the 7-bit character, possibly escaping it.
                 const auto uc = static_cast<unsigned char>(uch);
@@ -2223,7 +2223,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                     str_frag.push_back(uc);
                 } else {
                     // other characters are escaped
-                    detail::AppendEscapedChar(uch, str_frag);
+                    detail::append_percent_encoded_byte(uch, str_frag);
                 }
                 ++pointer;
             }
@@ -2329,12 +2329,12 @@ inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last,
         const auto uch = static_cast<UCharT>(*pointer);
         if (uch >= 0x80) {
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
-            success &= detail::AppendUTF8EscapedChar(pointer, last, output);
+            success &= detail::append_utf8_percent_encoded_char(pointer, last, output);
         } else {
             // Just append the 7-bit character, possibly escaping it.
             const auto uc = static_cast<unsigned char>(uch);
             if (!detail::is_char_in_set(uc, path_no_encode_set))
-                detail::AppendEscapedChar(uc, output);
+                detail::append_percent_encoded_byte(uc, output);
             else
                 output.push_back(uc);
             ++pointer;
@@ -2358,11 +2358,11 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
         const auto uch = static_cast<UCharT>(*pointer);
         if (uch >= 0x7f) {
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
-            success &= detail::AppendUTF8EscapedChar(pointer, last, output);
+            success &= detail::append_utf8_percent_encoded_char(pointer, last, output);
         } else {
             // Just append the 7-bit character, escaping C0 control chars:
             if (uch <= 0x1f)
-                detail::AppendEscapedChar(uch, output);
+                detail::append_percent_encoded_byte(uch, output);
             else
                 output.push_back(static_cast<unsigned char>(uch));
             ++pointer;
@@ -3045,7 +3045,7 @@ inline url url_from_file_path(StrT&& str) {
     }
 
     // make URL
-    detail::AppendStringOfType(pointer, last, *no_encode_set, str_url);
+    detail::append_utf8_percent_encoded(pointer, last, *no_encode_set, str_url);
     return url(str_url);
 }
 
