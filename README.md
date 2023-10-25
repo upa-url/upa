@@ -14,6 +14,7 @@ It implements:
 2. [URLSearchParams class](https://url.spec.whatwg.org/#interface-urlsearchparams): `upa::url_search_params`
 3. [URL record](https://url.spec.whatwg.org/#concept-url): `upa::url` has functions to examine URL record members: `get_part_view(PartType t)`, `is_empty(PartType t)` and `is_null(PartType t)`
 4. [URL equivalence](https://url.spec.whatwg.org/#url-equivalence): `upa::equals` function
+5. [Percent decoding and encoding](https://url.spec.whatwg.org/#percent-encoded-bytes) functions: `upa::percent_decode`, `upa::percent_encode` and `upa::encode_url_component`
 
 It has some differences from the standard:
 1. Setters of the `upa::url` class are implemented as functions, which return `true` if value is accepted.
