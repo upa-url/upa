@@ -2182,10 +2182,10 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                 // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
                 detail::append_utf8_percent_encoded_char(pointer, end_of_query, str_query);
             } else {
-                // Just append the 7-bit character, possibly escaping it.
+                // Just append the 7-bit character, possibly percent encoding it
                 const auto uc = static_cast<unsigned char>(uch);
                 if (!detail::is_char_in_set(uc, query_cpset))
-                    detail::append_percent_encoded_byte(uch, str_query);
+                    detail::append_percent_encoded_byte(uc, str_query);
                 else
                     str_query.push_back(uc);
                 ++pointer;
@@ -2217,13 +2217,13 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                 // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
                 detail::append_utf8_percent_encoded_char(pointer, last, str_frag);
             } else {
-                // Just append the 7-bit character, possibly escaping it.
+                // Just append the 7-bit character, possibly percent encoding it
                 const auto uc = static_cast<unsigned char>(uch);
                 if (detail::is_char_in_set(uc, fragment_no_encode_set)) {
                     str_frag.push_back(uc);
                 } else {
-                    // other characters are escaped
-                    detail::append_percent_encoded_byte(uch, str_frag);
+                    // other characters are percent encoded
+                    detail::append_percent_encoded_byte(uc, str_frag);
                 }
                 ++pointer;
             }
@@ -2331,7 +2331,7 @@ inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last,
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
             success &= detail::append_utf8_percent_encoded_char(pointer, last, output);
         } else {
-            // Just append the 7-bit character, possibly escaping it.
+            // Just append the 7-bit character, possibly percent encoding it
             const auto uc = static_cast<unsigned char>(uch);
             if (!detail::is_char_in_set(uc, path_no_encode_set))
                 detail::append_percent_encoded_byte(uc, output);
@@ -2360,11 +2360,12 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
             success &= detail::append_utf8_percent_encoded_char(pointer, last, output);
         } else {
-            // Just append the 7-bit character, escaping C0 control chars:
-            if (uch <= 0x1f)
-                detail::append_percent_encoded_byte(uch, output);
+            // Just append the 7-bit character, percent encoding C0 control chars
+            const auto uc = static_cast<unsigned char>(uch);
+            if (uc <= 0x1f)
+                detail::append_percent_encoded_byte(uc, output);
             else
-                output.push_back(static_cast<unsigned char>(uch));
+                output.push_back(uc);
             ++pointer;
         }
     }

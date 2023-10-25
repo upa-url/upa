@@ -448,11 +448,10 @@ inline bool decode_hex_to_byte(const CharT*& first, const CharT* last, unsigned 
 // Percent-encodes byte and appends to string
 // See: https://url.spec.whatwg.org/#percent-encode
 
-template<typename UINCHAR, typename OUTCHAR>
-inline void append_percent_encoded_byte(UINCHAR ch, std::basic_string<OUTCHAR>& output) {
+inline void append_percent_encoded_byte(unsigned char uc, std::string& output) {
     output.push_back('%');
-    output.push_back(kHexCharLookup[(ch >> 4) & 0xf]);
-    output.push_back(kHexCharLookup[ch & 0xf]);
+    output.push_back(kHexCharLookup[uc >> 4]);
+    output.push_back(kHexCharLookup[uc & 0xf]);
 }
 
 // Reads one character from string (first, last), converts to UTF-8, then
@@ -479,18 +478,18 @@ void append_utf8_percent_encoded(const CharT* first, const CharT* last, const co
     using UCharT = typename std::make_unsigned<CharT>::type;
 
     for (auto it = first; it < last; ) {
-        const auto ch = static_cast<UCharT>(*it);
-        if (ch >= 0x80) {
+        const auto uch = static_cast<UCharT>(*it);
+        if (uch >= 0x80) {
             // invalid utf-8/16/32 sequences will be replaced with kUnicodeReplacementCharacter
             append_utf8_percent_encoded_char(it, last, output);
         } else {
-            // Just append the 7-bit character, possibly percent encoding it.
-            const auto uch = static_cast<unsigned char>(ch);
-            if (is_char_in_set(uch, cpset)) {
-                output.push_back(uch);
+            // Just append the 7-bit character, possibly percent encoding it
+            const auto uc = static_cast<unsigned char>(uch);
+            if (is_char_in_set(uc, cpset)) {
+                output.push_back(uc);
             } else {
                 // other characters are percent encoded
-                append_percent_encoded_byte(uch, output);
+                append_percent_encoded_byte(uc, output);
             }
             ++it;
         }

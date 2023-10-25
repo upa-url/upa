@@ -297,11 +297,12 @@ inline validation_errc host_parser::parse_opaque_host(const CharT* first, const 
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
             detail::append_utf8_percent_encoded_char(pointer, last, str_host);
         } else {
-            // Just append the 7-bit character, escaping C0 control chars:
-            if (uch <= 0x1f)
-                detail::append_percent_encoded_byte(uch, str_host);
+            // Just append the 7-bit character, percent encoding C0 control chars
+            const auto uc = static_cast<unsigned char>(uch);
+            if (uc <= 0x1f)
+                detail::append_percent_encoded_byte(uc, str_host);
             else
-                str_host.push_back(static_cast<unsigned char>(uch));
+                str_host.push_back(uc);
             ++pointer;
         }
     }
