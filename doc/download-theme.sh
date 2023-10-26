@@ -10,7 +10,10 @@ VERSION=v2.2.1
 
 mkdir -p ${p}/theme
 
-for f in doxygen-awesome.css
+for f in doxygen-awesome.css \
+         doxygen-awesome-darkmode-toggle.js \
+         doxygen-awesome-fragment-copy-button.js \
+         doxygen-awesome-paragraph-link.js
 do
   curl -fsS -o ${p}/theme/${f} https://raw.githubusercontent.com/jothepro/doxygen-awesome-css/${VERSION}/${f}
 done
