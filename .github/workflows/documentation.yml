@@ -24,4 +24,6 @@ jobs:
         with:
           deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
           external_repository: upa-url/docs
+          destination_dir: docs/main
+          publish_branch: main
           publish_dir: ./doc/html
