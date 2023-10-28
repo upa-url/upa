@@ -23,6 +23,7 @@ $darkmode
 <script type="text/javascript" src="$relpath^doxygen-awesome-darkmode-toggle.js"></script>
 <script type="text/javascript" src="$relpath^doxygen-awesome-fragment-copy-button.js"></script>
 <script type="text/javascript" src="$relpath^doxygen-awesome-paragraph-link.js"></script>
+<script type="text/javascript" src="$relpath^../common/version-select.js"></script>
 <script type="text/javascript">
   DoxygenAwesomeDarkModeToggle.init()
   DoxygenAwesomeFragmentCopyButton.init()
@@ -30,6 +31,7 @@ $darkmode
 </script>
 <link href="$relpath^$stylesheet" rel="stylesheet" type="text/css" />
 $extrastylesheet
+<link href="$relpath^../common/version-select.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
 <!--BEGIN DISABLE_INDEX-->
@@ -50,10 +52,15 @@ $extrastylesheet
   <!--END PROJECT_LOGO-->
   <!--BEGIN PROJECT_NAME-->
   <td id="projectalign">
-   <div id="projectname">$projectname<!--BEGIN PROJECT_NUMBER--><span id="projectnumber">&#160;$projectnumber</span><!--END PROJECT_NUMBER-->
+   <div id="projectname">$projectname
    </div>
    <!--BEGIN PROJECT_BRIEF--><div id="projectbrief">$projectbrief</div><!--END PROJECT_BRIEF-->
   </td>
+  <!--BEGIN PROJECT_NUMBER-->
+  <td id="version-td">
+   <select id="version-select"><option>$projectnumber</option></select>
+  </td>
+  <!--END PROJECT_NUMBER-->
   <!--END PROJECT_NAME-->
   <!--BEGIN !PROJECT_NAME-->
    <!--BEGIN PROJECT_BRIEF-->

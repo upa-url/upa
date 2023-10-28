@@ -1,0 +1,12 @@
+#version-td {
+  padding: 0 0 0 0.5em;
+}
+
+#version-select {
+  background-color: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  line-height: inherit;
+}

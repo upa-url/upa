@@ -9,21 +9,46 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
+    env:
+      upa_deploy: ${{ github.ref == 'refs/heads/main' || '' }}
+      upa_docs_repository: upa-url/docs
+      upa_docs_dir: main
     steps:
       - uses: actions/checkout@v4
       - name: Download theme
         run: doc/download-theme.sh
       - uses: mattnotmitt/doxygen-action@edge
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        if: github.ref == 'refs/heads/main'
+
+      - name: Is there a gh-pages branch?
+        if: env.upa_deploy
+        run: echo "upa_checkout=$(git ls-remote --heads https://github.com/$upa_docs_repository.git refs/heads/gh-pages)" >> "$GITHUB_ENV"
+
+      - name: Checkout ${{ env.upa_docs_repository }}
+        uses: actions/checkout@v4
+        if: env.upa_deploy && env.upa_checkout
         with:
-          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-          external_repository: upa-url/docs
-          destination_dir: docs/main
-          publish_branch: main
-          publish_dir: ./doc/html
+          repository: ${{ env.upa_docs_repository }}
+          ref: gh-pages
+          path: build-docs
+
+      - name: Prepare directory for publication
+        if: env.upa_deploy
+        run: |
+          sudo chown --recursive $USER doc/html
+          mkdir -p build-docs
+          rm -rf build-docs/.git
+          rm -rf build-docs/common
+          rm -rf build-docs/${{ env.upa_docs_dir }}
+          cp -r doc/common build-docs/common
+          mv doc/html build-docs/${{ env.upa_docs_dir }}
+          cp doc/index.html build-docs
+
+      - name: Deploy to ${{ env.upa_docs_repository }}
+        uses: JamesIves/github-pages-deploy-action@v4
+        if: env.upa_deploy
+        with:
+          ssh-key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          repository-name: ${{ env.upa_docs_repository }}
+          folder: build-docs
