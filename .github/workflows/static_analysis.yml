@@ -14,8 +14,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: clang-tidy-14 C++17
-            cxx_compiler: clang++-14
+          - name: clang-tidy-15 C++17
+            cxx_compiler: clang++-15
             cxx_standard: 17
             cmake_options: "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
 
@@ -31,4 +31,4 @@ jobs:
     - name: cmake
       run: cmake -S . -B build -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
     - name: static analysis
-      run: clang-tidy-14 -p build src/*.*
+      run: clang-tidy-15 -p build src/*.*
