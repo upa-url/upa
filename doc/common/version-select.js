@@ -5,8 +5,8 @@
 (function () {
   // path segment to replace with version string
   const path_segment_ind = 2;
-  // versions.txt is in the same folder as this script
-  const versions_url = new URL("versions.txt", document.currentScript.src);
+  // versions.txt is in the parent folder of this script
+  const versions_url = new URL("../versions.txt", document.currentScript.src);
 
   window.addEventListener("DOMContentLoaded", event => {
     const list_ctl = document.getElementById("version-select");

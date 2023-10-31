@@ -8,6 +8,7 @@
 # generated documentation
 /doc/html/
 /doc/theme/
+/doc/versions.txt
 
 # downloadable tests directory
 /test/wpt/

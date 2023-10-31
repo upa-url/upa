@@ -12,9 +12,10 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
     env:
-      upa_deploy: ${{ github.ref == 'refs/heads/main' || '' }}
+      upa_deploy: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || '' }}
       upa_docs_repository: upa-url/docs
-      upa_docs_dir: main
+      # Used in Doxyfile: PROJECT_NUMBER = $(UPA_DOCS_VERSION)
+      UPA_DOCS_VERSION: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
       - name: Download theme
@@ -33,11 +34,16 @@ jobs:
           ref: gh-pages
           path: build-docs
 
-      - name: Prepare directory for publication
+      - name: Update versions.txt
         if: env.upa_deploy
         run: |
-          sudo chown --recursive $USER doc/html
           mkdir -p build-docs
+          echo "upa_docs_dir=$(tools/update-docs-versions.py build-docs $GITHUB_REF)" >> "$GITHUB_ENV"
+
+      - name: Prepare directory for publication
+        if: env.upa_deploy && env.upa_docs_dir
+        run: |
+          sudo chown --recursive $USER doc/html
           rm -rf build-docs/.git
           rm -rf build-docs/common
           rm -rf build-docs/${{ env.upa_docs_dir }}
@@ -47,7 +53,7 @@ jobs:
 
       - name: Deploy to ${{ env.upa_docs_repository }}
         uses: JamesIves/github-pages-deploy-action@v4
-        if: env.upa_deploy
+        if: env.upa_deploy && env.upa_docs_dir
         with:
           ssh-key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
           repository-name: ${{ env.upa_docs_repository }}
