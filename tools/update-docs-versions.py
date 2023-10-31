@@ -16,11 +16,9 @@ def main(versions_folder, git_ref):
         if branch == "main":
             update_ver(versions_path, branch, branch)
     elif git_ref.startswith("refs/tags/"):
-        version = git_ref[10:]
-        if re.match(version_regex, version):
-            version_pieces = version.split(".")
-            dir = ".".join(version_pieces[:2])
-            ver = ".".join(version_pieces)
+        ver = git_ref[10:]
+        if re.match(version_regex, ver):
+            dir = ".".join(ver.split(".")[:2])
             update_ver(versions_path, dir, ver)
 
 def update_ver(versions_path, dir, ver):
