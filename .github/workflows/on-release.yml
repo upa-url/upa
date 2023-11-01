@@ -1,0 +1,19 @@
+name: Upload release assets
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Amalgamate source files
+        run: tools/amalgamate.sh
+
+      - name: Upload assets
+        run: gh release upload ${{ github.ref_name }} single_include/upa/*.*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
