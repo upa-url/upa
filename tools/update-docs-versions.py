@@ -61,6 +61,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 3:
         main(sys.argv[1], sys.argv[2])
     else:
-        print("Usage: {} <directory of versions.txt file> <git ref>\n"
-            .format(os.path.basename(__file__)),
+        app_name = os.path.basename(os.path.basename(__file__))
+        print(f"Usage: {app_name} <directory of versions.txt file> <git ref>",
             file=sys.stderr)
+        sys.exit(1)
