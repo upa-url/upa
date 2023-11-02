@@ -9,8 +9,16 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
+# Extract version from url_version.h
+file(READ include/upa/url_version.h upa_url_version_h)
+if (NOT upa_url_version_h MATCHES "[ \t]+UPA_URL_VERSION[ \t]+\"([0-9]+(\.[0-9]+)+)\"")
+  message(FATAL_ERROR "Cannot get UPA_URL_VERSION from url_version.h")
+endif ()
+set(UPA_URL_VERSION ${CMAKE_MATCH_1})
+message(STATUS "Upa URL version: ${UPA_URL_VERSION}")
+
 # Project settings
-project(upa_url VERSION 0.0.1 LANGUAGES CXX)
+project(upa_url VERSION ${UPA_URL_VERSION} LANGUAGES CXX)
 # The ${upa_lib_name} is used to create the config file name:
 # ${upa_lib_name}-config.cmake
 # It also must be used as the package name argument to find_package
