@@ -18,10 +18,20 @@ jobs:
       UPA_DOCS_VERSION: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v4
+
+      # Check C++ examples in documentation
+      - name: Extract and try to build C++ examples from docs
+        run: |
+          tools/extract-cpp.py examples/extracted-cpp README.md
+          cmake -S . -B build -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_STANDARD=20 -DURL_BUILD_TESTS=OFF -DURL_BUILD_EXTRACTED=ON
+          cmake --build build
+
+      # Run doxygen
       - name: Download theme
         run: doc/download-theme.sh
       - uses: mattnotmitt/doxygen-action@edge
 
+      # Deploy docs
       - name: Is there a gh-pages branch?
         if: env.upa_deploy
         run: echo "upa_checkout=$(git ls-remote --heads https://github.com/$upa_docs_repository.git refs/heads/gh-pages)" >> "$GITHUB_ENV"

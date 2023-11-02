@@ -33,9 +33,10 @@ if (NOT DEFINED URL_MAIN_PROJECT)
 endif()
 
 # Options
-option(URL_BUILD_TESTS "Build the URL tests." ${URL_MAIN_PROJECT})
-option(URL_BUILD_FUZZER "Build the URL fuzzer." OFF)
-option(URL_BUILD_EXAMPLES "Build the URL examples." OFF)
+option(URL_BUILD_TESTS "Build the Upa URL tests." ${URL_MAIN_PROJECT})
+option(URL_BUILD_FUZZER "Build the Upa URL fuzzer." OFF)
+option(URL_BUILD_EXAMPLES "Build the Upa URL examples." OFF)
+option(URL_BUILD_EXTRACTED "Build Upa URL examples extracted from the docs." OFF)
 option(URL_BUILD_TOOLS "Build tools." OFF)
 option(URL_INSTALL "Generate the install target." ON)
 # library options
@@ -99,7 +100,8 @@ endif()
 include_directories(deps)
 
 # Are Upa URL and ICU libraries needed?
-if (URL_BUILD_TESTS OR URL_BUILD_FUZZER OR URL_BUILD_EXAMPLES OR URL_INSTALL OR NOT URL_BUILD_TOOLS)
+if (URL_BUILD_TESTS OR URL_BUILD_FUZZER OR URL_BUILD_EXAMPLES OR URL_BUILD_EXTRACTED OR
+    URL_INSTALL OR NOT URL_BUILD_TOOLS)
   # This library depends on ICU
   find_package(ICU REQUIRED COMPONENTS i18n uc)
 
@@ -197,6 +199,10 @@ endif()
 if (URL_BUILD_EXAMPLES)
   add_executable(urlparse examples/urlparse.cpp)
   target_link_libraries(urlparse ${upa_lib_target})
+endif()
+
+if (URL_BUILD_EXTRACTED)
+  add_subdirectory(examples/extracted-cpp)
 endif()
 
 # Tool's targets
