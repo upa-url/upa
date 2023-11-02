@@ -5,10 +5,11 @@
 /deps/doctest/
 /deps/picojson/
 
-# generated documentation
+# generated files
 /doc/html/
 /doc/theme/
 /doc/versions.txt
+/examples/extracted-cpp/*.cpp
 
 # downloadable tests directory
 /test/wpt/
