@@ -8,11 +8,11 @@
 
 // NOLINTBEGIN(*-macro-*)
 
-#define UPA_URL_VERSION_MAJOR  0
-#define UPA_URL_VERSION_MINOR  0
-#define UPA_URL_VERSION_PATCH  1
+#define UPA_URL_VERSION_MAJOR 0
+#define UPA_URL_VERSION_MINOR 1
+#define UPA_URL_VERSION_PATCH 0
 
-#define UPA_URL_VERSION "0.0.1"
+#define UPA_URL_VERSION "0.1.0"
 
 // NOLINTEND(*-macro-*)
 
