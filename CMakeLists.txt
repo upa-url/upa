@@ -13,7 +13,7 @@ endif()
 file(READ include/upa/url_version.h upa_url_version_h)
 if (NOT upa_url_version_h MATCHES "[ \t]+UPA_URL_VERSION[ \t]+\"([0-9]+(\.[0-9]+)+)\"")
   message(FATAL_ERROR "Cannot get UPA_URL_VERSION from url_version.h")
-endif ()
+endif()
 set(UPA_URL_VERSION ${CMAKE_MATCH_1})
 message(STATUS "Upa URL version: ${UPA_URL_VERSION}")
 
@@ -30,7 +30,10 @@ set(upa_lib_export url)
 # to create the library filename
 set(upa_lib_target upa_url)
 
-set(CMAKE_CXX_STANDARD 11 CACHE STRING "C++ standard")
+if (NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
 
 # Upa URL is top level project?
 if (NOT DEFINED URL_MAIN_PROJECT)
