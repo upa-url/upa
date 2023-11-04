@@ -31,8 +31,12 @@
 #endif
 
 // Define UPA_CPP_14 if compiler supports C++14 or later
-#if defined(_MSVC_LANG) ? (_MSVC_LANG >= 201402) : (__cplusplus >= 201402)
+// Note: Visual Studio 2015 (14.0; _MSC_VER == 1900) lacks sufficient C++14 support
+#if defined(_MSVC_LANG) ? (_MSVC_LANG >= 201402 && _MSC_VER > 1900) : (__cplusplus >= 201402)
 # define UPA_CPP_14
+# define UPA_CONSTEXPR_14 constexpr
+#else
+# define UPA_CONSTEXPR_14 inline
 #endif
 
 #endif // UPA_CONFIG_H

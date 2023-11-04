@@ -6,12 +6,16 @@
 #ifndef UPA_STR_VIEW_H
 #define UPA_STR_VIEW_H
 
+#include "config.h"
 #include <algorithm>
 #include <string>
 #include <type_traits>
 
 namespace upa {
 
+/// @brief A very simplified implementation of the basic_string_view
+///
+/// It is used when compiling with C++11 or C++14 compilers.
 template<typename CharT, typename Traits = std::char_traits<CharT>>
 class str_view {
 public:
@@ -31,41 +35,41 @@ public:
     // static constexpr size_type npos = size_type(-1);
 
     // constructors
-    str_view() noexcept = default;
-    str_view(const str_view&) noexcept = default;
-    str_view(const CharT* ptr, size_type len) : ptr_(ptr), len_(len) {}
+    constexpr str_view() noexcept = default;
+    constexpr str_view(const str_view&) noexcept = default;
+    constexpr str_view(const CharT* ptr, size_type len) : ptr_(ptr), len_(len) {}
     str_view(const CharT* ptr) : ptr_(ptr), len_(Traits::length(ptr)) {}
 
     // assignment
-    str_view& operator=(const str_view&) noexcept = default;
+    UPA_CONSTEXPR_14 str_view& operator=(const str_view&) noexcept = default;
 
     // destructor
     ~str_view() noexcept = default;
 
     // iterator support
-    const_iterator begin() const noexcept { return ptr_; }
-    const_iterator end() const noexcept { return ptr_ + len_; }
+    constexpr const_iterator begin() const noexcept { return ptr_; }
+    constexpr const_iterator end() const noexcept { return ptr_ + len_; }
 
     // capacity
-    size_type size() const noexcept { return len_; }
-    size_type length() const noexcept { return len_; }
-    bool empty() const noexcept { return len_ == 0; }
+    constexpr size_type size() const noexcept { return len_; }
+    constexpr size_type length() const noexcept { return len_; }
+    constexpr bool empty() const noexcept { return len_ == 0; }
 
     // element access
-    const_reference operator[](size_type ind) const {
+    constexpr const_reference operator[](size_type ind) const {
         return ptr_[ind];
     }
-    const_pointer data() const noexcept { return ptr_; }
+    constexpr const_pointer data() const noexcept { return ptr_; }
 
     // modifiers
-    void remove_prefix(size_type n) {
+    UPA_CONSTEXPR_14 void remove_prefix(size_type n) {
         ptr_ += n;
         len_ -= n;
     }
-    void remove_suffix(size_type n) {
+    UPA_CONSTEXPR_14 void remove_suffix(size_type n) {
         len_ -= n;
     }
-    void swap(str_view& x) noexcept {
+    UPA_CONSTEXPR_14 void swap(str_view& x) noexcept {
         const str_view tmp{x};
         x = *this;
         *this = tmp;

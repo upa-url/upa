@@ -53,6 +53,11 @@ jobs:
             cmake_options: "-DURL_AMALGAMATED=ON -DURL_BUILD_EXAMPLES=ON"
             before_cmake: tools/amalgamate.sh
 
+          - name: g++-9 C++14
+            cxx_compiler: g++-9
+            cxx_standard: 14
+            cmake_options: "-DURL_BUILD_EXAMPLES=ON"
+
           - name: g++-9 C++11
             cxx_compiler: g++-9
             cxx_standard: 11
