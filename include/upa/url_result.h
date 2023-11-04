@@ -16,9 +16,10 @@ namespace upa {
 enum class validation_errc {
     // Success:
     ok = 0,                         ///< success
-    // Ignored input:
+    // Ignored input (for internal use):
     ignored,                        ///< setter ignored the value (internal)
-    scheme_invalid_code_point,      ///< the scheme contains invalid code point (relevant to the protocol setter)
+    scheme_invalid_code_point,      ///< the scheme contains invalid code point (internal,
+                                    ///< relevant to the protocol setter)
 
     // Standard validation error codes
     // https://url.spec.whatwg.org/#validation-error
