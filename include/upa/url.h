@@ -243,7 +243,7 @@ public:
     bool href(StrT&& str);
     /// Equivalent to @link href(StrT&& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_href(StrT&& str) { return href(str); }
+    bool set_href(StrT&& str) { return href(std::forward<StrT>(str)); }
 
     /// @brief The protocol setter
     ///
@@ -256,7 +256,7 @@ public:
     bool protocol(StrT&& str);
     /// Equivalent to @link protocol(StrT&& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_protocol(StrT&& str) { return protocol(str); }
+    bool set_protocol(StrT&& str) { return protocol(std::forward<StrT>(str)); }
 
     /// @brief The username setter
     ///
@@ -269,7 +269,7 @@ public:
     bool username(StrT&& str);
     /// Equivalent to @link username(StrT&& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_username(StrT&& str) { return username(str); }
+    bool set_username(StrT&& str) { return username(std::forward<StrT>(str)); }
 
     /// @brief The password setter
     ///
@@ -282,7 +282,7 @@ public:
     bool password(StrT&& str);
     /// Equivalent to @link password(StrT&& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_password(StrT&& str) { return password(str); }
+    bool set_password(StrT&& str) { return password(std::forward<StrT>(str)); }
 
     /// @brief The host setter
     ///
@@ -295,7 +295,7 @@ public:
     bool host(StrT&& str);
     /// Equivalent to @link host(StrT&& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_host(StrT&& str) { return host(str); }
+    bool set_host(StrT&& str) { return host(std::forward<StrT>(str)); }
 
     /// @brief The hostname setter
     ///
@@ -308,7 +308,7 @@ public:
     bool hostname(StrT&& str);
     /// Equivalent to @link hostname(StrT&& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_hostname(StrT&& str) { return hostname(str); }
+    bool set_hostname(StrT&& str) { return hostname(std::forward<StrT>(str)); }
 
     /// @brief The port setter
     ///
@@ -321,7 +321,7 @@ public:
     bool port(StrT&& str);
     /// Equivalent to @link port(StrT&& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_port(StrT&& str) { return port(str); }
+    bool set_port(StrT&& str) { return port(std::forward<StrT>(str)); }
 
     /// @brief The pathname setter
     ///
@@ -334,7 +334,7 @@ public:
     bool pathname(StrT&& str);
     /// Equivalent to @link pathname(StrT&& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_pathname(StrT&& str) { return pathname(str); }
+    bool set_pathname(StrT&& str) { return pathname(std::forward<StrT>(str)); }
 
     /// @brief The search setter
     ///
@@ -347,7 +347,7 @@ public:
     bool search(StrT&& str);
     /// Equivalent to @link search(StrT&& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_search(StrT&& str) { return search(str); }
+    bool set_search(StrT&& str) { return search(std::forward<StrT>(str)); }
 
     /// @brief The hash setter
     ///
@@ -360,7 +360,7 @@ public:
     bool hash(StrT&& str);
     /// Equivalent to @link hash(StrT&& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_hash(StrT&& str) { return hash(str); }
+    bool set_hash(StrT&& str) { return hash(std::forward<StrT>(str)); }
 
     // Getters
 
