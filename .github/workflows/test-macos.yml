@@ -17,7 +17,9 @@ jobs:
           - name: clang++ C++17
             cxx_compiler: clang++
             cxx_standard: 17
-            cmake_options: ""
+            cmake_options: "-DURL_BUILD_BENCH=ON"
+            after_test: |
+              build/bench-url test/wpt/urltestdata.json
 
     steps:
     - uses: actions/checkout@v4
@@ -32,4 +34,7 @@ jobs:
     - name: build
       run: cmake --build build --config Release
     - name: test
-      run: cd build ; ctest -C Release -V
+      run: ctest --test-dir build -C Release -V
+    - name: after test
+      if: ${{ matrix.after_test }}
+      run: ${{ matrix.after_test }}

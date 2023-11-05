@@ -2,6 +2,7 @@
 /build/
 
 # downloadable dependencies
+/deps/ankerl/
 /deps/doctest/
 /deps/picojson/
 

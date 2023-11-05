@@ -45,6 +45,7 @@ endif()
 
 # Options
 option(URL_BUILD_TESTS "Build the Upa URL tests." ${URL_MAIN_PROJECT})
+option(URL_BUILD_BENCH "Build the Upa URL benchmarks." OFF)
 option(URL_BUILD_FUZZER "Build the Upa URL fuzzer." OFF)
 option(URL_BUILD_EXAMPLES "Build the Upa URL examples." OFF)
 option(URL_BUILD_EXTRACTED "Build Upa URL examples extracted from the docs." OFF)
@@ -111,8 +112,8 @@ endif()
 include_directories(deps)
 
 # Are Upa URL and ICU libraries needed?
-if (URL_BUILD_TESTS OR URL_BUILD_FUZZER OR URL_BUILD_EXAMPLES OR URL_BUILD_EXTRACTED OR
-    URL_INSTALL OR NOT URL_BUILD_TOOLS)
+if (URL_BUILD_TESTS OR URL_BUILD_BENCH OR URL_BUILD_FUZZER OR URL_BUILD_EXAMPLES OR
+    URL_BUILD_EXTRACTED OR URL_INSTALL OR NOT URL_BUILD_TOOLS)
   # This library depends on ICU
   find_package(ICU REQUIRED COMPONENTS i18n uc)
 
@@ -184,6 +185,18 @@ if (URL_BUILD_TESTS)
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
         COMMAND ${MEMORYCHECK_COMMAND} ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
     endif()
+  endforeach()
+endif()
+
+# Benchmark targets
+
+if (URL_BUILD_BENCH)
+  file(GLOB bench_files test/bench-*.cpp)
+
+  foreach(file ${bench_files})
+    get_filename_component(exe_name ${file} NAME_WE)
+    add_executable(${exe_name} ${file})
+    target_link_libraries(${exe_name} PRIVATE upa::url)
   endforeach()
 endif()
 
