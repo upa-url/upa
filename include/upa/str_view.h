@@ -37,7 +37,7 @@ public:
     // constructors
     constexpr str_view() noexcept = default;
     constexpr str_view(const str_view&) noexcept = default;
-    constexpr str_view(const CharT* ptr, size_type len) : ptr_(ptr), len_(len) {}
+    constexpr str_view(const CharT* ptr, size_type len) noexcept : ptr_(ptr), len_(len) {}
     str_view(const CharT* ptr) : ptr_(ptr), len_(Traits::length(ptr)) {}
 
     // assignment
