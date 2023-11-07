@@ -612,12 +612,16 @@ TEST_CASE("url_from_file_path") {
         CHECK(upa::url_from_file_path("C:/path").href() == "file:///C:/path");
         CHECK(upa::url_from_file_path("C:\\path %#").href() == "file:///C:/path%20%25%23");
         CHECK(upa::url_from_file_path("\\\\h\\path").href() == "file://h/path");
+        CHECK(upa::url_from_file_path("\\\\h\\a/b").href() == "file://h/a/b");
+        CHECK(upa::url_from_file_path("\\\\a/b\\path").href() == "file://a/b/path");
         // https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats
         // https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
         CHECK(upa::url_from_file_path("\\\\?\\D:\\very_long_path").href() == "file:///D:/very_long_path");
         CHECK(upa::url_from_file_path("\\\\?\\UNC\\h\\very_long_path").href() == "file://h/very_long_path");
+        CHECK(upa::url_from_file_path("\\\\?/unc/h/very_long_path").href() == "file://h/very_long_path");
         CHECK(upa::url_from_file_path("\\\\.\\D:\\very_long_path").href() == "file:///D:/very_long_path");
         CHECK(upa::url_from_file_path("\\\\.\\UNC\\h\\very_long_path").href() == "file://h/very_long_path");
+        CHECK(upa::url_from_file_path("\\\\./unc/h/very_long_path").href() == "file://h/very_long_path");
         // non absolute path
         CHECK_THROWS_AS(upa::url_from_file_path("\\"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("C:path"), upa::url_error);
@@ -627,8 +631,6 @@ TEST_CASE("url_from_file_path") {
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\\\"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path(std::string{ '\\', '\\', 'h', '\\', 'a', '\0', 'b' }), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\a/b"), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\a/b\\path"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\C:\\path"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\C|\\path"), upa::url_error);
         // invalid hostname

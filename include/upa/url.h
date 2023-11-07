@@ -967,6 +967,11 @@ inline bool is_slash(CharT ch) noexcept {
     return ch == '/' || ch == '\\';
 }
 
+template <typename CharT>
+inline bool is_windows_slash(CharT ch) noexcept {
+    return ch == '\\' || ch == '/';
+}
+
 // Scheme chars
 
 template <typename CharT>
@@ -1020,21 +1025,7 @@ inline bool starts_with_windows_drive_absolute_path(const CharT* pointer, const 
     return
         last - pointer > 2 &&
         detail::is_windows_drive(pointer[0], pointer[1]) &&
-        (pointer[2] == '\\' || pointer[2] == '/');
-}
-
-// check string starts with sv (ASCII)
-template <typename CharT>
-inline bool starts_with(const CharT* first, const CharT* last, string_view sv) noexcept {
-    if (last - first >= static_cast<std::ptrdiff_t>(sv.length())) {
-        for (auto c : sv) {
-            if (*first != c)
-                return false;
-            ++first;
-        }
-        return true;
-    }
-    return false;
+        detail::is_windows_slash(pointer[2]);
 }
 
 } // namespace detail
@@ -2944,13 +2935,12 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
     std::size_t path_components_count = 0;
     const auto* start = first;
     while (start != last) {
-        const CharT* pcend = std::find(start, last, '\\');
+        const CharT* pcend = std::find_if(start, last, detail::is_windows_slash<CharT>);
         // path components MUST be at least one character in length
         if (start == pcend)
             return false;
-        // path components MUST NOT contain a backslash (\) or a null; also disallow '/'
-        // in path component because URL parser will treat it as a directory separator
-        if (std::find_if(start, pcend, [](CharT c) { return c == '\0' || c == '/'; }) != pcend)
+        // path components MUST NOT contain a backslash (\) or a null
+        if (std::find(start, pcend, '\0') != pcend)
             return false;
 
         ++path_components_count;
@@ -3018,15 +3008,22 @@ inline url url_from_file_path(StrT&& str) {
 
         // https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats
         // https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
-        if (detail::starts_with(pointer, last, { "\\\\", 2 })) {
+        if (last - pointer >= 2 &&
+            detail::is_windows_slash(pointer[0]) &&
+            detail::is_windows_slash(pointer[1])) {
             pointer += 2; // skip '\\'
 
             // UNC path or DOS device path
-            if (detail::starts_with(pointer, last, { "?\\", 2 }) ||
-                detail::starts_with(pointer, last, { ".\\", 2 })) {
+            if (last - pointer >= 2 &&
+                (pointer[0] == '?' || pointer[0] == '.') &&
+                detail::is_windows_slash(pointer[1])) {
                 pointer += 2; // skip "?\" or ".\"
                 // DOS device path
-                if (detail::starts_with(pointer, last, { "UNC\\", 4 })) {
+                if (last - pointer >= 4 &&
+                    (pointer[0] | 0x20) == 'u' &&
+                    (pointer[1] | 0x20) == 'n' &&
+                    (pointer[2] | 0x20) == 'c' &&
+                    detail::is_windows_slash(pointer[3])) {
                     pointer += 4; // skip "UNC\"
                     is_unc = true;
                 }
