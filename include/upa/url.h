@@ -989,37 +989,37 @@ inline bool is_special_authority_end_char(CharT c) noexcept {
 // https://url.spec.whatwg.org/#windows-drive-letter
 
 template <typename CharT>
-inline bool is_Windows_drive(CharT c1, CharT c2) noexcept {
+inline bool is_windows_drive(CharT c1, CharT c2) noexcept {
     return is_ascii_alpha(c1) && (c2 == ':' || c2 == '|');
 }
 
 template <typename CharT>
-inline bool is_normalized_Windows_drive(CharT c1, CharT c2) noexcept {
+inline bool is_normalized_windows_drive(CharT c1, CharT c2) noexcept {
     return is_ascii_alpha(c1) && c2 == ':';
 }
 
 // https://url.spec.whatwg.org/#start-with-a-windows-drive-letter
 template <typename CharT>
-inline bool starts_with_Windows_drive(const CharT* pointer, const CharT* last) noexcept {
+inline bool starts_with_windows_drive(const CharT* pointer, const CharT* last) noexcept {
     const auto length = last - pointer;
 #if 1
     return
         (length == 2 || (length > 2 && detail::is_special_authority_end_char(pointer[2]))) &&
-        detail::is_Windows_drive(pointer[0], pointer[1]);
+        detail::is_windows_drive(pointer[0], pointer[1]);
 #else
     return
         length >= 2 &&
-        detail::is_Windows_drive(pointer[0], pointer[1]) &&
+        detail::is_windows_drive(pointer[0], pointer[1]) &&
         (length == 2 || detail::is_special_authority_end_char(pointer[2]));
 #endif
 }
 
 // check string starts with absolute Windows drive path (for example: "C:\\path" or "C:/path")
 template <typename CharT>
-inline bool starts_with_Windows_drive_absolute_path(const CharT* pointer, const CharT* last) noexcept {
+inline bool starts_with_windows_drive_absolute_path(const CharT* pointer, const CharT* last) noexcept {
     return
         last - pointer > 2 &&
-        detail::is_Windows_drive(pointer[0], pointer[1]) &&
+        detail::is_windows_drive(pointer[0], pointer[1]) &&
         (pointer[2] == '\\' || pointer[2] == '/');
 }
 
@@ -1964,7 +1964,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                     ++pointer;
                     break;
                 default:
-                    if (!detail::starts_with_Windows_drive(pointer, last)) {
+                    if (!detail::starts_with_windows_drive(pointer, last)) {
                         // set url's host to base's host, url's path to base's path, and then shorten url's path
                         urls.append_parts(*base, url::HOST, url::PATH, &url::get_shorten_path);
                         // Note: This is a (platform-independent) Windows drive letter quirk.
@@ -1999,11 +1999,11 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                 // set url's host to base's host
                 urls.append_parts(*base, url::HOST, url::HOST);
                 // path
-                if (!detail::starts_with_Windows_drive(pointer, last)) {
+                if (!detail::starts_with_windows_drive(pointer, last)) {
                     const string_view base_path = base->get_path_first_string(2);
                     // if base's path[0] is a normalized Windows drive letter
                     if (base_path.length() == 2 &&
-                        detail::is_normalized_Windows_drive(base_path[0], base_path[1])) {
+                        detail::is_normalized_windows_drive(base_path[0], base_path[1])) {
                         // append base's path[0] to url's path
                         std::string& str_path = urls.start_path_segment();
                         str_path.append(base_path.data(), 2); // "C:"
@@ -2028,7 +2028,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                 return validation_errc::ok;
             state = path_start_state;
         } else if (!state_override && end_of_authority - pointer == 2 &&
-            detail::is_Windows_drive(pointer[0], pointer[1])) {
+            detail::is_windows_drive(pointer[0], pointer[1])) {
             // buffer is a Windows drive letter
             // TODO-WARN: validation error
             state = path_state;
@@ -2296,7 +2296,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
             if (len == 2 &&
                 urls.is_file_scheme() &&
                 urls.is_empty_path() &&
-                detail::is_Windows_drive(pointer[0], pointer[1]))
+                detail::is_windows_drive(pointer[0], pointer[1]))
             {
                 // replace the second code point in buffer with ":"
                 std::string& str_path = urls.start_path_segment();
@@ -2415,7 +2415,7 @@ inline bool url::get_shorten_path(std::size_t& path_end, std::size_t& path_segme
     if (is_file_scheme() && path_segment_count_ == 1) {
         const string_view path1 = get_path_first_string(2);
         if (path1.length() == 2 &&
-            detail::is_normalized_Windows_drive(path1[0], path1[1]))
+            detail::is_normalized_windows_drive(path1[0], path1[1]))
             return false;
     }
     // Remove path's last item
@@ -2868,7 +2868,7 @@ inline void url_setter::commit_path() {
 inline void url_setter::shorten_path() {
     if (path_seg_end_.size() == 1) {
         if (is_file_scheme() && strp_.length() == 3 &&
-            detail::is_normalized_Windows_drive(strp_[1], strp_[2]))
+            detail::is_normalized_windows_drive(strp_[1], strp_[2]))
             return;
         path_seg_end_.pop_back();
         strp_.clear();
@@ -2958,7 +2958,7 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
         // disallow windows drive in the host-name because URL parser will make it a path
         if (path_components_count == 1 &&
             pcend - start == 2 &&
-            detail::is_Windows_drive(start[0], start[1]))
+            detail::is_windows_drive(start[0], start[1]))
             return false;
 
         if (pcend == last) break;
@@ -3037,7 +3037,7 @@ inline url url_from_file_path(StrT&& str) {
         }
         if (is_unc
             ? detail::is_unc_path(pointer, last)
-            : detail::starts_with_Windows_drive_absolute_path(pointer, last)) {
+            : detail::starts_with_windows_drive_absolute_path(pointer, last)) {
             no_encode_set = &raw_path_no_encode_set;
             if (!is_unc) str_url.push_back('/'); // start path
         } else {
