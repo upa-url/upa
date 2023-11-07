@@ -2940,7 +2940,7 @@ inline void url_setter::insert_part(url::PartType new_pt, const char* str, std::
 template <typename CharT>
 inline bool is_unc_path(const CharT* first, const CharT* last)
 {
-    // https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-dfsc/149a3039-98ce-491a-9268-2f5ddef08192
+    // https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dfsc/149a3039-98ce-491a-9268-2f5ddef08192
     std::size_t path_components_count = 0;
     const auto* start = first;
     while (start != last) {
@@ -3016,8 +3016,8 @@ inline url url_from_file_path(StrT&& str) {
         // Windows path?
         bool is_unc = false;
 
-        // https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats
-        // https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
+        // https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats
+        // https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
         if (detail::starts_with(pointer, last, { "\\\\", 2 })) {
             pointer += 2; // skip '\\'
 

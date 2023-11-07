@@ -605,15 +605,15 @@ TEST_CASE("url_from_file_path") {
         CHECK_THROWS_AS(upa::url_from_file_path("path"), upa::url_error);
     }
     SUBCASE("Windows path") {
-        // https://docs.microsoft.com/en-us/windows/win32/fileio/naming-a-file
+        // https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
         CHECK(upa::url_from_file_path("C:\\").href() == "file:///C:/");
         CHECK(upa::url_from_file_path("C:\\path").href() == "file:///C:/path");
         CHECK(upa::url_from_file_path("C|\\path").href() == "file:///C:/path");
         CHECK(upa::url_from_file_path("C:/path").href() == "file:///C:/path");
         CHECK(upa::url_from_file_path("C:\\path %#").href() == "file:///C:/path%20%25%23");
         CHECK(upa::url_from_file_path("\\\\h\\path").href() == "file://h/path");
-        // https://docs.microsoft.com/en-us/dotnet/standard/io/file-path-formats
-        // https://docs.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
+        // https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats
+        // https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
         CHECK(upa::url_from_file_path("\\\\?\\D:\\very_long_path").href() == "file:///D:/very_long_path");
         CHECK(upa::url_from_file_path("\\\\?\\UNC\\h\\very_long_path").href() == "file://h/very_long_path");
         CHECK(upa::url_from_file_path("\\\\.\\D:\\very_long_path").href() == "file:///D:/very_long_path");
