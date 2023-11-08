@@ -12,7 +12,7 @@
 #include "test-utils.h"
 #include "url_cleanup.h"
 
-#include "picojson_fffd.h"
+#include "picojson_util.h"
 
 #include <fstream>
 #include <iostream>
