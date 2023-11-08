@@ -11,7 +11,7 @@
 // Add _parse_string(...) specialization, which replaces unpaired surrogates
 // with 'REPLACEMENT CHARACTER' (U+FFFD).
 
-namespace {
+namespace detail {
 
 inline void append_utf8(std::string& out, int uni_ch) {
     // to utf-8
@@ -33,7 +33,7 @@ inline void append_utf8(std::string& out, int uni_ch) {
     }
 }
 
-} // namespace
+} // namespace detail
 
 namespace picojson {
 
@@ -92,7 +92,7 @@ inline bool _parse_string(std::string &out, input<Iter> &in) {
                         }
                         int second = picojson::_parse_quadhex(in);
                         if (!(0xdc00 <= second && second <= 0xdfff)) {
-                            append_utf8(out, 0xFFFD);
+                            detail::append_utf8(out, 0xFFFD);
                             uni_ch = second;
                             continue;
                         }
@@ -101,7 +101,7 @@ inline bool _parse_string(std::string &out, input<Iter> &in) {
                         uni_ch += 0x10000;
                         break;
                     }
-                    append_utf8(out, uni_ch);
+                    detail::append_utf8(out, uni_ch);
                     break;
                 }
                 default:
