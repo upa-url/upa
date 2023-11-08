@@ -2945,7 +2945,8 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
 
         ++path_components_count;
 
-        // disallow windows drive in the host-name because URL parser will make it a path
+        // Do not accept a Windows drive letter from the first UNC path
+        // component, because it is not a valid host name
         if (path_components_count == 1 &&
             pcend - start == 2 &&
             detail::is_windows_drive(start[0], start[1]))
@@ -2978,14 +2979,29 @@ inline void swap(url& lhs, url& rhs) UPA_NOEXCEPT_17 {
     lhs.swap(rhs);
 }
 
+/// @brief File path format
+enum class file_path_format {
+    detect,   ///< detect file path format from first char: '/' - POSIX, otherwise - Windows
+    posix,    ///< POSIX file path format
+    windows,  ///< Windows file path format
+#ifdef _WIN32
+    native = windows ///< The file path format corresponds to the OS on which the code was compiled
+#else
+    native = posix   ///< The file path format corresponds to the OS on which the code was compiled
+#endif
+};
+
 /// @brief Make URL from OS file path
 ///
 /// Throws url_error exception on error.
 ///
 /// @param[in] str absolute file path string
+/// @param[in] format file path format, one of upa::file_path_format::detect,
+///   upa::file_path_format::posix, upa::file_path_format::windows,
+///   upa::file_path_format::native
 /// @return file URL
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
-inline url url_from_file_path(StrT&& str) {
+inline url url_from_file_path(StrT&& str, file_path_format format = file_path_format::detect) {
     const auto inp = make_str_arg(std::forward<StrT>(str));
     const auto* first = inp.begin();
     const auto* last = inp.end();
@@ -2994,18 +3010,26 @@ inline url url_from_file_path(StrT&& str) {
         throw url_error(validation_errc::file_empty_path, "Empty file path");
     }
 
+    if (format == file_path_format::detect) {
+        format = *first == '/' ? file_path_format::posix : file_path_format::windows;
+    } else if (format == file_path_format::posix) {
+        if (*first != '/')
+            throw url_error(validation_errc::file_unsupported_path, "Non-absolute POSIX path");
+    }
+
     const auto* pointer = first;
     const code_point_set* no_encode_set = nullptr;
 
     std::string str_url("file://");
 
-    if (*pointer == '/') {
+    if (format == file_path_format::posix) {
         // Absolute POSIX path
         no_encode_set = &posix_path_no_encode_set;
     } else {
         // Windows path?
         bool is_unc = false;
 
+        // https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
         // https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats
         // https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
         if (last - pointer >= 2 &&
@@ -3013,12 +3037,12 @@ inline url url_from_file_path(StrT&& str) {
             detail::is_windows_slash(pointer[1])) {
             pointer += 2; // skip '\\'
 
-            // UNC path or DOS device path
+            // It is Win32 namespace path or UNC path?
             if (last - pointer >= 2 &&
                 (pointer[0] == '?' || pointer[0] == '.') &&
                 detail::is_windows_slash(pointer[1])) {
+                // Win32 File ("\\?\") or Device ("\\.\") namespace path
                 pointer += 2; // skip "?\" or ".\"
-                // DOS device path
                 if (last - pointer >= 4 &&
                     (pointer[0] | 0x20) == 'u' &&
                     (pointer[1] | 0x20) == 'n' &&

@@ -599,10 +599,12 @@ TEST_CASE("url_from_file_path") {
         CHECK(upa::url_from_file_path("/c|\\end").href() == "file:///c%7C%5Cend");
         CHECK(upa::url_from_file_path("/c:/last").href() == "file:///c%3A/last");
         CHECK(upa::url_from_file_path("/c|/last").href() == "file:///c%7C/last");
+        CHECK(upa::url_from_file_path("/\\", upa::file_path_format::posix).href() == "file:///%5C");
         // empty path
         CHECK_THROWS_AS(upa::url_from_file_path(""), upa::url_error);
         // non absolute path
         CHECK_THROWS_AS(upa::url_from_file_path("path"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\p", upa::file_path_format::posix), upa::url_error);
     }
     SUBCASE("Windows path") {
         // https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
@@ -614,17 +616,21 @@ TEST_CASE("url_from_file_path") {
         CHECK(upa::url_from_file_path("\\\\h\\path").href() == "file://h/path");
         CHECK(upa::url_from_file_path("\\\\h\\a/b").href() == "file://h/a/b");
         CHECK(upa::url_from_file_path("\\\\a/b\\path").href() == "file://a/b/path");
+        CHECK(upa::url_from_file_path("//h/path", upa::file_path_format::windows).href() == "file://h/path");
         // https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats
         // https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
         CHECK(upa::url_from_file_path("\\\\?\\D:\\very_long_path").href() == "file:///D:/very_long_path");
         CHECK(upa::url_from_file_path("\\\\?\\UNC\\h\\very_long_path").href() == "file://h/very_long_path");
         CHECK(upa::url_from_file_path("\\\\?/unc/h/very_long_path").href() == "file://h/very_long_path");
-        CHECK(upa::url_from_file_path("\\\\.\\D:\\very_long_path").href() == "file:///D:/very_long_path");
-        CHECK(upa::url_from_file_path("\\\\.\\UNC\\h\\very_long_path").href() == "file://h/very_long_path");
-        CHECK(upa::url_from_file_path("\\\\./unc/h/very_long_path").href() == "file://h/very_long_path");
+        CHECK(upa::url_from_file_path("\\\\.\\D:\\just_path").href() == "file:///D:/just_path");
+        CHECK(upa::url_from_file_path("\\\\.\\UNC\\h\\just_path").href() == "file://h/just_path");
+        CHECK(upa::url_from_file_path("\\\\./unc/h/just_path").href() == "file://h/just_path");
+        CHECK(upa::url_from_file_path("//?/unc/h/very_long_path", upa::file_path_format::windows).href() == "file://h/very_long_path");
+        CHECK(upa::url_from_file_path("//./unc/h/just_path", upa::file_path_format::windows).href() == "file://h/just_path");
         // non absolute path
         CHECK_THROWS_AS(upa::url_from_file_path("\\"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("C:path"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("/", upa::file_path_format::windows), upa::url_error);
         // invalid UNC
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\h"), upa::url_error);
