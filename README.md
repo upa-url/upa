@@ -22,7 +22,7 @@ It has some differences from the standard:
 
 Upa URL contains features not specified in the standard:
 1. The `upa::url` class has `path` getter (to get `pathname` concatenated with `search`)
-2. File system path converter to file URL: `url upa::url_from_file_path(StrT&& str)`
+2. Function to convert file system path to file URL: `upa::url_from_file_path`
 3. Experimental URLHost class (see proposal: https://github.com/whatwg/url/pull/288): `upa::url_host`
 4. The `upa::url_search_params` class has a few additional functions: `remove`, `remove_if`
 
@@ -157,7 +157,7 @@ Convert filesystem path to file URL:
 ```cpp
 try {
     auto url = upa::url_from_file_path("/home/opa/file.txt");
-    std::cout << url.href() << '\n';
+    std::cout << url.href() << '\n'; // file:///home/opa/file.txt
 }
 catch (const std::exception& ex) {
     std::cerr << "Error: " << ex.what() << '\n';
