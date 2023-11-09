@@ -14,7 +14,6 @@
 
 #include "picojson_util.h"
 
-#include <fstream>
 #include <iostream>
 #include <map>
 #include <string>
@@ -23,13 +22,13 @@
 
 // Test runner
 
-bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file);
-bool run_host_parser_tests(DataDrivenTest& ddt, std::ifstream& file);
-bool run_idna_v2_tests(DataDrivenTest& ddt, std::ifstream& file);
-bool run_setter_tests(DataDrivenTest& ddt, std::ifstream& file);
-bool run_percent_encoding_tests(DataDrivenTest& ddt, std::ifstream& file);
+int run_parser_tests(DataDrivenTest& ddt, const char* file_name);
+int run_host_parser_tests(DataDrivenTest& ddt, const char* file_name);
+int run_idna_v2_tests(DataDrivenTest& ddt, const char* file_name);
+int run_setter_tests(DataDrivenTest& ddt, const char* file_name);
+int run_percent_encoding_tests(DataDrivenTest& ddt, const char* file_name);
 
-using RunTests = bool(*)(DataDrivenTest& ddt, std::ifstream& file);
+using RunTests = int(*)(DataDrivenTest& ddt, const char* file_name);
 int test_from_file(RunTests run_tests, const char* file_name);
 
 int main(int argc, char** argv)
@@ -62,17 +61,9 @@ int test_from_file(RunTests run_tests, const char* file_name)
     ddt.config_show_passed(false);
     ddt.config_debug_break(true);
 
-    std::cout << "========== " << file_name << " ==========\n";
-    std::ifstream file(file_name, std::ios_base::in | std::ios_base::binary);
-    if (!file.is_open()) {
-        std::cerr << "Can't open tests file: " << file_name << std::endl;
-        return 4;
-    }
+    const int res = run_tests(ddt, file_name);
 
-    if (!run_tests(ddt, file))
-        return 2; // JSON error
-
-    return ddt.result();
+    return res | ddt.result();
 }
 
 // URL parser test
@@ -464,162 +455,95 @@ namespace {
         bool parse_object_stop() { return false; }
     };
 
-    // parses setters_tests.json
-    class root_context_setter : public picojson::deny_parse_context {
-        DataDrivenTest& m_ddt;
-        std::string m_setter_name;
-    public:
-        explicit root_context_setter(DataDrivenTest& ddt) : m_ddt(ddt) {}
-
-        // array only as root
-        bool parse_array_start() { return true; }
-        bool parse_array_stop(std::size_t) { return true; }
-
-        template <typename Iter> bool parse_array_item(picojson::input<Iter>& in, std::size_t) {
-            picojson::value item;
-
-            // parse the array item
-            picojson::default_parse_context ctx(&item);
-            if (!picojson::_parse(ctx, in))
-                return false;
-
-            // analyze array item
-            if (item.is<picojson::object>()) {
-                SetterObj obj(m_setter_name);
-
-                try {
-                    const picojson::object& o = item.get<picojson::object>();
-                    obj.m_href = o.at("href").get<std::string>();
-                    obj.m_new_value = o.at("new_value").get<std::string>();
-                    const picojson::object& oexp = o.at("expected").get<picojson::object>();
-                    for (const auto& pexp : oexp) {
-                        if (!pexp.second.is<std::string>())
-                            return false; // error: string is expected
-                        obj.m_expected[pexp.first] = pexp.second.get<std::string>();
-                    }
-                }
-                catch (const std::out_of_range& ex) {
-                    std::cout << "[ERR:invalid file]: " << ex.what() << std::endl;
-                    return false;
-                }
-
-                test_setter(m_ddt, obj);
-            } else {
-                std::cout << "[ERR: invalid file]" << std::endl;
-                return false;
-            }
-            return true;
-        }
-
-        // object only as root
-        bool parse_object_start() { return true; }
-        bool parse_object_stop() { return true; }
-
-        template <typename Iter> bool parse_object_item(picojson::input<Iter>& in, const std::string& name) {
-            if (name == "comment") {
-                // skip
-                picojson::null_parse_context nullctx;
-                return picojson::_parse(nullctx, in);
-            }
-            m_setter_name = name;
-            // parse array
-            return picojson::_parse(*this, in);
-        }
-    };
-
-    // parses percent-encoding.json
-    class root_context_percent_encoding : public picojson::deny_parse_context {
-    protected:
-        DataDrivenTest& m_ddt;
-    public:
-        explicit root_context_percent_encoding(DataDrivenTest& ddt)
-            : m_ddt(ddt)
-        {}
-
-        // array only as root
-        bool parse_array_start() { return true; }
-        bool parse_array_stop(std::size_t) { return true; }
-
-        template <typename Iter> bool parse_array_item(picojson::input<Iter>& in, std::size_t) {
-            picojson::value item;
-
-            // parse the array item
-            picojson::default_parse_context ctx(&item);
-            if (!picojson::_parse(ctx, in))
-                return false;
-
-            // analyze array item
-            if (item.is<picojson::object>()) {
-                EncodingObj obj;
-
-                try {
-                    const picojson::object& o = item.get<picojson::object>();
-                    obj.m_input = o.at("input").get<std::string>();
-                    const picojson::object& o_output = o.at("output").get<picojson::object>();
-                    for (const auto& p : o_output) {
-                        if (!p.second.is<std::string>())
-                            return false; // error: string is expected
-                        obj.m_output[p.first] = p.second.get<std::string>();
-                    }
-                }
-                catch (const std::out_of_range& ex) {
-                    std::cout << "[ERR:invalid file]: " << ex.what() << std::endl;
-                    return false;
-                }
-
-                test_percent_encoding(m_ddt, obj);
-            } else if (item.is<std::string>()) {
-                // comment
-                // std::cout << item.get<std::string>() << std::endl;
-            } else {
-                std::cout << "[ERR: invalid file]" << std::endl;
-                return false;
-            }
-            return true;
-        }
-
-        // deny object as root
-        bool parse_object_start() { return false; }
-        bool parse_object_stop() { return false; }
-    };
 } // namespace
 
-template <typename Context>
-bool run_some_tests(Context &ctx, std::ifstream& file) {
-    std::string err;
-
-    // for unformatted reading use std::istreambuf_iterator
-    // http://stackoverflow.com/a/17776228/3908097
-    picojson::_parse(ctx, std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), &err);
-
-    if (!err.empty()) {
-        std::cerr << err << std::endl;
-        return false;
-    }
-    return true;
-}
-
-bool run_parser_tests(DataDrivenTest& ddt, std::ifstream& file) {
+int run_parser_tests(DataDrivenTest& ddt, const char* file_name) {
     root_context ctx(ddt, TestType::UrlParser);
-    return run_some_tests(ctx, file);
+    return json_util::load_file(ctx, file_name);
 }
 
-bool run_host_parser_tests(DataDrivenTest& ddt, std::ifstream& file) {
+int run_host_parser_tests(DataDrivenTest& ddt, const char* file_name) {
     root_context ctx(ddt, TestType::HostParser);
-    return run_some_tests(ctx, file);
+    return json_util::load_file(ctx, file_name);
 }
 
-bool run_idna_v2_tests(DataDrivenTest& ddt, std::ifstream& file) {
+int run_idna_v2_tests(DataDrivenTest& ddt, const char* file_name) {
     root_context ctx(ddt, TestType::IdnaTestV2);
-    return run_some_tests(ctx, file);
+    return json_util::load_file(ctx, file_name);
 }
 
-bool run_setter_tests(DataDrivenTest& ddt, std::ifstream& file) {
-    root_context_setter ctx(ddt);
-    return run_some_tests(ctx, file);
+// parses setters_tests.json
+int run_setter_tests(DataDrivenTest& ddt, const char* file_name) {
+    const auto test_item = [&](const std::string& setter_name, const picojson::value& item) {
+        // analyze array item
+        if (item.is<picojson::object>()) {
+            SetterObj obj(setter_name);
+
+            try {
+                const picojson::object& o = item.get<picojson::object>();
+                obj.m_href = o.at("href").get<std::string>();
+                obj.m_new_value = o.at("new_value").get<std::string>();
+                const picojson::object& oexp = o.at("expected").get<picojson::object>();
+                for (const auto& pexp : oexp) {
+                    if (!pexp.second.is<std::string>())
+                        return false; // error: string is expected
+                    obj.m_expected[pexp.first] = pexp.second.get<std::string>();
+                }
+            }
+            catch (const std::out_of_range& ex) {
+                std::cout << "[ERR:invalid file]: " << ex.what() << std::endl;
+                return false;
+            }
+
+            test_setter(ddt, obj);
+        } else {
+            std::cout << "[ERR: invalid file]" << std::endl;
+            return false;
+        }
+        return true;
+    };
+    const auto filter_name = [](const std::string& name) {
+        // skip comment
+        return name != "comment";
+    };
+    json_util::object_array_context<decltype(test_item), decltype(filter_name)> context{test_item, filter_name};
+
+    return json_util::load_file(context, file_name);
 }
 
-bool run_percent_encoding_tests(DataDrivenTest& ddt, std::ifstream& file) {
-    root_context_percent_encoding ctx(ddt);
-    return run_some_tests(ctx, file);
+// parses percent-encoding.json
+int run_percent_encoding_tests(DataDrivenTest& ddt, const char* file_name) {
+    const auto test_item = [&](const picojson::value& item) {
+        // analyze array item
+        if (item.is<picojson::object>()) {
+            EncodingObj obj;
+
+            try {
+                const picojson::object& o = item.get<picojson::object>();
+                obj.m_input = o.at("input").get<std::string>();
+                const picojson::object& o_output = o.at("output").get<picojson::object>();
+                for (const auto& p : o_output) {
+                    if (!p.second.is<std::string>())
+                        return false; // error: string is expected
+                    obj.m_output[p.first] = p.second.get<std::string>();
+                }
+            }
+            catch (const std::out_of_range& ex) {
+                std::cout << "[ERR:invalid file]: " << ex.what() << std::endl;
+                return false;
+            }
+
+            test_percent_encoding(ddt, obj);
+        } else if (item.is<std::string>()) {
+            // comment
+            // std::cout << item.get<std::string>() << std::endl;
+        } else {
+            std::cout << "[ERR: invalid file]" << std::endl;
+            return false;
+        }
+        return true;
+    };
+    json_util::root_array_context<decltype(test_item)> context{ test_item };
+
+    return json_util::load_file(context, file_name);
 }
