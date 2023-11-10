@@ -7,9 +7,8 @@
 #include "url_cleanup.h"
 
 // https://github.com/kazuho/picojson
-#include "picojson/picojson.h"
+#include "picojson_util.h"
 
-#include <fstream>
 #include <iostream>
 #include <string>
 
@@ -111,29 +110,15 @@ void test_urlsearchparams_sort(DataDrivenTest& ddt, const TestObj& obj) {
     });
 }
 
+// Read data file and run tests from it
 
-class root_context : public picojson::deny_parse_context {
-protected:
-    DataDrivenTest& m_ddt;
-    bool m_sort;
-public:
-    root_context(DataDrivenTest& ddt, bool sort)
-        : m_ddt(ddt)
-        , m_sort(sort)
-    {}
+int test_from_file(const char* file_name, bool sort)
+{
+    DataDrivenTest ddt;
+    ddt.config_show_passed(false);
+    ddt.config_debug_break(false);
 
-    // array only as root
-    bool parse_array_start() { return true; }
-    bool parse_array_stop(std::size_t) { return true; }
-
-    template <typename Iter> bool parse_array_item(picojson::input<Iter>& in, std::size_t) {
-        picojson::value item;
-
-        // parse the array item
-        picojson::default_parse_context ctx(&item);
-        if (!picojson::_parse(ctx, in))
-            return false;
-
+    const auto test_item = [&](const picojson::value& item) {
         // analyze array item
         if (item.is<picojson::object>()) {
             const picojson::object& o = item.get<picojson::object>();
@@ -146,10 +131,10 @@ public:
                 obj.m_output.emplace_back(pair[0].get<std::string>(), pair[1].get<std::string>());
             }
 
-            if (m_sort)
-                test_urlsearchparams_sort(m_ddt, obj);
+            if (sort)
+                test_urlsearchparams_sort(ddt, obj);
             else
-                test_urlencoded_parser(m_ddt, obj);
+                test_urlencoded_parser(ddt, obj);
         } else if (item.is<std::string>()) {
             // comment
             // std::cout << value.as_string() << std::endl;
@@ -158,43 +143,10 @@ public:
             return false;
         }
         return true;
-    }
+    };
+    json_util::root_array_context<decltype(test_item)> context{ test_item };
 
-    // deny object as root
-    bool parse_object_start() { return false; }
-    bool parse_object_stop() { return false; }
-};
+    const int res = json_util::load_file(context, file_name);
 
-// Read data file and run tests from it
-
-int test_from_file(const char* file_name, bool sort)
-{
-    DataDrivenTest ddt;
-    ddt.config_show_passed(false);
-    ddt.config_debug_break(false);
-
-    try {
-        std::cout << "========== " << file_name << " ==========\n";
-        std::ifstream file(file_name, std::ios_base::in | std::ios_base::binary);
-        if (!file.is_open()) {
-            std::cerr << "Can't open tests file: " << file_name << std::endl;
-            return 4;
-        }
-
-        std::string err;
-        // for unformatted reading use std::istreambuf_iterator
-        // http://stackoverflow.com/a/17776228/3908097
-        root_context ctx(ddt, sort);
-        picojson::_parse(ctx, std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), &err);
-        if (!err.empty()) {
-            std::cerr << err << std::endl;
-            return 2; // JSON error
-        }
-    }
-    catch (std::exception& ex) {
-        std::cerr << "ERROR: " << ex.what() << std::endl;
-        return 3;
-    }
-
-    return ddt.result();
+    return res | ddt.result();
 }

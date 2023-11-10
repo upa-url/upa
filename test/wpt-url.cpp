@@ -352,8 +352,7 @@ void test_percent_encoding(DataDrivenTest& ddt, EncodingObj& obj)
     });
 }
 
-
-// Read tests in JSON format
+// Read samples from JSON files and run tests
 
 namespace {
     enum class TestType {
@@ -362,34 +361,14 @@ namespace {
         IdnaTestV2
     };
 
-    // parses urltestdata.json, toascii.json
-    class root_context : public picojson::deny_parse_context {
-        DataDrivenTest& m_ddt;
-        TestType m_ttype;
-    public:
-        root_context(DataDrivenTest& ddt, TestType ttype)
-            : m_ddt(ddt)
-            , m_ttype(ttype)
-        {}
-
-        // array only as root
-        bool parse_array_start() { return true; }
-        bool parse_array_stop(std::size_t) { return true; }
-
-        template <typename Iter> bool parse_array_item(picojson::input<Iter>& in, std::size_t) {
-            picojson::value item;
-
-            // parse the array item
-            picojson::default_parse_context ctx(&item);
-            if (!picojson::_parse(ctx, in))
-                return false;
-
+    int load_and_run_tests(DataDrivenTest& ddt, TestType test_type, const char* file_name) {
+        const auto test_item = [&](const picojson::value& item) {
             // analyze array item
             if (item.is<picojson::object>()) {
                 ParserObj obj;
 
                 for (const auto& p : item.get<picojson::object>()) {
-                    switch (m_ttype) {
+                    switch (test_type) {
                     case TestType::UrlParser:
                         // boolean fields
                         if (p.first == "failure") {
@@ -429,15 +408,15 @@ namespace {
                     obj[p.first] = p.second.get<std::string>();
                 }
                 // run item test
-                switch (m_ttype) {
+                switch (test_type) {
                 case TestType::UrlParser:
-                    test_parser(m_ddt, obj);
+                    test_parser(ddt, obj);
                     break;
                 case TestType::HostParser:
-                    test_host_parser(m_ddt, obj);
+                    test_host_parser(ddt, obj);
                     break;
                 case TestType::IdnaTestV2:
-                    test_idna_v2(m_ddt, obj);
+                    test_idna_v2(ddt, obj);
                     break;
                 }
             } else if (item.is<std::string>()) {
@@ -448,28 +427,24 @@ namespace {
                 return false;
             }
             return true;
-        }
+        };
+        json_util::root_array_context<decltype(test_item)> context{ test_item };
 
-        // deny object as root
-        bool parse_object_start() { return false; }
-        bool parse_object_stop() { return false; }
-    };
+        return json_util::load_file(context, file_name);
+    }
 
 } // namespace
 
 int run_parser_tests(DataDrivenTest& ddt, const char* file_name) {
-    root_context ctx(ddt, TestType::UrlParser);
-    return json_util::load_file(ctx, file_name);
+    return load_and_run_tests(ddt, TestType::UrlParser, file_name);
 }
 
 int run_host_parser_tests(DataDrivenTest& ddt, const char* file_name) {
-    root_context ctx(ddt, TestType::HostParser);
-    return json_util::load_file(ctx, file_name);
+    return load_and_run_tests(ddt, TestType::HostParser, file_name);
 }
 
 int run_idna_v2_tests(DataDrivenTest& ddt, const char* file_name) {
-    root_context ctx(ddt, TestType::IdnaTestV2);
-    return json_util::load_file(ctx, file_name);
+    return load_and_run_tests(ddt, TestType::IdnaTestV2, file_name);
 }
 
 // parses setters_tests.json
