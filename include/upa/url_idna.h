@@ -33,6 +33,29 @@ validation_errc domain_to_ascii(const char16_t* src, std::size_t src_len, simple
 /// @return `validation_errc::ok` on success, or error code on failure
 validation_errc domain_to_unicode(const char* src, std::size_t src_len, simple_buffer<char>& output);
 
+/// @brief Gets Unicode version that IDNA library conforms to
+///
+/// @return encoded Unicode version
+/// @see make_unicode_version
+unsigned idna_unicode_version();
+
+/// @brief Encodes Unicode version
+///
+/// The version is encoded as follows: <version 1st number> * 0x1000000 +
+/// <version 2nd number> * 0x10000 + <version 3rd number> * 0x100 + <version 4th number>
+///
+/// For example for Unicode version 15.1.0 it returns 0x0F010000
+///
+/// @param[in] n1 version 1st number
+/// @param[in] n2 version 2nd number
+/// @param[in] n3 version 3rd number
+/// @param[in] n4 version 4th number
+/// @return encoded Unicode version
+constexpr unsigned make_unicode_version(unsigned n1, unsigned n2 = 0,
+    unsigned n3 = 0, unsigned n4 = 0) {
+    return n1 << 24 | n2 << 16 | n3 << 8 | n4;
+}
+
 /// @brief Close the IDNA handles, conditionally close the IDNA library, and free its memory
 ///
 /// It closes IDNA handles opened by calls to domain_to_ascii or domain_to_unicode functions.

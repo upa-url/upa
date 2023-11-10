@@ -10,6 +10,7 @@
 #include "upa/url_idna.h"
 #include "upa/util.h"
 // ICU
+#include "unicode/uchar.h"  // u_getUnicodeVersion
 #include "unicode/uclean.h"
 #include "unicode/uidna.h"
 #if (U_ICU_VERSION_MAJOR_NUM) >= 59
@@ -64,6 +65,12 @@ void idna_close(bool close_lib) {
         // ICU cleanup
         u_cleanup();
     }
+}
+
+unsigned idna_unicode_version() {
+    UVersionInfo ver;
+    u_getUnicodeVersion(ver);
+    return make_unicode_version(ver[0], ver[1], ver[2], ver[3]);
 }
 
 // Conversion to ICU UChar
