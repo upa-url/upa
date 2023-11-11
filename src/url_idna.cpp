@@ -69,7 +69,7 @@ void idna_close(bool close_lib) {
 
 unsigned idna_unicode_version() {
     UVersionInfo ver;
-    u_getUnicodeVersion(ver);
+    u_getUnicodeVersion(ver); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
     return make_unicode_version(ver[0], ver[1], ver[2], ver[3]);
 }
 
