@@ -493,7 +493,13 @@ public:
     /// operation (except @c safe_assign, which preserves reference validity).
     ///
     /// @return reference to this’s query object (url_search_params class)
-    url_search_params& search_params();
+    url_search_params& search_params()&;
+
+    /// @brief The searchParams getter for rvalue url
+    ///
+    /// @return the move constructed copy of this’s query object (url_search_params class)
+    /// @see search_params()&
+    url_search_params search_params()&&;
 
     /// @brief URL serializer
     ///
@@ -1194,10 +1200,19 @@ inline string_view url::hash() const {
     return { norm_url_.data() + b, e - b };
 }
 
-inline url_search_params& url::search_params() {
+inline url_search_params& url::search_params()& {
     if (!search_params_ptr_)
         search_params_ptr_.init(this);
     return *search_params_ptr_;
+}
+
+inline url_search_params url::search_params()&& {
+    if (search_params_ptr_) {
+        auto tmp = std::move(*search_params_ptr_);
+        tmp.url_ptr_ = nullptr;
+        return tmp;
+    }
+    return url_search_params{ search() };
 }
 
 inline void url::clear_search_params() noexcept {

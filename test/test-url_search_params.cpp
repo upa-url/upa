@@ -338,6 +338,37 @@ TEST_CASE("url::search_params()") {
     CHECK(url.search() == "");
 }
 
+TEST_CASE("url::search_params() of rvalue url object") {
+    const char* str_url = "http://h/" TEST_SEARCH_STR;
+    // expected values
+    const std::pair<std::string, std::string> arr_pairs[] = TEST_ITERABLES_DATA;
+    // TODO: use std::size(arr_pairs) if C++17
+    const std::size_t count = std::distance(std::begin(arr_pairs), std::end(arr_pairs));
+
+    SUBCASE("temporary url") {
+        std::size_t ind = 0;
+        for (auto& item : upa::url(str_url).search_params()) {
+            REQUIRE(ind < count);
+            CHECK(item == arr_pairs[ind]);
+            ++ind;
+        }
+        CHECK(ind == count);
+    }
+
+    SUBCASE("moved url") {
+        upa::url url{ str_url };
+        url.search_params();
+
+        std::size_t ind = 0;
+        for (auto& item : std::move(url).search_params()) {
+            REQUIRE(ind < count);
+            CHECK(item == arr_pairs[ind]);
+            ++ind;
+        }
+        CHECK(ind == count);
+    }
+}
+
 TEST_CASE("url::search_params() and url::operator=(const url&)") {
     // test copy assignment to url with initialized url_search_params
     upa::url url_ca("http://dest/");
