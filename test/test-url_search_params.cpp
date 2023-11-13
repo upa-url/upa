@@ -369,6 +369,18 @@ TEST_CASE("url::search_params() of rvalue url object") {
     }
 }
 
+TEST_CASE("moved url::search_params()") {
+    const char* str_url = "http://h/" TEST_SEARCH_STR;
+
+    upa::url url{ str_url };
+    // usp.url_ptr_ must be nullptr after move construction,
+    // i.e. must not be connected to url
+    upa::url_search_params usp{ std::move(url.search_params()) };
+    const auto str = url.to_string();
+    usp.append("p", "priv");
+    CHECK(str == url.to_string());
+}
+
 TEST_CASE("url::search_params() and url::operator=(const url&)") {
     // test copy assignment to url with initialized url_search_params
     upa::url url_ca("http://dest/");

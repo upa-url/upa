@@ -101,7 +101,7 @@ public:
     /// using move semantics.
     ///
     /// @param[in,out] other @c url_search_params object to move from
-    url_search_params(url_search_params&& other) = default;
+    url_search_params(url_search_params&& other);
 
     /// @brief Parsing constructor.
     ///
@@ -440,6 +440,13 @@ private:
 
 inline url_search_params::url_search_params(const url_search_params& other)
     : params_(other.params_)
+    , is_sorted_(other.is_sorted_)
+{}
+
+// Move constructor
+
+inline url_search_params::url_search_params(url_search_params&& other)
+    : params_(std::move(other.params_))
     , is_sorted_(other.is_sorted_)
 {}
 

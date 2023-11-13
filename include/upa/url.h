@@ -1207,11 +1207,8 @@ inline url_search_params& url::search_params()& {
 }
 
 inline url_search_params url::search_params()&& {
-    if (search_params_ptr_) {
-        auto tmp = std::move(*search_params_ptr_);
-        tmp.url_ptr_ = nullptr;
-        return tmp;
-    }
+    if (search_params_ptr_)
+        return std::move(*search_params_ptr_);
     return url_search_params{ search() };
 }
 
