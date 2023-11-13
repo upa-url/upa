@@ -101,7 +101,8 @@ public:
     /// using move semantics.
     ///
     /// @param[in,out] other @c url_search_params object to move from
-    url_search_params(url_search_params&& other);
+    url_search_params(url_search_params&& other)
+        noexcept(std::is_nothrow_move_constructible<name_value_list>::value);
 
     /// @brief Parsing constructor.
     ///
@@ -446,6 +447,7 @@ inline url_search_params::url_search_params(const url_search_params& other)
 // Move constructor
 
 inline url_search_params::url_search_params(url_search_params&& other)
+    noexcept(std::is_nothrow_move_constructible<name_value_list>::value)
     : params_(std::move(other.params_))
     , is_sorted_(other.is_sorted_)
 {}
