@@ -195,11 +195,6 @@ extern const code_point_set posix_path_no_encode_set;
 extern const code_point_set userinfo_no_encode_set;
 extern const code_point_set component_no_encode_set;
 
-extern const code_point_set host_forbidden_set;
-extern const code_point_set domain_forbidden_set;
-extern const code_point_set hex_digit_set;
-extern const code_point_set ipv4_char_set;
-
 #endif
 
 namespace detail {
