@@ -52,7 +52,7 @@ int benchmark_txt(const char* file_name, uint64_t min_iters) {
 // -----------------------------------------------------------------------------
 // Read samples from urltestdata.json and benchmark
 
-void benchmark_wpt(const char* file_name, uint64_t min_iters) {
+int benchmark_wpt(const char* file_name, uint64_t min_iters) {
     std::vector<std::pair<std::string, std::string>> url_samples;
 
     // Load URL samples
@@ -75,8 +75,9 @@ void benchmark_wpt(const char* file_name, uint64_t min_iters) {
         return true;
     } };
 
-    if (!json_util::load_file(context, file_name, "Load URL samples from"))
-        return;
+    const int err = json_util::load_file(context, file_name, "Load URL samples from");
+    if (err != 0)
+        return err;
 
     // Run benchmark
 
@@ -96,6 +97,8 @@ void benchmark_wpt(const char* file_name, uint64_t min_iters) {
             ankerl::nanobench::doNotOptimizeAway(url);
         }
     });
+
+    return 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -123,13 +126,11 @@ int main(int argc, const char* argv[])
         : min_iters_def;
 
     if (file_name.extension() == ".json") {
-        benchmark_wpt(file_name.string().c_str(), min_iters);
+        return benchmark_wpt(file_name.string().c_str(), min_iters);
     } else if (file_name.extension() == ".txt") {
-        benchmark_txt(file_name.string().c_str(), min_iters);
-    } else {
-        std::cerr << "File containing URLs should have .json or .txt extension.\n";
-        return 1;
+        return benchmark_txt(file_name.string().c_str(), min_iters);
     }
 
-    return 0;
+    std::cerr << "File containing URLs should have .json or .txt extension.\n";
+    return 1;
 }
