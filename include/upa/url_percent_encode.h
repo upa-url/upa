@@ -469,7 +469,7 @@ inline bool append_utf8_percent_encoded_char(const CharT*& first, const CharT* l
 // sequences in input with Unicode replacement characters (U+FFFD) if present.
 
 template<typename CharT>
-void append_utf8_percent_encoded(const CharT* first, const CharT* last, const code_point_set& cpset, std::string& output) {
+inline void append_utf8_percent_encoded(const CharT* first, const CharT* last, const code_point_set& cpset, std::string& output) {
     using UCharT = typename std::make_unsigned<CharT>::type;
 
     for (auto it = first; it < last; ) {

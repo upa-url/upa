@@ -1025,9 +1025,9 @@ inline bool starts_with_windows_drive(const CharT* pointer, const CharT* last) n
 #endif
 }
 
-// check string starts with absolute Windows drive path (for example: "C:\\path" or "C:/path")
+// Check string is absolute Windows drive path (for example: "C:\\path" or "C:/path")
 template <typename CharT>
-inline bool starts_with_windows_drive_absolute_path(const CharT* pointer, const CharT* last) noexcept {
+inline bool is_windows_drive_absolute_path(const CharT* pointer, const CharT* last) noexcept {
     return
         last - pointer > 2 &&
         detail::is_windows_drive(pointer[0], pointer[1]) &&
@@ -3070,7 +3070,7 @@ inline url url_from_file_path(StrT&& str, file_path_format format = file_path_fo
         }
         if (is_unc
             ? detail::is_unc_path(pointer, last)
-            : detail::starts_with_windows_drive_absolute_path(pointer, last)) {
+            : detail::is_windows_drive_absolute_path(pointer, last)) {
             no_encode_set = &raw_path_no_encode_set;
             if (!is_unc) str_url.push_back('/'); // start path
         } else {
