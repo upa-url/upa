@@ -34,6 +34,21 @@ using std::experimental::generator;
 
 #endif // defined(__has_include)
 
+// Conversion to doctest String
+// https://github.com/doctest/doctest/blob/master/doc/markdown/stringification.md
+
+namespace doctest {
+    template<> struct StringMaker<upa::url_search_params::value_type> {
+        static String convert(const upa::url_search_params::value_type& value) {
+            std::string str{ "[\"" };
+            str.append(value.first);
+            str.append("\", \"");
+            str.append(value.second);
+            str.append("\"]");
+            return { str.data(), static_cast<String::size_type>(str.length()) };
+        }
+    };
+}
 
 // Iterable containers tests
 
