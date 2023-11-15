@@ -647,6 +647,59 @@ TEST_CASE("url_from_file_path") {
     }
 }
 
+TEST_CASE("path_from_file_url") {
+    const auto path_from_file_url = [](const char* str_url, upa::file_path_format format) -> std::string {
+        return upa::path_from_file_url(upa::url(str_url), format);
+    };
+    const auto path_from_file_url_1 = [](const char* str_url) -> std::string {
+        return upa::path_from_file_url(upa::url(str_url));
+    };
+
+    SUBCASE("POSIX path") {
+        CHECK(path_from_file_url("file:///", upa::file_path_format::posix) == "/");
+        CHECK(path_from_file_url("file:///path", upa::file_path_format::posix) == "/path");
+    }
+    SUBCASE("Windows path") {
+        CHECK(path_from_file_url("file:///C:", upa::file_path_format::windows) == "C:\\");
+        CHECK(path_from_file_url("file:///C%3A", upa::file_path_format::windows) == "C:\\");
+        CHECK(path_from_file_url("file:///C:?", upa::file_path_format::windows) == "C:\\");
+        CHECK(path_from_file_url("file:///C:#", upa::file_path_format::windows) == "C:\\");
+        CHECK(path_from_file_url("file:///C:/", upa::file_path_format::windows) == "C:\\");
+        CHECK(path_from_file_url("file:///C:/path", upa::file_path_format::windows) == "C:\\path");
+        CHECK(path_from_file_url("file:///C%3A%5Cpath", upa::file_path_format::windows) == "C:\\path");
+        // Not a Windows path
+        CHECK_THROWS_AS(path_from_file_url("file:///", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(path_from_file_url("file:///p", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(path_from_file_url("file:///h/p", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(path_from_file_url("file://////h/p", upa::file_path_format::windows), upa::url_error);
+        // UNC
+        CHECK(path_from_file_url("file://host/path", upa::file_path_format::windows) == "\\\\host\\path");
+        CHECK(path_from_file_url("file:////host/path", upa::file_path_format::windows) == "\\\\host\\path");
+        CHECK(path_from_file_url("file://///host/path", upa::file_path_format::windows) == "\\\\host\\path");
+        // Invalid UNC
+        CHECK_THROWS_AS(path_from_file_url("file://host", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(path_from_file_url("file://host/", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(path_from_file_url("file:////host/", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(path_from_file_url("file://///host/", upa::file_path_format::windows), upa::url_error);
+    }
+    SUBCASE("Native path") {
+#ifdef _WIN32
+        CHECK(path_from_file_url_1("file:///C:") == "C:\\");
+        CHECK(path_from_file_url("file:///C:", upa::file_path_format::native) == "C:\\");
+        CHECK(path_from_file_url("file:///C:", upa::file_path_format::detect) == "C:\\");
+#else
+        CHECK(path_from_file_url_1("file:///") == "/");
+        CHECK(path_from_file_url("file:///", upa::file_path_format::native) == "/");
+        CHECK(path_from_file_url("file:///", upa::file_path_format::detect) == "/");
+#endif
+    }
+    SUBCASE("Not a file URL") {
+        CHECK_THROWS_AS(path_from_file_url("non-spec:///", upa::file_path_format::posix), upa::url_error);
+        CHECK_THROWS_AS(path_from_file_url("non-spec:///c:/", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(path_from_file_url("http://host/path", upa::file_path_format::windows), upa::url_error);
+    }
+}
+
 // Test std::hash specialization and operator==
 
 TEST_CASE("std::hash<upa::url> and operator==") {

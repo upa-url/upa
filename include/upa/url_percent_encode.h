@@ -491,6 +491,57 @@ inline void append_utf8_percent_encoded(const CharT* first, const CharT* last, c
     }
 }
 
+/// @brief Percent decode input string and append to output string
+///
+/// Invalid code points are replaced with U+FFFD characters.
+///
+/// More info:
+/// https://url.spec.whatwg.org/#string-percent-decode
+///
+/// @param[in] str string input
+/// @param[out] output string output
+template <class StrT, enable_if_str_arg_t<StrT> = 0>
+inline void append_percent_decoded(StrT&& str, std::string& output) {
+    const auto inp = make_str_arg(std::forward<StrT>(str));
+    const auto* first = inp.begin();
+    const auto* last = inp.end();
+
+    for (auto it = first; it != last;) {
+        const auto uch = util::to_unsigned(*it); ++it;
+        if (uch < 0x80) {
+            if (uch != '%') {
+                output.push_back(static_cast<char>(uch));
+                continue;
+            }
+            // uch == '%'
+            unsigned char uc8; // NOLINT(cppcoreguidelines-init-variables)
+            if (decode_hex_to_byte(it, last, uc8)) {
+                if (uc8 < 0x80) {
+                    output.push_back(static_cast<char>(uc8));
+                    continue;
+                }
+                // percent encoded utf-8 sequence
+                std::string buff_utf8;
+                buff_utf8.push_back(static_cast<char>(uc8));
+                while (it != last && *it == '%') {
+                    ++it; // skip '%'
+                    if (!decode_hex_to_byte(it, last, uc8))
+                        uc8 = '%';
+                    buff_utf8.push_back(static_cast<char>(uc8));
+                }
+                url_utf::check_fix_utf8(buff_utf8);
+                output += buff_utf8;
+                continue;
+            }
+            // detected invalid percent encoding
+            output.push_back('%');
+        } else { // uch >= 0x80
+            --it;
+            url_utf::read_char_append_utf8(it, last, output);
+        }
+    }
+}
+
 
 } // namespace detail
 
@@ -506,45 +557,8 @@ inline void append_utf8_percent_encoded(const CharT* first, const CharT* last, c
 /// @return percent decoded string
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
 inline std::string percent_decode(StrT&& str) {
-    const auto inp = make_str_arg(std::forward<StrT>(str));
-    const auto* first = inp.begin();
-    const auto* last = inp.end();
-
     std::string out;
-    for (auto it = first; it != last;) {
-        const auto uch = util::to_unsigned(*it); ++it;
-        if (uch < 0x80) {
-            if (uch != '%') {
-                out.push_back(static_cast<char>(uch));
-                continue;
-            }
-            // uch == '%'
-            unsigned char uc8; // NOLINT(cppcoreguidelines-init-variables)
-            if (detail::decode_hex_to_byte(it, last, uc8)) {
-                if (uc8 < 0x80) {
-                    out.push_back(static_cast<char>(uc8));
-                    continue;
-                }
-                // percent encoded utf-8 sequence
-                std::string buff_utf8;
-                buff_utf8.push_back(static_cast<char>(uc8));
-                while (it != last && *it == '%') {
-                    ++it; // skip '%'
-                    if (!detail::decode_hex_to_byte(it, last, uc8))
-                        uc8 = '%';
-                    buff_utf8.push_back(static_cast<char>(uc8));
-                }
-                url_utf::check_fix_utf8(buff_utf8);
-                out += buff_utf8;
-                continue;
-            }
-            // detected invalid percent encoding
-            out.push_back('%');
-        } else { // uch >= 0x80
-            --it;
-            url_utf::read_char_append_utf8(it, last, out);
-        }
-    }
+    detail::append_percent_decoded(std::forward<StrT>(str), out);
     return out;
 }
 

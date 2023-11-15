@@ -1025,6 +1025,15 @@ inline bool starts_with_windows_drive(const CharT* pointer, const CharT* last) n
 #endif
 }
 
+// Check url's pathname has Windows drive, i.e. starts with "/C:/" or is "/C:"
+// see also: detail::starts_with_windows_drive
+inline bool pathname_has_windows_drive(string_view pathname) noexcept {
+    return
+        (pathname.length() == 3 || (pathname.length() > 3 && is_windows_slash(pathname[3]))) &&
+        is_windows_slash(pathname[0]) &&
+        is_windows_drive(pathname[1], pathname[2]);
+}
+
 // Check string is absolute Windows drive path (for example: "C:\\path" or "C:/path")
 template <typename CharT>
 constexpr bool is_windows_drive_absolute_path(const CharT* pointer, const CharT* last) noexcept {
@@ -3081,6 +3090,74 @@ inline url url_from_file_path(StrT&& str, file_path_format format = file_path_fo
     // make URL
     detail::append_utf8_percent_encoded(pointer, last, *no_encode_set, str_url);
     return url(str_url);
+}
+
+/// @brief Get OS path from file URL
+///
+/// Throws url_error exception on error.
+///
+/// @param[in] file_url file URL
+/// @param[in] format file path format, one of upa::file_path_format::posix,
+///   upa::file_path_format::windows, upa::file_path_format::native
+/// @return OS path
+inline std::string path_from_file_url(const url& file_url, file_path_format format = file_path_format::native) {
+    if (!file_url.is_file_scheme())
+        throw url_error(validation_errc::file_unsupported_path, "Not a file URL");
+
+    if (format == upa::file_path_format::detect)
+        format = upa::file_path_format::native;
+
+    // source
+    auto pathname = file_url.pathname();
+
+    // target
+    std::string path;
+
+    if (format == file_path_format::posix) {
+        // percent decode pathname
+        detail::append_percent_decoded(pathname, path);
+    } else {
+        // format == file_path_format::windows
+        const auto hostname = file_url.hostname();
+        const bool is_host = !hostname.empty();
+        if (is_host) {
+            // UNC path
+            path.append("\\\\");
+            path.append(hostname);
+        }
+
+        // percent decode pathname and normalize slashes
+        const auto start = path.length();
+        detail::append_percent_decoded(pathname, path);
+        std::replace(path.data() + start, path.data() + path.length(), '/', '\\');
+
+        if (is_host) {
+            if (!detail::is_unc_path(path.data() + 2, path.data() + path.length()))
+                throw url_error(validation_errc::file_unsupported_path, "Invalid UNC path");
+        } else {
+            if (detail::pathname_has_windows_drive(path)) {
+                path.erase(0, 1); // remove leading '\\'
+                if (path.length() == 2)
+                    path.push_back('\\');
+            } else {
+                // https://datatracker.ietf.org/doc/html/rfc8089#appendix-E.3.2
+                // Maybe a UNC path. Possible variants:
+                // 1) file://///host/path -> \\\host\path
+                // 2) file:////host/path -> \\host\path
+                const auto count_leading_slashes = std::find_if(
+                    path.data(),
+                    path.data() + std::min(static_cast<std::size_t>(4), path.length()),
+                    [](char c) { return c != '\\'; }) - path.data();
+                if (count_leading_slashes == 3)
+                    path.erase(0, 1); // remove leading '\\'
+                else if (count_leading_slashes != 2)
+                    throw url_error(validation_errc::file_unsupported_path, "Not a Windows path");
+                if (!detail::is_unc_path(path.data() + 2, path.data() + path.length()))
+                    throw url_error(validation_errc::file_unsupported_path, "Invalid UNC path");
+            }
+        }
+    }
+    return path;
 }
 
 
