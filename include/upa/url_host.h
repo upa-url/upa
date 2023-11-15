@@ -130,15 +130,19 @@ private:
 
 // Helper functions
 
+namespace detail {
+
 template <typename CharT>
-static inline bool contains_forbidden_domain_char(const CharT* first, const CharT* last) {
+inline bool contains_forbidden_domain_char(const CharT* first, const CharT* last) {
     return std::any_of(first, last, detail::is_forbidden_domain_char<CharT>);
 }
 
 template <typename CharT>
-static inline bool contains_forbidden_host_char(const CharT* first, const CharT* last) {
+inline bool contains_forbidden_host_char(const CharT* first, const CharT* last) {
     return std::any_of(first, last, detail::is_forbidden_host_char<CharT>);
 }
+
+} // namespace detail
 
 
 // The host parser
@@ -250,7 +254,7 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
     const auto res = domain_to_ascii(buff_uc.data(), buff_uc.size(), buff_ascii);
     if (res != validation_errc::ok)
         return res;
-    if (contains_forbidden_domain_char(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
+    if (detail::contains_forbidden_domain_char(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
         // 7. If asciiDomain contains a forbidden domain code point, domain-invalid-code-point
         // validation error, return failure. 
         return validation_errc::domain_invalid_code_point;
@@ -274,7 +278,7 @@ template <typename CharT>
 inline validation_errc host_parser::parse_opaque_host(const CharT* first, const CharT* last, host_output& dest) {
     // 1. If input contains a forbidden host code point, host-invalid-code-point
     // validation error, return failure. 
-    if (contains_forbidden_host_char(first, last))
+    if (detail::contains_forbidden_host_char(first, last))
         return validation_errc::host_invalid_code_point;
 
     // TODO-WARN:

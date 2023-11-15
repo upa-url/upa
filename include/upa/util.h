@@ -114,7 +114,7 @@ inline void append_tr(std::string& dest, const CharT* first, const CharT* last, 
 }
 
 template <typename CharT>
-constexpr char ascii_to_lower_char(CharT c) {
+constexpr char ascii_to_lower_char(CharT c) noexcept {
     return static_cast<char>((c <= 'Z' && c >= 'A') ? (c | 0x20) : c);
 }
 

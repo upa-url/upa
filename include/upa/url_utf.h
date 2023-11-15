@@ -154,7 +154,7 @@ namespace detail {
     // Is this code unit/point a surrogate (U+d800..U+dfff)?
     // Based on U_IS_SURROGATE in utf.h from ICU
     template <typename T>
-    inline bool u16_is_surrogate(T c) noexcept {
+    constexpr bool u16_is_surrogate(T c) noexcept {
         return (c & 0xfffff800) == 0xd800;
     }
 
@@ -162,21 +162,21 @@ namespace detail {
     // is it a lead surrogate?
     // Based on U16_IS_SURROGATE_LEAD in utf16.h from ICU
     template <typename T>
-    inline bool u16_is_surrogate_lead(T c) noexcept {
+    constexpr bool u16_is_surrogate_lead(T c) noexcept {
         return (c & 0x400) == 0;
     }
 
     // Is this code unit a lead surrogate (U+d800..U+dbff)?
     // Based on U16_IS_LEAD in utf16.h from ICU
     template <typename T>
-    inline bool u16_is_lead(T c) noexcept {
+    constexpr bool u16_is_lead(T c) noexcept {
         return (c & 0xfffffc00) == 0xd800;
     }
 
     // Is this code unit a trail surrogate (U+dc00..U+dfff)?
     // Based on U16_IS_TRAIL in utf16.h from ICU
     template <typename T>
-    inline bool u16_is_trail(T c) noexcept {
+    constexpr bool u16_is_trail(T c) noexcept {
         return (c & 0xfffffc00) == 0xdc00;
     }
 
@@ -184,7 +184,7 @@ namespace detail {
     // from its lead and trail surrogates.
     // Based on U16_GET_SUPPLEMENTARY in utf16.h from ICU
     inline uint32_t u16_get_supplementary(uint32_t lead, uint32_t trail) noexcept {
-        const uint32_t u16_surrogate_offset = (0xd800 << 10UL) + 0xdc00 - 0x10000;
+        constexpr uint32_t u16_surrogate_offset = (0xd800 << 10UL) + 0xdc00 - 0x10000;
         return (lead << 10UL) + trail - u16_surrogate_offset;
     }
 } // namespace detail

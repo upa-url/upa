@@ -379,12 +379,12 @@ inline bool is_ascii_domain_char(CharT c) {
 // Char classification
 
 template <typename CharT>
-inline bool is_ascii_digit(CharT ch) noexcept {
+constexpr bool is_ascii_digit(CharT ch) noexcept {
     return ch <= '9' && ch >= '0';
 }
 
 template <typename CharT>
-inline bool is_ascii_alpha(CharT ch) noexcept {
+constexpr bool is_ascii_alpha(CharT ch) noexcept {
     return (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
 }
 

@@ -42,7 +42,7 @@ inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
 // Optimized version
 //
 template <typename CharT>
-static inline bool hostname_ends_in_a_number(const CharT* first, const CharT* last) {
+inline bool hostname_ends_in_a_number(const CharT* first, const CharT* last) {
     if (first != last) {
         // if the last label is empty string, then skip it
         if (*(last - 1) == '.')
@@ -75,7 +75,7 @@ static inline bool hostname_ends_in_a_number(const CharT* first, const CharT* la
 // TODO-WARN: validationError
 //
 template <typename CharT>
-static inline validation_errc ipv4_parse_number(const CharT* first, const CharT* last, uint32_t& number) {
+inline validation_errc ipv4_parse_number(const CharT* first, const CharT* last, uint32_t& number) {
     // If input is the empty string, then return failure
     if (first == last)
         return validation_errc::ipv4_non_numeric_part;
@@ -237,6 +237,8 @@ void ipv4_serialize(uint32_t ipv4, std::string& output);
 
 // IPv6
 
+namespace detail {
+
 template <typename IntT, typename CharT>
 inline IntT get_hex_number(const CharT*& pointer, const CharT* last) {
     IntT value = 0;
@@ -247,6 +249,8 @@ inline IntT get_hex_number(const CharT*& pointer, const CharT* last) {
     }
     return value;
 }
+
+} // namespace detail
 
 // IPv6 parser
 // https://url.spec.whatwg.org/#concept-ipv6-parser
@@ -309,7 +313,7 @@ inline validation_errc ipv6_parse(const CharT* first, const CharT* last, uint16_
 
         // HEX
         auto pointer0 = pointer;
-        const auto value = get_hex_number<uint16_t>(pointer, (last - pointer <= 4 ? last : pointer + 4));
+        const auto value = detail::get_hex_number<uint16_t>(pointer, (last - pointer <= 4 ? last : pointer + 4));
         if (pointer != last) {
             const CharT ch = *pointer;
             if (ch == '.') {

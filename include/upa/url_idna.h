@@ -52,7 +52,7 @@ unsigned idna_unicode_version();
 /// @param[in] n4 version 4th number
 /// @return encoded Unicode version
 constexpr unsigned make_unicode_version(unsigned n1, unsigned n2 = 0,
-    unsigned n3 = 0, unsigned n4 = 0) {
+    unsigned n3 = 0, unsigned n4 = 0) noexcept {
     return n1 << 24 | n2 << 16 | n3 << 8 | n4;
 }
 

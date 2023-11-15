@@ -900,7 +900,7 @@ private:
 // part start
 extern const uint8_t kPartStart[url::PART_COUNT];
 
-inline int port_from_str(const char* first, const char* last) {
+inline int port_from_str(const char* first, const char* last) noexcept {
     int port = 0;
     for (auto it = first; it != last; ++it) {
         port = port * 10 + (*it - '0');
@@ -912,18 +912,18 @@ inline int port_from_str(const char* first, const char* last) {
 
 // chars to trim (C0 control or space: U+0000 to U+001F or U+0020)
 template <typename CharT>
-inline bool is_trim_char(CharT ch) noexcept {
+constexpr bool is_trim_char(CharT ch) noexcept {
     return util::to_unsigned(ch) <= ' ';
 }
 
 // chars what should be removed from the URL (ASCII tab or newline: U+0009, U+000A, U+000D)
 template <typename CharT>
-inline bool is_removable_char(CharT ch) noexcept {
+constexpr bool is_removable_char(CharT ch) noexcept {
     return ch == '\r' || ch == '\n' || ch == '\t';
 }
 
 template <typename CharT>
-inline void do_trim(const CharT*& first, const CharT*& last) {
+inline void do_trim(const CharT*& first, const CharT*& last) noexcept {
     // remove leading C0 controls and space
     while (first < last && is_trim_char(*first))
         ++first;
@@ -969,29 +969,29 @@ inline InputIt find_last(InputIt first, InputIt last, const T& value) {
 // special chars
 
 template <typename CharT>
-inline bool is_slash(CharT ch) noexcept {
+constexpr bool is_slash(CharT ch) noexcept {
     return ch == '/' || ch == '\\';
 }
 
 template <typename CharT>
-inline bool is_windows_slash(CharT ch) noexcept {
+constexpr bool is_windows_slash(CharT ch) noexcept {
     return ch == '\\' || ch == '/';
 }
 
 // Scheme chars
 
 template <typename CharT>
-inline bool is_first_scheme_char(CharT ch) noexcept {
+constexpr bool is_first_scheme_char(CharT ch) noexcept {
     return is_ascii_alpha(ch);
 }
 
 template <typename CharT>
-inline bool is_authority_end_char(CharT c) noexcept {
+constexpr bool is_authority_end_char(CharT c) noexcept {
     return c == '/' || c == '?' || c == '#';
 }
 
 template <typename CharT>
-inline bool is_special_authority_end_char(CharT c) noexcept {
+constexpr bool is_special_authority_end_char(CharT c) noexcept {
     return c == '/' || c == '?' || c == '#' || c == '\\';
 }
 
@@ -1000,12 +1000,12 @@ inline bool is_special_authority_end_char(CharT c) noexcept {
 // https://url.spec.whatwg.org/#windows-drive-letter
 
 template <typename CharT>
-inline bool is_windows_drive(CharT c1, CharT c2) noexcept {
+constexpr bool is_windows_drive(CharT c1, CharT c2) noexcept {
     return is_ascii_alpha(c1) && (c2 == ':' || c2 == '|');
 }
 
 template <typename CharT>
-inline bool is_normalized_windows_drive(CharT c1, CharT c2) noexcept {
+constexpr bool is_normalized_windows_drive(CharT c1, CharT c2) noexcept {
     return is_ascii_alpha(c1) && c2 == ':';
 }
 
@@ -1027,7 +1027,7 @@ inline bool starts_with_windows_drive(const CharT* pointer, const CharT* last) n
 
 // Check string is absolute Windows drive path (for example: "C:\\path" or "C:/path")
 template <typename CharT>
-inline bool is_windows_drive_absolute_path(const CharT* pointer, const CharT* last) noexcept {
+constexpr bool is_windows_drive_absolute_path(const CharT* pointer, const CharT* last) noexcept {
     return
         last - pointer > 2 &&
         detail::is_windows_drive(pointer[0], pointer[1]) &&
