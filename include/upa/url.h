@@ -30,6 +30,7 @@
 #include <array>
 #include <cassert>
 #include <cstdint> // uint8_t
+#include <iterator> // std::next
 #include <string>
 #include <utility>
 #include <vector>
@@ -2956,7 +2957,7 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
     std::size_t path_components_count = 0;
     const auto* start = first;
     while (start != last) {
-        const CharT* pcend = std::find_if(start, last, detail::is_windows_slash<CharT>);
+        const auto* pcend = std::find_if(start, last, detail::is_windows_slash<CharT>);
         // path components MUST be at least one character in length
         if (start == pcend)
             return false;
@@ -3127,9 +3128,9 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
         }
 
         // percent decode pathname and normalize slashes
-        const auto start = path.length();
+        const auto start = static_cast<std::ptrdiff_t>(path.length());
         detail::append_percent_decoded(pathname, path);
-        std::replace(path.data() + start, path.data() + path.length(), '/', '\\');
+        std::replace(std::next(path.begin(), start), path.end(), '/', '\\');
 
         if (is_host) {
             if (!detail::is_unc_path(path.data() + 2, path.data() + path.length()))
