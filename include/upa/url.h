@@ -3004,6 +3004,8 @@ inline void swap(url& lhs, url& rhs) UPA_NOEXCEPT_17 {
 /// @brief File path format
 enum class file_path_format {
     detect,   ///< detect file path format from first char: '/' - POSIX, otherwise - Windows
+              ///< (for upa::url_from_file_path, but for upa::path_from_file_url this is
+              ///< equivalent to @a native)
     posix,    ///< POSIX file path format
     windows,  ///< Windows file path format
 #ifdef _WIN32
@@ -3109,18 +3111,19 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
         format = upa::file_path_format::native;
 
     // source
-    auto pathname = file_url.pathname();
+    const auto hostname = file_url.hostname();
+    const bool is_host = !hostname.empty();
 
     // target
     std::string path;
 
     if (format == file_path_format::posix) {
+        if (is_host)
+            throw url_error(validation_errc::file_unsupported_path, "POSIX path cannot have host");
         // percent decode pathname
-        detail::append_percent_decoded(pathname, path);
+        detail::append_percent_decoded(file_url.pathname(), path);
     } else {
         // format == file_path_format::windows
-        const auto hostname = file_url.hostname();
-        const bool is_host = !hostname.empty();
         if (is_host) {
             // UNC path
             path.append("\\\\");
@@ -3129,7 +3132,7 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
 
         // percent decode pathname and normalize slashes
         const auto start = static_cast<std::ptrdiff_t>(path.length());
-        detail::append_percent_decoded(pathname, path);
+        detail::append_percent_decoded(file_url.pathname(), path);
         std::replace(std::next(path.begin(), start), path.end(), '/', '\\');
 
         if (is_host) {
@@ -3139,7 +3142,7 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
             if (detail::pathname_has_windows_drive(path)) {
                 path.erase(0, 1); // remove leading '\\'
                 if (path.length() == 2)
-                    path.push_back('\\');
+                    path.push_back('\\'); // "C:" -> "C:\"
             } else {
                 // https://datatracker.ietf.org/doc/html/rfc8089#appendix-E.3.2
                 // Maybe a UNC path. Possible variants:

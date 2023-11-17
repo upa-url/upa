@@ -658,6 +658,8 @@ TEST_CASE("path_from_file_url") {
     SUBCASE("POSIX path") {
         CHECK(path_from_file_url("file:///", upa::file_path_format::posix) == "/");
         CHECK(path_from_file_url("file:///path", upa::file_path_format::posix) == "/path");
+        // POSIX path cannot have host
+        CHECK_THROWS_AS(path_from_file_url("file://host/path", upa::file_path_format::posix), upa::url_error);
     }
     SUBCASE("Windows path") {
         CHECK(path_from_file_url("file:///C:", upa::file_path_format::windows) == "C:\\");
