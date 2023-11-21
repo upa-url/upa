@@ -207,8 +207,7 @@ class object_array_context : public picojson::deny_parse_context {
     int m_level = 1;
     std::string m_name;
 public:
-    object_array_context(OnArrayItem on_array_item, OnKeyFilter
-            on_key_filter = [](const std::string&) { return true; })
+    object_array_context(OnArrayItem on_array_item, OnKeyFilter on_key_filter)
         : m_on_array_item(on_array_item)
         , m_on_key_filter(on_key_filter)
     {}
@@ -251,4 +250,4 @@ public:
 };
 
 
-}
+} // namespace json_util
