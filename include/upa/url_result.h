@@ -74,10 +74,10 @@ enum class validation_errc {
     // Non-standard error codes (indicates failure)
 
     overflow,                       ///< URL is too long
-    invalid_base,                   ///< invalid base
+    invalid_base,                   ///< Invalid base
     // url_from_file_path errors
-    file_empty_path,                ///< path cannot be empty
-    file_unsupported_path,          ///< unsupported file path (e.g. non-absolute)
+    file_empty_path,                ///< Path cannot be empty
+    file_unsupported_path,          ///< Unsupported file path (e.g. non-absolute)
     // path_from_file_url errors
     not_file_url,                   ///< Not a file URL
     file_url_host_unsupported,      ///< POSIX path cannot have host

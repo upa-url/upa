@@ -8,7 +8,7 @@
 #include "url_cleanup.h"
 
 // The main() entry point
-// https://github.com/onqtam/doctest/blob/master/doc/markdown/main.md
+// https://github.com/doctest/doctest/blob/master/doc/markdown/main.md
 
 int main(int argc, char** argv) {
     doctest::Context context;
