@@ -78,6 +78,11 @@ enum class validation_errc {
     // url_from_file_path errors
     file_empty_path,                ///< path cannot be empty
     file_unsupported_path,          ///< unsupported file path (e.g. non-absolute)
+    // path_from_file_url errors
+    not_file_url,                   ///< Not a file URL
+    file_url_host_unsupported,      ///< POSIX path cannot have host
+    file_url_invalid_unc,           ///< Invalid UNC path in file URL
+    file_url_not_windows_path,      ///< Not a Windows path in file URL
 };
 
 /// @brief Check validation error code indicates success

@@ -3105,7 +3105,7 @@ inline url url_from_file_path(StrT&& str, file_path_format format = file_path_fo
 /// @return OS path
 inline std::string path_from_file_url(const url& file_url, file_path_format format = file_path_format::native) {
     if (!file_url.is_file_scheme())
-        throw url_error(validation_errc::file_unsupported_path, "Not a file URL");
+        throw url_error(validation_errc::not_file_url, "Not a file URL");
 
     if (format == upa::file_path_format::detect)
         format = upa::file_path_format::native;
@@ -3119,7 +3119,7 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
 
     if (format == file_path_format::posix) {
         if (is_host)
-            throw url_error(validation_errc::file_unsupported_path, "POSIX path cannot have host");
+            throw url_error(validation_errc::file_url_host_unsupported, "POSIX path cannot have host");
         // percent decode pathname
         detail::append_percent_decoded(file_url.pathname(), path);
     } else {
@@ -3137,7 +3137,7 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
 
         if (is_host) {
             if (!detail::is_unc_path(path.data() + 2, path.data() + path.length()))
-                throw url_error(validation_errc::file_unsupported_path, "Invalid UNC path");
+                throw url_error(validation_errc::file_url_invalid_unc, "Invalid UNC path");
         } else {
             if (detail::pathname_has_windows_drive(path)) {
                 path.erase(0, 1); // remove leading '\\'
@@ -3155,9 +3155,9 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
                 if (count_leading_slashes == 3)
                     path.erase(0, 1); // remove leading '\\'
                 else if (count_leading_slashes != 2)
-                    throw url_error(validation_errc::file_unsupported_path, "Not a Windows path");
+                    throw url_error(validation_errc::file_url_not_windows_path, "Not a Windows path");
                 if (!detail::is_unc_path(path.data() + 2, path.data() + path.length()))
-                    throw url_error(validation_errc::file_unsupported_path, "Invalid UNC path");
+                    throw url_error(validation_errc::file_url_invalid_unc, "Invalid UNC path");
             }
         }
     }
