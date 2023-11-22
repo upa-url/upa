@@ -3119,7 +3119,7 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
 
     if (format == file_path_format::posix) {
         if (is_host)
-            throw url_error(validation_errc::file_url_host_unsupported, "POSIX path cannot have host");
+            throw url_error(validation_errc::file_url_cannot_have_host, "POSIX path cannot have host");
         // percent decode pathname
         detail::append_percent_decoded(file_url.pathname(), path);
     } else {
