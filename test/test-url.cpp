@@ -683,6 +683,8 @@ TEST_CASE("path_from_file_url") {
         CHECK_THROWS_AS(path_from_file_url("file://host/", upa::file_path_format::windows), upa::url_error);
         CHECK_THROWS_AS(path_from_file_url("file:////host/", upa::file_path_format::windows), upa::url_error);
         CHECK_THROWS_AS(path_from_file_url("file://///host/", upa::file_path_format::windows), upa::url_error);
+        // Unsupported "." hostname
+        CHECK_THROWS_AS(path_from_file_url("file://./name", upa::file_path_format::windows), upa::url_error);
     }
     SUBCASE("Native path") {
 #ifdef _WIN32

@@ -3125,6 +3125,9 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
     } else {
         // format == file_path_format::windows
         if (is_host) {
+            // UNC path cannot have "." hostname, because "\\.\" means DOS devices namespace
+            if (hostname == ".")
+                throw url_error(validation_errc::file_url_unsupported_host, "UNC path cannot have \".\" hostname");
             // UNC path
             path.append("\\\\");
             path.append(hostname);
