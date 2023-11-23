@@ -23,8 +23,9 @@ It has some differences from the standard:
 Upa URL contains features not specified in the standard:
 1. The `upa::url` class has `path` getter (to get `pathname` concatenated with `search`)
 2. Function to convert file system path to file URL: `upa::url_from_file_path`
-3. Experimental URLHost class (see proposal: https://github.com/whatwg/url/pull/288): `upa::url_host`
-4. The `upa::url_search_params` class has a few additional functions: `remove`, `remove_if`
+3. Function to get file system path from file URL: `upa::path_from_file_url`
+4. Experimental URLHost class (see proposal: https://github.com/whatwg/url/pull/288): `upa::url_host`
+5. The `upa::url_search_params` class has a few additional functions: `remove`, `remove_if`
 
 For string input, the library supports UTF-8, UTF-16, UTF-32 encodings and several string types, including `std::basic_string`, `std::basic_string_view`, null-terminated strings of any char type: `char`, `char8_t`, `char16_t`, `char32_t`, or `wchar_t`.
 
