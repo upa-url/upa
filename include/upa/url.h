@@ -3090,6 +3090,10 @@ inline url url_from_file_path(StrT&& str, file_path_format format = file_path_fo
         }
     }
 
+    // Check for null characters
+    if (util::contains_null(pointer, last))
+        throw url_error(validation_errc::null_character, "Path contains null character");
+
     // make URL
     detail::append_utf8_percent_encoded(pointer, last, *no_encode_set, str_url);
     return url(str_url);
@@ -3164,6 +3168,11 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
             }
         }
     }
+
+    // Check for null characters
+    if (util::contains_null(path.begin(), path.end()))
+        throw url_error(validation_errc::null_character, "Path contains null character");
+
     return path;
 }
 

@@ -605,6 +605,8 @@ TEST_CASE("url_from_file_path") {
         // non absolute path
         CHECK_THROWS_AS(upa::url_from_file_path("path"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\p", upa::file_path_format::posix), upa::url_error);
+        // null character
+        CHECK_THROWS_AS(upa::url_from_file_path(std::string{ "/p\0", 3 }, upa::file_path_format::posix), upa::url_error);
     }
     SUBCASE("Windows path") {
         // https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
@@ -644,6 +646,8 @@ TEST_CASE("url_from_file_path") {
         // unsupported pathes
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\.\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), upa::url_error);
+        // null character
+        CHECK_THROWS_AS(upa::url_from_file_path(std::string{ "/C:/p\0", 6 }, upa::file_path_format::posix), upa::url_error);
     }
 }
 
@@ -660,6 +664,8 @@ TEST_CASE("path_from_file_url") {
         CHECK(path_from_file_url("file:///path", upa::file_path_format::posix) == "/path");
         // POSIX path cannot have host
         CHECK_THROWS_AS(path_from_file_url("file://host/path", upa::file_path_format::posix), upa::url_error);
+        // null character
+        CHECK_THROWS_AS(path_from_file_url("file:///p%00", upa::file_path_format::posix), upa::url_error);
     }
     SUBCASE("Windows path") {
         CHECK(path_from_file_url("file:///C:", upa::file_path_format::windows) == "C:\\");
@@ -685,6 +691,8 @@ TEST_CASE("path_from_file_url") {
         CHECK_THROWS_AS(path_from_file_url("file://///host/", upa::file_path_format::windows), upa::url_error);
         // Unsupported "." hostname
         CHECK_THROWS_AS(path_from_file_url("file://./name", upa::file_path_format::windows), upa::url_error);
+        // null character
+        CHECK_THROWS_AS(path_from_file_url("file:///C:/p%00", upa::file_path_format::posix), upa::url_error);
     }
     SUBCASE("Native path") {
 #ifdef _WIN32

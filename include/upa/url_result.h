@@ -84,6 +84,7 @@ enum class validation_errc {
     file_url_unsupported_host,      ///< UNC path cannot have "." hostname
     file_url_invalid_unc,           ///< Invalid UNC path in file URL
     file_url_not_windows_path,      ///< Not a Windows path in file URL
+    null_character,                 ///< Path contains null character
 };
 
 /// @brief Check validation error code indicates success

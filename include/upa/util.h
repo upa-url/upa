@@ -125,6 +125,11 @@ inline void append_ascii_lowercase(std::string& dest, const CharT* first, const 
 
 // Finders
 
+template <class InputIt>
+inline bool contains_null(InputIt first, InputIt last) {
+    return std::find(first, last, '\0') != last;
+}
+
 template <class CharT>
 UPA_CONSTEXPR_17 bool has_xn_label(const CharT* first, const CharT* last) {
     if (last - first >= 4) {
