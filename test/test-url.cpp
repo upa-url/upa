@@ -647,7 +647,7 @@ TEST_CASE("url_from_file_path") {
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\.\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), upa::url_error);
         // null character
-        CHECK_THROWS_AS(upa::url_from_file_path(std::string{ "/C:/p\0", 6 }, upa::file_path_format::posix), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path(std::string{ "C:\\p\0", 5 }, upa::file_path_format::windows), upa::url_error);
     }
 }
 
