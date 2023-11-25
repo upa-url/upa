@@ -2967,13 +2967,22 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
 
         ++path_components_count;
 
-        // Do not accept a Windows drive letter from the first UNC path
-        // component, because it is not a valid host name
-        if (path_components_count == 1 &&
-            pcend - start == 2 &&
-            detail::is_windows_drive(start[0], start[1]))
-            return false;
-
+        // Check the first UNC path component (hostname)
+        if (path_components_count == 1) {
+            switch (pcend - start) {
+            case 1:
+                // Do not allow "?" and "." hostnames, because "\\?\" means Win32 file
+                // namespace and "\\.\" means Win32 device namespace
+                if (start[0] == '?' || start[0] == '.')
+                    return false;
+                break;
+            case 2:
+                // Do not allow Windows drive letter, because it is not a valid hostname
+                if (detail::is_windows_drive(start[0], start[1]))
+                    return false;
+                break;
+            }
+        }
         if (pcend == last) break;
         start = pcend + 1; // skip '\'
     }
@@ -3129,7 +3138,7 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
     } else {
         // format == file_path_format::windows
         if (is_host) {
-            // UNC path cannot have "." hostname, because "\\.\" means DOS devices namespace
+            // UNC path cannot have "." hostname, because "\\.\" means Win32 device namespace
             if (hostname == ".")
                 throw url_error(validation_errc::file_url_unsupported_host, "UNC path cannot have \".\" hostname");
             // UNC path

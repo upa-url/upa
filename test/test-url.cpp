@@ -641,6 +641,8 @@ TEST_CASE("url_from_file_path") {
         CHECK_THROWS_AS(upa::url_from_file_path(std::string{ '\\', '\\', 'h', '\\', 'a', '\0', 'b' }), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\C:\\path"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\C|\\path"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\UNC\\?\\name"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\UNC\\.\\name"), upa::url_error);
         // invalid hostname
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\a b\\path"), upa::url_error);
         // unsupported pathes
