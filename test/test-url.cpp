@@ -622,10 +622,11 @@ TEST_CASE("url_from_file_path") {
         CHECK(upa::url_from_file_path("\\\\h\\a/b").href() == "file://h/a/b");
         CHECK(upa::url_from_file_path("\\\\a/b\\path").href() == "file://a/b/path");
         CHECK(upa::url_from_file_path("//h/path", upa::file_path_format::windows).href() == "file://h/path");
-        // UNC: two-character hostname
-        CHECK(upa::url_from_file_path("\\\\ab\\path").href() == "file://ab/path");
-        // UNC: three-character hostname
-        CHECK(upa::url_from_file_path("\\\\abc\\path").href() == "file://abc/path");
+        // UNC: two-character hostname and share name
+        CHECK(upa::url_from_file_path("\\\\ab\\xy").href() == "file://ab/xy");
+        // UNC: three-character hostname and share name
+        CHECK(upa::url_from_file_path("\\\\abc\\xyz").href() == "file://abc/xyz");
+        CHECK(upa::url_from_file_path("\\\\abc\\...").href() == "file://abc/...");
         // Win32 file and device namespaces
         // https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats
         // https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
@@ -647,11 +648,15 @@ TEST_CASE("url_from_file_path") {
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\h"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\\\"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\."), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\.."), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path(std::string{ '\\', '\\', 'h', '\\', 'a', '\0', 'b' }), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\C:\\path"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\C|\\path"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\UNC\\?\\name"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\UNC\\.\\name"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\UNC\\h\\."), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\UNC\\h\\.."), upa::url_error);
         // invalid hostname
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\a b\\path"), upa::url_error);
         // unsupported pathes

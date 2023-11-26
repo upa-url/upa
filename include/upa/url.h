@@ -2967,8 +2967,9 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
 
         ++path_components_count;
 
-        // Check the first UNC path component (hostname)
-        if (path_components_count == 1) {
+        switch (path_components_count) {
+        case 1:
+            // Check the first UNC path component (hostname)
             switch (pcend - start) {
             case 1:
                 // Do not allow "?" and "." hostnames, because "\\?\" means Win32 file
@@ -2982,6 +2983,23 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
                     return false;
                 break;
             }
+            break;
+        case 2:
+            // Check the second UNC path component (share name).
+            // Do not allow "." and ".." as share names, because they have
+            // a special meaning and are removed by the URL parser.
+            switch (pcend - start) {
+            case 1:
+                if (start[0] == '.')
+                    return false;
+                break;
+            case 2:
+                if (start[0] == '.' && start[1] == '.')
+                    return false;
+                break;
+            }
+            break;
+        default:;
         }
         if (pcend == last) break;
         start = pcend + 1; // skip '\'
