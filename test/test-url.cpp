@@ -627,6 +627,9 @@ TEST_CASE("url_from_file_path") {
         // UNC: three-character hostname and share name
         CHECK(upa::url_from_file_path("\\\\abc\\xyz").href() == "file://abc/xyz");
         CHECK(upa::url_from_file_path("\\\\abc\\...").href() == "file://abc/...");
+        // UNC: IPv4 and IPv6 hostnames
+        CHECK(upa::url_from_file_path("\\\\127.0.0.1\\path").href() == "file://127.0.0.1/path");
+        CHECK(upa::url_from_file_path("\\\\[::1]\\path").href() == "file://[::1]/path");
         // Win32 file and device namespaces
         // https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats
         // https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
@@ -657,8 +660,10 @@ TEST_CASE("url_from_file_path") {
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\UNC\\.\\name"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\UNC\\h\\."), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\UNC\\h\\.."), upa::url_error);
-        // invalid hostname
+        // UNC: invalid hostname
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\a b\\path"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\a?b\\path"), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\\\a#b\\path"), upa::url_error);
         // unsupported pathes
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\.\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), upa::url_error);
