@@ -590,6 +590,25 @@ TEST_CASE("Invalid UTF-32 in hostname") {
 
 // URL utilities
 
+TEST_CASE("detail::has_dot_dot_segment") {
+    const auto has_dot_dot_segment = [](upa::string_view path) {
+        return upa::detail::has_dot_dot_segment(path.data(), path.data() + path.length(),
+            [](char c) { return c == '/'; });
+    };
+
+    CHECK(has_dot_dot_segment(".."));
+    CHECK(has_dot_dot_segment("../"));
+    CHECK(has_dot_dot_segment("/.."));
+    CHECK(has_dot_dot_segment("/../"));
+    CHECK(has_dot_dot_segment("/./.."));
+    CHECK_FALSE(has_dot_dot_segment("."));
+    CHECK_FALSE(has_dot_dot_segment("/./"));
+    CHECK_FALSE(has_dot_dot_segment("./."));
+    CHECK_FALSE(has_dot_dot_segment("..."));
+    CHECK_FALSE(has_dot_dot_segment("/.../"));
+    CHECK_FALSE(has_dot_dot_segment("/a../..z/"));
+}
+
 TEST_CASE("url_from_file_path") {
     SUBCASE("POSIX path") {
         CHECK(upa::url_from_file_path("/").href() == "file:///");
@@ -600,6 +619,7 @@ TEST_CASE("url_from_file_path") {
         CHECK(upa::url_from_file_path("/c:/last").href() == "file:///c%3A/last");
         CHECK(upa::url_from_file_path("/c|/last").href() == "file:///c%7C/last");
         CHECK(upa::url_from_file_path("/\\", upa::file_path_format::posix).href() == "file:///%5C");
+        CHECK(upa::url_from_file_path("/..\\", upa::file_path_format::posix).href() == "file:///..%5C");
         // empty path
         CHECK_THROWS_AS(upa::url_from_file_path(""), upa::url_error);
         // non absolute path
@@ -607,6 +627,9 @@ TEST_CASE("url_from_file_path") {
         CHECK_THROWS_AS(upa::url_from_file_path("C:\\path", upa::file_path_format::posix), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("C:/path", upa::file_path_format::posix), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\p", upa::file_path_format::posix), upa::url_error);
+        // ".." segments
+        CHECK_THROWS_AS(upa::url_from_file_path("/..", upa::file_path_format::posix), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("/../", upa::file_path_format::posix), upa::url_error);
         // null character
         CHECK_THROWS_AS(upa::url_from_file_path(std::string{ "/p\0", 3 }, upa::file_path_format::posix), upa::url_error);
     }
@@ -667,6 +690,13 @@ TEST_CASE("url_from_file_path") {
         // unsupported pathes
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\.\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt"), upa::url_error);
+        // ".." segments
+        CHECK_THROWS_AS(upa::url_from_file_path("C:\\..", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("C:\\..\\", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("C:/..", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("C:/../", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\h\\sn\\..", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("\\h\\sn\\../", upa::file_path_format::windows), upa::url_error);
         // null character
         CHECK_THROWS_AS(upa::url_from_file_path(std::string{ "C:\\p\0", 5 }, upa::file_path_format::windows), upa::url_error);
     }

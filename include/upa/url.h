@@ -1035,13 +1035,15 @@ inline bool pathname_has_windows_drive(string_view pathname) noexcept {
         is_windows_drive(pathname[1], pathname[2]);
 }
 
-// Check string is absolute Windows drive path (for example: "C:\\path" or "C:/path")
+/// Check string is absolute Windows drive path (for example: "C:\\path" or "C:/path")
+/// @return pointer to the path after first (back)slash, or `nullptr` if path is not
+///   absolute Windows drive path
 template <typename CharT>
-constexpr bool is_windows_drive_absolute_path(const CharT* pointer, const CharT* last) noexcept {
-    return
-        last - pointer > 2 &&
+constexpr const CharT* is_windows_drive_absolute_path(const CharT* pointer, const CharT* last) noexcept {
+    return (last - pointer > 2 &&
         detail::is_windows_drive(pointer[0], pointer[1]) &&
-        detail::is_windows_slash(pointer[2]);
+        detail::is_windows_slash(pointer[2]))
+        ? pointer + 3 : nullptr;
 }
 
 } // namespace detail
@@ -2946,24 +2948,29 @@ inline void url_setter::insert_part(url::PartType new_pt, const char* str, std::
 }
 #endif
 
-// Check UNC path
-//
-// Input - path string with the first two backslashes skipped
-//
+/// @brief Check UNC path
+///
+/// Input - path string with the first two backslashes skipped
+///
+/// @param[in] first start of path string
+/// @param[in] last end of path string
+/// @return pointer to the end of the UNC share name, or `nullptr`
+///   if input is not valid UNC
 template <typename CharT>
-inline bool is_unc_path(const CharT* first, const CharT* last)
+inline const CharT* is_unc_path(const CharT* first, const CharT* last)
 {
     // https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dfsc/149a3039-98ce-491a-9268-2f5ddef08192
     std::size_t path_components_count = 0;
+    const CharT* end_of_share_name = nullptr;
     const auto* start = first;
     while (start != last) {
         const auto* pcend = std::find_if(start, last, detail::is_windows_slash<CharT>);
         // path components MUST be at least one character in length
         if (start == pcend)
-            return false;
+            return nullptr;
         // path components MUST NOT contain a backslash (\) or a null
         if (std::find(start, pcend, '\0') != pcend)
-            return false;
+            return nullptr;
 
         ++path_components_count;
 
@@ -2975,12 +2982,12 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
                 // Do not allow "?" and "." hostnames, because "\\?\" means Win32 file
                 // namespace and "\\.\" means Win32 device namespace
                 if (start[0] == '?' || start[0] == '.')
-                    return false;
+                    return nullptr;
                 break;
             case 2:
                 // Do not allow Windows drive letter, because it is not a valid hostname
                 if (detail::is_windows_drive(start[0], start[1]))
-                    return false;
+                    return nullptr;
                 break;
             }
             break;
@@ -2991,21 +2998,46 @@ inline bool is_unc_path(const CharT* first, const CharT* last)
             switch (pcend - start) {
             case 1:
                 if (start[0] == '.')
-                    return false;
+                    return nullptr;
                 break;
             case 2:
                 if (start[0] == '.' && start[1] == '.')
-                    return false;
+                    return nullptr;
                 break;
             }
+            // A valid UNC path MUST contain two or more path components
+            end_of_share_name = pcend;
             break;
         default:;
         }
         if (pcend == last) break;
         start = pcend + 1; // skip '\'
     }
-    // A valid UNC path MUST contain two or more path components
-    return path_components_count >= 2;
+    return end_of_share_name;
+}
+
+/// @brief Check path contains ".." segment
+///
+/// @param[in] first start of path string
+/// @param[in] last end of path string
+/// @param[in] is_slash function to check char is slash (or backslash)
+/// @return true if path contains ".." segment
+template <typename CharT, typename IsSlash>
+inline bool has_dot_dot_segment(const CharT* first, const CharT* last, IsSlash is_slash) {
+    if (last - first >= 2) {
+        const auto* ptr = first;
+        const auto* end = last - 1;
+        while ((ptr = std::char_traits<CharT>::find(ptr, end - ptr, '.')) != nullptr) {
+            if (ptr[1] == '.' &&
+                (ptr == first || is_slash(*(ptr - 1))) &&
+                (last - ptr == 2 || is_slash(ptr[2])))
+                return true;
+            // skip '.' and following char
+            if ((ptr += 2) >= end)
+                break;
+        }
+    }
+    return false;
 }
 
 } // namespace detail
@@ -3044,6 +3076,18 @@ enum class file_path_format {
 
 /// @brief Make URL from OS file path
 ///
+/// The file path must be absolute and must not contain any dot-dot (..)
+/// segments.
+///
+/// There is a difference in how paths with dot-dot segments are normalized in the OS and in the
+/// WHATWG URL standard. For example, in POSIX the path `/a//../b` is normalized to `/b`, while
+/// the URL parser normalizes this path to `/a/b`. This library does not implement OS specific path
+/// normalization, which is the main reason why it does not accept paths with dot-dot segments.
+/// Therefore, if there are such segments in the path, it should be normalized by OS tools before
+/// being submitted to this function. Normalization can be done using the POSIX `realpath`
+/// function, the Windows `GetFullPathName` function, or, if you are using C++17, the
+/// `std::filesystem::canonical` function.
+///
 /// Throws url_error exception on error.
 ///
 /// @param[in] str absolute file path string
@@ -3051,8 +3095,13 @@ enum class file_path_format {
 ///   upa::file_path_format::posix, upa::file_path_format::windows,
 ///   upa::file_path_format::native
 /// @return file URL
+/// @see [Pathname (POSIX)](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_271),
+///   [realpath](https://pubs.opengroup.org/onlinepubs/9699919799/functions/realpath.html),
+///   [GetFullPathName](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfullpathnamew),
+///   [std::filesystem::canonical](https://en.cppreference.com/w/cpp/filesystem/canonical)
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
 inline url url_from_file_path(StrT&& str, file_path_format format = file_path_format::detect) {
+    using CharT = str_arg_char_t<StrT>;
     const auto inp = make_str_arg(std::forward<StrT>(str));
     const auto* first = inp.begin();
     const auto* last = inp.end();
@@ -3069,11 +3118,14 @@ inline url url_from_file_path(StrT&& str, file_path_format format = file_path_fo
     }
 
     const auto* pointer = first;
+    const auto* start_of_check = first;
     const code_point_set* no_encode_set = nullptr;
 
     std::string str_url("file://");
 
     if (format == file_path_format::posix) {
+        if (detail::has_dot_dot_segment(start_of_check, last, [](CharT c) { return c == '/'; }))
+            throw url_error(validation_errc::file_unsupported_path, "Unsupported file path");
         // Absolute POSIX path
         no_encode_set = &posix_path_no_encode_set;
     } else {
@@ -3107,18 +3159,18 @@ inline url url_from_file_path(StrT&& str, file_path_format format = file_path_fo
                 is_unc = true;
             }
         }
-        if (is_unc
+        start_of_check = is_unc
             ? detail::is_unc_path(pointer, last)
-            : detail::is_windows_drive_absolute_path(pointer, last)) {
-            no_encode_set = &raw_path_no_encode_set;
-            if (!is_unc) str_url.push_back('/'); // start path
-        } else {
+            : detail::is_windows_drive_absolute_path(pointer, last);
+        if (start_of_check == nullptr ||
+            detail::has_dot_dot_segment(start_of_check, last, detail::is_windows_slash<CharT>))
             throw url_error(validation_errc::file_unsupported_path, "Unsupported file path");
-        }
+        no_encode_set = &raw_path_no_encode_set;
+        if (!is_unc) str_url.push_back('/'); // start path
     }
 
     // Check for null characters
-    if (util::contains_null(pointer, last))
+    if (util::contains_null(start_of_check, last))
         throw url_error(validation_errc::null_character, "Path contains null character");
 
     // make URL
