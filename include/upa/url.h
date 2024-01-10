@@ -3033,7 +3033,8 @@ inline bool has_dot_dot_segment(const CharT* first, const CharT* last, IsSlash i
                 (last - ptr == 2 || is_slash(ptr[2])))
                 return true;
             // skip '.' and following char
-            if ((ptr += 2) >= end)
+            ptr += 2;
+            if (ptr >= end)
                 break;
         }
     }
