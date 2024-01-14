@@ -3063,11 +3063,8 @@ inline void swap(url& lhs, url& rhs) UPA_NOEXCEPT_17 {
 
 /// @brief File path format
 enum class file_path_format {
-    detect,   ///< detect file path format from first char: '/' - POSIX, otherwise - Windows
-              ///< (for upa::url_from_file_path, but for upa::path_from_file_url this is
-              ///< equivalent to @a native)
-    posix,    ///< POSIX file path format
-    windows,  ///< Windows file path format
+    posix = 1,  ///< POSIX file path format
+    windows,    ///< Windows file path format
 #ifdef _WIN32
     native = windows ///< The file path format corresponds to the OS on which the code was compiled
 #else
@@ -3092,16 +3089,15 @@ enum class file_path_format {
 /// Throws url_error exception on error.
 ///
 /// @param[in] str absolute file path string
-/// @param[in] format file path format, one of upa::file_path_format::detect,
-///   upa::file_path_format::posix, upa::file_path_format::windows,
-///   upa::file_path_format::native
+/// @param[in] format file path format, one of upa::file_path_format::posix,
+///   upa::file_path_format::windows, upa::file_path_format::native
 /// @return file URL
 /// @see [Pathname (POSIX)](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_271),
 ///   [realpath](https://pubs.opengroup.org/onlinepubs/9699919799/functions/realpath.html),
 ///   [GetFullPathName](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfullpathnamew),
 ///   [std::filesystem::canonical](https://en.cppreference.com/w/cpp/filesystem/canonical)
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
-inline url url_from_file_path(StrT&& str, file_path_format format = file_path_format::detect) {
+inline url url_from_file_path(StrT&& str, file_path_format format = file_path_format::native) {
     using CharT = str_arg_char_t<StrT>;
     const auto inp = make_str_arg(std::forward<StrT>(str));
     const auto* first = inp.begin();
@@ -3111,13 +3107,6 @@ inline url url_from_file_path(StrT&& str, file_path_format format = file_path_fo
         throw url_error(validation_errc::file_empty_path, "Empty file path");
     }
 
-    if (format == file_path_format::detect) {
-        format = *first == '/' ? file_path_format::posix : file_path_format::windows;
-    } else if (format == file_path_format::posix) {
-        if (*first != '/')
-            throw url_error(validation_errc::file_unsupported_path, "Non-absolute POSIX path");
-    }
-
     const auto* pointer = first;
     const auto* start_of_check = first;
     const code_point_set* no_encode_set = nullptr;
@@ -3125,6 +3114,8 @@ inline url url_from_file_path(StrT&& str, file_path_format format = file_path_fo
     std::string str_url("file://");
 
     if (format == file_path_format::posix) {
+        if (*first != '/')
+            throw url_error(validation_errc::file_unsupported_path, "Non-absolute POSIX path");
         if (detail::has_dot_dot_segment(start_of_check, last, [](CharT c) { return c == '/'; }))
             throw url_error(validation_errc::file_unsupported_path, "Unsupported file path");
         // Absolute POSIX path
@@ -3190,9 +3181,6 @@ inline url url_from_file_path(StrT&& str, file_path_format format = file_path_fo
 inline std::string path_from_file_url(const url& file_url, file_path_format format = file_path_format::native) {
     if (!file_url.is_file_scheme())
         throw url_error(validation_errc::not_file_url, "Not a file URL");
-
-    if (format == upa::file_path_format::detect)
-        format = upa::file_path_format::native;
 
     // source
     const auto hostname = file_url.hostname();
