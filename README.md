@@ -157,7 +157,7 @@ std::cout << url.href() << '\n'; // https://example.com/?id=1
 Convert filesystem path to file URL:
 ```cpp
 try {
-    auto url = upa::url_from_file_path("/home/opa/file.txt");
+    auto url = upa::url_from_file_path("/home/opa/file.txt", upa::file_path_format::posix);
     std::cout << url.href() << '\n'; // file:///home/opa/file.txt
 }
 catch (const std::exception& ex) {
