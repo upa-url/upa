@@ -674,17 +674,6 @@ private:
     friend class url_search_params;
 };
 
-/// @brief URL equivalence
-///
-/// Determines if @a lhs equals to @a rhs, optionally with an @a exclude_fragments flag.
-/// More info: https://url.spec.whatwg.org/#concept-url-equals
-///
-/// @param[in] lhs,rhs URLs to compare
-/// @param[in] exclude_fragments exclude fragments when comparing
-inline bool equals(const url& lhs, const url& rhs, bool exclude_fragments = false) {
-    return lhs.serialize(exclude_fragments) == rhs.serialize(exclude_fragments);
-}
-
 
 namespace detail {
 
@@ -3045,6 +3034,17 @@ inline bool has_dot_dot_segment(const CharT* first, const CharT* last, IsSlash i
 
 
 // URL utilities (non-member functions)
+
+/// @brief URL equivalence
+///
+/// Determines if @a lhs equals to @a rhs, optionally with an @a exclude_fragments flag.
+/// More info: https://url.spec.whatwg.org/#concept-url-equals
+///
+/// @param[in] lhs,rhs URLs to compare
+/// @param[in] exclude_fragments exclude fragments when comparing
+inline bool equals(const url& lhs, const url& rhs, bool exclude_fragments = false) {
+    return lhs.serialize(exclude_fragments) == rhs.serialize(exclude_fragments);
+}
 
 /// @brief Lexicographically compares two URL's
 inline bool operator==(const url& lhs, const url& rhs) noexcept {
