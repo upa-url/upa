@@ -26,10 +26,14 @@ jobs:
           cmake -S . -B build -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_STANDARD=20 -DURL_BUILD_TESTS=OFF -DURL_BUILD_EXTRACTED=ON
           cmake --build build
 
-      # Run doxygen
+      # Install and run doxygen
       - name: Download theme
         run: doc/download-theme.sh
-      - uses: mattnotmitt/doxygen-action@edge
+      - uses: ssciwr/doxygen-install@v1
+        with:
+          version: "1.9.8"
+      - name: Run doxygen
+        run: /usr/local/bin/doxygen
 
       # Deploy docs
       - name: Is there a gh-pages branch?
