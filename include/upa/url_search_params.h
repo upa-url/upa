@@ -372,7 +372,7 @@ private:
     void update();
 
     friend class url;
-    friend detail::url_search_params_ptr;
+    friend class detail::url_search_params_ptr;
 
 private:
     name_value_list params_;

@@ -668,9 +668,9 @@ private:
 
     friend bool operator==(const url& lhs, const url& rhs) noexcept;
     friend struct std::hash<url>;
-    friend detail::url_serializer;
-    friend detail::url_setter;
-    friend detail::url_parser;
+    friend class detail::url_serializer;
+    friend class detail::url_setter;
+    friend class detail::url_parser;
     friend class url_search_params;
 };
 
