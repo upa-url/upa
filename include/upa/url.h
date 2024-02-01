@@ -3248,13 +3248,17 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
 } // namespace upa
 
 
+namespace std {
+
 /// @brief std::hash specialization for upa::url class
 template<>
-struct std::hash<upa::url> {
+struct hash<upa::url> {
     std::size_t operator()(const upa::url& url) const noexcept {
         return std::hash<std::string>{}(url.norm_url_);
     }
 };
+
+} // namespace std
 
 // Includes that require the url class declaration
 #include "url_search_params-inl.h"

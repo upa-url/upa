@@ -2,7 +2,7 @@
 
 Upa URL is [WHATWG URL Standard](https://url.spec.whatwg.org/) compliant <b>U</b>RL <b>pa</b>rser library written in C++.
 
-The library depends on the [ICU library](https://icu.unicode.org/) for IDNA processing and requires a compiler that supports C++11 or later. It is known to compile with Clang 4, GCC 7, Microsoft Visual Studio 2015 or later. It is recommended to use ICU 68 or later; to pass URL IDNA tests (IdnaTestV2.json) of [web-platform-tests](https://github.com/web-platform-tests/wpt/tree/master/url) use ICU 66 or later.
+The library depends on the [ICU library](https://icu.unicode.org/) for IDNA processing and requires a compiler that supports C++11 or later. It is known to compile with Clang 4, GCC 4.9, Microsoft Visual Studio 2015 or later. It is recommended to use ICU 68 or later; to pass URL IDNA tests (IdnaTestV2.json) of [web-platform-tests](https://github.com/web-platform-tests/wpt/tree/master/url) use ICU 66 or later.
 
 ## Features and standard conformance
 
