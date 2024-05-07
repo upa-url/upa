@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -37,6 +37,18 @@
 # define UPA_CONSTEXPR_14 constexpr
 #else
 # define UPA_CONSTEXPR_14 inline
+#endif
+
+// Barrier for pointer anti-aliasing optimizations even across function boundaries.
+// This is a slightly modified U_ALIASING_BARRIER macro from the char16ptr.h file
+// of the ICU 75.1 library.
+// Discussion: https://github.com/sg16-unicode/sg16/issues/67
+#ifndef UPA_ALIASING_BARRIER
+# if defined(__clang__) || defined(__GNUC__)
+#  define UPA_ALIASING_BARRIER(ptr) asm volatile("" : : "rm"(ptr) : "memory");  // NOLINT(*-macro-*,hicpp-no-assembler)
+# else
+#  define UPA_ALIASING_BARRIER(ptr)
+# endif
 #endif
 
 #endif // UPA_CONFIG_H

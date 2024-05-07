@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -7,15 +7,15 @@
 // Copyright 2013 The Chromium Authors. All rights reserved.
 //
 
+#include "upa/config.h"
 #include "upa/url_idna.h"
 #include "upa/util.h"
-// ICU
+// ICU: only C API is used (U_SHOW_CPLUSPLUS_API 0)
+// https://unicode-org.github.io/icu/userguide/icu4c/build.html#icu-as-a-system-level-library
+#define U_SHOW_CPLUSPLUS_API 0  // NOLINT(*-macro-*)
 #include "unicode/uchar.h"  // u_getUnicodeVersion
 #include "unicode/uclean.h"
 #include "unicode/uidna.h"
-#if (U_ICU_VERSION_MAJOR_NUM) >= 59
-# include "unicode/char16ptr.h"
-#endif
 #if (U_ICU_VERSION_MAJOR_NUM) < 68
 # include <algorithm>
 #endif
@@ -75,15 +75,21 @@ unsigned idna_unicode_version() {
 
 // Conversion to ICU UChar
 
+namespace {
+
 static_assert(sizeof(UChar) == sizeof(char16_t), "UChar must be the same size as char16_t");
 
-#if (U_ICU_VERSION_MAJOR_NUM) < 59
-// toUCharPtr functions are defined in ICU 59
-namespace icu {
-    inline const UChar* toUCharPtr(const char16_t* p) { return reinterpret_cast<const UChar*>(p); }
-    inline UChar* toUCharPtr(char16_t* p) { return reinterpret_cast<UChar*>(p); }
+inline const UChar* to_UChar_ptr(const char16_t* p) noexcept {
+    UPA_ALIASING_BARRIER(p)
+    return reinterpret_cast<const UChar*>(p);
 }
-#endif
+
+inline UChar* to_UChar_ptr(char16_t* p) noexcept {
+    UPA_ALIASING_BARRIER(p)
+    return reinterpret_cast<UChar*>(p);
+}
+
+} // namespace
 
 // Implements the domain to ASCII algorithm
 // https://url.spec.whatwg.org/#concept-domain-to-ascii
@@ -117,8 +123,8 @@ validation_errc domain_to_ascii(const char16_t* src, std::size_t src_len, simple
         UErrorCode err = U_ZERO_ERROR;
         UIDNAInfo info = UIDNA_INFO_INITIALIZER;
         const int32_t output_length = uidna_nameToASCII(uidna,
-            icu::toUCharPtr(src), static_cast<int32_t>(src_len),
-            icu::toUCharPtr(output.data()), static_cast<int32_t>(output.capacity()),
+            to_UChar_ptr(src), static_cast<int32_t>(src_len),
+            to_UChar_ptr(output.data()), static_cast<int32_t>(output.capacity()),
             &info, &err);
         if (U_SUCCESS(err) && (info.errors & UIDNA_ERR_MASK) == 0) {
             output.resize(output_length);
