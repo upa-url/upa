@@ -35,7 +35,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: install ICU library
-      run: install-icu.bat C:\LIB 74 2
+      run: install-icu.bat C:\LIB 75 1
       shell: cmd
     - name: get dependencies
       run: init.bat

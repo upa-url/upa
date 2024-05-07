@@ -17,6 +17,7 @@ set MSVC=MSVC2015
 if %VER_MAJOR% geq 61 (set MSVC=MSVC2017)
 if %VER_MAJOR% geq 68 (set MSVC=MSVC2019)
 if %VER_MAJOR% equ 74 if %VER_MINOR% equ 1 (set MSVC=MSVC2022)
+if %VER_MAJOR% geq 75 (set MSVC=MSVC2022)
 
 mkdir %BASE_DIR%
 curl -fsSL -o %BASE_DIR%\icu4c-bin.zip https://github.com/unicode-org/icu/releases/download/release-%VER_MAJOR%-%VER_MINOR%/icu4c-%VER_MAJOR%_%VER_MINOR%-Win64-%MSVC%.zip
