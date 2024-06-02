@@ -17,3 +17,6 @@
 
 # Visual Studio
 .vs/
+
+# Files
+Doxyfile.bak
