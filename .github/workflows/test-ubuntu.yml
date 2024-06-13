@@ -45,7 +45,7 @@ jobs:
               lcov --capture --directory . --output-file coverage.info
               lcov --remove coverage.info '/usr/*' '*/deps/*' '*/test/*' --output-file coverage.info
               lcov --list coverage.info
-              bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
+            codecov: true
 
           - name: g++ C++17 amalgamated
             cxx_compiler: g++
@@ -84,3 +84,9 @@ jobs:
     - name: after test
       if: ${{ matrix.after_test }}
       run: ${{ matrix.after_test }}
+    - uses: codecov/codecov-action@v4
+      if: ${{ matrix.codecov }}
+      with:
+        files: ./coverage.info
+        token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: true
