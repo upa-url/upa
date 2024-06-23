@@ -195,9 +195,13 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
             return validation_errc::ok;
         }
     } else if (static_cast<UCharT>(*ptr) < 0x80 && *ptr != '%') {
-        // 7. If asciiDomain contains a forbidden domain code point, domain-invalid-code-point
-        // validation error, return failure. 
-        return validation_errc::domain_invalid_code_point;
+        // NFC normalizes U+003C (<), U+003D (=), U+003E (>) characters if they precede
+        // U+0338. Therefore, no errors are reported here for forbidden < and > characters
+        // if there is a possibility to normalize them.
+        if (!(*ptr >= 0x3C && *ptr <= 0x3E && ptr + 1 < last && static_cast<UCharT>(ptr[1]) >= 0x80))
+            // 7. If asciiDomain contains a forbidden domain code point, domain-invalid-code-point
+            // validation error, return failure. 
+            return validation_errc::domain_invalid_code_point;
     }
 
     // Input for domain_to_ascii

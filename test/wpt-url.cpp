@@ -47,6 +47,7 @@ int main(int argc, char** argv)
 
     // additional tests
     err |= test_from_file(run_parser_tests, "data/my-urltestdata.json");
+    err |= test_from_file(run_host_parser_tests, "data/my-toascii.json");
     err |= test_from_file(run_setter_tests, "data/my-setters_tests.json");
 
     // Free memory
