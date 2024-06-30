@@ -10,9 +10,9 @@
 
 #define UPA_URL_VERSION_MAJOR 0
 #define UPA_URL_VERSION_MINOR 3
-#define UPA_URL_VERSION_PATCH 0
+#define UPA_URL_VERSION_PATCH 1
 
-#define UPA_URL_VERSION "0.3.0"
+#define UPA_URL_VERSION "0.3.1"
 
 // NOLINTEND(*-macro-*)
 
