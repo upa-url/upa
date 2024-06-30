@@ -530,14 +530,14 @@ public:
     /// Function to get ASCII string of any URL's part (URL record member) defined here:
     /// https://url.spec.whatwg.org/#url-representation
     ///
-    /// * `get_part_view(url::SCHEME)` - get a URL’s **scheme** string
-    /// * `get_part_view(url::USERNAME)` - get a URL’s **username** string
-    /// * `get_part_view(url::PASSWORD)` - get a URL’s **password** string
-    /// * `get_part_view(url::HOST)` - get a URL’s **host** serialized to string
-    /// * `get_part_view(url::PORT)` - get a URL’s **port** serialized to string
-    /// * `get_part_view(url::PATH)` - get a URL’s **path** serialized to string
-    /// * `get_part_view(url::QUERY)` - get a URL’s **query** string
-    /// * `get_part_view(url::FRAGMENT)` - get a URL’s **fragment** string
+    /// * `get_part_view(upa::url::SCHEME)` - get a URL’s **scheme** string
+    /// * `get_part_view(upa::url::USERNAME)` - get a URL’s **username** string
+    /// * `get_part_view(upa::url::PASSWORD)` - get a URL’s **password** string
+    /// * `get_part_view(upa::url::HOST)` - get a URL’s **host** serialized to string
+    /// * `get_part_view(upa::url::PORT)` - get a URL’s **port** serialized to string
+    /// * `get_part_view(upa::url::PATH)` - get a URL’s **path** serialized to string
+    /// * `get_part_view(upa::url::QUERY)` - get a URL’s **query** string
+    /// * `get_part_view(upa::url::FRAGMENT)` - get a URL’s **fragment** string
     ///
     /// @param[in] t URL's part
     /// @return URL's part string; it is empty if part is empty or null
@@ -553,10 +553,10 @@ public:
     ///
     /// Only the following [URL record members](https://url.spec.whatwg.org/#concept-url)
     /// can be null:
-    /// * **host** - check with `is_null(url::HOST)`
-    /// * **port** - check with `is_null(url::PORT)`
-    /// * **query** - check with `is_null(url::QUERY)`
-    /// * **fragment** - check with `is_null(url::FRAGMENT)`
+    /// * **host** - check with `is_null(upa::url::HOST)`
+    /// * **port** - check with `is_null(upa::url::PORT)`
+    /// * **query** - check with `is_null(upa::url::QUERY)`
+    /// * **fragment** - check with `is_null(upa::url::FRAGMENT)`
     ///
     /// @param[in] t URL's part
     /// @return `true` if URL's part @a t is null, `false` otherwise
