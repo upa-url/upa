@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -9,33 +9,13 @@
 #include "url_percent_encode.h"
 #include "url_result.h"
 #include <algorithm>
-#include <cassert>
+#include <cstddef>
 #include <cstdint> // uint16_t, uint32_t, uint64_t
 #include <limits>
 #include <string>
+#include <type_traits>
 
 namespace upa {
-
-// append unsigned integer to string
-
-template <typename UIntT>
-inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
-    static const char digit[] = "0123456789abcdef";
-
-    // count digits
-    std::size_t count = output.length() + 1;
-    // one division is needed to prevent the multiplication overflow
-    const UIntT num0 = num / base;
-    for (UIntT divider = 1; divider <= num0; divider *= base)
-        ++count;
-    output.resize(count);
-
-    // convert
-    do {
-        output[--count] = digit[num % base];
-        num /= base;
-    } while (num);
-}
 
 // The hostname ends in a number checker
 // https://url.spec.whatwg.org/#ends-in-a-number-checker

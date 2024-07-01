@@ -1913,7 +1913,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                 }
                 // set port if not default
                 if (urls.scheme_inf() == nullptr || urls.scheme_inf()->default_port != port) {
-                    unsigned_to_str(port, urls.start_part(url::PORT), 10);
+                    util::unsigned_to_str(port, urls.start_part(url::PORT), 10);
                     urls.save_part();
                     urls.set_flag(url::PORT_FLAG);
                 } else {

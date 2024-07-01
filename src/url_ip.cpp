@@ -4,6 +4,7 @@
 //
 
 #include "upa/url_ip.h"
+#include "upa/util.h"
 
 namespace upa {
 
@@ -12,10 +13,10 @@ namespace upa {
 
 void ipv4_serialize(uint32_t ipv4, std::string& output) {
     for (unsigned shift = 24; shift != 0; shift -= 8) {
-        unsigned_to_str<uint32_t>((ipv4 >> shift) & 0xFF, output, 10);
+        util::unsigned_to_str<uint32_t>((ipv4 >> shift) & 0xFF, output, 10);
         output.push_back('.');
     }
-    unsigned_to_str<uint32_t>(ipv4 & 0xFF, output, 10);
+    util::unsigned_to_str<uint32_t>(ipv4 & 0xFF, output, 10);
 }
 
 // IPv6 serializer
@@ -58,7 +59,7 @@ void ipv6_serialize(const uint16_t(&address)[8], std::string& output) {
             it += compress_length;
             if (it == last) break;
         }
-        unsigned_to_str<uint32_t>(*it, output, 16);
+        util::unsigned_to_str<uint32_t>(*it, output, 16);
         if (++it == last) break;
         output.push_back(':');
     }

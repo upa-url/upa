@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -8,7 +8,7 @@
 
 #include "config.h"
 #include <algorithm>
-#include <iterator>
+#include <cstddef>
 #include <limits>
 #include <stdexcept>
 #include <string>
@@ -71,6 +71,27 @@ inline Out checked_diff(T a, T b) {
 template <typename T, typename UT = typename std::make_unsigned<T>::type>
 constexpr auto to_unsigned(T n) noexcept -> UT {
     return static_cast<UT>(n);
+}
+
+// Append unsigned integer to string
+
+template <typename UIntT>
+inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
+    static const char digit[] = "0123456789abcdef";
+
+    // count digits
+    std::size_t count = output.length() + 1;
+    // one division is needed to prevent the multiplication overflow
+    const UIntT num0 = num / base;
+    for (UIntT divider = 1; divider <= num0; divider *= base)
+        ++count;
+    output.resize(count);
+
+    // convert
+    do {
+        output[--count] = digit[num % base];
+        num /= base;
+    } while (num);
 }
 
 // Append data to string
