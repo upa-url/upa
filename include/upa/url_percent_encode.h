@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -14,9 +14,12 @@
 #include "str_arg.h"
 #include "url_utf.h"
 #include "util.h"
-#include <array>
+#include <cstddef>
 #include <cstdint> // uint8_t
+#include <initializer_list>
+#include <string>
 #include <type_traits>
+#include <utility>
 
 
 namespace upa {

@@ -7,17 +7,19 @@
 #define UPA_URL_HOST_H
 
 #include "buffer.h"
+#include "config.h"
 #include "str_arg.h"
 #include "url_idna.h"
 #include "url_ip.h"
+#include "url_percent_encode.h"
 #include "url_result.h"
 #include "url_utf.h"
 #include "util.h"
 #include <algorithm> // any_of
 #include <cassert>
 #include <cstdint> // uint16_t, uint32_t
-#include <stdexcept>
 #include <string>
+#include <type_traits>
 
 namespace upa {
 

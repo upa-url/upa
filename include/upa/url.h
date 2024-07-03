@@ -29,9 +29,11 @@
 #include <algorithm>
 #include <array>
 #include <cassert>
+#include <cstddef>
 #include <cstdint> // uint8_t
 #include <iterator> // std::next
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 

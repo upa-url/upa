@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -8,6 +8,7 @@
 
 #include "buffer.h"
 #include "url_result.h"
+#include <cstddef>
 
 namespace upa {
 

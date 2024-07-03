@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -21,9 +21,10 @@ inline void procfn(Args&&... args) {
 #include "config.h"
 #include "url_utf.h"
 #include <cassert>
-#include <iterator>
+#include <cstddef>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #ifdef UPA_CPP_17
 # include <string_view>
@@ -137,15 +138,15 @@ namespace detail {
 
     // test class T has data() member
     template<class T>
-    static auto test_data(int) -> decltype(std::declval<T>().data());
+    auto test_data(int) -> decltype(std::declval<T>().data());
     template<class>
-    static auto test_data(long) -> void;
+    auto test_data(long) -> void;
 
     // test class T has length() member
     template<class T>
-    static auto test_length(int) -> decltype(std::declval<T>().length());
+    auto test_length(int) -> decltype(std::declval<T>().length());
     template<class>
-    static auto test_length(long) -> void;
+    auto test_length(long) -> void;
 
     // T::data() return type (void - if no such member)
     template<class T>

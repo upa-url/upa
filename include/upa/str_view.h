@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -8,6 +8,9 @@
 
 #include "config.h"
 #include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <ostream>
 #include <string>
 #include <type_traits>
 

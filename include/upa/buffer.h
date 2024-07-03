@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -11,10 +11,10 @@
 #define UPA_BUFFER_H
 
 #include <array>
+#include <cstddef>
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <type_traits>
 
 namespace upa {
 
