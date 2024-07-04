@@ -9,6 +9,7 @@
 #include "config.h"
 #include <algorithm>
 #include <cstddef>
+#include <iterator>  // std::back_inserter
 #include <limits>
 #include <stdexcept>
 #include <string>
