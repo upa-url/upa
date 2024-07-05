@@ -10,16 +10,15 @@
 #include "upa/config.h"
 #include "upa/url_idna.h"
 #include "upa/util.h"
+
 // ICU: only C API is used (U_SHOW_CPLUSPLUS_API 0)
 // https://unicode-org.github.io/icu/userguide/icu4c/build.html#icu-as-a-system-level-library
 #define U_SHOW_CPLUSPLUS_API 0  // NOLINT(*-macro-*)
 #include "unicode/uchar.h"  // u_getUnicodeVersion
 #include "unicode/uclean.h"
 #include "unicode/uidna.h"
-#if (U_ICU_VERSION_MAJOR_NUM) < 68
-# include <algorithm>
-#endif
 
+#include <algorithm>
 #include <cassert>
 #include <cstdint> // uint32_t
 
@@ -29,7 +28,10 @@ namespace {
 
 // Return UTS46 ICU handler opened with uidna_openUTS46()
 
-UIDNA* uidna_ptr = nullptr; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+UIDNA* uidna_ptr = nullptr;
+unsigned icu_version_major = 0;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 const UIDNA* get_uidna() {
     // initialize uidna_ptr
@@ -47,6 +49,10 @@ const UIDNA* get_uidna() {
                 | UIDNA_NONTRANSITIONAL_TO_ASCII
                 | UIDNA_NONTRANSITIONAL_TO_UNICODE, &err);
             assert(U_SUCCESS(err) && uidna_ptr != nullptr);
+            // Get ICU major version
+            UVersionInfo ver;
+            u_getVersion(ver); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay,hicpp-no-array-decay)
+            icu_version_major = ver[0];
         }
     } const once;
 
@@ -135,13 +141,13 @@ validation_errc domain_to_ascii(const char16_t* src, std::size_t src_len, simple
             // 2) is "xn--".
             if (output_length == 0)
                 return validation_errc::domain_to_ascii;
-#if (U_ICU_VERSION_MAJOR_NUM) < 68
-            // Workaround of ICU bug ICU-21212: https://unicode-org.atlassian.net/browse/ICU-21212
-            // For some "xn--" labels which contain non ASCII chars, uidna_nameToASCII returns no error,
-            // and leaves these labels unchanged in the output. Bug fixed in ICU 68.1
-            if (std::any_of(output.begin(), output.end(), [](char16_t c) { return c >= 0x80; }))
-                return validation_errc::domain_to_ascii;
-#endif
+            if (icu_version_major < 68) {
+                // Workaround of ICU bug ICU-21212: https://unicode-org.atlassian.net/browse/ICU-21212
+                // For some "xn--" labels which contain non ASCII chars, uidna_nameToASCII returns no error,
+                // and leaves these labels unchanged in the output. Bug fixed in ICU 68.1
+                if (std::any_of(output.begin(), output.end(), [](char16_t c) { return c >= 0x80; }))
+                    return validation_errc::domain_to_ascii;
+            }
             return validation_errc::ok;
         }
 
