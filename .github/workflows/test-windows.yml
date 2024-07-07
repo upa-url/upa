@@ -19,12 +19,14 @@ jobs:
             generator: "Visual Studio 16 2019"
             cxx_standard: 20
             cmake_options: ""
+            install_icu: true
 
           - name: VS 2022 C++14
             os: windows-2022
             generator: "Visual Studio 17 2022"
             cxx_standard: 14
             cmake_options: ""
+            install_icu: true
 
           - name: VS 2022 C++17 (Windows ICU)
             os: windows-2022
@@ -37,16 +39,19 @@ jobs:
             generator: "Visual Studio 17 2022"
             cxx_standard: 23
             cmake_options: ""
+            install_icu: true
 
           - name: VS 2022 Clang C++20
             os: windows-2022
             generator: "Visual Studio 17 2022"
             cxx_standard: 20
             cmake_options: "-T ClangCL"
+            install_icu: true
 
     steps:
     - uses: actions/checkout@v4
     - name: install ICU library
+      if: matrix.install_icu
       run: install-icu.bat C:\LIB 75 1
       shell: cmd
     - name: get dependencies
