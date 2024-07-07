@@ -54,6 +54,7 @@ option(UPA_BUILD_TOOLS "Build tools." OFF)
 option(UPA_INSTALL "Generate the install target." ON)
 # library options
 option(UPA_AMALGAMATED "Use amalgamated URL library source." OFF)
+option(UPA_USE_WINDOWS_ICU "Use ICU library bundled with Windows 10 version 1903 or later." OFF)
 # tests build options
 option(UPA_TEST_COVERAGE "Build tests with code coverage reporting" OFF)
 option(UPA_TEST_COVERAGE_CLANG "Build tests with Clang source-based code coverage" OFF)
@@ -115,8 +116,10 @@ include_directories(deps)
 # Are Upa URL and ICU libraries needed?
 if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES OR
     UPA_BUILD_EXTRACTED OR UPA_INSTALL OR NOT UPA_BUILD_TOOLS)
-  # This library depends on ICU
-  find_package(ICU REQUIRED COMPONENTS i18n uc)
+  if (NOT UPA_USE_WINDOWS_ICU)
+    # This library depends on ICU
+    find_package(ICU REQUIRED COMPONENTS i18n uc)
+  endif()
 
   if (UPA_AMALGAMATED)
     add_library(${upa_lib_target} STATIC
@@ -138,8 +141,12 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
   add_library(upa::${upa_lib_export} ALIAS ${upa_lib_target})
   set_target_properties(${upa_lib_target} PROPERTIES
     EXPORT_NAME ${upa_lib_export})
-  target_include_directories(${upa_lib_target} PRIVATE ${ICU_INCLUDE_DIR})
-  target_link_libraries(${upa_lib_target} INTERFACE ICU::i18n ICU::uc)
+  if (UPA_USE_WINDOWS_ICU)
+    target_compile_definitions(${upa_lib_target} PRIVATE UPA_USE_WINDOWS_ICU=1)
+  else()
+    target_include_directories(${upa_lib_target} PRIVATE ${ICU_INCLUDE_DIR})
+    target_link_libraries(${upa_lib_target} INTERFACE ICU::i18n ICU::uc)
+  endif()
 endif()
 
 # Test targets

@@ -26,6 +26,12 @@ jobs:
             cxx_standard: 14
             cmake_options: ""
 
+          - name: VS 2022 C++17 (Windows ICU)
+            os: windows-2022
+            generator: "Visual Studio 17 2022"
+            cxx_standard: 17
+            cmake_options: "-DUPA_USE_WINDOWS_ICU=ON"
+
           - name: VS 2022 C++23
             os: windows-2022
             generator: "Visual Studio 17 2022"
@@ -47,7 +53,9 @@ jobs:
       run: init.bat
       shell: cmd
     - name: cmake
-      run: cmake -S . -B build -G "${{ matrix.generator }}" -A x64 -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} -DICU_ROOT=C:\LIB\ICU ${{ matrix.cmake_options }}
+      run: cmake -S . -B build -G "${{ matrix.generator }}" -A x64 -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
+      env:
+        ICU_ROOT: C:\LIB\ICU
     - name: build
       run: cmake --build build --config Release
     - name: test
