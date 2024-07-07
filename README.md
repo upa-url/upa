@@ -37,7 +37,7 @@ The simplest way is to use two amalgamated files: `url.h` and `url.cpp`. You can
 
 The library can be built and installed using CMake 3.13 or later. To build and install to default directory (usualy `/usr/local` on Linux) run following commands:
 ```sh
-cmake -B build -DURL_BUILD_TESTS=OFF
+cmake -B build -DUPA_BUILD_TESTS=OFF
 cmake --build build
 cmake --install build
 ```

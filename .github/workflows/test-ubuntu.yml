@@ -22,12 +22,12 @@ jobs:
           - name: clang++ C++17 with sanitizer
             cxx_compiler: clang++
             cxx_standard: 17
-            cmake_options: "-DURL_TEST_SANITIZER=ON"
+            cmake_options: "-DUPA_TEST_SANITIZER=ON"
 
           - name: clang++ C++17 with valgrind
             cxx_compiler: clang++
             cxx_standard: 17
-            cmake_options: "-DURL_TEST_VALGRIND=ON"
+            cmake_options: "-DUPA_TEST_VALGRIND=ON"
             install: "valgrind"
 
           - name: g++-12 C++20
@@ -38,7 +38,7 @@ jobs:
           - name: g++ C++17 Codecov
             cxx_compiler: g++
             cxx_standard: 17
-            cmake_options: "-DURL_TEST_COVERAGE=ON"
+            cmake_options: "-DUPA_TEST_COVERAGE=ON"
             install: "lcov"
             after_test: |
               # See: https://github.com/codecov/example-cpp11-cmake
@@ -50,18 +50,18 @@ jobs:
           - name: g++ C++17 amalgamated
             cxx_compiler: g++
             cxx_standard: 17
-            cmake_options: "-DURL_AMALGAMATED=ON -DURL_BUILD_EXAMPLES=ON"
+            cmake_options: "-DUPA_AMALGAMATED=ON -DUPA_BUILD_EXAMPLES=ON"
             before_cmake: tools/amalgamate.sh
 
           - name: g++-9 C++14
             cxx_compiler: g++-9
             cxx_standard: 14
-            cmake_options: "-DURL_BUILD_EXAMPLES=ON"
+            cmake_options: "-DUPA_BUILD_EXAMPLES=ON"
 
           - name: g++-9 C++11
             cxx_compiler: g++-9
             cxx_standard: 11
-            cmake_options: "-DURL_BUILD_EXAMPLES=ON"
+            cmake_options: "-DUPA_BUILD_EXAMPLES=ON"
 
     steps:
     - uses: actions/checkout@v4

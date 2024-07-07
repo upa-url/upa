@@ -23,7 +23,7 @@ jobs:
       - name: Extract and try to build C++ examples from docs
         run: |
           tools/extract-cpp.py examples/extracted-cpp README.md
-          cmake -S . -B build -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_STANDARD=20 -DURL_BUILD_TESTS=OFF -DURL_BUILD_EXTRACTED=ON
+          cmake -S . -B build -DCMAKE_CXX_COMPILER=g++ -DCMAKE_CXX_STANDARD=20 -DUPA_BUILD_TESTS=OFF -DUPA_BUILD_EXTRACTED=ON
           cmake --build build
 
       # Install and run doxygen

@@ -36,32 +36,33 @@ if (NOT CMAKE_CXX_STANDARD)
 endif()
 
 # Upa URL is top level project?
-if (NOT DEFINED URL_MAIN_PROJECT)
-  set(URL_MAIN_PROJECT OFF)
+if (NOT DEFINED UPA_MAIN_PROJECT)
+  set(UPA_MAIN_PROJECT OFF)
   if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
-    set(URL_MAIN_PROJECT ON)
+    set(UPA_MAIN_PROJECT ON)
   endif()
 endif()
 
 # Options
-option(URL_BUILD_TESTS "Build the Upa URL tests." ${URL_MAIN_PROJECT})
-option(URL_BUILD_BENCH "Build the Upa URL benchmarks." OFF)
-option(URL_BUILD_FUZZER "Build the Upa URL fuzzer." OFF)
-option(URL_BUILD_EXAMPLES "Build the Upa URL examples." OFF)
-option(URL_BUILD_EXTRACTED "Build Upa URL examples extracted from the docs." OFF)
-option(URL_BUILD_TOOLS "Build tools." OFF)
-option(URL_INSTALL "Generate the install target." ON)
+option(URL_BUILD_TESTS "Build the Upa URL tests." ${UPA_MAIN_PROJECT})
+option(UPA_BUILD_TESTS "Build the Upa URL tests." ${URL_BUILD_TESTS})
+option(UPA_BUILD_BENCH "Build the Upa URL benchmarks." OFF)
+option(UPA_BUILD_FUZZER "Build the Upa URL fuzzer." OFF)
+option(UPA_BUILD_EXAMPLES "Build the Upa URL examples." OFF)
+option(UPA_BUILD_EXTRACTED "Build Upa URL examples extracted from the docs." OFF)
+option(UPA_BUILD_TOOLS "Build tools." OFF)
+option(UPA_INSTALL "Generate the install target." ON)
 # library options
-option(URL_AMALGAMATED "Use amalgamated URL library source." OFF)
+option(UPA_AMALGAMATED "Use amalgamated URL library source." OFF)
 # tests build options
-option(URL_TEST_COVERAGE "Build tests with code coverage reporting" OFF)
-option(URL_TEST_COVERAGE_CLANG "Build tests with Clang source-based code coverage" OFF)
-option(URL_TEST_SANITIZER "Build tests with Clang sanitizer" OFF)
-option(URL_TEST_VALGRIND "Run tests with Valgrind" OFF)
+option(UPA_TEST_COVERAGE "Build tests with code coverage reporting" OFF)
+option(UPA_TEST_COVERAGE_CLANG "Build tests with Clang source-based code coverage" OFF)
+option(UPA_TEST_SANITIZER "Build tests with Clang sanitizer" OFF)
+option(UPA_TEST_VALGRIND "Run tests with Valgrind" OFF)
 
 # AFL, Honggfuzz, or Clang libFuzzer
-if (URL_BUILD_FUZZER)
-  set(URL_BUILD_TESTS OFF)
+if (UPA_BUILD_FUZZER)
+  set(UPA_BUILD_TESTS OFF)
   get_filename_component(cxx_name ${CMAKE_CXX_COMPILER} NAME)
   # https://aflplus.plus/docs/env_variables/
   string(REGEX MATCH "^afl-((c|clang|clang-fast|clang-lto|g)\\+\\+|g\\+\\+-fast)$" AFL ${cxx_name})
@@ -78,7 +79,7 @@ if (URL_BUILD_FUZZER)
 endif()
 
 # Code coverage reporting
-if (URL_TEST_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+if (UPA_TEST_COVERAGE AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
   # add flags for GCC & LLVM/Clang
   add_compile_options(-O0 -g --coverage)
   add_link_options(--coverage)
@@ -87,7 +88,7 @@ endif()
 # Clang source-based code coverage
 # https://clang.llvm.org/docs/SourceBasedCodeCoverage.html
 # https://llvm.org/docs/CommandGuide/llvm-cov.html#show-command
-if (URL_TEST_COVERAGE_CLANG)
+if (UPA_TEST_COVERAGE_CLANG)
   if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-fprofile-instr-generate=${CMAKE_CURRENT_BINARY_DIR}/%m.profraw -fcoverage-mapping)
     add_link_options(-fprofile-instr-generate)
@@ -95,7 +96,7 @@ if (URL_TEST_COVERAGE_CLANG)
 endif()
 
 # Clang sanitizer
-if (URL_TEST_SANITIZER)
+if (UPA_TEST_SANITIZER)
   if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-O1 -g -fsanitize=address -fsanitize=undefined -fsanitize=integer -fno-omit-frame-pointer)
     add_link_options(-g -fsanitize=address -fsanitize=undefined)
@@ -103,7 +104,7 @@ if (URL_TEST_SANITIZER)
 endif()
 
 # Valgrind
-if (URL_TEST_VALGRIND)
+if (UPA_TEST_VALGRIND)
   find_program(MEMORYCHECK valgrind)
   set(MEMORYCHECK_COMMAND "${MEMORYCHECK} --error-exitcode=1 --leak-check=full")
   separate_arguments(MEMORYCHECK_COMMAND)
@@ -112,12 +113,12 @@ endif()
 include_directories(deps)
 
 # Are Upa URL and ICU libraries needed?
-if (URL_BUILD_TESTS OR URL_BUILD_BENCH OR URL_BUILD_FUZZER OR URL_BUILD_EXAMPLES OR
-    URL_BUILD_EXTRACTED OR URL_INSTALL OR NOT URL_BUILD_TOOLS)
+if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES OR
+    UPA_BUILD_EXTRACTED OR UPA_INSTALL OR NOT UPA_BUILD_TOOLS)
   # This library depends on ICU
   find_package(ICU REQUIRED COMPONENTS i18n uc)
 
-  if (URL_AMALGAMATED)
+  if (UPA_AMALGAMATED)
     add_library(${upa_lib_target} STATIC
       single_include/upa/url.cpp)
     target_include_directories(${upa_lib_target}
@@ -143,10 +144,10 @@ endif()
 
 # Test targets
 
-if (URL_BUILD_TESTS)
+if (UPA_BUILD_TESTS)
   enable_testing()
 
-  if (URL_AMALGAMATED)
+  if (UPA_AMALGAMATED)
     set(test_files
       test/test-amalgamate.cpp
     )
@@ -180,7 +181,7 @@ if (URL_BUILD_TESTS)
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
       COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
 
-    if (URL_TEST_VALGRIND)
+    if (UPA_TEST_VALGRIND)
       add_test(NAME ${test_name}_valgrind
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
         COMMAND ${MEMORYCHECK_COMMAND} ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
@@ -190,7 +191,7 @@ endif()
 
 # Benchmark targets
 
-if (URL_BUILD_BENCH)
+if (UPA_BUILD_BENCH)
   file(GLOB bench_files test/bench-*.cpp)
 
   foreach(file ${bench_files})
@@ -202,7 +203,7 @@ endif()
 
 # Fuzzer targets
 
-if (URL_BUILD_FUZZER)
+if (UPA_BUILD_FUZZER)
   set(fuzz_files
     test/fuzz-url.cpp
   )
@@ -220,18 +221,18 @@ endif()
 
 # Example's targets
 
-if (URL_BUILD_EXAMPLES)
+if (UPA_BUILD_EXAMPLES)
   add_executable(urlparse examples/urlparse.cpp)
   target_link_libraries(urlparse ${upa_lib_target})
 endif()
 
-if (URL_BUILD_EXTRACTED)
+if (UPA_BUILD_EXTRACTED)
   add_subdirectory(examples/extracted-cpp)
 endif()
 
 # Tool's targets
 
-if (URL_BUILD_TOOLS)
+if (UPA_BUILD_TOOLS)
   add_executable(dumpCharBitSets tools/dumpCharBitSets.cpp)
   set_property(TARGET dumpCharBitSets PROPERTY CXX_STANDARD 17)
   target_include_directories(dumpCharBitSets PRIVATE include)
@@ -239,7 +240,7 @@ endif()
 
 # Install
 
-if (URL_INSTALL AND NOT URL_AMALGAMATED)
+if (UPA_INSTALL AND NOT UPA_AMALGAMATED)
   include(GNUInstallDirs)
   include(CMakePackageConfigHelpers)
 
@@ -291,7 +292,7 @@ if (URL_INSTALL AND NOT URL_AMALGAMATED)
   )
 
   # Packaging
-  if (URL_MAIN_PROJECT)
+  if (UPA_MAIN_PROJECT)
     set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
     set(CPACK_SOURCE_GENERATOR "ZIP")
     set(CPACK_SOURCE_IGNORE_FILES \\.git* /build*/ /*\\.yml)
