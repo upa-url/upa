@@ -23,6 +23,7 @@ project(upa_url VERSION ${UPA_URL_VERSION} LANGUAGES CXX)
 # ${upa_lib_name}-config.cmake
 # It also must be used as the package name argument to find_package
 set(upa_lib_name upa)
+set(upa_lib_name_in upa-icu)
 # Exported name for library target files; also used to create an alias
 # target: upa::${upa_lib_export}
 set(upa_lib_export url)
@@ -143,6 +144,7 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
     EXPORT_NAME ${upa_lib_export})
   if (UPA_USE_WINDOWS_ICU)
     target_compile_definitions(${upa_lib_target} PRIVATE UPA_USE_WINDOWS_ICU=1)
+    set(upa_lib_name_in ${upa_lib_name})
   else()
     target_include_directories(${upa_lib_target} PRIVATE ${ICU_INCLUDE_DIR})
     target_link_libraries(${upa_lib_target} INTERFACE ICU::i18n ICU::uc)
@@ -271,7 +273,7 @@ if (UPA_INSTALL AND NOT UPA_AMALGAMATED)
 
   # generate the config file that includes the exports
   configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${upa_lib_name}-config.cmake.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${upa_lib_name_in}-config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/${upa_lib_name}-config.cmake
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${upa_lib_name}
     NO_SET_AND_CHECK_MACRO
