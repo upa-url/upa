@@ -7,16 +7,28 @@
 // Copyright 2013 The Chromium Authors. All rights reserved.
 //
 
+// Define UPA_USE_WINDOWS_ICU = 1 to use the ICU library bundled with
+// Windows 10 version 1903 or later. For more information, see:
+// https://learn.microsoft.com/en-us/windows/win32/intl/international-components-for-unicode--icu-
+#ifndef UPA_USE_WINDOWS_ICU
+# define UPA_USE_WINDOWS_ICU 0  // NOLINT(*-macro-*)
+#endif // UPA_USE_WINDOWS_ICU
+
 #include "upa/config.h"
 #include "upa/url_idna.h"
 #include "upa/util.h"
 
+#if UPA_USE_WINDOWS_ICU
+# include <icu.h>
+# pragma comment( lib, "icu" )
+#else
 // ICU: only C API is used (U_SHOW_CPLUSPLUS_API 0)
 // https://unicode-org.github.io/icu/userguide/icu4c/build.html#icu-as-a-system-level-library
-#define U_SHOW_CPLUSPLUS_API 0  // NOLINT(*-macro-*)
-#include "unicode/uchar.h"  // u_getUnicodeVersion
-#include "unicode/uclean.h"
-#include "unicode/uidna.h"
+# define U_SHOW_CPLUSPLUS_API 0  // NOLINT(*-macro-*)
+# include "unicode/uchar.h"  // u_getUnicodeVersion
+# include "unicode/uclean.h"
+# include "unicode/uidna.h"
+#endif
 
 #include <algorithm>
 #include <cassert>
