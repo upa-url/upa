@@ -25,9 +25,10 @@
 // ICU: only C API is used (U_SHOW_CPLUSPLUS_API 0)
 // https://unicode-org.github.io/icu/userguide/icu4c/build.html#icu-as-a-system-level-library
 # define U_SHOW_CPLUSPLUS_API 0  // NOLINT(*-macro-*)
-# include "unicode/uchar.h"  // u_getUnicodeVersion
-# include "unicode/uclean.h"
-# include "unicode/uidna.h"
+# include <unicode/uchar.h>  // u_getUnicodeVersion
+# include <unicode/uclean.h> // u_cleanup
+# include <unicode/uidna.h>
+# include <unicode/uversion.h> // u_getVersion
 #endif
 
 #include <algorithm>
