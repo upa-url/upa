@@ -778,7 +778,7 @@ protected:
         url::PartType first_pt, std::size_t len0);
 
 protected:
-    url& url_;
+    url& url_; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
     // last serialized URL's part
     url::PartType last_pt_;
 };
@@ -2440,7 +2440,7 @@ inline void url_serializer::shorten_path() {
 }
 
 #if 0 // UNUSED
-static inline std::size_t count_leading_path_slashes(const char* first, const char* last) {
+inline std::size_t count_leading_path_slashes(const char* first, const char* last) {
     return std::distance(first,
         std::find_if_not(first, last, [](char c){ return c == '/'; }));
 }

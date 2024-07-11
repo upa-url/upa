@@ -22,7 +22,9 @@ void ipv4_serialize(uint32_t ipv4, std::string& output) {
 // IPv6 serializer
 // https://url.spec.whatwg.org/#concept-ipv6-serializer
 
-static std::size_t longest_zero_sequence(
+namespace {
+
+std::size_t longest_zero_sequence(
     const uint16_t* first, const uint16_t* last,
     const uint16_t*& compress)
 {
@@ -42,6 +44,8 @@ static std::size_t longest_zero_sequence(
     }
     return last_count;
 }
+
+} // namespace
 
 void ipv6_serialize(const uint16_t(&address)[8], std::string& output) {
     const uint16_t *first = std::begin(address);

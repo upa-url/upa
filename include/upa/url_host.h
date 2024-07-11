@@ -121,7 +121,7 @@ private:
             host_.type_ = ht;
         }
     private:
-        url_host& host_;
+        url_host& host_; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
     };
 
     // members
@@ -202,7 +202,7 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
         // if there is a possibility to normalize them.
         if (!(*ptr >= 0x3C && *ptr <= 0x3E && ptr + 1 < last && static_cast<UCharT>(ptr[1]) >= 0x80))
             // 7. If asciiDomain contains a forbidden domain code point, domain-invalid-code-point
-            // validation error, return failure. 
+            // validation error, return failure.
             return validation_errc::domain_invalid_code_point;
     }
 
@@ -262,7 +262,7 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
         return res;
     if (detail::contains_forbidden_domain_char(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
         // 7. If asciiDomain contains a forbidden domain code point, domain-invalid-code-point
-        // validation error, return failure. 
+        // validation error, return failure.
         return validation_errc::domain_invalid_code_point;
     }
 
@@ -283,7 +283,7 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
 template <typename CharT>
 inline validation_errc host_parser::parse_opaque_host(const CharT* first, const CharT* last, host_output& dest) {
     // 1. If input contains a forbidden host code point, host-invalid-code-point
-    // validation error, return failure. 
+    // validation error, return failure.
     if (detail::contains_forbidden_host_char(first, last))
         return validation_errc::host_invalid_code_point;
 
