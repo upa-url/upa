@@ -55,8 +55,10 @@ extern "C" int LLVMFuzzerTestOneInput(const char* data, std::size_t size) {
 
     // Parse input data against base URL
     upa::string_view inp{ data, size };
+    bool parse_ok = false;
     try {
         upa::url u1{ inp, pbase };
+        parse_ok = true;
         reparse_test(u1);
     }
     catch (upa::url_error&) {
@@ -65,5 +67,10 @@ extern "C" int LLVMFuzzerTestOneInput(const char* data, std::size_t size) {
     catch (std::exception&) {
         assert(false);
     }
+
+    // url::can_parse
+    const bool can_parse_ok = upa::url::can_parse(inp, pbase);
+    assert(can_parse_ok == parse_ok);
+
     return 0;
 }
