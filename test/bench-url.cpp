@@ -36,13 +36,21 @@ int benchmark_txt(const char* file_name, uint64_t min_iters) {
 
     // Run benchmark
 
-    ankerl::nanobench::Bench().minEpochIterations(min_iters).run("Upa URL", [&] {
+    ankerl::nanobench::Bench().minEpochIterations(min_iters).run("Upa url::parse", [&] {
         upa::url url;
 
         for (const auto& str_url : url_strings) {
-            url.parse(str_url, nullptr);
+            url.parse(str_url);
 
             ankerl::nanobench::doNotOptimizeAway(url);
+        }
+    });
+
+    ankerl::nanobench::Bench().minEpochIterations(min_iters).run("Upa url::can_parse", [&] {
+        for (const auto& str_url : url_strings) {
+            bool ok = upa::url::can_parse(str_url);
+
+            ankerl::nanobench::doNotOptimizeAway(ok);
         }
     });
 
@@ -81,20 +89,30 @@ int benchmark_wpt(const char* file_name, uint64_t min_iters) {
 
     // Run benchmark
 
-    ankerl::nanobench::Bench().minEpochIterations(min_iters).run("Upa URL", [&] {
+    ankerl::nanobench::Bench().minEpochIterations(min_iters).run("Upa url::parse", [&] {
         upa::url url;
         upa::url url_base;
 
         for (const auto& url_strings : url_samples) {
             upa::url* ptr_base = nullptr;
             if (!url_strings.second.empty()) {
-                if (!upa::success(url_base.parse(url_strings.second, nullptr)))
+                if (!upa::success(url_base.parse(url_strings.second)))
                     continue; // invalid base
                 ptr_base = &url_base;
             }
             url.parse(url_strings.first, ptr_base);
 
             ankerl::nanobench::doNotOptimizeAway(url);
+        }
+    });
+
+    ankerl::nanobench::Bench().minEpochIterations(min_iters).run("Upa url::can_parse", [&] {
+        for (const auto& url_strings : url_samples) {
+            bool ok = url_strings.second.empty()
+                ? upa::url::can_parse(url_strings.first)
+                : upa::url::can_parse(url_strings.first, url_strings.second);
+
+            ankerl::nanobench::doNotOptimizeAway(ok);
         }
     });
 
