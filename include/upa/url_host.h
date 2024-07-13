@@ -39,6 +39,8 @@ enum class HostType {
 class host_output {
 protected:
     host_output() = default;
+    host_output(bool need_save)
+        : need_save_{ need_save } {}
 public:
     host_output(const host_output&) = delete;
     host_output& operator=(const host_output&) = delete;
@@ -46,6 +48,9 @@ public:
 
     virtual std::string& hostStart() = 0;
     virtual void hostDone(HostType /*ht*/) = 0;
+    bool need_save() const noexcept { return need_save_; }
+private:
+    bool need_save_ = true;
 };
 
 class host_parser {
@@ -190,10 +195,12 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
             if (hostname_ends_in_a_number(first, last))
                 return parse_ipv4(first, last, dest);
 
-            // Return asciiDomain lower cased
-            std::string& str_host = dest.hostStart();
-            util::append_ascii_lowercase(str_host, first, last);
-            dest.hostDone(HostType::Domain);
+            if (dest.need_save()) {
+                // Return asciiDomain lower cased
+                std::string& str_host = dest.hostStart();
+                util::append_ascii_lowercase(str_host, first, last);
+                dest.hostDone(HostType::Domain);
+            }
             return validation_errc::ok;
         }
     } else if (static_cast<UCharT>(*ptr) < 0x80 && *ptr != '%') {
@@ -270,10 +277,12 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
     if (hostname_ends_in_a_number(buff_ascii.begin(), buff_ascii.end()))
         return parse_ipv4(buff_ascii.begin(), buff_ascii.end(), dest);
 
-    // Return asciiDomain
-    std::string& str_host = dest.hostStart();
-    util::append(str_host, buff_ascii);
-    dest.hostDone(HostType::Domain);
+    if (dest.need_save()) {
+        // Return asciiDomain
+        std::string& str_host = dest.hostStart();
+        util::append(str_host, buff_ascii);
+        dest.hostDone(HostType::Domain);
+    }
     return validation_errc::ok;
 }
 
@@ -293,31 +302,33 @@ inline validation_errc host_parser::parse_opaque_host(const CharT* first, const 
     // 3. If input contains a U+0025 (%) and the two code points following it are not ASCII hex digits,
     // invalid-URL-unit validation error.
 
-    std::string& str_host = dest.hostStart();
+    if (dest.need_save()) {
+        std::string& str_host = dest.hostStart();
 
-    //TODO: UTF-8 percent encode it using the C0 control percent-encode set
-    //detail::append_utf8_percent_encoded(first, last, detail::CHAR_C0_CTRL, str_host);
-    using UCharT = typename std::make_unsigned<CharT>::type;
+        //TODO: UTF-8 percent encode it using the C0 control percent-encode set
+        //detail::append_utf8_percent_encoded(first, last, detail::CHAR_C0_CTRL, str_host);
+        using UCharT = typename std::make_unsigned<CharT>::type;
 
-    const CharT* pointer = first;
-    while (pointer < last) {
-        // UTF-8 percent encode c using the C0 control percent-encode set (U+0000 ... U+001F and >U+007E)
-        const auto uch = static_cast<UCharT>(*pointer);
-        if (uch >= 0x7f) {
-            // invalid utf-8/16/32 sequences will be replaced with 0xfffd
-            detail::append_utf8_percent_encoded_char(pointer, last, str_host);
-        } else {
-            // Just append the 7-bit character, percent encoding C0 control chars
-            const auto uc = static_cast<unsigned char>(uch);
-            if (uc <= 0x1f)
-                detail::append_percent_encoded_byte(uc, str_host);
-            else
-                str_host.push_back(uc);
-            ++pointer;
+        const CharT* pointer = first;
+        while (pointer < last) {
+            // UTF-8 percent encode c using the C0 control percent-encode set (U+0000 ... U+001F and >U+007E)
+            const auto uch = static_cast<UCharT>(*pointer);
+            if (uch >= 0x7f) {
+                // invalid utf-8/16/32 sequences will be replaced with 0xfffd
+                detail::append_utf8_percent_encoded_char(pointer, last, str_host);
+            } else {
+                // Just append the 7-bit character, percent encoding C0 control chars
+                const auto uc = static_cast<unsigned char>(uch);
+                if (uc <= 0x1f)
+                    detail::append_percent_encoded_byte(uc, str_host);
+                else
+                    str_host.push_back(uc);
+                ++pointer;
+            }
         }
-    }
 
-    dest.hostDone(str_host.empty() ? HostType::Empty : HostType::Opaque);
+        dest.hostDone(str_host.empty() ? HostType::Empty : HostType::Opaque);
+    }
     return validation_errc::ok;
 }
 
@@ -326,7 +337,7 @@ inline validation_errc host_parser::parse_ipv4(const CharT* first, const CharT* 
     uint32_t ipv4;  // NOLINT(cppcoreguidelines-init-variables)
 
     const auto res = ipv4_parse(first, last, ipv4);
-    if (res == validation_errc::ok) {
+    if (res == validation_errc::ok && dest.need_save()) {
         std::string& str_ipv4 = dest.hostStart();
         ipv4_serialize(ipv4, str_ipv4);
         dest.hostDone(HostType::IPv4);
@@ -339,7 +350,7 @@ inline validation_errc host_parser::parse_ipv6(const CharT* first, const CharT* 
     uint16_t ipv6addr[8];
 
     const auto res = ipv6_parse(first, last, ipv6addr);
-    if (res == validation_errc::ok) {
+    if (res == validation_errc::ok && dest.need_save()) {
         std::string& str_ipv6 = dest.hostStart();
         str_ipv6.push_back('[');
         ipv6_serialize(ipv6addr, str_ipv6);

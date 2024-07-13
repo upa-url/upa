@@ -369,6 +369,9 @@ TEST_CASE("Parse URL with invalid base") {
         CHECK(url.is_valid());
         CHECK(url.parse("https://h/", base) == upa::validation_errc::invalid_base);
         CHECK_FALSE(url.is_valid());
+
+        // url::can_parse
+        CHECK_FALSE(upa::url::can_parse("about:blank", base));
     }
     SUBCASE("Invalid base") {
         upa::url base;
@@ -386,6 +389,9 @@ TEST_CASE("Parse URL with invalid base") {
         CHECK(url.is_valid());
         CHECK(url.parse("https://h/", base) == upa::validation_errc::invalid_base);
         CHECK_FALSE(url.is_valid());
+
+        // url::can_parse
+        CHECK_FALSE(upa::url::can_parse("about:blank", base));
     }
 }
 

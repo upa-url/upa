@@ -214,7 +214,7 @@ public:
     template <class T, enable_if_str_arg_t<T> = 0>
     static bool can_parse(T&& str_url, const url* pbase = nullptr) {
         upa::url url;
-        return url.parse(std::forward<T>(str_url), pbase) == validation_errc::ok;
+        return url.for_can_parse(std::forward<T>(str_url), pbase) == validation_errc::ok;
     }
 
     /// @brief Checks if a given URL string can be successfully parsed
@@ -243,7 +243,7 @@ public:
     static bool can_parse(T&& str_url, TB&& str_base) {
         upa::url base;
         return
-            base.parse(std::forward<TB>(str_base), nullptr) == validation_errc::ok &&
+            base.for_can_parse(std::forward<TB>(str_base), nullptr) == validation_errc::ok &&
             can_parse(std::forward<T>(str_url), &base);
     }
 
@@ -640,6 +640,9 @@ private:
     template <typename CharT>
     validation_errc do_parse(const CharT* first, const CharT* last, const url* base);
 
+    template <class T, enable_if_str_arg_t<T> = 0>
+    validation_errc for_can_parse(T&& str_url, const url* base);
+
     // get scheme info
     static const scheme_info kSchemes[];
     static const scheme_info* get_scheme_info(string_view src);
@@ -699,8 +702,9 @@ public:
     url_serializer(const url_serializer&) = delete;
     url_serializer& operator=(const url_serializer&) = delete;
 
-    explicit url_serializer(url& dest_url)
-        : url_(dest_url)
+    explicit url_serializer(url& dest_url, bool need_save = true)
+        : host_output(need_save)
+        , url_(dest_url)
         , last_pt_(url::SCHEME)
     {}
 
@@ -1398,6 +1402,32 @@ inline validation_errc url::do_parse(const CharT* first, const CharT* last, cons
     return res;
 }
 
+template <class T, enable_if_str_arg_t<T>>
+validation_errc url::for_can_parse(T&& str_url, const url* base) {
+    const auto inp = make_str_arg(std::forward<T>(str_url));
+    const auto* first = inp.begin();
+    const auto* last = inp.end();
+    const validation_errc res = [&]() {
+        detail::url_serializer urls(*this, false);
+
+        // reset URL
+        urls.new_url();
+
+        // is base URL valid?
+        if (base && !base->is_valid())
+            return validation_errc::invalid_base;
+
+        // remove any leading and trailing C0 control or space:
+        detail::do_trim(first, last);
+        //TODO-WARN: validation error if trimmed
+
+        return detail::url_parser::url_parse(urls, first, last, base);
+    }();
+    if (res == validation_errc::ok)
+        set_flag(VALID_FLAG);
+    return res;
+}
+
 // Setters
 
 template <class StrT, enable_if_str_arg_t<StrT>>
@@ -1826,19 +1856,21 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                 return validation_errc::host_missing;
             }
             //TODO-WARN: validation error
-            const auto it_colon = std::find(pointer, it_eta, ':');
-            // url includes credentials?
-            const bool not_empty_password = std::distance(it_colon, it_eta) > 1;
-            if (not_empty_password || std::distance(pointer, it_colon) > 0 /*not empty username*/) {
-                // username
-                std::string& str_username = urls.start_part(url::USERNAME);
-                detail::append_utf8_percent_encoded(pointer, it_colon, userinfo_no_encode_set, str_username); // UTF-8 percent encode, @ -> %40
-                urls.save_part();
-                // password
-                if (not_empty_password) {
-                    std::string& str_password = urls.start_part(url::PASSWORD);
-                    detail::append_utf8_percent_encoded(it_colon + 1, it_eta, userinfo_no_encode_set, str_password); // UTF-8 percent encode, @ -> %40
+            if (urls.need_save()) {
+                const auto it_colon = std::find(pointer, it_eta, ':');
+                // url includes credentials?
+                const bool not_empty_password = std::distance(it_colon, it_eta) > 1;
+                if (not_empty_password || std::distance(pointer, it_colon) > 0 /*not empty username*/) {
+                    // username
+                    std::string& str_username = urls.start_part(url::USERNAME);
+                    detail::append_utf8_percent_encoded(pointer, it_colon, userinfo_no_encode_set, str_username); // UTF-8 percent encode, @ -> %40
                     urls.save_part();
+                    // password
+                    if (not_empty_password) {
+                        std::string& str_password = urls.start_part(url::PASSWORD);
+                        detail::append_utf8_percent_encoded(it_colon + 1, it_eta, userinfo_no_encode_set, str_password); // UTF-8 percent encode, @ -> %40
+                        urls.save_part();
+                    }
                 }
             }
             // after '@'
@@ -1927,14 +1959,16 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                     if (port > 0xFFFF)
                         return validation_errc::port_out_of_range;
                 }
-                // set port if not default
-                if (urls.scheme_inf() == nullptr || urls.scheme_inf()->default_port != port) {
-                    util::unsigned_to_str(port, urls.start_part(url::PORT), 10);
-                    urls.save_part();
-                    urls.set_flag(url::PORT_FLAG);
-                } else {
-                    // (2-1-3) Set url's port to null
-                    urls.clear_part(url::PORT);
+                if (urls.need_save()) {
+                    // set port if not default
+                    if (urls.scheme_inf() == nullptr || urls.scheme_inf()->default_port != port) {
+                        util::unsigned_to_str(port, urls.start_part(url::PORT), 10);
+                        urls.save_part();
+                        urls.set_flag(url::PORT_FLAG);
+                    } else {
+                        // (2-1-3) Set url's port to null
+                        urls.clear_part(url::PORT);
+                    }
                 }
             }
             // 2.2. If state override is given, then return
@@ -2012,7 +2046,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
             break;
 
         default:
-            if (base && base->is_file_scheme()) {
+            if (base && base->is_file_scheme() && urls.need_save()) {
                 // It is important to first set host, then path, otherwise serializer
                 // will fail.
 
@@ -2058,7 +2092,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
         } else {
             // parse and set host:
             const auto res = parse_host(urls, pointer, end_of_authority);
-            if (res != validation_errc::ok)
+            if (res != validation_errc::ok || !urls.need_save())
                 return res; // TODO-ERR: failure
             // if host is "localhost", then set host to the empty string
             if (urls.get_part_view(url::HOST) == string_view{ "localhost", 9 }) {
@@ -2072,6 +2106,9 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
             state = path_start_state;
         }
     }
+
+    if (!urls.need_save())
+        return validation_errc::ok;
 
     if (state == path_start_state) {
         if (urls.is_special_scheme()) {
@@ -2655,6 +2692,8 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
         // t1 == PATH
         return t1;
     }();
+
+    if (!need_save()) return;
 
     // copy flags; they can be used when copying / serializing url parts below
     unsigned mask = 0;

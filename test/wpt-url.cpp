@@ -127,6 +127,20 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
             // check "failure"
             tc.assert_equal(obj.failure, !parse_success, "parse failure WITH NO BASE");
         }
+
+        // Test url::can_parse
+
+        bool can_parse_success = base.empty()
+            ? upa::url::can_parse(input)
+            : upa::url::can_parse(input, base);
+
+        // check "success"
+        tc.assert_equal(!obj.failure, can_parse_success, "can_parse");
+
+        if (obj.failure && !base.empty()) {
+            can_parse_success = upa::url::can_parse(input);
+            tc.assert_equal(!obj.failure, can_parse_success, "can_parse WITH NO BASE");
+        }
     });
 }
 
