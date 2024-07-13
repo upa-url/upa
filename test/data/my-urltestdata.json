@@ -1,5 +1,5 @@
 [
-  "Invalid sheme with cannot be base URL",
+  "Invalid sheme with URL that has an opaque path",
   {
     "input": "",
     "base": "about:blank",
@@ -69,7 +69,7 @@
   "Invalid percent-encode sequence (%xx) in hostname",
   {
     "input": "non-spec://%C4%84%xx",
-    "base": "about:blank",
+    "base": null,
     "href": "non-spec://%C4%84%xx",
     "protocol": "non-spec:",
     "username": "",
@@ -83,18 +83,18 @@
   },
   {
     "input": "https://%C4%84%xx",
-    "base": "about:blank",
+    "base": null,
     "failure": true
   },
   "Invalid IPv4 address number",
   {
     "input": "https://0100000000000/",
-    "base": "about:blank",
+    "base": null,
     "failure": true
   },
   {
     "input": "https://0xAx/",
-    "base": "about:blank",
+    "base": null,
     "href": "https://0xax/",
     "origin": "https://0xax",
     "protocol": "https:",
@@ -110,59 +110,59 @@
   "Invalid IPv6 address",
   {
     "input": "https://[:1]/",
-    "base": "about:blank",
+    "base": null,
     "failure": true
   },
   {
     "input": "https://[1:1]/",
-    "base": "about:blank",
+    "base": null,
     "failure": true
   },
   "Non-IPv4 tests",
   {
     "input": "http://0xAX.1",
-    "base": "about:blank",
+    "base": null,
     "failure": true
   },
   {
     "input": "http://0xAX.1.",
-    "base": "about:blank",
+    "base": null,
     "failure": true
   },
   {
     "input": "http://a.0x",
-    "base": "about:blank",
+    "base": null,
     "failure": true
   },
   {
     "input": "http://a.0x.",
-    "base": "about:blank",
+    "base": null,
     "failure": true
   },
   {
     "input": "http://a.0x100000000000000000000000000000000",
-    "base": "about:blank",
+    "base": null,
     "failure": true
   },
   {
     "input": "http://a.0x100000000000000000000000000000000.",
-    "base": "about:blank",
+    "base": null,
     "failure": true
   },
   {
     "input": "http://1.0x100000000000000000000000000000000",
-    "base": "about:blank",
+    "base": null,
     "failure": true
   },
   {
     "input": "http://1.0x100000000000000000000000000000000.",
-    "base": "about:blank",
+    "base": null,
     "failure": true
   },
   "IPv4",
   {
     "input": "http://1.0x",
-    "base": "about:blank",
+    "base": null,
     "href": "http://1.0.0.0/",
     "origin": "http://1.0.0.0",
     "protocol": "http:",
@@ -177,7 +177,7 @@
   },
   {
     "input": "http://1.0x.",
-    "base": "about:blank",
+    "base": null,
     "href": "http://1.0.0.0/",
     "origin": "http://1.0.0.0",
     "protocol": "http:",
@@ -193,7 +193,7 @@
   "IPv4 parser must not be invoked when there are two empty labels at the end",
   {
     "input": "http://1.0x..",
-    "base": "about:blank",
+    "base": null,
     "href": "http://1.0x../",
     "origin": "http://1.0x..",
     "protocol": "http:",
@@ -208,7 +208,7 @@
   },
   {
     "input": "http://a.1..",
-    "base": "about:blank",
+    "base": null,
     "href": "http://a.1../",
     "origin": "http://a.1..",
     "protocol": "http:",
