@@ -189,6 +189,20 @@ public:
         return parse(std::forward<T>(str_url), &base);
     }
 
+    /// @brief Parses given URL string against base URL.
+    ///
+    /// @param[in] str_url  URL string to parse
+    /// @param[in] str_base base URL string
+    /// @return error code (@a validation_errc::ok on success)
+    template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
+    validation_errc parse(T&& str_url, TB&& str_base) {
+        upa::url base;
+        const auto res = base.parse(std::forward<TB>(str_base), nullptr);
+        return res == validation_errc::ok
+            ? parse(std::forward<T>(str_url), &base)
+            : res;
+    }
+
     /// @brief Checks if a given URL string can be successfully parsed
     ///
     /// If @a pbase is not nullptr, then try to parse against *pbase URL.

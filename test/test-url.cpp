@@ -180,7 +180,7 @@ TEST_CASE("url parsing constructor with base URL string") {
 
 // Parse URL
 
-TEST_CASE("Two url::parse functions") {
+TEST_CASE("url::parse functions") {
     upa::url url;
     upa::url url_base;
 
@@ -194,6 +194,12 @@ TEST_CASE("Two url::parse functions") {
     // second url::parse function
     CHECK(url.parse("/path", url_base) == upa::validation_errc::ok);
     CHECK(url.href() == "http://example.org/path");
+
+    // third url::parse function
+    CHECK(upa::success(url.parse("/path", "http://example.org")));
+    CHECK(url.href() == "http://example.org/path");
+    // third url::parse function with invalid base URL string
+    CHECK_FALSE(upa::success(url.parse("http://example.org", ":123")));
 }
 
 TEST_CASE("url::parse must clear old URL data") {

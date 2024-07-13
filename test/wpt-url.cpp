@@ -91,15 +91,9 @@ void test_parser(DataDrivenTest& ddt, ParserObj& obj)
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         upa::url url;
 
-        bool parse_success;
-        if (!base.empty()) {
-            upa::url url_base;
-            parse_success =
-                upa::success(url_base.parse(base)) &&
-                upa::success(url.parse(input, url_base));
-        } else {
-            parse_success = upa::success(url.parse(input));
-        }
+        bool parse_success = base.empty()
+            ? upa::success(url.parse(input))
+            : upa::success(url.parse(input, base));
 
         // check "failure"
         tc.assert_equal(obj.failure, !parse_success, "parse failure");
