@@ -1599,9 +1599,11 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
     detail::do_remove_whitespace(first, last, buff_no_ws);
     //TODO-WARN: validation error if removed
 
-    // reserve size (TODO: But what if `base` is used?)
-    const auto length = std::distance(first, last);
-    urls.reserve(length + 32);
+    if (urls.need_save()) {
+        // reserve size (TODO: But what if `base` is used?)
+        const auto length = std::distance(first, last);
+        urls.reserve(length + 32);
+    }
 
 #ifdef UPA_URL_USE_ENCODING
     const char* encoding = "UTF-8";
