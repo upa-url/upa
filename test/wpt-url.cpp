@@ -36,6 +36,7 @@ int main(int argc, char** argv)
 
     // URL web-platform-tests
     err |= test_from_file(run_parser_tests, "wpt/urltestdata.json");
+    err |= test_from_file(run_parser_tests, "wpt/urltestdata-javascript-only.json");
     err |= test_from_file(run_host_parser_tests, "wpt/toascii.json");
     err |= test_from_file(run_setter_tests, "wpt/setters_tests.json");
     err |= test_from_file(run_percent_encoding_tests, "wpt/percent-encoding.json");
