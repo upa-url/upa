@@ -64,10 +64,21 @@ target_link_libraries(exe-target PRIVATE upa::url)
 ```cmake
 include(FetchContent)
 FetchContent_Declare(upa
-  GIT_REPOSITORY "https://github.com/rmisev/url_whatwg"
-  GIT_TAG main
+  GIT_REPOSITORY https://github.com/upa-url/upa.git
+  GIT_SHALLOW TRUE
+  GIT_TAG v0.3.1
 )
 FetchContent_MakeAvailable(upa)
+...
+target_link_libraries(exe-target PRIVATE upa::url)
+```
+
+#### Embedding with CPM.cmake script
+
+If you are using the [CPM.cmake script](https://github.com/cpm-cmake/CPM.cmake) and have included it in your CMakeCMakeLists.txt, then:
+
+```cmake
+CPMAddPackage("gh:upa-url/upa@0.3.1")
 ...
 target_link_libraries(exe-target PRIVATE upa::url)
 ```
