@@ -4,6 +4,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+
 jobs:
   assets:
     runs-on: ubuntu-latest
@@ -16,4 +19,4 @@ jobs:
       - name: Upload assets
         run: gh release upload ${{ github.ref_name }} single_include/upa/*.*
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
