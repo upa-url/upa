@@ -41,7 +41,9 @@ cmake -B build -DUPA_BUILD_TESTS=OFF
 cmake --build build
 cmake --install build
 ```
-If ICU is installed in a non-default directory, then specify `-DICU_ROOT=<ICU directory>` parameter in the first command.
+
+> [!NOTE]
+> If ICU is installed in a non-default directory, then specify `-DICU_ROOT=<ICU directory>` parameter in the first command. If you are building for Windows 10 version 1903 or later, ICU bundled with Windows can be used: specify the `-DUPA_USE_WINDOWS_ICU=ON` parameter in the first command.
 
 To use library add `find_package(upa REQUIRED)` and link to `upa::url` target in your CMake project:
 ```cmake
@@ -75,7 +77,7 @@ target_link_libraries(exe-target PRIVATE upa::url)
 
 #### Embedding with CPM.cmake script
 
-If you are using the [CPM.cmake script](https://github.com/cpm-cmake/CPM.cmake) and have included it in your CMakeCMakeLists.txt, then:
+If you are using the [CPM.cmake script](https://github.com/cpm-cmake/CPM.cmake) and have included it in your `CMakeLists.txt`, then:
 
 ```cmake
 CPMAddPackage("gh:upa-url/upa@0.4.0")
