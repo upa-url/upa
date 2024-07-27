@@ -31,7 +31,7 @@ For string input, the library supports UTF-8, UTF-16, UTF-32 encodings and sever
 
 ## Installation
 
-The simplest way is to use two amalgamated files: `url.h` and `url.cpp`. You can download them from [releases page](https://github.com/rmisev/url_whatwg/releases), or if you have installed Python, then generate them by running `tools/amalgamate.sh` script (`tools/amalgamate.bat` on Windows). The files will be created in the `single_include/upa` directory.
+The simplest way is to use two amalgamated files: `url.h` and `url.cpp`. You can download them from [releases page](https://github.com/upa-url/upa/releases), or if you have installed Python, then generate them by running `tools/amalgamate.sh` script (`tools/amalgamate.bat` on Windows). The files will be created in the `single_include/upa` directory.
 
 ### CMake
 
