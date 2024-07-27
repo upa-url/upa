@@ -3,7 +3,7 @@
 }
 
 #version-select {
-  background-color: transparent;
+  background-color: var(--page-background-color);
   border: none;
   font-family: inherit;
   font-size: inherit;
