@@ -10,3 +10,18 @@
   cursor: pointer;
   line-height: inherit;
 }
+
+.github-mark {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  background-color: var(--page-background-color);
+  background-image: url(github-mark.svg);
+  background-repeat: no-repeat;
+  background-size: 20px;
+  vertical-align: middle;
+}
+
+html.dark-mode .github-mark {
+  background-image: url(github-mark-white.svg);
+}
