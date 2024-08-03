@@ -36,6 +36,24 @@
 # define UPA_API
 #endif
 
+// Attributes
+
+// NOLINTBEGIN(*-macro-*)
+
+#ifdef __has_cpp_attribute
+# define UPA_HAS_CPP_ATTRIBUTE(x) __has_cpp_attribute(x)
+#else
+# define UPA_HAS_CPP_ATTRIBUTE(x) 0
+#endif
+
+// NOLINTEND(*-macro-*)
+
+#if UPA_HAS_CPP_ATTRIBUTE(clang::lifetimebound)
+# define UPA_LIFETIMEBOUND [[clang::lifetimebound]]
+#else
+# define UPA_LIFETIMEBOUND
+#endif
+
 // Barrier for pointer anti-aliasing optimizations even across function boundaries.
 // This is a slightly modified U_ALIASING_BARRIER macro from the char16ptr.h file
 // of the ICU 75.1 library.
