@@ -1952,19 +1952,24 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
 
         if (is_end_of_authority || state_override) {
             if (pointer < end_of_digits) {
-                // is port
+                // url string contains port
+                // skip the leading zeros except the last
+                pointer = std::find_if(pointer, end_of_digits - 1, [](CharT c) { return c != '0'; });
+                // check port <= 65535 (0xFFFF)
+                if (std::distance(pointer, end_of_digits) > 5)
+                    return validation_errc::port_out_of_range;
+                // port length <= 5
                 int port = 0;
-                for (auto it = pointer; it < end_of_digits; ++it) {
+                for (auto it = pointer; it < end_of_digits; ++it)
                     port = port * 10 + (*it - '0');
-                    // 2.1.2. If port is greater than 2^16 − 1, port-out-of-range
-                    // validation error, return failure
-                    if (port > 0xFFFF)
-                        return validation_errc::port_out_of_range;
-                }
+                // 2.1.2. If port is greater than 2^16 − 1, port-out-of-range
+                // validation error, return failure
+                if (port > 0xFFFF)
+                    return validation_errc::port_out_of_range;
                 if (urls.need_save()) {
                     // set port if not default
                     if (urls.scheme_inf() == nullptr || urls.scheme_inf()->default_port != port) {
-                        util::unsigned_to_str(port, urls.start_part(url::PORT), 10);
+                        util::append(urls.start_part(url::PORT), str_arg<CharT>{ pointer, end_of_digits });
                         urls.save_part();
                         urls.set_flag(url::PORT_FLAG);
                     } else {

@@ -104,16 +104,28 @@ inline std::size_t add_sizes(std::size_t size1, std::size_t size2, std::size_t m
     return size1 + size2;
 }
 
-template <class StrT>
-inline void append(std::string& dest, const StrT& src) {
 #ifdef _MSC_VER
+// the value_type of dest and src are the same (char)
+template <class StrT,
+    typename std::enable_if<std::is_same<typename StrT::value_type, char>::value, int>::type = 0>
+inline void append(std::string& dest, const StrT& src) {
+    dest.append(src.begin(), src.end());
+}
+
+// the value_type of dest and src are different
+template <class StrT,
+    typename std::enable_if<!std::is_same<typename StrT::value_type, char>::value, int>::type = 0>
+inline void append(std::string& dest, const StrT& src) {
     dest.reserve(add_sizes(dest.size(), src.size(), dest.max_size()));
     for (const auto c : src)
         dest.push_back(static_cast<char>(c));
-#else
-    dest.append(src.begin(), src.end());
-#endif
 }
+#else
+template <class StrT>
+inline void append(std::string& dest, const StrT& src) {
+    dest.append(src.begin(), src.end());
+}
+#endif
 
 template <class CharT, class UnaryOperation>
 inline void append_tr(std::string& dest, const CharT* first, const CharT* last, UnaryOperation unary_op) {
