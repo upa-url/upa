@@ -62,10 +62,15 @@ int test_from_file(RunTests run_tests, const char* file_name)
     DataDrivenTest ddt;
     ddt.config_show_passed(false);
     ddt.config_debug_break(true);
+    try {
+        const int res = run_tests(ddt, file_name);
 
-    const int res = run_tests(ddt, file_name);
-
-    return res | ddt.result();
+        return res | ddt.result();
+    }
+    catch (const std::exception& ex) {
+        std::cout << "[ERROR]: " << ex.what() << std::endl;
+        return 1;
+    }
 }
 
 // URL parser test
@@ -348,7 +353,7 @@ struct SetterObj {
 //
 // https://github.com/web-platform-tests/wpt/blob/master/url/url-setters.any.js
 //
-void test_setter(DataDrivenTest& ddt, SetterObj& obj)
+void test_setter(DataDrivenTest& ddt, const SetterObj& obj)
 {
     const std::string str_case("URL(\"" + obj.m_href + "\")." + obj.m_setter + "(\"" + obj.m_new_value + "\");");
 
@@ -411,7 +416,7 @@ struct EncodingObj {
 //
 // https://github.com/web-platform-tests/wpt/blob/master/url/percent-encoding.window.js
 //
-void test_percent_encoding(DataDrivenTest& ddt, EncodingObj& obj)
+void test_percent_encoding(DataDrivenTest& ddt, const EncodingObj& obj)
 {
     // URL library supports only UTF-8 encoding
     const std::string& input = obj.m_input;
@@ -505,14 +510,11 @@ int run_setter_tests(DataDrivenTest& ddt, const char* file_name) {
                 obj.m_href = o.at("href").get<std::string>();
                 obj.m_new_value = o.at("new_value").get<std::string>();
                 const picojson::object& oexp = o.at("expected").get<picojson::object>();
-                for (const auto& pexp : oexp) {
-                    if (!pexp.second.is<std::string>())
-                        return false; // error: string is expected
+                for (const auto& pexp : oexp)
                     obj.m_expected[pexp.first] = pexp.second.get<std::string>();
-                }
             }
-            catch (const std::out_of_range& ex) {
-                std::cout << "[ERR:invalid file]: " << ex.what() << std::endl;
+            catch (const std::exception& ex) {
+                std::cout << "[ERR: invalid file]: " << ex.what() << std::endl;
                 return false;
             }
 
@@ -543,14 +545,11 @@ int run_percent_encoding_tests(DataDrivenTest& ddt, const char* file_name) {
                 const picojson::object& o = item.get<picojson::object>();
                 obj.m_input = o.at("input").get<std::string>();
                 const picojson::object& o_output = o.at("output").get<picojson::object>();
-                for (const auto& p : o_output) {
-                    if (!p.second.is<std::string>())
-                        return false; // error: string is expected
+                for (const auto& p : o_output)
                     obj.m_output[p.first] = p.second.get<std::string>();
-                }
             }
-            catch (const std::out_of_range& ex) {
-                std::cout << "[ERR:invalid file]: " << ex.what() << std::endl;
+            catch (const std::exception& ex) {
+                std::cout << "[ERR: invalid file]: " << ex.what() << std::endl;
                 return false;
             }
 

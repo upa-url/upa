@@ -121,14 +121,20 @@ int test_from_file(const char* file_name, bool sort)
     const auto test_item = [&](const picojson::value& item) {
         // analyze array item
         if (item.is<picojson::object>()) {
-            const picojson::object& o = item.get<picojson::object>();
-
             TestObj obj;
-            obj.m_input = o.at("input").get<std::string>();
-            const picojson::array& output = o.at("output").get<picojson::array>();
-            for (auto it = output.begin(); it != output.end(); ++it) {
-                const picojson::array& pair = it->get<picojson::array>();
-                obj.m_output.emplace_back(pair[0].get<std::string>(), pair[1].get<std::string>());
+
+            try {
+                const picojson::object& o = item.get<picojson::object>();
+                obj.m_input = o.at("input").get<std::string>();
+                const picojson::array& output = o.at("output").get<picojson::array>();
+                for (auto it = output.begin(); it != output.end(); ++it) {
+                    const picojson::array& pair = it->get<picojson::array>();
+                    obj.m_output.emplace_back(pair[0].get<std::string>(), pair[1].get<std::string>());
+                }
+            }
+            catch (const std::exception& ex) {
+                std::cout << "[ERR: invalid file]: " << ex.what() << std::endl;
+                return false;
             }
 
             if (sort)
