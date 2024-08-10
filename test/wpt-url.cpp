@@ -17,18 +17,20 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <unordered_map>
+#include <utility>
 
 
 // Test runner
 
 int run_parser_tests(DataDrivenTest& ddt, const char* file_name);
 int run_host_parser_tests(DataDrivenTest& ddt, const char* file_name);
-int run_idna_v2_tests(DataDrivenTest& ddt, const char* file_name);
+int run_idna_v2_tests(DataDrivenTest& ddt, const char* file_name, const char* fixes_file_name);
 int run_setter_tests(DataDrivenTest& ddt, const char* file_name);
 int run_percent_encoding_tests(DataDrivenTest& ddt, const char* file_name);
 
-using RunTests = int(*)(DataDrivenTest& ddt, const char* file_name);
-int test_from_file(RunTests run_tests, const char* file_name);
+template <typename RunTests, typename ...Args>
+int test_from_file(RunTests run_tests, Args&&... args);
 
 int main(int argc, char** argv)
 {
@@ -43,7 +45,7 @@ int main(int argc, char** argv)
     if (upa::idna_unicode_version() >= upa::make_unicode_version(13)) {
         // Only the IDNA library that conforms to Unicode 13.0 or later
         // (e.g., ICU 66.1 or later) passes all IdnaTestV2.json tests
-        err |= test_from_file(run_idna_v2_tests, "wpt/IdnaTestV2.json");
+        err |= test_from_file(run_idna_v2_tests, "wpt/IdnaTestV2.json", "data/IdnaTestV2-fixes.json");
     }
 
     // additional tests
@@ -57,13 +59,14 @@ int main(int argc, char** argv)
     return err;
 }
 
-int test_from_file(RunTests run_tests, const char* file_name)
+template <typename RunTests, typename ...Args>
+int test_from_file(RunTests run_tests, Args&&... args)
 {
     DataDrivenTest ddt;
     ddt.config_show_passed(false);
     ddt.config_debug_break(true);
     try {
-        const int res = run_tests(ddt, file_name);
+        const int res = run_tests(ddt, std::forward<Args>(args)...);
 
         return res | ddt.result();
     }
@@ -479,11 +482,37 @@ int run_host_parser_tests(DataDrivenTest& ddt, const char* file_name) {
     return json_util::load_file(context, file_name);
 }
 
-int run_idna_v2_tests(DataDrivenTest& ddt, const char* file_name) {
+int run_idna_v2_tests(DataDrivenTest& ddt, const char* file_name, const char* fixes_file_name) {
+    std::unordered_map<std::string, parsed_obj> fixes;
+
+    if (fixes_file_name) {
+        const auto add_item = [&](const picojson::value& item) {
+            // analyze array item
+            if (item.is<picojson::object>()) {
+                parsed_obj obj{ item.get<picojson::object>() };
+                std::string input = *obj.at("input");
+                fixes.emplace(std::move(input), std::move(obj));
+            } else if (item.is<std::string>()) {
+                // comment
+                // std::cout << item.get<std::string>() << std::endl;
+            } else {
+                std::cout << "Error in " << fixes_file_name << std::endl;
+                return false;
+            }
+            return true;
+        };
+        json_util::root_array_context<decltype(add_item)> ctx{ add_item };
+        const int err = json_util::load_file(ctx, fixes_file_name);
+        if (err != json_util::ERR_OK)
+            return err;
+    }
+
     const auto test_item = [&](const picojson::value& item) {
         // analyze array item
         if (item.is<picojson::object>()) {
-            test_idna_v2(ddt, item.get<picojson::object>());
+            parsed_obj obj{ item.get<picojson::object>() };
+            auto fixit = fixes.find(*obj.at("input"));
+            test_idna_v2(ddt, fixit == fixes.end() ? obj : fixit->second);
         } else if (item.is<std::string>()) {
             // comment
             // std::cout << item.get<std::string>() << std::endl;
