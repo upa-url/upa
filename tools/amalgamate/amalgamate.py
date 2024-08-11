@@ -62,7 +62,6 @@ class Amalgamation(object):
 
     def __init__(self, args):
         with open(args.config, 'r') as f:
-            self.head = [] # default
             self.ignore_includes = False
             config = json.loads(f.read())
             for key in config:
@@ -87,10 +86,6 @@ class Amalgamation(object):
             print(" working_dir   = {0}".format(os.getcwd()))
             print(" include_paths = {0}".format(self.include_paths))
         print("Creating amalgamation:")
-        for file_path in self.head:
-            actual_path = self.actual_path(file_path)
-            with io.open(actual_path, mode="r", encoding="utf-8") as f:
-                amalgamation += f.read()
         for file_path in self.sources:
             # Do not check the include paths while processing the source
             # list, all given source paths must be correct.
