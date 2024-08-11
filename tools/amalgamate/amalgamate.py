@@ -63,7 +63,7 @@ class Amalgamation(object):
     def __init__(self, args):
         with open(args.config, 'r') as f:
             self.head = [] # default
-            self.ingnore_includes = False
+            self.ignore_includes = False
             config = json.loads(f.read())
             for key in config:
                 setattr(self, key, config[key])
@@ -239,7 +239,7 @@ class TranslationUnit(object):
             include_match, found_included_path = include
             tmp_content += self.content[prev_end:include_match.start()]
             tmp_content += "// {0}\n".format(include_match.group(0))
-            if not self.amalgamation.ingnore_includes and not found_included_path in self.amalgamation.included_files:
+            if not self.amalgamation.ignore_includes and not found_included_path in self.amalgamation.included_files:
                 t = TranslationUnit(found_included_path, self.amalgamation, False)
                 tmp_content += t.content
             prev_end = include_match.end()

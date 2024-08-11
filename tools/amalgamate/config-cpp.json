@@ -12,5 +12,5 @@
   "include_paths": [
     "include"
   ],
-  "ingnore_includes": true
+  "ignore_includes": true
 }
