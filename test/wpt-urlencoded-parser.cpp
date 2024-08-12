@@ -4,7 +4,6 @@
 //
 
 #include "upa/url.h"
-#include "url_cleanup.h"
 
 // https://github.com/kazuho/picojson
 #include "picojson_util.h"
@@ -36,9 +35,6 @@ int main(int argc, char** argv)
 
     // NOTE: "Sorting non-existent params removes ? from URL" test based on
     // urlsearchparams-sort.any.js is in the wpt-url_search_params.cpp
-
-    // Free memory
-    upa::url_cleanup();
 
     return err;
 }

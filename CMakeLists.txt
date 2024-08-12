@@ -1,10 +1,9 @@
-# FindICU requires 3.7
 # add_link_options() requires 3.13
 cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_SUPPRESS_REGENERATION true)
 
-# use ICU_ROOT
+# https://cmake.org/cmake/help/latest/policy/CMP0074.html
 if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
@@ -23,7 +22,6 @@ project(upa_url VERSION ${UPA_URL_VERSION} LANGUAGES CXX)
 # ${upa_lib_name}-config.cmake
 # It also must be used as the package name argument to find_package
 set(upa_lib_name upa)
-set(upa_lib_name_in upa-icu)
 # Exported name for library target files; also used to create an alias
 # target: upa::${upa_lib_export}
 set(upa_lib_export url)
@@ -55,7 +53,6 @@ option(UPA_BUILD_TOOLS "Build tools." OFF)
 option(UPA_INSTALL "Generate the install target." ON)
 # library options
 option(UPA_AMALGAMATED "Use amalgamated URL library source." OFF)
-option(UPA_USE_WINDOWS_ICU "Use ICU library bundled with Windows 10 version 1903 or later." OFF)
 # tests build options
 option(UPA_TEST_COVERAGE "Build tests with code coverage reporting" OFF)
 option(UPA_TEST_COVERAGE_CLANG "Build tests with Clang source-based code coverage" OFF)
@@ -114,14 +111,9 @@ endif()
 
 include_directories(deps)
 
-# Are Upa URL and ICU libraries needed?
+# Is the Upa URL library needed?
 if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES OR
     UPA_BUILD_EXTRACTED OR UPA_INSTALL OR NOT UPA_BUILD_TOOLS)
-  if (NOT UPA_USE_WINDOWS_ICU)
-    # This library depends on ICU
-    find_package(ICU REQUIRED COMPONENTS i18n uc)
-  endif()
-
   if (UPA_AMALGAMATED)
     add_library(${upa_lib_target} STATIC
       single_include/upa/url.cpp)
@@ -131,7 +123,6 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
     add_library(${upa_lib_target} STATIC
       src/idna.cpp
       src/url.cpp
-      src/url_idna.cpp
       src/url_ip.cpp
       src/url_percent_encode.cpp
       src/url_search_params.cpp
@@ -143,13 +134,6 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
   add_library(upa::${upa_lib_export} ALIAS ${upa_lib_target})
   set_target_properties(${upa_lib_target} PROPERTIES
     EXPORT_NAME ${upa_lib_export})
-  if (UPA_USE_WINDOWS_ICU)
-    target_compile_definitions(${upa_lib_target} PRIVATE UPA_USE_WINDOWS_ICU=1)
-    set(upa_lib_name_in ${upa_lib_name})
-  else()
-    target_include_directories(${upa_lib_target} PRIVATE ${ICU_INCLUDE_DIR})
-    target_link_libraries(${upa_lib_target} INTERFACE ICU::i18n ICU::uc)
-  endif()
 endif()
 
 # Test targets
@@ -274,7 +258,7 @@ if (UPA_INSTALL AND NOT UPA_AMALGAMATED)
 
   # generate the config file that includes the exports
   configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${upa_lib_name_in}-config.cmake.in
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/${upa_lib_name}-config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/${upa_lib_name}-config.cmake
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${upa_lib_name}
     NO_SET_AND_CHECK_MACRO
