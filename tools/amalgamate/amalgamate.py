@@ -70,7 +70,9 @@ class Amalgamation(object):
             self.verbose = args.verbose == "yes"
             self.prologue = args.prologue
             self.source_path = args.source_path
+            self.no_duplicates = args.no_duplicates
             self.included_files = []
+            self.includes_set = set()
 
     # Generate the amalgamation and write it to the target file.
     def generate(self):
@@ -221,7 +223,7 @@ class TranslationUnit(object):
                 search_same_dir = include_match.group(1) == '"'
                 found_included_path = self.amalgamation.find_included_file(
                     include_path, self.file_dir if search_same_dir else None)
-                if found_included_path:
+                if found_included_path or self.amalgamation.no_duplicates:
                     includes.append((include_match, found_included_path))
 
             include_match = self.include_pattern.search(self.content,
@@ -232,12 +234,22 @@ class TranslationUnit(object):
         tmp_content = ''
         for include in includes:
             include_match, found_included_path = include
-            tmp_content += self.content[prev_end:include_match.start()]
-            tmp_content += "// {0}\n".format(include_match.group(0))
-            if not self.amalgamation.ignore_includes and not found_included_path in self.amalgamation.included_files:
-                t = TranslationUnit(found_included_path, self.amalgamation, False)
-                tmp_content += t.content
-            prev_end = include_match.end()
+            if found_included_path:
+                tmp_content += self.content[prev_end:include_match.start()]
+                tmp_content += "// {0}\n".format(include_match.group(0))
+                if not self.amalgamation.ignore_includes and not found_included_path in self.amalgamation.included_files:
+                    t = TranslationUnit(found_included_path, self.amalgamation, False)
+                    tmp_content += t.content
+                prev_end = include_match.end()
+            else:
+                include_path = include_match.group("path")
+                if include_path in self.amalgamation.includes_set:
+                    # Comment out the duplicate include
+                    tmp_content += self.content[prev_end:include_match.start()]
+                    tmp_content += "// {0}".format(include_match.group(0))
+                    prev_end = include_match.end()
+                else:
+                    self.amalgamation.includes_set.add(include_path)
         tmp_content += self.content[prev_end:]
         self.content = tmp_content
 
@@ -271,7 +283,8 @@ def main():
         "[-v]",
         "-c path/to/config.json",
         "-s path/to/source/dir",
-        "[-p path/to/prologue.(c|h)]"
+        "[-p path/to/prologue.(c|h)]",
+        "[-d]"
     ])
     argsparser = argparse.ArgumentParser(
         description=description, usage=usage)
@@ -287,6 +300,9 @@ def main():
 
     argsparser.add_argument("-p", "--prologue", dest="prologue",
         required=False, metavar="", help="path to a C prologue file")
+
+    argsparser.add_argument("-d", "--no-duplicates", dest="no_duplicates",
+        action='store_true', help="comment out the duplicate includes")
 
     amalgamation = Amalgamation(argsparser.parse_args())
     amalgamation.generate()

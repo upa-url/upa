@@ -8,5 +8,5 @@ REM CD to repository root folder
 cd %p%..
 
 REM Amalgamate
-python tools/amalgamate/amalgamate.py -c tools/amalgamate/config-cpp.json -s . -p tools/amalgamate/config-cpp.prologue
+python tools/amalgamate/amalgamate.py -c tools/amalgamate/config-cpp.json -s . -p tools/amalgamate/config-cpp.prologue --no-duplicates
 python tools/amalgamate/amalgamate.py -c tools/amalgamate/config-h.json -s .

@@ -8,5 +8,5 @@ p="$(dirname "$0")"
 cd $p/..
 
 # Amalgamate
-python3 tools/amalgamate/amalgamate.py -c tools/amalgamate/config-cpp.json -s . -p tools/amalgamate/config-cpp.prologue
+python3 tools/amalgamate/amalgamate.py -c tools/amalgamate/config-cpp.json -s . -p tools/amalgamate/config-cpp.prologue --no-duplicates
 python3 tools/amalgamate/amalgamate.py -c tools/amalgamate/config-h.json -s .
