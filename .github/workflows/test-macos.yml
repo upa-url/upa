@@ -23,12 +23,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: install ICU library
-      run: brew install icu4c
     - name: get dependencies
       run: ./init.sh
-    - name: set ICU_ROOT
-      run: echo "ICU_ROOT=$(if [ "${{ runner.arch }}" = "ARM64" ]; then echo '/opt/homebrew/opt/icu4c'; else echo '/usr/local/opt/icu4c'; fi)" >> $GITHUB_ENV
     - name: cmake
       run: cmake -S . -B build -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
     - name: build
