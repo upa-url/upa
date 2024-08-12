@@ -67,7 +67,7 @@ class Amalgamation(object):
             for key in config:
                 setattr(self, key, config[key])
 
-            self.verbose = args.verbose == "yes"
+            self.verbose = args.verbose
             self.prologue = args.prologue
             self.source_path = args.source_path
             self.no_duplicates = args.no_duplicates
@@ -290,7 +290,7 @@ def main():
         description=description, usage=usage)
 
     argsparser.add_argument("-v", "--verbose", dest="verbose",
-        choices=["yes", "no"], metavar="", help="be verbose")
+        action='store_true', help="be verbose")
 
     argsparser.add_argument("-c", "--config", dest="config",
         required=True, metavar="", help="path to a JSON config file")
