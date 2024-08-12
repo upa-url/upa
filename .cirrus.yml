@@ -7,7 +7,7 @@ task:
         image: alpine:latest
       install_script: |
         apk update
-        apk add build-base cmake curl g++ git icu-dev
+        apk add build-base cmake curl g++ git
 
     - name: FreeBSD 14.0
       freebsd_instance:

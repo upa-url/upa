@@ -21,17 +21,13 @@ environment:
       GENERATOR: Visual Studio 16 2019
       CXX_STANDARD: 17
 
-install:
-  - install-icu.bat C:\LIB 75 1
-
 before_build:
   - init.bat
-  - cmake -S . -B build -G "%GENERATOR%" -A x64 -DCMAKE_CXX_STANDARD="%CXX_STANDARD%" -DICU_ROOT=C:\LIB\ICU
+  - cmake -S . -B build -G "%GENERATOR%" -A x64 -DCMAKE_CXX_STANDARD="%CXX_STANDARD%"
 
 build_script:
   - cmake --build build --config Release
 
 test_script:
-  - set PATH=%PATH%;C:\LIB\ICU\bin64
   - cd build
   - ctest -C Release -V
