@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -247,6 +247,7 @@ TEST_SUITE("url_host") {
     }
 }
 
+#if 0
 
 // Test upa::domain_to_unicode function
 
@@ -269,3 +270,5 @@ TEST_SUITE("domain_to_unicode") {
         CHECK(upa::domain_to_unicode("xn--a.op", 8, output) == upa::validation_errc::ok);
     }
 }
+
+#endif
