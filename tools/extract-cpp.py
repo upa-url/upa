@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 #
-# Copyright 2023 Rimas Misevičius
+# Copyright 2023-2024 Rimas Misevičius
 # Distributed under the BSD-style license that can be
 # found in the LICENSE file.
-from enum import auto, Enum
+from enum import auto, IntEnum
 import os
 import sys
 
@@ -18,7 +18,7 @@ def has_main(cpp_text):
     return "int main(" in cpp_text
 
 class CppExamples:
-    class State(Enum):
+    class State(IntEnum):
         Outside = auto()
         EnterCpp = auto()
         InCpp = auto()
@@ -31,7 +31,7 @@ class CppExamples:
         self._out_path = out_path
 
     def extract_cpp_from_md_file(self, md_path):
-        state = self.State.Outside.value
+        state = self.State.Outside
         cpp_text = ""
 
         # Open the MD file
@@ -40,12 +40,12 @@ class CppExamples:
             for line_nl in file:
                 # remove ending newline character
                 line = line_nl.rstrip()
-                if state == self.State.Outside.value:
+                if state == self.State.Outside:
                     if line == "```cpp":
-                        state = self.State.EnterCpp.value;
+                        state = self.State.EnterCpp;
                         cpp_text = ""
                 elif line == "```":
-                    if state == self.State.InCpp.value:
+                    if state == self.State.InCpp:
                         if has_main(cpp_text):
                             self._cpp_file_num += 1
                             out_file_path = os.path.join(self._out_path, f"example-{self._cpp_file_num}.cpp")
@@ -53,17 +53,17 @@ class CppExamples:
                             with open(out_file_path, "w") as out_file:
                                 out_file.write(f"// Example from: {md_path}\n")
                                 out_file.write(cpp_text)
-                    elif state == self.State.InCppSnipet.value:
+                    elif state == self.State.InCppSnipet:
                         self._cpp_example_num += 1
                         self._cpp_examples_text += f"\n// Example from: {md_path}\n"
                         self._cpp_examples_text += f"void example_{self._cpp_example_num}() {{\n"
                         self._cpp_examples_text += cpp_text
                         self._cpp_examples_text += "}\n"
-                    state = self.State.Outside.value;
+                    state = self.State.Outside;
                 else:
-                    if state == self.State.EnterCpp.value:
-                        state = self.State.InCpp.value if line.startswith("#include") else self.State.InCppSnipet.value
-                    if state == self.State.InCppSnipet.value:
+                    if state == self.State.EnterCpp:
+                        state = self.State.InCpp if line.startswith("#include") else self.State.InCppSnipet
+                    if state == self.State.InCppSnipet:
                         cpp_text += INDENT_TEXT
                     cpp_text += line_nl
 
