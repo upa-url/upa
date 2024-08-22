@@ -31,7 +31,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint> // uint8_t
-#include <iterator> // std::next
+#include <iterator>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -3264,7 +3264,15 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
                 throw url_error(validation_errc::file_url_unsupported_host, "UNC path cannot have \".\" hostname");
             // UNC path
             path.append("\\\\");
-            path.append(hostname);
+            if (file_url.host_type() == HostType::IPv6) {
+                // Form an IPV6 address host-name by substituting hyphens for the colons and appending ".ipv6-literal.net"
+                // https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-dtyp/62e862f4-2a51-452e-8eeb-dc4ff5ee33cc
+                std::replace_copy(std::next(hostname.begin()), std::prev(hostname.end()),
+                    std::back_inserter(path), ':', '-');
+                path.append(".ipv6-literal.net");
+            } else {
+                path.append(hostname);
+            }
         }
 
         // percent decode pathname and normalize slashes

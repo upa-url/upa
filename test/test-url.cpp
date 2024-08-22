@@ -761,6 +761,9 @@ TEST_CASE("path_from_file_url") {
         CHECK(path_from_file_url("file://host/path", upa::file_path_format::windows) == "\\\\host\\path");
         CHECK(path_from_file_url("file:////host/path", upa::file_path_format::windows) == "\\\\host\\path");
         CHECK(path_from_file_url("file://///host/path", upa::file_path_format::windows) == "\\\\host\\path");
+        // UNC: IPv4 and IPv6 hostnames
+        CHECK(path_from_file_url("file://127.0.0.1/path", upa::file_path_format::windows) == "\\\\127.0.0.1\\path");
+        CHECK(path_from_file_url("file://[::1]/path", upa::file_path_format::windows) == "\\\\--1.ipv6-literal.net\\path");
         // Invalid UNC
         CHECK_THROWS_AS(path_from_file_url("file://host", upa::file_path_format::windows), upa::url_error);
         CHECK_THROWS_AS(path_from_file_url("file://host/", upa::file_path_format::windows), upa::url_error);
