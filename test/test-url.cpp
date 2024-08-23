@@ -649,7 +649,6 @@ TEST_CASE("url_from_file_path") {
         // https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
         CHECK(upa::url_from_file_path("C:\\", upa::file_path_format::windows).href() == "file:///C:/");
         CHECK(upa::url_from_file_path("C:\\path", upa::file_path_format::windows).href() == "file:///C:/path");
-        CHECK(upa::url_from_file_path("C|\\path", upa::file_path_format::windows).href() == "file:///C:/path");
         CHECK(upa::url_from_file_path("C:/path", upa::file_path_format::windows).href() == "file:///C:/path");
         CHECK(upa::url_from_file_path("C:\\path %#", upa::file_path_format::windows).href() == "file:///C:/path%20%25%23");
         // UNC: one-character hostname
@@ -683,6 +682,8 @@ TEST_CASE("url_from_file_path") {
         CHECK_THROWS_AS(upa::url_from_file_path("C:path", upa::file_path_format::windows), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("path", upa::file_path_format::windows), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("/", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("C|\\path", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(upa::url_from_file_path("C|/path", upa::file_path_format::windows), upa::url_error);
         // invalid UNC
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\", upa::file_path_format::windows), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\h", upa::file_path_format::windows), upa::url_error);
@@ -754,6 +755,7 @@ TEST_CASE("path_from_file_url") {
         CHECK(path_from_file_url("file:///C%3A%5Cpath", upa::file_path_format::windows) == "C:\\path");
         // Not a Windows path
         CHECK_THROWS_AS(path_from_file_url("file:///", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(path_from_file_url("file:///C%7C", upa::file_path_format::windows), upa::url_error);
         CHECK_THROWS_AS(path_from_file_url("file:///p", upa::file_path_format::windows), upa::url_error);
         CHECK_THROWS_AS(path_from_file_url("file:///h/p", upa::file_path_format::windows), upa::url_error);
         CHECK_THROWS_AS(path_from_file_url("file://////h/p", upa::file_path_format::windows), upa::url_error);

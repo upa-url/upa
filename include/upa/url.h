@@ -1008,12 +1008,12 @@ constexpr bool is_special_authority_end_char(CharT c) noexcept {
 // Windows drive letter
 
 // https://url.spec.whatwg.org/#windows-drive-letter
-
 template <typename CharT>
 constexpr bool is_windows_drive(CharT c1, CharT c2) noexcept {
     return is_ascii_alpha(c1) && (c2 == ':' || c2 == '|');
 }
 
+// https://url.spec.whatwg.org/#normalized-windows-drive-letter
 template <typename CharT>
 constexpr bool is_normalized_windows_drive(CharT c1, CharT c2) noexcept {
     return is_ascii_alpha(c1) && c2 == ':';
@@ -1035,23 +1035,27 @@ inline bool starts_with_windows_drive(const CharT* pointer, const CharT* last) n
 #endif
 }
 
+// Windows drive letter in OS path
+//
+// NOTE: Windows OS supports only normalized Windows drive letters.
+
 // Check url's pathname has Windows drive, i.e. starts with "/C:/" or is "/C:"
 // see also: detail::starts_with_windows_drive
-inline bool pathname_has_windows_drive(string_view pathname) noexcept {
+inline bool pathname_has_windows_os_drive(string_view pathname) noexcept {
     return
         (pathname.length() == 3 || (pathname.length() > 3 && is_windows_slash(pathname[3]))) &&
         is_windows_slash(pathname[0]) &&
-        is_windows_drive(pathname[1], pathname[2]);
+        is_normalized_windows_drive(pathname[1], pathname[2]);
 }
 
 /// Check string is absolute Windows drive path (for example: "C:\\path" or "C:/path")
 /// @return pointer to the path after first (back)slash, or `nullptr` if path is not
 ///   absolute Windows drive path
 template <typename CharT>
-constexpr const CharT* is_windows_drive_absolute_path(const CharT* pointer, const CharT* last) noexcept {
+constexpr const CharT* is_windows_os_drive_absolute_path(const CharT* pointer, const CharT* last) noexcept {
     return (last - pointer > 2 &&
-        detail::is_windows_drive(pointer[0], pointer[1]) &&
-        detail::is_windows_slash(pointer[2]))
+        is_normalized_windows_drive(pointer[0], pointer[1]) &&
+        is_windows_slash(pointer[2]))
         ? pointer + 3 : nullptr;
 }
 
@@ -3215,7 +3219,7 @@ inline url url_from_file_path(StrT&& str, file_path_format format = file_path_fo
         }
         start_of_check = is_unc
             ? detail::is_unc_path(pointer, last)
-            : detail::is_windows_drive_absolute_path(pointer, last);
+            : detail::is_windows_os_drive_absolute_path(pointer, last);
         if (start_of_check == nullptr ||
             detail::has_dot_dot_segment(start_of_check, last, detail::is_windows_slash<CharT>))
             throw url_error(validation_errc::file_unsupported_path, "Unsupported file path");
@@ -3284,7 +3288,7 @@ inline std::string path_from_file_url(const url& file_url, file_path_format form
             if (!detail::is_unc_path(path.data() + 2, path.data() + path.length()))
                 throw url_error(validation_errc::file_url_invalid_unc, "Invalid UNC path");
         } else {
-            if (detail::pathname_has_windows_drive(path)) {
+            if (detail::pathname_has_windows_os_drive(path)) {
                 path.erase(0, 1); // remove leading '\\'
                 if (path.length() == 2)
                     path.push_back('\\'); // "C:" -> "C:\"
