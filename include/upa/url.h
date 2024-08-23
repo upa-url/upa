@@ -3154,8 +3154,8 @@ enum class file_path_format {
 /// @param[in] format file path format, one of upa::file_path_format::posix,
 ///   upa::file_path_format::windows, upa::file_path_format::native
 /// @return file URL
-/// @see [Pathname (POSIX)](https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_271),
-///   [realpath](https://pubs.opengroup.org/onlinepubs/9699919799/functions/realpath.html),
+/// @see [Pathname (POSIX)](https://pubs.opengroup.org/onlinepubs/9799919799/basedefs/V1_chap03.html#tag_03_254),
+///   [realpath](https://pubs.opengroup.org/onlinepubs/9799919799/functions/realpath.html),
 ///   [GetFullPathName](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfullpathnamew),
 ///   [std::filesystem::canonical](https://en.cppreference.com/w/cpp/filesystem/canonical)
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
