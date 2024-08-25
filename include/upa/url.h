@@ -984,6 +984,11 @@ constexpr bool is_slash(CharT ch) noexcept {
 }
 
 template <typename CharT>
+constexpr bool is_posix_slash(CharT ch) noexcept {
+    return ch == '/';
+}
+
+template <typename CharT>
 constexpr bool is_windows_slash(CharT ch) noexcept {
     return ch == '\\' || ch == '/';
 }
@@ -3180,9 +3185,9 @@ inline url url_from_file_path(StrT&& str, file_path_format format = file_path_fo
     std::string str_url("file://");
 
     if (format == file_path_format::posix) {
-        if (*first != '/')
+        if (!detail::is_posix_slash(*first))
             throw url_error(validation_errc::file_unsupported_path, "Non-absolute POSIX path");
-        if (detail::has_dot_dot_segment(start_of_check, last, [](CharT c) { return c == '/'; }))
+        if (detail::has_dot_dot_segment(start_of_check, last, detail::is_posix_slash<CharT>))
             throw url_error(validation_errc::file_unsupported_path, "Unsupported file path");
         // Absolute POSIX path
         no_encode_set = &posix_path_no_encode_set;
