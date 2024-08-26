@@ -2,12 +2,12 @@
 
 Upa URL is [WHATWG URL Standard](https://url.spec.whatwg.org/) compliant <b>U</b>RL <b>pa</b>rser library written in C++.
 
-The library depends on the [ICU library](https://icu.unicode.org/) for IDNA processing and requires a compiler that supports C++11 or later. It is known to compile with Clang 4, GCC 4.9, Microsoft Visual Studio 2015 or later. It is recommended to use ICU 68 or later; to pass URL IDNA tests (IdnaTestV2.json) of [web-platform-tests](https://github.com/web-platform-tests/wpt/tree/master/url) use ICU 66 or later.
+The library is self-contained with no dependencies and requires a compiler that supports C++11 or later. It is known to compile with Clang 4, GCC 4.9, Microsoft Visual Studio 2015 or later. Can also be compiled to WebAssembly, see demo: https://upa-url.github.io/demo/
 
 ## Features and standard conformance
 
 This library is up to date with the URL Standard published on
-[27 September 2023 (commit aa64bb2)](https://url.spec.whatwg.org/commit-snapshots/aa64bb27d427cef0d87f134980ac762cced1f5bb/).
+[19 August 2024 (commit 5861e02)](https://url.spec.whatwg.org/commit-snapshots/5861e023bbd695c92190aa6bb7cb3c6717dab33b/) and supports internationalized domain names as specified in the [UTS46 Unicode IDNA Compatibility Processing version 15.1.0](https://www.unicode.org/reports/tr46/tr46-31.html).
 
 It implements:
 1. [URL class](https://url.spec.whatwg.org/#url-class): `upa::url`
@@ -41,9 +41,6 @@ cmake -B build -DUPA_BUILD_TESTS=OFF
 cmake --build build
 cmake --install build
 ```
-
-> [!NOTE]
-> If ICU is installed in a non-default directory, then specify `-DICU_ROOT=<ICU directory>` parameter in the first command. If you are building for Windows 10 version 1903 or later, ICU bundled with Windows can be used: specify the `-DUPA_USE_WINDOWS_ICU=ON` parameter in the first command.
 
 To use library add `find_package(upa REQUIRED)` and link to `upa::url` target in your CMake project:
 ```cmake
@@ -92,7 +89,7 @@ In source files, that use this library, the `upa/url.h` must be  included:
 #include "upa/url.h"
 ```
 
-If you are using CMake, see the [CMake section](#cmake) for how to link to the library. Alternatively, if you are using amalgamated files, then add the amalgamated `url.cpp` file to your project, otherwise add all the files from the `src/` directory to your project; and link to the ICU `i18n` and `uc` libraries.
+If you are using CMake, see the [CMake section](#cmake) for how to link to the library. Alternatively, if you are using amalgamated files, then add the amalgamated `url.cpp` file to your project, otherwise add all the files from the `src/` directory to your project.
 
 ### Examples
 
