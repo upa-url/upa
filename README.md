@@ -35,7 +35,7 @@ The simplest way is to use two amalgamated files: `url.h` and `url.cpp`. You can
 
 ### CMake
 
-The library can be built and installed using CMake 3.13 or later. To build and install to default directory (usualy `/usr/local` on Linux) run following commands:
+The library can be built and installed using CMake 3.13 or later. To build and install to default directory (usually `/usr/local` on Linux) run following commands:
 ```sh
 cmake -B build -DUPA_BUILD_TESTS=OFF
 cmake --build build
@@ -137,7 +137,7 @@ catch (const std::exception& ex) {
 }
 ```
 
-Use setters of the url class:
+Use setters of the `url` class:
 ```cpp
 upa::url url;
 if (upa::success(url.parse("http://host/"))) {
