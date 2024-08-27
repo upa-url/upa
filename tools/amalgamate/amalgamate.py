@@ -302,7 +302,7 @@ def main():
         required=False, metavar="", help="path to a C prologue file")
 
     argsparser.add_argument("-d", "--no-duplicates", dest="no_duplicates",
-        action='store_true', help="comment out the duplicate includes")
+        action='store_true', help="comment out duplicate include directives")
 
     amalgamation = Amalgamation(argsparser.parse_args())
     amalgamation.generate()

@@ -51,7 +51,7 @@ Python v.2.7.0 or higher is required.
 ## Using amalgamate.py
 
         amalgamate.py [-v] -c path/to/config.json -s path/to/source/dir \
-                [-p path/to/prologue.(c|h)]
+                [-p path/to/prologue.(c|h)] [-d]
 
  * The `-c, --config` option should specify the path to a JSON config file which
    lists the source files, include paths and where to write the resulting
@@ -64,3 +64,5 @@ Python v.2.7.0 or higher is required.
  * The `-p, --prologue` option should specify the path to a file which will be
    added to the beginning of the amalgamation. It is optional.
 
+ * The `-d, --no-duplicates` option instructs to comment out duplicate include
+   directives that are not expanded.
