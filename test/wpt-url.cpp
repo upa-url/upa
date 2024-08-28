@@ -78,7 +78,7 @@ int test_from_file(RunTests run_tests, const char* file_name)
 class string_or_null {
 public:
     // construct
-    string_or_null() noexcept = default;
+    string_or_null() UPA_NOEXCEPT_17 = default;
     string_or_null(const string_or_null&) = default;
     string_or_null(string_or_null&&) noexcept = default;
     string_or_null(const picojson::value& json_value)
@@ -91,7 +91,7 @@ public:
 
     // assign
     string_or_null& operator=(const string_or_null&) = default;
-    string_or_null& operator=(string_or_null&&) noexcept = default;
+    string_or_null& operator=(string_or_null&&) UPA_NOEXCEPT_17 = default;
 
     // has value?
     explicit operator bool() const noexcept {
