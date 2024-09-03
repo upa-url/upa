@@ -664,6 +664,9 @@ TEST_CASE("url_from_file_path") {
         // UNC: IPv4 and IPv6 hostnames
         CHECK(upa::url_from_file_path("\\\\127.0.0.1\\path", upa::file_path_format::windows).href() == "file://127.0.0.1/path");
         CHECK(upa::url_from_file_path("\\\\[::1]\\path", upa::file_path_format::windows).href() == "file://[::1]/path");
+        // UNC: without share-name
+        CHECK(upa::url_from_file_path("\\\\h", upa::file_path_format::windows).href() == "file://h/");
+        CHECK(upa::url_from_file_path("\\\\h\\", upa::file_path_format::windows).href() == "file://h/");
         // Win32 file and device namespaces
         // https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats
         // https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
@@ -686,8 +689,6 @@ TEST_CASE("url_from_file_path") {
         CHECK_THROWS_AS(upa::url_from_file_path("C|/path", upa::file_path_format::windows), upa::url_error);
         // invalid UNC
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\", upa::file_path_format::windows), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\\\", upa::file_path_format::windows), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\.", upa::file_path_format::windows), upa::url_error);
         CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\..", upa::file_path_format::windows), upa::url_error);
@@ -766,11 +767,16 @@ TEST_CASE("path_from_file_url") {
         // UNC: IPv4 and IPv6 hostnames
         CHECK(path_from_file_url("file://127.0.0.1/path", upa::file_path_format::windows) == "\\\\127.0.0.1\\path");
         CHECK(path_from_file_url("file://[::1]/path", upa::file_path_format::windows) == "\\\\--1.ipv6-literal.net\\path");
-        // Invalid UNC
-        CHECK_THROWS_AS(path_from_file_url("file://host", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(path_from_file_url("file://host/", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(path_from_file_url("file:////host/", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(path_from_file_url("file://///host/", upa::file_path_format::windows), upa::url_error);
+        // UNC: without share-name
+        CHECK(path_from_file_url("file://host/", upa::file_path_format::windows) == "\\\\host\\");
+        CHECK(path_from_file_url("file:////host", upa::file_path_format::windows) == "\\\\host");
+        CHECK(path_from_file_url("file:////host/", upa::file_path_format::windows) == "\\\\host\\");
+        CHECK(path_from_file_url("file://///host", upa::file_path_format::windows) == "\\\\host");
+        CHECK(path_from_file_url("file://///host/", upa::file_path_format::windows) == "\\\\host\\");
+        // Invalid UNC: empty share-name
+        CHECK_THROWS_AS(path_from_file_url("file://host//", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(path_from_file_url("file:////host//", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(path_from_file_url("file://///host//", upa::file_path_format::windows), upa::url_error);
         // Unsupported "." hostname
         CHECK_THROWS_AS(path_from_file_url("file://./name", upa::file_path_format::windows), upa::url_error);
         // null character

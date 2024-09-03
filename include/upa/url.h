@@ -3050,6 +3050,8 @@ inline const CharT* is_unc_path(const CharT* first, const CharT* last)
                     return nullptr;
                 break;
             }
+            // Accept UNC path with hostname, even if it does not contain share-name
+            end_of_share_name = pcend;
             break;
         case 2:
             // Check the second UNC path component (share name).
