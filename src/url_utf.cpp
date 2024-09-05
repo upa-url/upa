@@ -8,16 +8,6 @@
 
 namespace upa {
 
-bool url_utf::convert_utf8_to_utf16(const char* first, const char* last, simple_buffer<char16_t>& output) {
-    bool success = true;
-    for (auto it = first; it < last;) {
-        const auto cp_res = read_utf_char(it, last);
-        append_utf16(cp_res.value, output);
-        success &= cp_res.result;
-    }
-    return success;
-}
-
 template <typename CharT>
 inline std::string to_utf8_stringT(const CharT* first, const CharT* last) {
     std::string output;
