@@ -9,9 +9,9 @@ task:
         apk update
         apk add build-base cmake curl g++ git
 
-    - name: FreeBSD 14.0
+    - name: FreeBSD 14.1
       freebsd_instance:
-        image_family: freebsd-14-0
+        image_family: freebsd-14-1
       install_script: |
         pkg install -y cmake git
 
