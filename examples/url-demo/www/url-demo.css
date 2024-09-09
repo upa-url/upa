@@ -1,0 +1,47 @@
+* { box-sizing: border-box; }
+
+body {
+  font-family: Arial;
+  max-width: 70em;
+  margin: 16px;
+}
+
+h2 {
+  font-size: 1.4em;
+  margin-top: 0.3em;
+  margin-bottom: 0.2em;
+}
+
+form .label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+form .field {
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 3px;
+}
+
+.output {
+  background-color: #F7F0E0;
+  border: 1px solid #D2691E;
+  width: 100%;
+  padding: 1em;
+  margin: 0;
+}
+
+.output th {
+  width: 80px;
+  text-align: right;
+  padding-right: 10px;
+}
+
+.output td {
+  font-family: 'Bitstream Vera Sans Mono', 'Andale Mono', 'Lucida Console', monospace, fixed;
+  white-space: pre-wrap;
+}
+
+.output.error {
+  color: #B90000;
+}

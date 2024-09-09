@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Upa URL demo</title>
+  <link rel="stylesheet" href="url-demo.css">
+  <script src="url-api.js"></script>
+  <script type="module" src="url-demo.js"></script>
+</head>
+<body>
+  <h1>Upa URL demo</h1>
+
+  <form>
+    <label class="label" for="url">URL input:</label>
+    <input id="url" class="field" value="https://example.org/" autofocus>
+
+    <label class="label" for="base">Base URL:</label>
+    <input id="base" class="field" value="https://example.org/">
+
+    <div class="label">
+      <select id="setter"><option value="">—</option></select>
+      <label for="setter-inp">setter:</label>
+    </div>
+    <input id="setter-inp" class="field" value="">
+  </form>
+
+  <h2>Parsing result:</h2>
+
+  <table id="url-output" class="output">
+    <tr class="href"><th>href</th><td></td></tr>
+    <tr class="protocol"><th>protocol</th><td></td></tr>
+    <tr class="username"><th>username</th><td></td></tr>
+    <tr class="password"><th>password</th><td></td></tr>
+    <tr class="hostname"><th>hostname</th><td></td></tr>
+    <tr class="port"><th>port</th><td></td></tr>
+    <tr class="pathname"><th>pathname</th><td></td></tr>
+    <tr class="search"><th>search</th><td></td></tr>
+    <tr class="hash"><th>hash</th><td></td></tr>
+    <tr class="origin"><th>origin</th><td></td></tr>
+  </table>
+
+  <div id="url-error" class="output error"></div>
+</body>
+</html>
