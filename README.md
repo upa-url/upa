@@ -82,6 +82,12 @@ CPMAddPackage("gh:upa-url/upa@1.0.0")
 target_link_libraries(exe-target PRIVATE upa::url)
 ```
 
+### vcpkg
+
+For use in C++17 or later projects, install Upa URL with `vcpkg install upa-url`.
+
+For use in C++11 and C++14 projects: `vcpkg install upa-url[cxx11]`.
+
 ## Usage
 
 In source files, that use this library, the `upa/url.h` must be  included:
