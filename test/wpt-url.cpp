@@ -42,7 +42,8 @@ int main(int argc, char** argv)
     err |= test_from_file(run_host_parser_tests, "wpt/toascii.json");
     err |= test_from_file(run_setter_tests, "wpt/setters_tests.json");
     err |= test_from_file(run_percent_encoding_tests, "wpt/percent-encoding.json");
-    err |= test_from_file(run_idna_v2_tests, "wpt/IdnaTestV2.json", "data/IdnaTestV2-fixes.json");
+    err |= test_from_file(run_idna_v2_tests, "wpt/IdnaTestV2.json", nullptr);
+    err |= test_from_file(run_idna_v2_tests, "wpt/IdnaTestV2-removed.json", nullptr);
 
     // additional tests
     err |= test_from_file(run_parser_tests, "data/my-urltestdata.json");
