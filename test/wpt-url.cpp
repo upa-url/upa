@@ -41,11 +41,7 @@ int main(int argc, char** argv)
     err |= test_from_file(run_host_parser_tests, "wpt/toascii.json");
     err |= test_from_file(run_setter_tests, "wpt/setters_tests.json");
     err |= test_from_file(run_percent_encoding_tests, "wpt/percent-encoding.json");
-    if (upa::idna::unicode_version() >= upa::idna::make_unicode_version(13)) {
-        // Only the IDNA library that conforms to Unicode 13.0 or later
-        // (e.g., ICU 66.1 or later) passes all IdnaTestV2.json tests
-        err |= test_from_file(run_idna_v2_tests, "wpt/IdnaTestV2.json", "data/IdnaTestV2-fixes.json");
-    }
+    err |= test_from_file(run_idna_v2_tests, "wpt/IdnaTestV2.json", "data/IdnaTestV2-fixes.json");
 
     // additional tests
     err |= test_from_file(run_parser_tests, "data/my-urltestdata.json");
