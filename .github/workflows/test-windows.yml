@@ -20,16 +20,16 @@ jobs:
             cxx_standard: 20
             cmake_options: ""
 
-          - name: VS 2022 C++14
-            os: windows-2022
-            generator: "Visual Studio 17 2022"
-            cxx_standard: 14
-            cmake_options: ""
-
           - name: VS 2022 C++17
             os: windows-2022
             generator: "Visual Studio 17 2022"
             cxx_standard: 17
+            cmake_options: ""
+
+          - name: VS 2022 C++20
+            os: windows-2022
+            generator: "Visual Studio 17 2022"
+            cxx_standard: 20
             cmake_options: ""
 
           - name: VS 2022 C++23
@@ -37,6 +37,12 @@ jobs:
             generator: "Visual Studio 17 2022"
             cxx_standard: 23
             cmake_options: ""
+
+          - name: VS 2022 Clang C++17
+            os: windows-2022
+            generator: "Visual Studio 17 2022"
+            cxx_standard: 17
+            cmake_options: "-T ClangCL"
 
           - name: VS 2022 Clang C++20
             os: windows-2022

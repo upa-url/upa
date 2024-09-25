@@ -72,16 +72,10 @@ jobs:
             cmake_options: "-DUPA_AMALGAMATED=ON -DUPA_BUILD_EXAMPLES=ON"
             before_cmake: tools/amalgamate.sh
 
-          - name: g++-9 C++14
+          - name: g++-9 C++17
             os: ubuntu-22.04
             cxx_compiler: g++-9
-            cxx_standard: 14
-            cmake_options: "-DUPA_BUILD_EXAMPLES=ON"
-
-          - name: g++-9 C++11
-            os: ubuntu-22.04
-            cxx_compiler: g++-9
-            cxx_standard: 11
+            cxx_standard: 17
             cmake_options: "-DUPA_BUILD_EXAMPLES=ON"
 
     steps:
