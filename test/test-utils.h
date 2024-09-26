@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -62,13 +62,7 @@ inline bool param_eq(const std::string* pval, const T& value) {
 
 template <class List, class T>
 inline bool list_eq(const List& val, std::initializer_list<T> lst) {
-#ifdef UPA_CPP_14
     return std::equal(std::begin(val), std::end(val), std::begin(lst), std::end(lst));
-#else
-    return
-        val.size() == lst.size() &&
-        std::equal(std::begin(val), std::end(val), std::begin(lst));
-#endif
 }
 
 template <class T>

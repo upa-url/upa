@@ -18,27 +18,19 @@ inline void procfn(Args&&... args) {
 #ifndef UPA_STR_ARG_H
 #define UPA_STR_ARG_H
 
-#include "config.h"
 #include "url_utf.h"
 #include <cassert>
 #include <cstddef>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
-
-#ifdef UPA_CPP_17
-# include <string_view>
-# define UPA_STRING_VIEW_TYPE  std::string_view
-#else
-# include "str_view.h"
-# define UPA_STRING_VIEW_TYPE  upa::str_view<char>
-#endif
 
 namespace upa {
 
 // String view type
 
-using string_view = UPA_STRING_VIEW_TYPE;
+using string_view = std::string_view;
 
 // Supported char and size types
 
