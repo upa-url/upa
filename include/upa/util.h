@@ -138,12 +138,9 @@ inline void append_tr(std::string& dest, const CharT* first, const CharT* last, 
         std::transform(first, last, buff + old_size, unary_op);
         return new_size;
     });
-#elif defined(UPA_CPP_17)
+#else
     dest.resize(new_size);
     std::transform(first, last, dest.data() + old_size, unary_op);
-#else
-    dest.reserve(new_size);
-    std::transform(first, last, std::back_inserter(dest), unary_op);
 #endif
 }
 
