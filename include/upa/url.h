@@ -1596,7 +1596,7 @@ namespace detail {
 template <typename CharT>
 inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override)
 {
-    using UCharT = typename std::make_unsigned<CharT>::type;
+    using UCharT = std::make_unsigned_t<CharT>;
 
     // remove all ASCII tab or newline from URL
     simple_buffer<CharT> buff_no_ws;
@@ -2388,7 +2388,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
 
 template <typename CharT>
 inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last, std::string& output) {
-    using UCharT = typename std::make_unsigned<CharT>::type;
+    using UCharT = std::make_unsigned_t<CharT>;
 
     // TODO-WARN: 2. [ 1 ... 2 ] validation error.
     bool success = true;
@@ -2413,7 +2413,7 @@ inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last,
 
 template <typename CharT>
 inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, std::string& output) {
-    using UCharT = typename std::make_unsigned<CharT>::type;
+    using UCharT = std::make_unsigned_t<CharT>;
 
     // 3. of "opaque path state"
     // TODO-WARN: 3. [ 1 ... 2 ] validation error.

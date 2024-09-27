@@ -41,9 +41,9 @@ template <typename T>
 auto iterable_value(long) -> void;
 
 template<class T>
-using iterable_value_t = typename std::remove_cv<typename std::remove_reference<
+using iterable_value_t = std::remove_cv_t<std::remove_reference_t<
     decltype(iterable_value<T>(0))
->::type>::type;
+>>;
 
 // is iterable over the std::pair values
 template<class T>
@@ -51,9 +51,9 @@ struct is_iterable_pairs : is_pair<iterable_value_t<T>> {};
 
 // enable if `Base` is not the base class of `T`
 template<class Base, class T>
-using enable_if_not_base_of_t = typename std::enable_if<
-    !std::is_base_of<Base, typename std::decay<T>::type>::value, int
->::type;
+using enable_if_not_base_of_t = std::enable_if_t<
+    !std::is_base_of_v<Base, std::decay_t<T>>, int
+>;
 
 } // namespace detail
 
@@ -102,7 +102,7 @@ public:
     ///
     /// @param[in,out] other @c url_search_params object to move from
     url_search_params(url_search_params&& other)
-        noexcept(std::is_nothrow_move_constructible<name_value_list>::value);
+        noexcept(std::is_nothrow_move_constructible_v<name_value_list>);
 
     /// @brief Parsing constructor.
     ///
@@ -120,7 +120,7 @@ public:
     template<class ConT,
         // do not hide the copy and move constructors:
         detail::enable_if_not_base_of_t<url_search_params, ConT> = 0,
-        typename std::enable_if<detail::is_iterable_pairs<ConT>::value, int>::type = 0
+        std::enable_if_t<detail::is_iterable_pairs<ConT>::value, int> = 0
     >
     explicit url_search_params(ConT&& cont) {
         for (const auto& p : cont) {
@@ -447,7 +447,7 @@ inline url_search_params::url_search_params(const url_search_params& other)
 // Move constructor
 
 inline url_search_params::url_search_params(url_search_params&& other)
-    noexcept(std::is_nothrow_move_constructible<name_value_list>::value)
+    noexcept(std::is_nothrow_move_constructible_v<name_value_list>)
     : params_(std::move(other.params_))
     , is_sorted_(other.is_sorted_)
 {}

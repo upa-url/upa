@@ -157,7 +157,7 @@ inline bool contains_forbidden_host_char(const CharT* first, const CharT* last) 
 
 template <typename CharT>
 inline validation_errc host_parser::parse_host(const CharT* first, const CharT* last, bool is_opaque, host_output& dest) {
-    using UCharT = typename std::make_unsigned<CharT>::type;
+    using UCharT = std::make_unsigned_t<CharT>;
 
     // 1. Non-"file" special URL's cannot have an empty host.
     // 2. For "file" URL's empty host is set in the file_host_state 1.2
@@ -314,7 +314,7 @@ inline validation_errc host_parser::parse_opaque_host(const CharT* first, const 
 
         //TODO: UTF-8 percent encode it using the C0 control percent-encode set
         //detail::append_utf8_percent_encoded(first, last, detail::CHAR_C0_CTRL, str_host);
-        using UCharT = typename std::make_unsigned<CharT>::type;
+        using UCharT = std::make_unsigned_t<CharT>;
 
         const CharT* pointer = first;
         while (pointer < last) {
