@@ -162,7 +162,7 @@ inline bool contains_null(InputIt first, InputIt last) {
 }
 
 template <class CharT>
-UPA_CONSTEXPR_17 bool has_xn_label(const CharT* first, const CharT* last) {
+constexpr bool has_xn_label(const CharT* first, const CharT* last) {
     if (last - first >= 4) {
         // search for labels starting with "xn--"
         const auto end = last - 4;

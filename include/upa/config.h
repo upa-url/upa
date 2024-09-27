@@ -13,21 +13,9 @@
 #endif
 
 // Define UPA_CPP_20 if compiler supports C++20 or later standard
+// https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
 #if defined(_MSVC_LANG) ? (_MSVC_LANG >= 202002) : (__cplusplus >= 202002)
 # define UPA_CPP_20
-#endif
-
-// Define UPA_CPP_17 if compiler supports C++17 or later standard
-// https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
-#if defined(_MSVC_LANG) ? (_MSVC_LANG >= 201703) : (__cplusplus >= 201703)
-# define UPA_CPP_17
-# define UPA_FALLTHROUGH [[fallthrough]];
-# define UPA_CONSTEXPR_17 constexpr
-# define UPA_NOEXCEPT_17 noexcept
-#else
-# define UPA_FALLTHROUGH
-# define UPA_CONSTEXPR_17 inline
-# define UPA_NOEXCEPT_17
 #endif
 
 // Barrier for pointer anti-aliasing optimizations even across function boundaries.

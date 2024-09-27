@@ -10,7 +10,6 @@
 #ifndef UPA_URL_PERCENT_ENCODE_H
 #define UPA_URL_PERCENT_ENCODE_H
 
-#include "config.h"
 #include "str_arg.h"
 #include "url_utf.h"
 #include "util.h"
@@ -85,7 +84,7 @@ public:
     /// @brief test code point set contains code point @a c
     /// @param[in] c code point to test
     template <typename CharT>
-    UPA_CONSTEXPR_17 bool operator[](CharT c) const {
+    constexpr bool operator[](CharT c) const {
         const auto uc = util::to_unsigned(c);
         return is_8bit(uc) && (arr_[uc >> 3] & (1u << (uc & 0x07))) != 0;
     }
@@ -233,7 +232,7 @@ public:
     /// @param[in] c code point to test
     /// @param[in] cps code point set
     template <typename CharT>
-    UPA_CONSTEXPR_17 bool char_in_set(CharT c, CP_SET cps) const {
+    constexpr bool char_in_set(CharT c, CP_SET cps) const {
         const auto uc = util::to_unsigned(c);
         return is_8bit(uc) && (arr_[uc] & cps);
     }
