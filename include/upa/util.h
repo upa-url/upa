@@ -9,14 +9,12 @@
 #include "config.h"
 #include <algorithm>
 #include <cstddef>
-#include <iterator>  // std::back_inserter
 #include <limits>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace util {
+namespace upa::util {
 
 // Integers
 
@@ -178,7 +176,6 @@ constexpr bool has_xn_label(const CharT* first, const CharT* last) {
 }
 
 
-} // namespace util
-} // namespace upa
+} // namespace upa::util
 
 #endif // UPA_UTIL_H
