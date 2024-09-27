@@ -19,7 +19,7 @@
 
 
 #ifdef __cpp_char8_t
-inline /* constexpr */ bool operator==(std::string_view lhs, std::u8string_view rhs) noexcept {
+UPA_CONSTEXPR_20 bool operator==(std::string_view lhs, std::u8string_view rhs) noexcept {
     return std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(),
         [](char a, char8_t b) { return a == char(b) && char8_t(a) == b; }
     );

@@ -12,10 +12,13 @@
 # endif
 #endif
 
-// Define UPA_CPP_20 if compiler supports C++20 or later standard
+// Macros for compilers that support the C++20 or later standard
 // https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
 #if defined(_MSVC_LANG) ? (_MSVC_LANG >= 202002) : (__cplusplus >= 202002)
 # define UPA_CPP_20
+# define UPA_CONSTEXPR_20 constexpr
+#else
+# define UPA_CONSTEXPR_20 inline
 #endif
 
 // Barrier for pointer anti-aliasing optimizations even across function boundaries.
