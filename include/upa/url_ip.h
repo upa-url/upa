@@ -133,7 +133,7 @@ inline validation_errc ipv4_parse_number(const CharT* first, const CharT* last, 
 //
 template <typename CharT>
 inline validation_errc ipv4_parse(const CharT* first, const CharT* last, uint32_t& ipv4) {
-    using UCharT = typename std::make_unsigned<CharT>::type;
+    using UCharT = std::make_unsigned_t<CharT>;
 
     // 2. If the last item in parts is the empty string, then
     //    1. IPv4-empty-part validation error. (TODO-WARN)

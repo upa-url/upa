@@ -425,7 +425,7 @@ inline bool append_utf8_percent_encoded_char(const CharT*& first, const CharT* l
 
 template<typename CharT>
 inline void append_utf8_percent_encoded(const CharT* first, const CharT* last, const code_point_set& cpset, std::string& output) {
-    using UCharT = typename std::make_unsigned<CharT>::type;
+    using UCharT = std::make_unsigned_t<CharT>;
 
     for (auto it = first; it < last; ) {
         const auto uch = static_cast<UCharT>(*it);
