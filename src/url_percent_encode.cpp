@@ -9,8 +9,7 @@
 
 #include "upa/url_percent_encode.h"
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace detail {
+namespace upa::detail {
 
 // Maps hex numerical values to ASCII digits
 const char kHexCharLookup[0x10] = {
@@ -31,5 +30,4 @@ const char kCharToHexLookup[8] = {
 };
 
 
-} // namespace detail
-} // namespace upa
+} // namespace upa::detail
