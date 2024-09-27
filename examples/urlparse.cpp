@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -228,7 +228,7 @@ void read_samples(const char* file_name, SamplesOutput& out)
             if (line.empty())
                 break;
             state = State::header;
-            UPA_FALLTHROUGH
+            [[fallthrough]];
         case State::header: {
             bool ok = true;
             auto icolon = line.find(':');

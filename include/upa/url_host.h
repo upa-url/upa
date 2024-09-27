@@ -79,7 +79,7 @@ public:
     url_host(const url_host&) = default;
     url_host(url_host&&) noexcept = default;
     url_host& operator=(const url_host&) = default;
-    url_host& operator=(url_host&&) UPA_NOEXCEPT_17 = default;
+    url_host& operator=(url_host&&) noexcept = default;
 
     /// Parsing constructor
     ///
