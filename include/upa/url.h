@@ -847,10 +847,6 @@ public:
 protected:
     url::PartType find_last_part(url::PartType pt) const;
 
-#if 0
-    void insert_part(url::PartType new_pt, const char* str, std::size_t len);
-#endif
-
 private:
     bool use_strp_;
     // buffer for URL's part
@@ -1028,16 +1024,15 @@ constexpr bool is_normalized_windows_drive(CharT c1, CharT c2) noexcept {
 template <typename CharT>
 inline bool starts_with_windows_drive(const CharT* pointer, const CharT* last) noexcept {
     const auto length = last - pointer;
-#if 1
     return
         (length == 2 || (length > 2 && detail::is_special_authority_end_char(pointer[2]))) &&
         detail::is_windows_drive(pointer[0], pointer[1]);
-#else
+/*** alternative implementation ***
     return
         length >= 2 &&
         detail::is_windows_drive(pointer[0], pointer[1]) &&
         (length == 2 || detail::is_special_authority_end_char(pointer[2]));
-#endif
+***/
 }
 
 // Windows drive letter in OS path
@@ -2506,30 +2501,6 @@ inline void url_serializer::shorten_path() {
         url_.norm_url_.resize(url_.part_end_[url::PATH]);
 }
 
-#if 0 // UNUSED
-inline std::size_t count_leading_path_slashes(const char* first, const char* last) {
-    return std::distance(first,
-        std::find_if_not(first, last, [](char c){ return c == '/'; }));
-}
-
-inline std::size_t url_serializer::remove_leading_path_slashes() {
-    assert(last_pt_ == url::PATH);
-    std::size_t count = count_leading_path_slashes(
-        url_.norm_url_.data() + url_.part_end_[url::PATH-1],
-        url_.norm_url_.data() + url_.part_end_[url::PATH]);
-    if (count > 1) {
-        count -= 1;
-        url_.norm_url_.erase(url_.part_end_[url::PATH-1], count);
-        url_.part_end_[url::PATH] -= count;
-        url_.path_segment_count_ -= count;
-        return count;
-    }
-    return 0;
-}
-#endif
-
-// inline url_serializer::~url_serializer() {}
-
 // set scheme
 
 inline std::string& url_serializer::start_scheme() {
@@ -2953,19 +2924,6 @@ inline void url_setter::shorten_path() {
     }
 }
 
-#if 0 // UNUSED
-inline std::size_t url_setter::remove_leading_path_slashes() {
-    std::size_t count = count_leading_path_slashes(strp_.data(), strp_.data() + strp_.length());
-    if (count > 1) {
-        count -= 1;
-        strp_.erase(0, count);
-        path_seg_end_.erase(path_seg_end_.begin(), std::next(path_seg_end_.begin(), count));
-        return count;
-    }
-    return 0;
-}
-#endif
-
 inline bool url_setter::is_empty_path() const {
     assert(!url_.has_opaque_path());
     // path_seg_end_ has meaning only if path is a list (path isn't opaque)
@@ -2994,19 +2952,6 @@ inline url::PartType url_setter::find_last_part(url::PartType pt) const {
             return static_cast<url::PartType>(ind);
     return url::SCHEME;
 }
-
-#if 0
-inline void url_setter::insert_part(url::PartType new_pt, const char* str, std::size_t len) {
-    assert(new_pt > url::SCHEME);
-    if (url_.part_end_[new_pt]) {
-        replace_part(new_pt, str, len);
-    } else {
-        last_pt_ = find_last_part(new_pt);
-        url_serializer::start_part(new_pt).append(str, len);
-        url_serializer::save_part();
-    }
-}
-#endif
 
 /// @brief Check UNC path
 ///
