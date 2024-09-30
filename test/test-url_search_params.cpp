@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -14,21 +14,16 @@
 # include <version>
 #endif
 
-#if defined(__cpp_impl_coroutine)
-#if __has_include(<experimental/generator>)
-# include <experimental/generator>
+// Use libc++ or the Microsoft C++ Standard Library to test code that
+// contains coroutines and ranges when compiling with Clang
+#if !defined(__clang__) || defined(_LIBCPP_VERSION) || defined(_MSC_VER)
+#if defined(__cpp_lib_generator)
+# include <generator>
 # define TEST_COROUTINE_GENERATOR
-using std::experimental::generator;
 #endif
-#endif
-
-// ranges requires libc++ when compile with Clang
-#if !defined(__clang__) || defined(_LIBCPP_VERSION)
 #if defined(__cpp_lib_ranges)
-#if __has_include(<ranges>)
 # include <ranges>
 # define TEST_RANGES
-#endif
 #endif
 #endif
 
@@ -88,7 +83,7 @@ TEST_CASE_TEMPLATE_DEFINE("Various string pairs iterable containers", CharT, tes
 
 #ifdef TEST_COROUTINE_GENERATOR
     SUBCASE("coroutine generator") {
-        auto pairs_gen = []() -> generator<std::pair<string_t, string_t>> {
+        auto pairs_gen = []() -> std::generator<std::pair<string_t, string_t>> {
             const pairs_list_t<string_t> lst_pairs = TEST_ITERABLES_DATA;
             for (const auto& p : lst_pairs)
                 co_yield p;
