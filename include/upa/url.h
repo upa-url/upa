@@ -107,7 +107,7 @@ public:
     ///
     /// @param[in,out] other  URL to move to this object
     /// @return *this
-    url& operator=(url&& other) UPA_NOEXCEPT_17;
+    url& operator=(url&& other) noexcept;
 
     /// @brief Safe move assignment.
     ///
@@ -164,7 +164,7 @@ public:
     /// @brief Swaps the contents of two URLs
     ///
     /// @param[in,out] other URL to exchange the contents with
-    void swap(url& other) UPA_NOEXCEPT_17;
+    void swap(url& other) noexcept;
 
     // Parser
 
@@ -671,7 +671,7 @@ private:
     bool canHaveUsernamePasswordPort() const;
 
     // url record
-    void move_record(url& other) UPA_NOEXCEPT_17;
+    void move_record(url& other) noexcept;
 
     // search params
     void clear_search_params() noexcept;
@@ -1075,7 +1075,7 @@ inline url::url(url&& other) noexcept
     search_params_ptr_.set_url_ptr(this);
 }
 
-inline url& url::operator=(url&& other) UPA_NOEXCEPT_17 {
+inline url& url::operator=(url&& other) noexcept {
     // move data
     move_record(other);
     search_params_ptr_ = std::move(other.search_params_ptr_);
@@ -1103,7 +1103,7 @@ inline url& url::safe_assign(url&& other) {
     return *this;
 }
 
-inline void url::move_record(url& other) UPA_NOEXCEPT_17 {
+inline void url::move_record(url& other) noexcept {
     norm_url_ = std::move(other.norm_url_);
     part_end_ = other.part_end_;
     scheme_inf_ = other.scheme_inf_;
@@ -1369,7 +1369,7 @@ inline void url::clear() {
     clear_search_params();
 }
 
-inline void url::swap(url& other) UPA_NOEXCEPT_17 {
+inline void url::swap(url& other) noexcept {
     url tmp{ std::move(*this) };
     *this = std::move(other);
     other = std::move(tmp);
@@ -1596,7 +1596,7 @@ namespace detail {
 template <typename CharT>
 inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override)
 {
-    using UCharT = typename std::make_unsigned<CharT>::type;
+    using UCharT = std::make_unsigned_t<CharT>;
 
     // remove all ASCII tab or newline from URL
     simple_buffer<CharT> buff_no_ws;
@@ -1791,7 +1791,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                 state = relative_slash_state;
                 break;
             }
-            UPA_FALLTHROUGH
+            [[fallthrough]];
         default:
             // Set url's username to base's username, url's password to base's password, url's host to base's host,
             // url's port to base's port, url's path to base's path, and then remove url's path's last entry, if any
@@ -1818,7 +1818,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                 ++pointer;
                 break;
             }
-            UPA_FALLTHROUGH
+            [[fallthrough]];
         default:
             // set url's username to base's username, url's password to base's password, url's host to base's host,
             // url's port to base's port
@@ -2147,7 +2147,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                     break;
                 case '/':
                     ++pointer;
-                    UPA_FALLTHROUGH
+                    [[fallthrough]];
                 default:
                     state = path_state;
                     break;
@@ -2388,7 +2388,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
 
 template <typename CharT>
 inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last, std::string& output) {
-    using UCharT = typename std::make_unsigned<CharT>::type;
+    using UCharT = std::make_unsigned_t<CharT>;
 
     // TODO-WARN: 2. [ 1 ... 2 ] validation error.
     bool success = true;
@@ -2413,7 +2413,7 @@ inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last,
 
 template <typename CharT>
 inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, std::string& output) {
-    using UCharT = typename std::make_unsigned<CharT>::type;
+    using UCharT = std::make_unsigned_t<CharT>;
 
     // 3. of "opaque path state"
     // TODO-WARN: 3. [ 1 ... 2 ] validation error.
@@ -2537,7 +2537,7 @@ inline std::string& url_serializer::start_part(url::PartType new_pt) {
             url_.part_end_[url::PASSWORD] = url_.norm_url_.length();
             fill_start_pt = url::HOST_START; // (url::PASSWORD + 1)
         }
-        UPA_FALLTHROUGH
+        [[fallthrough]];
     case url::PASSWORD:
         if (new_pt == url::HOST)
             url_.norm_url_ += '@';
@@ -2852,7 +2852,7 @@ inline void url_setter::save_part() {
                     replace_part(url::HOST_START, "", 0, curr_pt_, 0);
                     break;
                 }
-                UPA_FALLTHROUGH
+                [[fallthrough]];
             default:
                 if ((curr_pt_ == url::PASSWORD || curr_pt_ == url::PORT) && empty_val)
                     strp_.clear(); // drop ':'
@@ -3075,7 +3075,7 @@ inline bool operator==(const url& lhs, const url& rhs) noexcept {
 ///
 /// @param[in,out] lhs
 /// @param[in,out] rhs
-inline void swap(url& lhs, url& rhs) UPA_NOEXCEPT_17 {
+inline void swap(url& lhs, url& rhs) noexcept {
     lhs.swap(rhs);
 }
 

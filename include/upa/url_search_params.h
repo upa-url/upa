@@ -41,9 +41,9 @@ template <typename T>
 auto iterable_value(long) -> void;
 
 template<class T>
-using iterable_value_t = typename std::remove_cv<typename std::remove_reference<
+using iterable_value_t = std::remove_cv_t<std::remove_reference_t<
     decltype(iterable_value<T>(0))
->::type>::type;
+>>;
 
 // is iterable over the std::pair values
 template<class T>
@@ -51,9 +51,9 @@ struct is_iterable_pairs : is_pair<iterable_value_t<T>> {};
 
 // enable if `Base` is not the base class of `T`
 template<class Base, class T>
-using enable_if_not_base_of_t = typename std::enable_if<
-    !std::is_base_of<Base, typename std::decay<T>::type>::value, int
->::type;
+using enable_if_not_base_of_t = std::enable_if_t<
+    !std::is_base_of_v<Base, std::decay_t<T>>, int
+>;
 
 } // namespace detail
 
@@ -102,7 +102,7 @@ public:
     ///
     /// @param[in,out] other @c url_search_params object to move from
     url_search_params(url_search_params&& other)
-        noexcept(std::is_nothrow_move_constructible<name_value_list>::value);
+        noexcept(std::is_nothrow_move_constructible_v<name_value_list>);
 
     /// @brief Parsing constructor.
     ///
@@ -120,7 +120,7 @@ public:
     template<class ConT,
         // do not hide the copy and move constructors:
         detail::enable_if_not_base_of_t<url_search_params, ConT> = 0,
-        typename std::enable_if<detail::is_iterable_pairs<ConT>::value, int>::type = 0
+        std::enable_if_t<detail::is_iterable_pairs<ConT>::value, int> = 0
     >
     explicit url_search_params(ConT&& cont) {
         for (const auto& p : cont) {
@@ -153,7 +153,7 @@ public:
     ///
     /// @param[in,out] other url_search_params to move to this object
     /// @return *this
-    url_search_params& operator=(url_search_params&& other) UPA_NOEXCEPT_17;
+    url_search_params& operator=(url_search_params&& other) noexcept;
 
     /// @brief Safe move assignment.
     ///
@@ -177,7 +177,7 @@ public:
     /// contents of references returned by url::search_params().
     ///
     /// @param[in,out] other url_search_params to exchange the contents with
-    void swap(url_search_params& other) UPA_NOEXCEPT_17;
+    void swap(url_search_params& other) noexcept;
 
     /// Initializes name-value pairs list by parsing query string.
     ///
@@ -366,7 +366,7 @@ private:
 
     void clear_params() noexcept;
     void copy_params(const url_search_params& other);
-    void move_params(url_search_params&& other) UPA_NOEXCEPT_17;
+    void move_params(url_search_params&& other) noexcept;
     void parse_params(string_view query);
 
     void update();
@@ -447,7 +447,7 @@ inline url_search_params::url_search_params(const url_search_params& other)
 // Move constructor
 
 inline url_search_params::url_search_params(url_search_params&& other)
-    noexcept(std::is_nothrow_move_constructible<name_value_list>::value)
+    noexcept(std::is_nothrow_move_constructible_v<name_value_list>)
     : params_(std::move(other.params_))
     , is_sorted_(other.is_sorted_)
 {}
@@ -462,7 +462,7 @@ inline url_search_params& url_search_params::operator=(const url_search_params& 
     return *this;
 }
 
-inline url_search_params& url_search_params::operator=(url_search_params&& other) UPA_NOEXCEPT_17 {
+inline url_search_params& url_search_params::operator=(url_search_params&& other) noexcept {
     assert(url_ptr_ == nullptr);
     move_params(std::move(other));
     return *this;
@@ -482,7 +482,7 @@ inline void url_search_params::clear() {
     update();
 }
 
-inline void url_search_params::swap(url_search_params& other) UPA_NOEXCEPT_17 {
+inline void url_search_params::swap(url_search_params& other) noexcept {
     assert(url_ptr_ == nullptr && other.url_ptr_ == nullptr);
 
     using std::swap;
@@ -501,7 +501,7 @@ inline void url_search_params::copy_params(const url_search_params& other) {
     is_sorted_ = other.is_sorted_;
 }
 
-inline void url_search_params::move_params(url_search_params&& other) UPA_NOEXCEPT_17 {
+inline void url_search_params::move_params(url_search_params&& other) noexcept {
     params_ = std::move(other.params_);
     is_sorted_ = other.is_sorted_;
 }
@@ -716,7 +716,7 @@ inline url_search_params::name_value_list url_search_params::do_parse(bool rem_q
                     break;
                 }
             }
-            UPA_FALLTHROUGH
+            [[fallthrough]];
         default:
             pval->push_back(*it);
             break;
@@ -776,7 +776,7 @@ inline std::string url_search_params::to_string() const {
 ///
 /// @param[in,out] lhs
 /// @param[in,out] rhs
-inline void swap(url_search_params& lhs, url_search_params& rhs) UPA_NOEXCEPT_17 {
+inline void swap(url_search_params& lhs, url_search_params& rhs) noexcept {
     lhs.swap(rhs);
 }
 

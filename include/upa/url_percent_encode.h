@@ -10,7 +10,6 @@
 #ifndef UPA_URL_PERCENT_ENCODE_H
 #define UPA_URL_PERCENT_ENCODE_H
 
-#include "config.h"
 #include "str_arg.h"
 #include "url_utf.h"
 #include "util.h"
@@ -32,7 +31,6 @@ namespace upa {
 ///
 class code_point_set {
 public:
-#ifdef UPA_CPP_17
     /// @brief constructor for code point set initialization
     ///
     /// Function @a fun must iniatialize @a self object by using code_point_set
@@ -82,21 +80,14 @@ public:
         for (auto c = from; c <= to; ++c)
             include(c);
     }
-#endif
 
     /// @brief test code point set contains code point @a c
     /// @param[in] c code point to test
     template <typename CharT>
-    UPA_CONSTEXPR_17 bool operator[](CharT c) const {
+    constexpr bool operator[](CharT c) const {
         const auto uc = util::to_unsigned(c);
         return is_8bit(uc) && (arr_[uc >> 3] & (1u << (uc & 0x07))) != 0;
     }
-
-#ifdef UPA_CPP_17
-    // for dump program
-    static constexpr std::size_t arr_size() noexcept { return arr_size_; }
-    constexpr uint8_t arr_val(std::size_t i) const { return arr_[i]; }
-#endif
 
 private:
     // Check code point value is 8 bit (<=0xFF)
@@ -111,18 +102,11 @@ private:
 
     // Data
     static const std::size_t arr_size_ = 32;
-#ifdef UPA_CPP_17
     uint8_t arr_[arr_size_] = {};
-#else
-public:
-    uint8_t arr_[arr_size_];
-#endif
 };
 
 
 // Percent encode sets
-
-#ifdef UPA_CPP_17
 
 // If you edit following data, then please compile tools/dumpCharBitSets.cpp program
 // with C++17 compiler, run it and copy output to the url_percent_encode.cpp file.
@@ -185,21 +169,6 @@ inline constexpr code_point_set component_no_encode_set{ [](code_point_set& self
     } };
 
 
-#else
-
-// For C++11, C++14
-
-extern const code_point_set fragment_no_encode_set;
-extern const code_point_set query_no_encode_set;
-extern const code_point_set special_query_no_encode_set;
-extern const code_point_set path_no_encode_set;
-extern const code_point_set raw_path_no_encode_set;
-extern const code_point_set posix_path_no_encode_set;
-extern const code_point_set userinfo_no_encode_set;
-extern const code_point_set component_no_encode_set;
-
-#endif
-
 namespace detail {
 
 // Code point sets in one bytes array
@@ -215,7 +184,6 @@ enum CP_SET : std::uint8_t {
 
 class code_points_multiset {
 public:
-#ifdef UPA_CPP_17
     constexpr code_points_multiset() {
         // Forbidden host code points: U+0000 NULL, U+0009 TAB, U+000A LF, U+000D CR,
         // U+0020 SPACE, U+0023 (#), U+002F (/), U+003A (:), U+003C (<), U+003E (>),
@@ -260,22 +228,16 @@ public:
         include(SCHEME_SET, { 0x2B, 0x2D, 0x2E });
     }
 
-    // for dump program
-    static constexpr std::size_t arr_size() noexcept { return arr_size_; }
-    constexpr uint8_t arr_val(std::size_t i) const { return arr_[i]; }
-#endif
-
     /// @brief test the @a cps code points set contains code point @a c
     /// @param[in] c code point to test
     /// @param[in] cps code point set
     template <typename CharT>
-    UPA_CONSTEXPR_17 bool char_in_set(CharT c, CP_SET cps) const {
+    constexpr bool char_in_set(CharT c, CP_SET cps) const {
         const auto uc = util::to_unsigned(c);
         return is_8bit(uc) && (arr_[uc] & cps);
     }
 
 private:
-#ifdef UPA_CPP_17
     /// @brief include @a c code point to @a cpsbits sets
     /// @param[in] cpsbits code points sets
     /// @param[in] c code point to include
@@ -313,7 +275,6 @@ private:
         for (auto c : clist)
             exclude(cpsbits, c);
     }
-#endif
 
     // Check code point value is 8 bit (<=0xFF)
     static constexpr bool is_8bit(unsigned char) noexcept {
@@ -327,19 +288,10 @@ private:
 
     // Data
     static const std::size_t arr_size_ = 256;
-#ifdef UPA_CPP_17
     uint8_t arr_[arr_size_] = {};
-#else
-public:
-    uint8_t arr_[arr_size_];
-#endif
 };
 
-#ifdef UPA_CPP_17
 inline constexpr code_points_multiset code_points;
-#else
-extern const code_points_multiset code_points;
-#endif
 
 // ----------------------------------------------------------------------------
 // Check char is in predefined set
@@ -473,7 +425,7 @@ inline bool append_utf8_percent_encoded_char(const CharT*& first, const CharT* l
 
 template<typename CharT>
 inline void append_utf8_percent_encoded(const CharT* first, const CharT* last, const code_point_set& cpset, std::string& output) {
-    using UCharT = typename std::make_unsigned<CharT>::type;
+    using UCharT = std::make_unsigned_t<CharT>;
 
     for (auto it = first; it < last; ) {
         const auto uch = static_cast<UCharT>(*it);

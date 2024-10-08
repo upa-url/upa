@@ -30,7 +30,7 @@ set(upa_lib_export url)
 set(upa_lib_target upa_url)
 
 if (NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD 17)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
@@ -49,7 +49,6 @@ option(UPA_BUILD_BENCH "Build the Upa URL benchmarks." OFF)
 option(UPA_BUILD_FUZZER "Build the Upa URL fuzzer." OFF)
 option(UPA_BUILD_EXAMPLES "Build the Upa URL examples." OFF)
 option(UPA_BUILD_EXTRACTED "Build Upa URL examples extracted from the docs." OFF)
-option(UPA_BUILD_TOOLS "Build tools." OFF)
 option(UPA_INSTALL "Generate the install target." ON)
 # library options
 option(UPA_AMALGAMATED "Use amalgamated URL library source." OFF)
@@ -113,7 +112,7 @@ include_directories(deps)
 
 # Is the Upa URL library needed?
 if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES OR
-    UPA_BUILD_EXTRACTED OR UPA_INSTALL OR NOT UPA_BUILD_TOOLS)
+    UPA_BUILD_EXTRACTED OR UPA_INSTALL)
   if (UPA_AMALGAMATED)
     add_library(${upa_lib_target} STATIC
       single_include/upa/url.cpp)
@@ -222,14 +221,6 @@ endif()
 
 if (UPA_BUILD_EXTRACTED)
   add_subdirectory(examples/extracted-cpp)
-endif()
-
-# Tool's targets
-
-if (UPA_BUILD_TOOLS)
-  add_executable(dumpCharBitSets tools/dumpCharBitSets.cpp)
-  set_property(TARGET dumpCharBitSets PROPERTY CXX_STANDARD 17)
-  target_include_directories(dumpCharBitSets PRIVATE include)
 endif()
 
 # Install
