@@ -33,6 +33,12 @@ jobs:
             cmake_options: "-DUPA_TEST_VALGRIND=ON"
             install: "valgrind"
 
+          - name: g++-14 C++23
+            os: ubuntu-24.04
+            cxx_compiler: g++-14
+            cxx_standard: 23
+            cmake_options: ""
+
           - name: g++-12 C++20
             os: ubuntu-24.04
             cxx_compiler: g++-12
