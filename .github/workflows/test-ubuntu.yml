@@ -10,32 +10,37 @@ on:
 jobs:
   build:
     name: ${{ matrix.name }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
           - name: clang++ C++20
+            os: ubuntu-latest
             cxx_compiler: clang++
             cxx_standard: 20
             cmake_options: ""
 
           - name: clang++ C++17 with sanitizer
+            os: ubuntu-latest
             cxx_compiler: clang++
             cxx_standard: 17
             cmake_options: "-DUPA_TEST_SANITIZER=ON"
 
           - name: clang++ C++17 with valgrind
+            os: ubuntu-latest
             cxx_compiler: clang++
             cxx_standard: 17
             cmake_options: "-DUPA_TEST_VALGRIND=ON"
             install: "valgrind"
 
           - name: g++-12 C++20
+            os: ubuntu-24.04
             cxx_compiler: g++-12
             cxx_standard: 20
             cmake_options: ""
 
           - name: g++ C++17 Codecov
+            os: ubuntu-latest
             cxx_compiler: g++
             cxx_standard: 17
             cmake_options: "-DUPA_TEST_COVERAGE=ON"
@@ -48,17 +53,20 @@ jobs:
             codecov: true
 
           - name: g++ C++17 amalgamated
+            os: ubuntu-latest
             cxx_compiler: g++
             cxx_standard: 17
             cmake_options: "-DUPA_AMALGAMATED=ON -DUPA_BUILD_EXAMPLES=ON"
             before_cmake: tools/amalgamate.sh
 
           - name: g++-9 C++14
+            os: ubuntu-22.04
             cxx_compiler: g++-9
             cxx_standard: 14
             cmake_options: "-DUPA_BUILD_EXAMPLES=ON"
 
           - name: g++-9 C++11
+            os: ubuntu-22.04
             cxx_compiler: g++-9
             cxx_standard: 11
             cmake_options: "-DUPA_BUILD_EXAMPLES=ON"
