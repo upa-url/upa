@@ -4,6 +4,7 @@ codecov:
 ignore:
   - "deps"
   - "include/upa/idna.h"
+  - "include/upa/url_for_*.h"
   - "src/idna.cpp"
   - "test"
 
