@@ -54,6 +54,7 @@ option(UPA_INSTALL "Generate the install target." ON)
 # library options
 option(UPA_AMALGAMATED "Use amalgamated URL library source." OFF)
 # tests build options
+option(UPA_TEST_URL_FOR_QT "Build tests with Qt strings" OFF)
 option(UPA_TEST_COVERAGE "Build tests with code coverage reporting" OFF)
 option(UPA_TEST_COVERAGE_CLANG "Build tests with Clang source-based code coverage" OFF)
 option(UPA_TEST_SANITIZER "Build tests with Clang sanitizer" OFF)
@@ -75,6 +76,11 @@ if (UPA_BUILD_FUZZER)
   else()
     set(AFL_MAIN ${AFL})
   endif()
+endif()
+
+# Tests with Qt strings
+if (UPA_TEST_URL_FOR_QT)
+  find_package(Qt6 REQUIRED COMPONENTS Core)
 endif()
 
 # Code coverage reporting
@@ -170,7 +176,14 @@ if (UPA_BUILD_TESTS)
     get_filename_component(test_name ${file} NAME_WE)
 
     add_executable(${test_name} ${file})
-    target_link_libraries(${test_name} ${upa_lib_target})
+    target_link_libraries(${test_name} PRIVATE ${upa_lib_target})
+
+    if ("${test_name}" STREQUAL "test-url_for_")
+      if (UPA_TEST_URL_FOR_QT)
+        target_compile_definitions(${test_name} PRIVATE UPA_TEST_URL_FOR_QT)
+        target_link_libraries(${test_name} PRIVATE Qt6::Core)
+      endif()
+    endif()
 
     add_test(NAME ${test_name}
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test

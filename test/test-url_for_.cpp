@@ -13,6 +13,23 @@
 # include <cstringt.h>
 #endif
 
+#ifdef UPA_TEST_URL_FOR_QT
+# include "upa/url_for_qt.h"
+# include <QString>
+# if defined(__has_include) && __has_include(<QtVersionChecks>)
+#  include <QtVersionChecks>
+# else
+#  include <QtGlobal>
+# endif
+# if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+#  include <QStringView>
+# endif
+# if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+#  include <QUtf8StringView>
+# endif
+#endif
+
+
 #ifdef UPA_TEST_URL_FOR_ATL
 
 TEST_CASE("ATL::CSimpleStringA input") {
@@ -42,3 +59,27 @@ TEST_CASE_TEMPLATE_INVOKE(test_url_for_atl,
     ATL::CStringW, ATL::CFixedStringT<ATL::CStringW, 16>);
 
 #endif // UPA_TEST_URL_FOR_ATL
+
+#ifdef UPA_TEST_URL_FOR_QT
+
+TEST_CASE_TEMPLATE_DEFINE("Qt string input", StrT, test_url_for_qt) {
+    StrT str_input("http://host/");
+    upa::url url{ str_input };
+    CHECK(url.href() == "http://host/");
+}
+
+TEST_CASE_TEMPLATE_INVOKE(test_url_for_qt, QString);
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+TEST_CASE("QStringView input") {
+    QStringView str_input(u"http://host/");
+    upa::url url{ str_input };
+    CHECK(url.href() == "http://host/");
+}
+#endif
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+TEST_CASE_TEMPLATE_INVOKE(test_url_for_qt, QUtf8StringView);
+#endif
+
+#endif // UPA_TEST_URL_FOR_QT

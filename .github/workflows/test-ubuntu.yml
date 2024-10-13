@@ -45,6 +45,13 @@ jobs:
             cxx_standard: 20
             cmake_options: ""
 
+          - name: g++ C++17 Qt
+            os: ubuntu-24.04
+            cxx_compiler: g++
+            cxx_standard: 17
+            cmake_options: "-DUPA_TEST_URL_FOR_QT=ON"
+            install: "qt6-base-dev"
+
           - name: g++ C++17 Codecov
             os: ubuntu-latest
             cxx_compiler: g++
