@@ -1,6 +1,10 @@
 // Copyright 2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
+
+// This file can be included instead of url.h to allow strings of the
+// ATL/MFC classes CSimpleStringT, CStringT, CFixedStringT to be used
+// as string input in the functions of this library.
 //
 #ifndef UPA_URL_FOR_ATL_H
 #define UPA_URL_FOR_ATL_H

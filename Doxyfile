@@ -970,7 +970,8 @@ INPUT                  = include/upa/url.h \
                          include/upa/url_result.h \
                          include/upa/url_search_params.h \
                          include/upa/url_percent_encode.h \
-                         README.md
+                         README.md \
+                         doc/string_input.md
 
 # This tag can be used to specify the character encoding of the source files
 # that Doxygen parses. Internally Doxygen uses the UTF-8 encoding. Doxygen uses
