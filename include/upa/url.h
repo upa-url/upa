@@ -19,12 +19,12 @@
 
 #include "buffer.h"
 #include "config.h"
-#include "str_arg.h"
-#include "url_host.h"
-#include "url_percent_encode.h"
-#include "url_result.h"
-#include "url_search_params.h"
-#include "url_version.h"
+#include "str_arg.h"            // IWYU pragma: export
+#include "url_host.h"           // IWYU pragma: export
+#include "url_percent_encode.h" // IWYU pragma: export
+#include "url_result.h"         // IWYU pragma: export
+#include "url_search_params.h"  // IWYU pragma: export
+#include "url_version.h"        // IWYU pragma: export
 #include "util.h"
 #include <algorithm>
 #include <array>
