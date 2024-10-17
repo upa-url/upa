@@ -13,6 +13,7 @@ Qt example:
 ```cpp
 #include "upa/url_for_qt.h"
 #include <QString>
+#include <iostream>
 
 int main() {
     QString str{"http://example.com/"};
