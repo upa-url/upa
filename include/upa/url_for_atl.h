@@ -9,7 +9,6 @@
 #ifndef UPA_URL_FOR_ATL_H
 #define UPA_URL_FOR_ATL_H
 
-#include "config.h"
 #include "url.h" // IWYU pragma: export
 #include <atlsimpstr.h>
 #ifdef UPA_CPP_20
