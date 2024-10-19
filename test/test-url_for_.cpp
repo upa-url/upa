@@ -16,9 +16,12 @@
 #ifdef UPA_TEST_URL_FOR_QT
 # include "upa/url_for_qt.h"
 # include <QString>
-# if defined(__has_include) && __has_include(<QtVersionChecks>)
+# ifdef __has_include
+# if __has_include(<QtVersionChecks>)
 #  include <QtVersionChecks>
-# else
+# endif
+# endif // __has_include
+# ifndef QT_VERSION
 #  include <QtGlobal>
 # endif
 # if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
