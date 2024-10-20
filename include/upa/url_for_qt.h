@@ -11,12 +11,9 @@
 
 #include "url.h" // IWYU pragma: export
 #include <QString>
-#ifdef __has_include
 #if __has_include(<QtVersionChecks>)
 # include <QtVersionChecks>
-#endif
-#endif // __has_include
-#ifndef QT_VERSION
+#else
 # include <QtGlobal>
 #endif
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)

@@ -6,10 +6,8 @@
 #ifndef UPA_CONFIG_H
 #define UPA_CONFIG_H
 
-#ifdef __has_include
-# if __has_include(<version>)
-#  include <version> // IWYU pragma: export
-# endif
+#if __has_include(<version>)
+# include <version> // IWYU pragma: export
 #endif
 
 // Macros for compilers that support the C++20 or later standard
