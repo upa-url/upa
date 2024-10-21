@@ -8,8 +8,6 @@
 #include "test-utils.h"
 #include <map>
 
-#if defined(__has_include)
-
 #if __has_include(<version>)
 # include <version>
 #endif
@@ -26,8 +24,6 @@
 # define TEST_RANGES
 #endif
 #endif
-
-#endif // defined(__has_include)
 
 // Conversion to doctest String
 // https://github.com/doctest/doctest/blob/master/doc/markdown/stringification.md

@@ -9,14 +9,12 @@
 #include "config.h"
 #include <algorithm>
 #include <cstddef>
-#include <iterator>  // std::back_inserter
 #include <limits>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace util {
+namespace upa::util {
 
 // Integers
 
@@ -26,7 +24,7 @@ namespace util {
 // __attribute__((no_sanitize("unsigned-integer-overflow"))).
 
 // Utility class to get unsigned (abs) max, min values of (signed) integer type
-template <typename T, typename UT = typename std::make_unsigned<T>::type>
+template <typename T, typename UT = std::make_unsigned_t<T>>
 struct unsigned_limit {
     static constexpr UT max() noexcept {
         return static_cast<UT>(std::numeric_limits<T>::max());
@@ -48,8 +46,8 @@ struct unsigned_limit {
 // Returns difference between a and b (a - b), if result is not representable
 // by the type Out - throws exception.
 template <typename Out, typename T,
-    typename UT = typename std::make_unsigned<T>::type,
-    typename std::enable_if<std::is_integral<T>::value, int>::type = 0>
+    typename UT = std::make_unsigned_t<T>,
+    std::enable_if_t<std::is_integral_v<T>, int> = 0>
 #if defined(__clang__)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
 #endif
@@ -58,7 +56,7 @@ inline Out checked_diff(T a, T b) {
         const UT diff = static_cast<UT>(static_cast<UT>(a) - static_cast<UT>(b));
         if (diff <= unsigned_limit<Out>::max())
             return static_cast<Out>(diff);
-    } else if (std::is_signed<Out>::value) {
+    } else if constexpr (std::is_signed_v<Out>) {
         // b > a ==> diff >= 1
         const UT diff = static_cast<UT>(static_cast<UT>(b) - static_cast<UT>(a));
         if (diff <= unsigned_limit<Out>::min())
@@ -69,7 +67,7 @@ inline Out checked_diff(T a, T b) {
 
 // Cast integer value to corresponding unsigned type
 
-template <typename T, typename UT = typename std::make_unsigned<T>::type>
+template <typename T, typename UT = std::make_unsigned_t<T>>
 constexpr auto to_unsigned(T n) noexcept -> UT {
     return static_cast<UT>(n);
 }
@@ -107,14 +105,14 @@ inline std::size_t add_sizes(std::size_t size1, std::size_t size2, std::size_t m
 #ifdef _MSC_VER
 // the value_type of dest and src are the same (char)
 template <class StrT,
-    typename std::enable_if<std::is_same<typename StrT::value_type, char>::value, int>::type = 0>
+    std::enable_if_t<std::is_same_v<typename StrT::value_type, char>, int> = 0>
 inline void append(std::string& dest, const StrT& src) {
     dest.append(src.begin(), src.end());
 }
 
 // the value_type of dest and src are different
 template <class StrT,
-    typename std::enable_if<!std::is_same<typename StrT::value_type, char>::value, int>::type = 0>
+    std::enable_if_t<!std::is_same_v<typename StrT::value_type, char>, int> = 0>
 inline void append(std::string& dest, const StrT& src) {
     dest.reserve(add_sizes(dest.size(), src.size(), dest.max_size()));
     for (const auto c : src)
@@ -138,12 +136,9 @@ inline void append_tr(std::string& dest, const CharT* first, const CharT* last, 
         std::transform(first, last, buff + old_size, unary_op);
         return new_size;
     });
-#elif defined(UPA_CPP_17)
+#else
     dest.resize(new_size);
     std::transform(first, last, dest.data() + old_size, unary_op);
-#else
-    dest.reserve(new_size);
-    std::transform(first, last, std::back_inserter(dest), unary_op);
 #endif
 }
 
@@ -165,7 +160,7 @@ inline bool contains_null(InputIt first, InputIt last) {
 }
 
 template <class CharT>
-UPA_CONSTEXPR_17 bool has_xn_label(const CharT* first, const CharT* last) {
+constexpr bool has_xn_label(const CharT* first, const CharT* last) {
     if (last - first >= 4) {
         // search for labels starting with "xn--"
         const auto end = last - 4;
@@ -181,7 +176,6 @@ UPA_CONSTEXPR_17 bool has_xn_label(const CharT* first, const CharT* last) {
 }
 
 
-} // namespace util
-} // namespace upa
+} // namespace upa::util
 
 #endif // UPA_UTIL_H
