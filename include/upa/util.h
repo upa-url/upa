@@ -56,7 +56,7 @@ inline Out checked_diff(T a, T b) {
         const UT diff = static_cast<UT>(static_cast<UT>(a) - static_cast<UT>(b));
         if (diff <= unsigned_limit<Out>::max())
             return static_cast<Out>(diff);
-    } else if (std::is_signed_v<Out>) {
+    } else if constexpr (std::is_signed_v<Out>) {
         // b > a ==> diff >= 1
         const UT diff = static_cast<UT>(static_cast<UT>(b) - static_cast<UT>(a));
         if (diff <= unsigned_limit<Out>::min())
