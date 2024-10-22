@@ -47,7 +47,7 @@ using iterable_value_t = std::remove_cv_t<std::remove_reference_t<
 
 // is iterable over the std::pair values
 template<class T>
-struct is_iterable_pairs : is_pair<iterable_value_t<T>> {};
+constexpr bool is_iterable_pairs_v = is_pair<iterable_value_t<T>>::value;
 
 // enable if `Base` is not the base class of `T`
 template<class Base, class T>
@@ -120,7 +120,7 @@ public:
     template<class ConT,
         // do not hide the copy and move constructors:
         detail::enable_if_not_base_of_t<url_search_params, ConT> = 0,
-        std::enable_if_t<detail::is_iterable_pairs<ConT>::value, int> = 0
+        std::enable_if_t<detail::is_iterable_pairs_v<ConT>, int> = 0
     >
     explicit url_search_params(ConT&& cont) {
         for (const auto& p : cont) {

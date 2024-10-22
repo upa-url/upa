@@ -35,21 +35,19 @@ using string_view = std::string_view;
 // Supported char and size types
 
 template<class CharT>
-struct is_char_type : std::integral_constant<bool,
+constexpr bool is_char_type_v =
     std::is_same_v<CharT, char> ||
 #ifdef __cpp_char8_t
     std::is_same_v<CharT, char8_t> ||
 #endif
     std::is_same_v<CharT, char16_t> ||
     std::is_same_v<CharT, char32_t> ||
-    std::is_same_v<CharT, wchar_t>
-> {};
+    std::is_same_v<CharT, wchar_t>;
 
 template<class SizeT>
-struct is_size_type : std::integral_constant<bool,
+constexpr bool is_size_type_v =
     std::is_convertible_v<SizeT, std::size_t> ||
-    std::is_convertible_v<SizeT, std::ptrdiff_t>
-> {};
+    std::is_convertible_v<SizeT, std::ptrdiff_t>;
 
 
 // string args helper class
@@ -169,7 +167,7 @@ struct str_arg_char<CharT*, CharT*> : std::remove_cv<CharT> {
 // pointer and size
 template<class CharT, class SizeT>
 struct str_arg_char<CharT*, SizeT> : std::enable_if<
-    is_size_type<SizeT>::value,
+    is_size_type_v<SizeT>,
     std::remove_cv_t<CharT>> {
 
     template <typename T>
@@ -192,7 +190,7 @@ struct str_arg_char<CharT*> : std::remove_cv<CharT> {
 template<class StrT>
 struct str_arg_char<StrT> : std::enable_if<
     std::is_pointer_v<detail::data_member_t<StrT>> &&
-    is_size_type<detail::length_member_t<StrT>>::value,
+    is_size_type_v<detail::length_member_t<StrT>>,
     remove_cvptr_t<detail::data_member_t<StrT>>> {
 
     template <class STR, typename T = typename STR::value_type>
@@ -213,7 +211,7 @@ using str_arg_char_t = typename str_arg_char_s<Args...>::type;
 
 template<class ...Args>
 using enable_if_str_arg_t = std::enable_if_t<
-    is_char_type<str_arg_char_t<Args...>>::value,
+    is_char_type_v<str_arg_char_t<Args...>>,
     int>;
 
 
@@ -228,28 +226,27 @@ inline auto make_str_arg(Args&&... args) -> str_arg<str_arg_char_t<Args...>> {
 // Convert to std::string or string_view
 
 template<class CharT>
-struct is_char8_type : std::integral_constant<bool,
+constexpr bool is_char8_type_v =
     std::is_same_v<CharT, char>
 #ifdef __cpp_char8_t
     || std::is_same_v<CharT, char8_t>
 #endif
-> {};
+;
 
 template<class ...Args>
 using enable_if_str_arg_to_char8_t = std::enable_if_t<
-    is_char8_type<str_arg_char_t<Args...>>::value,
+    is_char8_type_v<str_arg_char_t<Args...>>,
     int>;
 
 template<class CharT>
-struct is_charW_type : std::integral_constant<bool,
+constexpr bool is_charW_type_v =
     std::is_same_v<CharT, char16_t> ||
     std::is_same_v<CharT, char32_t> ||
-    std::is_same_v<CharT, wchar_t>
-> {};
+    std::is_same_v<CharT, wchar_t>;
 
 template<class ...Args>
 using enable_if_str_arg_to_charW_t = std::enable_if_t<
-    is_charW_type<str_arg_char_t<Args...>>::value,
+    is_charW_type_v<str_arg_char_t<Args...>>,
     int>;
 
 
