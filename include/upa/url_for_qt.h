@@ -22,7 +22,6 @@
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 # include <QUtf8StringView>
 #endif
-#include <cstddef> // std::ptrdiff_t
 
 namespace upa {
 
@@ -33,10 +32,7 @@ struct str_arg_char_for_qt {
     using type = CharT;
 
     static str_arg<type> to_str_arg(const StrT& str) {
-        return {
-            reinterpret_cast<const type*>(str.data()),
-            static_cast<std::ptrdiff_t>(str.length())
-        };
+        return { reinterpret_cast<const type*>(str.data()), str.length() };
     }
 };
 

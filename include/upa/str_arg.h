@@ -6,9 +6,9 @@
 /**************************************************************
 // Usage example:
 
-template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-inline void procfn(Args&&... args) {
-    const auto inp = make_str_arg(std::forward<Args>(args)...);
+template <class StrT, enable_if_str_arg_t<StrT> = 0>
+inline void procfn(StrT&& str) {
+    const auto inp = make_str_arg(std::forward<StrT>(str));
     const auto* first = inp.begin();
     const auto* last = inp.end();
     // do something with first ... last
@@ -76,18 +76,17 @@ public:
         : first_(s)
         , last_(s + traits_type::length(s))
     {}
-    str_arg(const CharT* s, std::size_t length)
+
+    template <typename SizeT, std::enable_if_t<is_size_type_v<SizeT>, int> = 0>
+    str_arg(const CharT* s, SizeT length)
         : first_(s)
         , last_(s + length)
-    {}
-    str_arg(const CharT* s, std::ptrdiff_t length)
-        : first_(s)
-        , last_(s + length)
-    {}
+    { assert(length >= 0); }
+
     str_arg(const CharT* first, const CharT* last)
         : first_(first)
         , last_(last)
-    {}
+    { assert(first <= last); }
 
     // destructor
     ~str_arg() noexcept = default;
@@ -150,33 +149,10 @@ namespace detail {
 
 // Requirements for string arguments
 
-template<class ...Args>
+template<class StrT, typename = void>
 struct str_arg_char {};
 
-// two pointers
-template<class CharT>
-struct str_arg_char<CharT*, CharT*> : std::remove_cv<CharT> {
-
-    template <typename T>
-    static str_arg<T> to_str_arg(const T* first, const T* last) {
-        assert(first <= last);
-        return { first, last };
-    }
-};
-
-// pointer and size
-template<class CharT, class SizeT>
-struct str_arg_char<CharT*, SizeT> : std::enable_if<
-    is_size_type_v<SizeT>,
-    std::remove_cv_t<CharT>> {
-
-    template <typename T>
-    static str_arg<T> to_str_arg(const T* s, std::size_t length) {
-        return { s, length };
-    }
-};
-
-// one pointer (null terminated string)
+// Null terminated string
 template<class CharT>
 struct str_arg_char<CharT*> : std::remove_cv<CharT> {
 
@@ -186,7 +162,7 @@ struct str_arg_char<CharT*> : std::remove_cv<CharT> {
     }
 };
 
-// one string class argument
+// String that has data() and length() members
 template<class StrT>
 struct str_arg_char<StrT> : std::enable_if<
     std::is_pointer_v<detail::data_member_t<StrT>> &&
@@ -202,24 +178,24 @@ struct str_arg_char<StrT> : std::enable_if<
 
 // String arguments helper types
 
-template<class ...Args>
-using str_arg_char_s = str_arg_char<std::decay_t<Args>...>;
+template<class StrT>
+using str_arg_char_s = str_arg_char<std::decay_t<StrT>>;
 
-template<class ...Args>
-using str_arg_char_t = typename str_arg_char_s<Args...>::type;
+template<class StrT>
+using str_arg_char_t = typename str_arg_char_s<StrT>::type;
 
 
-template<class ...Args>
+template<class StrT>
 using enable_if_str_arg_t = std::enable_if_t<
-    is_char_type_v<str_arg_char_t<Args...>>,
+    is_char_type_v<str_arg_char_t<StrT>>,
     int>;
 
 
 // String arguments helper function
 
-template <class ...Args>
-inline auto make_str_arg(Args&&... args) -> str_arg<str_arg_char_t<Args...>> {
-    return str_arg_char_s<Args...>::to_str_arg(std::forward<Args>(args)...);
+template <class StrT>
+inline auto make_str_arg(StrT&& str) -> str_arg<str_arg_char_t<StrT>> {
+    return str_arg_char_s<StrT>::to_str_arg(std::forward<StrT>(str));
 }
 
 
@@ -233,9 +209,9 @@ constexpr bool is_char8_type_v =
 #endif
 ;
 
-template<class ...Args>
+template<class StrT>
 using enable_if_str_arg_to_char8_t = std::enable_if_t<
-    is_char8_type_v<str_arg_char_t<Args...>>,
+    is_char8_type_v<str_arg_char_t<StrT>>,
     int>;
 
 template<class CharT>
@@ -244,9 +220,9 @@ constexpr bool is_charW_type_v =
     std::is_same_v<CharT, char32_t> ||
     std::is_same_v<CharT, wchar_t>;
 
-template<class ...Args>
+template<class StrT>
 using enable_if_str_arg_to_charW_t = std::enable_if_t<
-    is_charW_type_v<str_arg_char_t<Args...>>,
+    is_charW_type_v<str_arg_char_t<StrT>>,
     int>;
 
 
@@ -254,15 +230,15 @@ inline std::string&& make_string(std::string&& str) {
     return std::move(str);
 }
 
-template <class ...Args, enable_if_str_arg_to_char8_t<Args...> = 0>
-inline string_view make_string(Args&&... args) {
-    const auto inp = make_str_arg(std::forward<Args>(args)...);
+template <class StrT, enable_if_str_arg_to_char8_t<StrT> = 0>
+inline string_view make_string(StrT&& str) {
+    const auto inp = make_str_arg(std::forward<StrT>(str));
     return { inp.data(), inp.length() };
 }
 
-template <class ...Args, enable_if_str_arg_to_charW_t<Args...> = 0>
-inline std::string make_string(Args&&... args) {
-    const auto inp = make_str_arg(std::forward<Args>(args)...);
+template <class StrT, enable_if_str_arg_to_charW_t<StrT> = 0>
+inline std::string make_string(StrT&& str) {
+    const auto inp = make_str_arg(std::forward<StrT>(str));
     return url_utf::to_utf8_string(inp.begin(), inp.end());
 }
 

@@ -13,11 +13,9 @@
 
 // Function to test
 
-using namespace upa;
-
-template <class ...Args, enable_if_str_arg_t<Args...> = 0>
-inline std::size_t procfn(Args&&... args) {
-    const auto inp = make_str_arg(std::forward<Args>(args)...);
+template <class StrT, upa::enable_if_str_arg_t<StrT> = 0>
+inline std::size_t procfn(StrT&& str) {
+    const auto inp = upa::make_str_arg(std::forward<StrT>(str));
     return std::distance(inp.begin(), inp.end());
 }
 
@@ -54,7 +52,7 @@ struct str_arg_char<CustomString<CharT>> {
 
 template <class CharT>
 inline void test_char() {
-    const size_t N = 3;
+    const std::size_t N = 3;
     CharT arr[] = { '1', '2', '3', 0 };
     const CharT carr[] = { '1', '2', '3', 0 };
     CharT* ptr = arr;
@@ -67,30 +65,33 @@ inline void test_char() {
     procfn(cptr);
     procfn(vptr);
 
-    procfn(arr, N);
-    procfn(carr, N);
-    procfn(ptr, N);
-    procfn(cptr, N);
-    procfn(vptr, N);
+    // upa::str_arg
+    upa::str_arg<CharT> arg(arr);
+    procfn(arg);
+    const upa::str_arg<CharT> carg(arr);
+    procfn(carg);
 
+    procfn(upa::str_arg<CharT>{arr, N});
+    procfn(upa::str_arg<CharT>{carr, N});
+    procfn(upa::str_arg<CharT>{ptr, N});
+    procfn(upa::str_arg<CharT>{cptr, N});
+    procfn(upa::str_arg<CharT>{vptr, N});
     // int size
-    procfn(arr, int(N));
-    procfn(cptr, int(N));
+    procfn(upa::str_arg<CharT>(arr, static_cast<int>(N)));
+    procfn(upa::str_arg<CharT>(cptr, static_cast<int>(N)));
 
-    procfn(arr, arr + N);
-    procfn(carr, carr + N);
-    procfn(ptr, ptr + N);
-    procfn(cptr, cptr + N);
-    procfn(vptr, vptr + N);
+    procfn(upa::str_arg<CharT>{arr, arr + N});
+    procfn(upa::str_arg<CharT>{carr, carr + N});
+    procfn(upa::str_arg<CharT>{ptr, ptr + N});
+    procfn(upa::str_arg<CharT>{cptr, cptr + N});
+    procfn(upa::str_arg<CharT>{vptr, vptr + N});
 
+    // std::basic_string
     const std::basic_string<CharT> str(arr);
     procfn(str);
     procfn(std::basic_string<CharT>(arr));
 
-    upa::str_arg<CharT> arg(arr);
-    procfn(arg);
-
-    // test custom string
+    // custom string
     procfn(CustomString<CharT>{cptr, N});
 }
 
