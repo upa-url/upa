@@ -24,7 +24,7 @@ struct str_arg_char_for_atl {
     using type = typename StrT::XCHAR;
 
     static str_arg<type> to_str_arg(const StrT& str) {
-        return { str.GetString(), static_cast<std::ptrdiff_t>(str.GetLength()) };
+        return { str.GetString(), str.GetLength() };
     }
 };
 
