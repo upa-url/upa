@@ -66,30 +66,30 @@ inline void test_char() {
     procfn(vptr);
 
     // upa::str_arg
-    upa::str_arg<CharT> arg(arr);
+    upa::str_arg<CharT> arg{ arr };
     procfn(arg);
-    const upa::str_arg<CharT> carg(arr);
+    const upa::str_arg carg{ arr };
     procfn(carg);
 
-    procfn(upa::str_arg<CharT>{arr, N});
-    procfn(upa::str_arg<CharT>{carr, N});
-    procfn(upa::str_arg<CharT>{ptr, N});
-    procfn(upa::str_arg<CharT>{cptr, N});
-    procfn(upa::str_arg<CharT>{vptr, N});
+    procfn(upa::str_arg{ arr, N });
+    procfn(upa::str_arg{ carr, N });
+    procfn(upa::str_arg{ ptr, N });
+    procfn(upa::str_arg{ cptr, N });
+    procfn(upa::str_arg{ vptr, N });
     // int size
-    procfn(upa::str_arg<CharT>(arr, static_cast<int>(N)));
-    procfn(upa::str_arg<CharT>(cptr, static_cast<int>(N)));
+    procfn(upa::str_arg{ arr, static_cast<int>(N) });
+    procfn(upa::str_arg{ cptr, static_cast<int>(N) });
 
-    procfn(upa::str_arg<CharT>{arr, arr + N});
-    procfn(upa::str_arg<CharT>{carr, carr + N});
-    procfn(upa::str_arg<CharT>{ptr, ptr + N});
-    procfn(upa::str_arg<CharT>{cptr, cptr + N});
-    procfn(upa::str_arg<CharT>{vptr, vptr + N});
+    procfn(upa::str_arg{ arr, arr + N });
+    procfn(upa::str_arg{ carr, carr + N });
+    procfn(upa::str_arg{ ptr, ptr + N });
+    procfn(upa::str_arg{ cptr, cptr + N });
+    procfn(upa::str_arg{ vptr, vptr + N });
 
     // std::basic_string
-    const std::basic_string<CharT> str(arr);
+    const std::basic_string<CharT> str{ arr };
     procfn(str);
-    procfn(std::basic_string<CharT>(arr));
+    procfn(std::basic_string<CharT>{ arr });
 
     // custom string
     procfn(CustomString<CharT>{cptr, N});
