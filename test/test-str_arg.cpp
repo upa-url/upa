@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -9,6 +9,8 @@
 
 #include "upa/str_arg.h"
 //#include "doctest-main.h"
+#include <array>
+#include <vector>
 
 
 // Function to test
@@ -85,6 +87,10 @@ inline void test_char() {
     procfn(upa::str_arg<CharT>{ptr, ptr + N});
     procfn(upa::str_arg<CharT>{cptr, cptr + N});
     procfn(upa::str_arg<CharT>{vptr, vptr + N});
+
+    // has data() and size() members
+    procfn(std::array<CharT, N>{ '1', '2', '3'});
+    procfn(std::vector<CharT>{ '1', '2', '3'});
 
     // std::basic_string
     const std::basic_string<CharT> str(arr);

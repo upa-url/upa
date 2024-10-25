@@ -141,19 +141,19 @@ namespace detail {
     template<class>
     auto test_data(long) -> void;
 
-    // test class T has length() member
+    // test class T has size() member
     template<class T>
-    auto test_length(int) -> decltype(std::declval<T>().length());
+    auto test_size(int) -> decltype(std::declval<T>().size());
     template<class>
-    auto test_length(long) -> void;
+    auto test_size(long) -> void;
 
     // T::data() return type (void - if no such member)
     template<class T>
     using data_member_t = decltype(detail::test_data<T>(0));
 
-    // T::length() return type (void - if no such member)
+    // T::size() return type (void - if no such member)
     template<class T>
-    using length_member_t = decltype(detail::test_length<T>(0));
+    using size_member_t = decltype(detail::test_size<T>(0));
 } // namespace detail
 
 
@@ -172,16 +172,16 @@ struct str_arg_char<CharT*> : std::remove_cv<CharT> {
     }
 };
 
-// String that has data() and length() members
+// String that has data() and size() members
 template<class StrT>
 struct str_arg_char<StrT> : std::enable_if<
     std::is_pointer<detail::data_member_t<StrT>>::value &&
-    is_size_type<detail::length_member_t<StrT>>::value,
+    is_size_type<detail::size_member_t<StrT>>::value,
     remove_cvptr_t<detail::data_member_t<StrT>>> {
 
     template <class STR, typename T = typename STR::value_type>
     static str_arg<T> to_str_arg(const STR& str) {
-        return { str.data(), str.length() };
+        return { str.data(), str.size() };
     }
 };
 
