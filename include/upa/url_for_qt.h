@@ -10,12 +10,17 @@
 #define UPA_URL_FOR_QT_H
 
 #include "url.h" // IWYU pragma: export
-#include <QString>
 #if __has_include(<QtVersionChecks>)
 # include <QtVersionChecks>
 #else
 # include <QtGlobal>
 #endif
+
+// As of version 6.7, Qt string classes are convertible to
+// std::basic_string_view, and such strings are supported in the
+// str_arg.h file.
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+#include <QString>
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
 # include <QStringView>
 #endif
@@ -32,7 +37,7 @@ struct str_arg_char_for_qt {
     using type = CharT;
 
     static str_arg<type> to_str_arg(const StrT& str) {
-        return { reinterpret_cast<const type*>(str.data()), str.length() };
+        return { reinterpret_cast<const type*>(str.data()), str.size() };
     }
 };
 
@@ -53,5 +58,7 @@ struct str_arg_char<QUtf8StringView> :
 #endif
 
 } // namespace upa
+
+#endif // QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 
 #endif // UPA_URL_FOR_QT_H

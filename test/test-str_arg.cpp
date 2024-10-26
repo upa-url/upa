@@ -21,6 +21,20 @@ inline std::size_t procfn(StrT&& str) {
     return std::distance(inp.begin(), inp.end());
 }
 
+// Custom string class convertible to std::basic_string_view
+
+template <typename CharT>
+class ConvertibleString {
+public:
+    ConvertibleString(const CharT* data, std::size_t length)
+        : data_(data), length_(length) {}
+    operator std::basic_string_view<CharT>() const noexcept {
+        return { data_, length_ };
+    }
+private:
+    const CharT* data_ = nullptr;
+    std::size_t length_ = 0;
+};
 
 // Custom string class and it's specialization
 
@@ -97,7 +111,8 @@ inline void test_char() {
     procfn(str);
     procfn(std::basic_string<CharT>{ arr });
 
-    // custom string
+    // custom strings
+    procfn(ConvertibleString<CharT>{cptr, N});
     procfn(CustomString<CharT>{cptr, N});
 }
 
