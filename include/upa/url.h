@@ -213,7 +213,7 @@ public:
     /// @param[in] pbase   pointer to base URL, may be `nullptr`
     /// @return true if given @a str_url can be parsed against @a *pbase
     template <class T, enable_if_str_arg_t<T> = 0>
-    static bool can_parse(T&& str_url, const url* pbase = nullptr) {
+    [[nodiscard]] static bool can_parse(T&& str_url, const url* pbase = nullptr) {
         upa::url url;
         return url.for_can_parse(std::forward<T>(str_url), pbase) == validation_errc::ok;
     }
@@ -227,7 +227,7 @@ public:
     /// @param[in] base    base URL
     /// @return true if given @a str_url can be parsed against base URL
     template <class T, enable_if_str_arg_t<T> = 0>
-    static bool can_parse(T&& str_url, const url& base) {
+    [[nodiscard]] static bool can_parse(T&& str_url, const url& base) {
         return can_parse(std::forward<T>(str_url), &base);
     }
 
@@ -241,7 +241,7 @@ public:
     /// @param[in] str_base base URL string
     /// @return true if given @a str_url can be parsed against @a str_base URL string
     template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
-    static bool can_parse(T&& str_url, TB&& str_base) {
+    [[nodiscard]] static bool can_parse(T&& str_url, TB&& str_base) {
         upa::url base;
         return
             base.for_can_parse(std::forward<TB>(str_base), nullptr) == validation_errc::ok &&
@@ -387,9 +387,9 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-href
     ///
     /// @return serialized URL
-    string_view href() const;
+    [[nodiscard]] string_view href() const;
     /// Equivalent to @link href() const @endlink
-    string_view get_href() const { return href(); }
+    [[nodiscard]] string_view get_href() const { return href(); }
 
     /// @brief The origin getter
     ///
@@ -399,109 +399,109 @@ public:
     /// origin (null).
     ///
     /// @return ASCII serialized URL's origin
-    std::string origin() const;
+    [[nodiscard]] std::string origin() const;
 
     /// @brief The protocol getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-protocol
     ///
     /// @return URL's scheme, followed by U+003A (:)
-    string_view protocol() const;
+    [[nodiscard]] string_view protocol() const;
     /// Equivalent to @link protocol() const @endlink
-    string_view get_protocol() const { return protocol(); }
+    [[nodiscard]] string_view get_protocol() const { return protocol(); }
 
     /// @brief The username getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-username
     ///
     /// @return URL’s username
-    string_view username() const;
+    [[nodiscard]] string_view username() const;
     /// Equivalent to @link username() const @endlink
-    string_view get_username() const { return username(); }
+    [[nodiscard]] string_view get_username() const { return username(); }
 
     /// @brief The password getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-password
     ///
     /// @return URL’s password
-    string_view password() const;
+    [[nodiscard]] string_view password() const;
     /// Equivalent to @link password() const @endlink
-    string_view get_password() const { return password(); }
+    [[nodiscard]] string_view get_password() const { return password(); }
 
     /// @brief The host getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-host
     ///
     /// @return URL’s host, serialized, followed by U+003A (:) and URL’s port, serialized
-    string_view host() const;
+    [[nodiscard]] string_view host() const;
     /// Equivalent to @link host() const @endlink
-    string_view get_host() const { return host(); }
+    [[nodiscard]] string_view get_host() const { return host(); }
 
     /// @brief The hostname getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-hostname
     ///
     /// @return URL’s host, serialized
-    string_view hostname() const;
+    [[nodiscard]] string_view hostname() const;
     /// Equivalent to @link hostname() const @endlink
-    string_view get_hostname() const { return hostname(); }
+    [[nodiscard]] string_view get_hostname() const { return hostname(); }
 
     /// @brief The host_type getter
     ///
     /// @return URL’s host type as HostType enumeration value
-    HostType host_type() const noexcept;
+    [[nodiscard]] HostType host_type() const noexcept;
 
     /// @brief The port getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-port
     ///
     /// @return URL’s port, serialized, if URL’s port is not null, otherwise empty string
-    string_view port() const;
+    [[nodiscard]] string_view port() const;
     /// Equivalent to @link port() const @endlink
-    string_view get_port() const { return port(); }
+    [[nodiscard]] string_view get_port() const { return port(); }
 
     /// @return URL’s port, converted to `int` value, if URL’s port is not null,
     ///   otherwise `-1`
-    int port_int() const;
+    [[nodiscard]] int port_int() const;
 
     /// @return URL’s port, converted to `int` value, if URL’s port is not null,
     ///   otherwise default port, if URL's scheme has default port,
     ///   otherwise `-1`
-    int real_port_int() const;
+    [[nodiscard]] int real_port_int() const;
 
     /// @brief The path getter
     ///
     /// @return URL's path, serialized, followed by U+003F (?) and URL’s query
-    string_view path() const;
+    [[nodiscard]] string_view path() const;
     /// Equivalent to @link path() const @endlink
-    string_view get_path() const { return path(); }
+    [[nodiscard]] string_view get_path() const { return path(); }
 
     /// @brief The pathname getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-pathname
     ///
     /// @return URL’s path, serialized
-    string_view pathname() const;
+    [[nodiscard]] string_view pathname() const;
     /// Equivalent to @link pathname() const @endlink
-    string_view get_pathname() const { return pathname(); }
+    [[nodiscard]] string_view get_pathname() const { return pathname(); }
 
     /// @brief The search getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-search
     ///
     /// @return empty string or U+003F (?), followed by URL’s query
-    string_view search() const;
+    [[nodiscard]] string_view search() const;
     /// Equivalent to @link search() const @endlink
-    string_view get_search() const { return search(); }
+    [[nodiscard]] string_view get_search() const { return search(); }
 
     /// @brief The hash getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-hash
     ///
     /// @return empty string or U+0023 (#), followed by URL’s fragment
-    string_view hash() const;
+    [[nodiscard]] string_view hash() const;
     /// Equivalent to @link hash() const @endlink
-    string_view get_hash() const { return hash(); }
+    [[nodiscard]] string_view get_hash() const { return hash(); }
 
     /// @brief The searchParams getter
     ///
@@ -517,7 +517,7 @@ public:
     ///
     /// @return the move constructed copy of this’s query object (url_search_params class)
     /// @see search_params()&
-    url_search_params search_params()&&;
+    [[nodiscard]] url_search_params search_params()&&;
 
     /// @brief URL serializer
     ///
@@ -526,21 +526,21 @@ public:
     ///
     /// @param[in] exclude_fragment exclude fragment when serializing
     /// @return serialized URL as string_view
-    string_view serialize(bool exclude_fragment = false) const;
+    [[nodiscard]] string_view serialize(bool exclude_fragment = false) const;
 
     // Get url info
 
     /// @brief Checks whether the URL is empty
     ///
     /// @return `true` if URL is empty, `false` otherwise
-    bool empty() const noexcept;
+    [[nodiscard]] bool empty() const noexcept;
 
     /// @brief Returns whether the URL is valid
     ///
     /// URL is valid if it is not empty, and contains a successfully parsed URL.
     ///
     /// @return `true` if URL is valid, `false` otherwise
-    bool is_valid() const noexcept;
+    [[nodiscard]] bool is_valid() const noexcept;
 
     /// @brief Gets URL's part (URL record member) as string
     ///
@@ -558,13 +558,13 @@ public:
     ///
     /// @param[in] t URL's part
     /// @return URL's part string; it is empty if part is empty or null
-    string_view get_part_view(PartType t) const;
+    [[nodiscard]] string_view get_part_view(PartType t) const;
 
     /// @brief Checks whether the URL's part (URL record member) is empty or null
     ///
     /// @param[in] t URL's part
     /// @return `true` if URL's part @a t is empty or null, `false` otherwise
-    bool is_empty(PartType t) const;
+    [[nodiscard]] bool is_empty(PartType t) const;
 
     /// @brief Checks whether the URL's part (URL record member) is null
     ///
@@ -577,27 +577,27 @@ public:
     ///
     /// @param[in] t URL's part
     /// @return `true` if URL's part @a t is null, `false` otherwise
-    bool is_null(PartType t) const noexcept;
+    [[nodiscard]] bool is_null(PartType t) const noexcept;
 
     /// @return `true` if URL's scheme is special ("ftp", "file", "http", "https", "ws", or "wss"),
     ///   `false` otherwise; see: https://url.spec.whatwg.org/#special-scheme
-    bool is_special_scheme() const noexcept;
+    [[nodiscard]] bool is_special_scheme() const noexcept;
 
     /// @return `true` if URL's scheme is "file", `false` otherwise
-    bool is_file_scheme() const noexcept;
+    [[nodiscard]] bool is_file_scheme() const noexcept;
 
     /// @return `true` if URL's scheme is "http" or "https", `false` otherwise
-    bool is_http_scheme() const noexcept;
+    [[nodiscard]] bool is_http_scheme() const noexcept;
 
     /// @return `true` if URL includes credentials (username, password), `false` otherwise
-    bool has_credentials() const;
+    [[nodiscard]] bool has_credentials() const;
 
     /// see: https://url.spec.whatwg.org/#url-opaque-path
     /// @return `true` if URL's path is a URL path segment, `false` otherwise
-    bool has_opaque_path() const noexcept;
+    [[nodiscard]] bool has_opaque_path() const noexcept;
 
     /// @return serialized URL as `std::string`
-    std::string to_string() const;
+    [[nodiscard]] std::string to_string() const;
 
 private:
     struct alignas(32) scheme_info {
@@ -3061,12 +3061,12 @@ inline bool has_dot_dot_segment(const CharT* first, const CharT* last, IsSlash i
 ///
 /// @param[in] lhs,rhs URLs to compare
 /// @param[in] exclude_fragments exclude fragments when comparing
-inline bool equals(const url& lhs, const url& rhs, bool exclude_fragments = false) {
+[[nodiscard]] inline bool equals(const url& lhs, const url& rhs, bool exclude_fragments = false) {
     return lhs.serialize(exclude_fragments) == rhs.serialize(exclude_fragments);
 }
 
 /// @brief Lexicographically compares two URL's
-inline bool operator==(const url& lhs, const url& rhs) noexcept {
+[[nodiscard]] inline bool operator==(const url& lhs, const url& rhs) noexcept {
     return lhs.norm_url_ == rhs.norm_url_;
 }
 
@@ -3116,7 +3116,7 @@ enum class file_path_format {
 ///   [GetFullPathName](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfullpathnamew),
 ///   [std::filesystem::canonical](https://en.cppreference.com/w/cpp/filesystem/canonical)
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
-inline url url_from_file_path(StrT&& str, file_path_format format = file_path_format::native) {
+[[nodiscard]] inline url url_from_file_path(StrT&& str, file_path_format format = file_path_format::native) {
     using CharT = str_arg_char_t<StrT>;
     const auto inp = make_str_arg(std::forward<StrT>(str));
     const auto* first = inp.begin();
@@ -3197,7 +3197,7 @@ inline url url_from_file_path(StrT&& str, file_path_format format = file_path_fo
 /// @param[in] format file path format, one of upa::file_path_format::posix,
 ///   upa::file_path_format::windows, upa::file_path_format::native
 /// @return OS path
-inline std::string path_from_file_url(const url& file_url, file_path_format format = file_path_format::native) {
+[[nodiscard]] inline std::string path_from_file_url(const url& file_url, file_path_format format = file_path_format::native) {
     if (!file_url.is_file_scheme())
         throw url_error(validation_errc::not_file_url, "Not a file URL");
 
@@ -3280,7 +3280,7 @@ namespace std {
 /// @brief std::hash specialization for upa::url class
 template<>
 struct hash<upa::url> {
-    std::size_t operator()(const upa::url& url) const noexcept {
+    [[nodiscard]] std::size_t operator()(const upa::url& url) const noexcept {
         return std::hash<std::string>{}(url.norm_url_);
     }
 };
@@ -3288,6 +3288,6 @@ struct hash<upa::url> {
 } // namespace std
 
 // Includes that require the url class declaration
-#include "url_search_params-inl.h"
+#include "url_search_params-inl.h" // IWYU pragma: export
 
 #endif // UPA_URL_H

@@ -84,7 +84,7 @@ public:
     /// @brief test code point set contains code point @a c
     /// @param[in] c code point to test
     template <typename CharT>
-    constexpr bool operator[](CharT c) const {
+    [[nodiscard]] constexpr bool operator[](CharT c) const {
         const auto uc = util::to_unsigned(c);
         return is_8bit(uc) && (arr_[uc >> 3] & (1u << (uc & 0x07))) != 0;
     }
@@ -232,7 +232,7 @@ public:
     /// @param[in] c code point to test
     /// @param[in] cps code point set
     template <typename CharT>
-    constexpr bool char_in_set(CharT c, CP_SET cps) const {
+    [[nodiscard]] constexpr bool char_in_set(CharT c, CP_SET cps) const {
         const auto uc = util::to_unsigned(c);
         return is_8bit(uc) && (arr_[uc] & cps);
     }
@@ -511,7 +511,7 @@ inline void append_percent_decoded(StrT&& str, std::string& output) {
 /// @param[in] str string input
 /// @return percent decoded string
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
-inline std::string percent_decode(StrT&& str) {
+[[nodiscard]] inline std::string percent_decode(StrT&& str) {
     std::string out;
     detail::append_percent_decoded(std::forward<StrT>(str), out);
     return out;
@@ -529,7 +529,7 @@ inline std::string percent_decode(StrT&& str) {
 ///            must not be percent encoded
 /// @return percent encoded string
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
-inline std::string percent_encode(StrT&& str, const code_point_set& no_encode_set) {
+[[nodiscard]] inline std::string percent_encode(StrT&& str, const code_point_set& no_encode_set) {
     const auto inp = make_str_arg(std::forward<StrT>(str));
 
     std::string out;
@@ -548,7 +548,7 @@ inline std::string percent_encode(StrT&& str, const code_point_set& no_encode_se
 /// @param[in] str string input
 /// @return percent encoded string
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
-inline std::string encode_url_component(StrT&& str) {
+[[nodiscard]] inline std::string encode_url_component(StrT&& str) {
     return percent_encode(std::forward<StrT>(str), component_no_encode_set);
 }
 

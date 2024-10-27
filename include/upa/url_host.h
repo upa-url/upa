@@ -102,14 +102,14 @@ public:
     /// Host type getter
     ///
     /// @return host type, the one of: Domain, IPv4, IPv6
-    HostType type() const {
+    [[nodiscard]] HostType type() const {
         return type_;
     }
 
     /// Hostname stringifier
     ///
     /// @return host serialized to string
-    std::string to_string() const {
+    [[nodiscard]] std::string to_string() const {
         return host_str_;
     }
 

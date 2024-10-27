@@ -248,7 +248,7 @@ public:
     /// @param[in] name
     /// @return pair value, or `nullptr`
     template <class TN>
-    const std::string* get(const TN& name) const;
+    [[nodiscard]] const std::string* get(const TN& name) const;
 
     /// Return the values of all name-value pairs whose name is @a name.
     ///
@@ -257,7 +257,7 @@ public:
     /// @param[in] name
     /// @return list of values as `std::string`
     template <class TN>
-    std::list<std::string> get_all(const TN& name) const;
+    [[nodiscard]] std::list<std::string> get_all(const TN& name) const;
 
     /// Tests if list contains a name-value pair whose name is @a name.
     ///
@@ -266,7 +266,7 @@ public:
     /// @param[in] name
     /// @return `true`, if list contains such pair, `false` otherwise
     template <class TN>
-    bool has(const TN& name) const;
+    [[nodiscard]] bool has(const TN& name) const;
 
     /// Tests if list contains a name-value pair whose name is @a name and value is @a value.
     ///
@@ -276,7 +276,7 @@ public:
     /// @param[in] value
     /// @return `true`, if list contains such pair, `false` otherwise
     template <class TN, class TV>
-    bool has(const TN& name, const TV& value) const;
+    [[nodiscard]] bool has(const TN& name, const TV& value) const;
 
     /// Sets search parameter value
     ///
@@ -305,43 +305,43 @@ public:
     /// More info: https://url.spec.whatwg.org/#urlsearchparams-stringification-behavior
     ///
     /// @return serialized name-value pairs
-    std::string to_string() const;
+    [[nodiscard]] std::string to_string() const;
 
     // Iterators
 
     /// @return an iterator to the beginning of name-value list
-    const_iterator begin() const noexcept { return params_.begin(); }
+    [[nodiscard]] const_iterator begin() const noexcept { return params_.begin(); }
 
     /// @return an iterator to the beginning of name-value list
-    const_iterator cbegin() const noexcept { return params_.cbegin(); }
+    [[nodiscard]] const_iterator cbegin() const noexcept { return params_.cbegin(); }
 
     /// @return an iterator to the end of name-value list
-    const_iterator end() const noexcept { return params_.end(); }
+    [[nodiscard]] const_iterator end() const noexcept { return params_.end(); }
 
     /// @return an iterator to the end of name-value list
-    const_iterator cend() const noexcept { return params_.cend(); }
+    [[nodiscard]] const_iterator cend() const noexcept { return params_.cend(); }
 
     /// @return a reverse iterator to the beginning of name-value list
-    const_reverse_iterator rbegin() const noexcept { return params_.rbegin(); }
+    [[nodiscard]] const_reverse_iterator rbegin() const noexcept { return params_.rbegin(); }
 
     /// @return a reverse iterator to the beginning of name-value list
-    const_reverse_iterator crbegin() const noexcept { return params_.crbegin(); }
+    [[nodiscard]] const_reverse_iterator crbegin() const noexcept { return params_.crbegin(); }
 
     /// @return a reverse iterator to the end of name-value list
-    const_reverse_iterator rend() const noexcept { return params_.rend(); }
+    [[nodiscard]] const_reverse_iterator rend() const noexcept { return params_.rend(); }
 
     /// @return a reverse iterator to the end of name-value list
-    const_reverse_iterator crend() const noexcept { return params_.crend(); }
+    [[nodiscard]] const_reverse_iterator crend() const noexcept { return params_.crend(); }
 
     // Capacity
 
     /// Checks whether the name-value list is empty
     ///
     /// @return `true` if the container is empty, `false` otherwise
-    bool empty() const noexcept { return params_.empty(); }
+    [[nodiscard]] bool empty() const noexcept { return params_.empty(); }
 
     /// @return the number of elements in the name-value list
-    size_type size() const noexcept { return params_.size(); }
+    [[nodiscard]] size_type size() const noexcept { return params_.size(); }
 
     // Utils
 
@@ -351,7 +351,7 @@ public:
     ///   then skips first code point in @a query
     /// @param[in] query string to parse
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    static name_value_list do_parse(bool rem_qmark, StrT&& query);
+    [[nodiscard]] static name_value_list do_parse(bool rem_qmark, StrT&& query);
 
     /// Percent encodes the @a value using application/x-www-form-urlencoded percent-encode set,
     /// and replacing 0x20 (SP) with U+002B (+). Appends result to the @a encoded string.

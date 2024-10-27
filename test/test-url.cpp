@@ -9,6 +9,9 @@
 #include <unordered_map>
 
 
+template<class T>
+void discard(T&&) {}
+
 std::string urls_to_str(const char* s1) {
     return s1;
 }
@@ -633,17 +636,17 @@ TEST_CASE("url_from_file_path") {
         CHECK(upa::url_from_file_path("/\\", upa::file_path_format::posix).href() == "file:///%5C");
         CHECK(upa::url_from_file_path("/..\\", upa::file_path_format::posix).href() == "file:///..%5C");
         // empty path
-        CHECK_THROWS_AS(upa::url_from_file_path("", upa::file_path_format::posix), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("", upa::file_path_format::posix)), upa::url_error);
         // non absolute path
-        CHECK_THROWS_AS(upa::url_from_file_path("path", upa::file_path_format::posix), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("C:\\path", upa::file_path_format::posix), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("C:/path", upa::file_path_format::posix), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\p", upa::file_path_format::posix), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("path", upa::file_path_format::posix)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("C:\\path", upa::file_path_format::posix)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("C:/path", upa::file_path_format::posix)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\h\\p", upa::file_path_format::posix)), upa::url_error);
         // ".." segments
-        CHECK_THROWS_AS(upa::url_from_file_path("/..", upa::file_path_format::posix), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("/../", upa::file_path_format::posix), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("/..", upa::file_path_format::posix)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("/../", upa::file_path_format::posix)), upa::url_error);
         // null character
-        CHECK_THROWS_AS(upa::url_from_file_path(std::string{ "/p\0", 3 }, upa::file_path_format::posix), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path(std::string{ "/p\0", 3 }, upa::file_path_format::posix)), upa::url_error);
     }
     SUBCASE("Windows path") {
         // https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file
@@ -679,45 +682,45 @@ TEST_CASE("url_from_file_path") {
         CHECK(upa::url_from_file_path("//?/unc/h/very_long_path", upa::file_path_format::windows).href() == "file://h/very_long_path");
         CHECK(upa::url_from_file_path("//./unc/h/just_path", upa::file_path_format::windows).href() == "file://h/just_path");
         // empty path
-        CHECK_THROWS_AS(upa::url_from_file_path("", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("", upa::file_path_format::windows)), upa::url_error);
         // non absolute path
-        CHECK_THROWS_AS(upa::url_from_file_path("\\", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("C:path", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("path", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("/", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("C|\\path", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("C|/path", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("C:path", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("path", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("/", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("C|\\path", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("C|/path", upa::file_path_format::windows)), upa::url_error);
         // invalid UNC
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\\\", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\.", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\h\\..", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path(std::string{ '\\', '\\', 'h', '\\', 'a', '\0', 'b' },
-            upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\C:\\path", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\C|\\path", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\UNC\\?\\name", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\UNC\\.\\name", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\UNC\\h\\.", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\UNC\\h\\..", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\h\\\\", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\h\\.", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\h\\..", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path(std::string{ '\\', '\\', 'h', '\\', 'a', '\0', 'b' },
+            upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\C:\\path", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\C|\\path", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\?\\UNC\\?\\name", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\?\\UNC\\.\\name", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\?\\UNC\\h\\.", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\?\\UNC\\h\\..", upa::file_path_format::windows)), upa::url_error);
         // UNC: invalid hostname
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\a b\\path", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\a?b\\path", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\a#b\\path", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\a b\\path", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\a?b\\path", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\a#b\\path", upa::file_path_format::windows)), upa::url_error);
         // unsupported pathes
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\?\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt",
-            upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\\\.\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt",
-            upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\?\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt",
+            upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\\\.\\Volume{b75e2c83-0000-0000-0000-602f00000000}\\Test\\Foo.txt",
+            upa::file_path_format::windows)), upa::url_error);
         // ".." segments
-        CHECK_THROWS_AS(upa::url_from_file_path("C:\\..", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("C:\\..\\", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("C:/..", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("C:/../", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\h\\sn\\..", upa::file_path_format::windows), upa::url_error);
-        CHECK_THROWS_AS(upa::url_from_file_path("\\h\\sn\\../", upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("C:\\..", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("C:\\..\\", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("C:/..", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("C:/../", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\h\\sn\\..", upa::file_path_format::windows)), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path("\\h\\sn\\../", upa::file_path_format::windows)), upa::url_error);
         // null character
-        CHECK_THROWS_AS(upa::url_from_file_path(std::string{ "C:\\p\0", 5 }, upa::file_path_format::windows), upa::url_error);
+        CHECK_THROWS_AS(discard(upa::url_from_file_path(std::string{ "C:\\p\0", 5 }, upa::file_path_format::windows)), upa::url_error);
     }
     SUBCASE("Native path") {
 #ifdef _WIN32

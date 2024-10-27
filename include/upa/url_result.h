@@ -89,7 +89,7 @@ enum class validation_errc {
 
 /// @brief Check validation error code indicates success
 /// @return `true` if validation error code is validation_errc::ok, `false` otherwise
-constexpr bool success(validation_errc res) noexcept {
+[[nodiscard]] constexpr bool success(validation_errc res) noexcept {
     return res == validation_errc::ok;
 }
 
@@ -107,7 +107,7 @@ public:
     {}
 
     /// @return validation error code
-    validation_errc result() const noexcept {
+    [[nodiscard]] validation_errc result() const noexcept {
         return res_;
     }
 private:
@@ -127,7 +127,7 @@ struct result_value {
         : result(res) {}
     result_value(R res, T val) noexcept
         : value(val), result(res) {}
-    operator R() const noexcept {
+    [[nodiscard]] operator R() const noexcept {
         return result;
     }
 };
