@@ -59,6 +59,13 @@ struct is_size_type : std::integral_constant<bool,
     std::is_convertible<SizeT, std::ptrdiff_t>::value
 > {};
 
+// See: https://en.cppreference.com/w/cpp/concepts/derived_from
+template<class Derived, class Base>
+struct is_derived_from : std::integral_constant<bool,
+    std::is_base_of<Base, Derived>::value &&
+    std::is_convertible<const volatile Derived*, const volatile Base*>::value
+> {};
+
 
 // string args helper class
 
