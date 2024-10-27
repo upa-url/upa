@@ -14,7 +14,7 @@
 #ifdef UPA_CPP_20
 # include <concepts>
 #else
-# include <cstringt.h>
+# include <type_traits>
 #endif
 
 namespace upa {
@@ -43,17 +43,14 @@ struct str_arg_char<StrT> : public str_arg_char_for_atl<StrT> {};
 
 #else // UPA_CPP_20
 
-template<typename CharT, bool mfcdll>
-struct str_arg_char<ATL::CSimpleStringT<CharT, mfcdll>> :
-    public str_arg_char_for_atl<ATL::CSimpleStringT<CharT, mfcdll>> {};
-
-template<typename CharT, class StringTraits>
-struct str_arg_char<ATL::CStringT<CharT, StringTraits>> :
-    public str_arg_char_for_atl<ATL::CStringT<CharT, StringTraits>> {};
-
-template<class StrT, int nChars>
-struct str_arg_char<ATL::CFixedStringT<StrT, nChars>> :
-    public str_arg_char_for_atl<ATL::CFixedStringT<StrT, nChars>> {};
+// CStringT and CFixedStringT are derived from CSimpleStringT
+template<class StrT>
+struct str_arg_char<StrT, std::enable_if_t<
+    is_derived_from_v<StrT, ATL::CSimpleStringT<char, true>> ||
+    is_derived_from_v<StrT, ATL::CSimpleStringT<wchar_t, true>> ||
+    is_derived_from_v<StrT, ATL::CSimpleStringT<char, false>> ||
+    is_derived_from_v<StrT, ATL::CSimpleStringT<wchar_t, false>>
+    >> : public str_arg_char_for_atl<StrT> {};
 
 #endif // UPA_CPP_20
 

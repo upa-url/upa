@@ -49,6 +49,12 @@ constexpr bool is_size_type_v =
     std::is_convertible_v<SizeT, std::size_t> ||
     std::is_convertible_v<SizeT, std::ptrdiff_t>;
 
+// See: https://en.cppreference.com/w/cpp/concepts/derived_from
+template<class Derived, class Base>
+constexpr bool is_derived_from_v =
+    std::is_base_of_v<Base, Derived> &&
+    std::is_convertible_v<const volatile Derived*, const volatile Base*>;
+
 
 // string args helper class
 
