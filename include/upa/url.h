@@ -31,6 +31,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint> // uint8_t
+#include <functional> // std::hash
 #include <iterator>
 #include <string>
 #include <type_traits>
