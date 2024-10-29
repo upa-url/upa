@@ -31,14 +31,11 @@ struct str_arg_char_for_atl {
 #ifdef UPA_CPP_20
 
 // CStringT and CFixedStringT are derived from CSimpleStringT
-template<class StrT>
-concept derived_from_CSimpleString =
+template<class StrT> requires
     std::derived_from<StrT, ATL::CSimpleStringT<char, true>> ||
     std::derived_from<StrT, ATL::CSimpleStringT<wchar_t, true>> ||
     std::derived_from<StrT, ATL::CSimpleStringT<char, false>> ||
-    std::derived_from<StrT, ATL::CSimpleStringT<wchar_t, false>>;
-
-template<derived_from_CSimpleString StrT>
+    std::derived_from<StrT, ATL::CSimpleStringT<wchar_t, false>>
 struct str_arg_char<StrT> : public str_arg_char_for_atl<StrT> {};
 
 #else // UPA_CPP_20
