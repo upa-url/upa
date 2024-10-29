@@ -221,7 +221,7 @@ void test_host_parser(DataDrivenTest& ddt, const parsed_obj& obj)
     // Test file format (toascii.json):
     // https://github.com/web-platform-tests/wpt/tree/master/url#toasciijson
     // https://github.com/web-platform-tests/wpt/pull/5976
-    static const auto make_url = [](const std::string& host)->std::string {
+    static constexpr auto make_url = [](const std::string& host)->std::string {
         std::string str_url("http://");
         str_url += host;
         str_url += "/x";
@@ -287,14 +287,14 @@ void test_idna_v2(DataDrivenTest& ddt, const parsed_obj& obj)
     // Test file format (toascii.json):
     // https://github.com/web-platform-tests/wpt/tree/master/url#toasciijson
     // https://github.com/web-platform-tests/wpt/pull/5976
-    static const auto make_url = [](const std::string& host) -> std::string {
+    static constexpr auto make_url = [](const std::string& host) -> std::string {
         std::string str_url("http://");
         str_url += host;
         str_url += "/x";
         return str_url;
     };
 
-    static const auto encodeHostEndingCodePoints = [](const std::string& input) -> std::string {
+    static constexpr auto encodeHostEndingCodePoints = [](const std::string& input) -> std::string {
         if (input.find_first_of(":/?#\\") != input.npos)
             return encodeURIComponent(input);
         return input;

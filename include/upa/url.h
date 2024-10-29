@@ -907,7 +907,7 @@ private:
 // part start
 extern const uint8_t kPartStart[url::PART_COUNT];
 
-inline int port_from_str(const char* first, const char* last) noexcept {
+constexpr int port_from_str(const char* first, const char* last) noexcept {
     int port = 0;
     for (auto it = first; it != last; ++it) {
         port = port * 10 + (*it - '0');
@@ -930,7 +930,7 @@ constexpr bool is_removable_char(CharT ch) noexcept {
 }
 
 template <typename CharT>
-inline void do_trim(const CharT*& first, const CharT*& last) noexcept {
+constexpr void do_trim(const CharT*& first, const CharT*& last) noexcept {
     // remove leading C0 controls and space
     while (first < last && is_trim_char(*first))
         ++first;
@@ -965,7 +965,7 @@ inline void do_remove_whitespace(const CharT*& first, const CharT*& last, simple
 // reverse find
 
 template<class InputIt, class T>
-inline InputIt find_last(InputIt first, InputIt last, const T& value) {
+constexpr InputIt find_last(InputIt first, InputIt last, const T& value) {
     for (auto it = last; it > first;) {
         --it;
         if (*it == value) return it;
@@ -1023,7 +1023,7 @@ constexpr bool is_normalized_windows_drive(CharT c1, CharT c2) noexcept {
 
 // https://url.spec.whatwg.org/#start-with-a-windows-drive-letter
 template <typename CharT>
-inline bool starts_with_windows_drive(const CharT* pointer, const CharT* last) noexcept {
+constexpr bool starts_with_windows_drive(const CharT* pointer, const CharT* last) noexcept {
     const auto length = last - pointer;
     return
         (length == 2 || (length > 2 && detail::is_special_authority_end_char(pointer[2]))) &&
@@ -1042,7 +1042,7 @@ inline bool starts_with_windows_drive(const CharT* pointer, const CharT* last) n
 
 // Check url's pathname has Windows drive, i.e. starts with "/C:/" or is "/C:"
 // see also: detail::starts_with_windows_drive
-inline bool pathname_has_windows_os_drive(string_view pathname) noexcept {
+constexpr bool pathname_has_windows_os_drive(string_view pathname) noexcept {
     return
         (pathname.length() == 3 || (pathname.length() > 3 && is_windows_slash(pathname[3]))) &&
         is_windows_slash(pathname[0]) &&
@@ -2319,11 +2319,11 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
     // path state; includes:
     // 1. [ (/,\) - 1, 2, 3, 4 - [ 1 (if first segment), 2 ] ]
     // 2. [ 1 ... 4 ]
-    static const auto escaped_dot = [](const CharT* const pointer) -> bool {
+    static constexpr auto escaped_dot = [](const CharT* const pointer) constexpr -> bool {
         // "%2e" or "%2E"
         return pointer[0] == '%' && pointer[1] == '2' && (pointer[2] | 0x20) == 'e';
     };
-    static const auto double_dot = [](const CharT* const pointer, const std::size_t len) -> bool {
+    static constexpr auto double_dot = [](const CharT* const pointer, const std::size_t len) constexpr -> bool {
         switch (len) {
         case 2: // ".."
             return pointer[0] == '.' && pointer[1] == '.';
@@ -2336,7 +2336,7 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
             return false;
         }
     };
-    static const auto single_dot = [](const CharT* const pointer, const std::size_t len) -> bool {
+    static constexpr auto single_dot = [](const CharT* const pointer, const std::size_t len) constexpr -> bool {
         switch (len) {
         case 1: return pointer[0] == '.';
         case 3: return escaped_dot(pointer); // "%2e"
@@ -3031,7 +3031,7 @@ inline const CharT* is_unc_path(const CharT* first, const CharT* last)
 /// @param[in] is_slash function to check char is slash (or backslash)
 /// @return true if path contains ".." segment
 template <typename CharT, typename IsSlash>
-inline bool has_dot_dot_segment(const CharT* first, const CharT* last, IsSlash is_slash) {
+constexpr bool has_dot_dot_segment(const CharT* first, const CharT* last, IsSlash is_slash) {
     if (last - first >= 2) {
         const auto* ptr = first;
         const auto* end = last - 1;

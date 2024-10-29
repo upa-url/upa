@@ -297,37 +297,37 @@ inline constexpr code_points_multiset code_points;
 // Check char is in predefined set
 
 template <typename CharT>
-inline bool is_char_in_set(CharT c, const code_point_set& cpset) {
+constexpr bool is_char_in_set(CharT c, const code_point_set& cpset) {
     return cpset[c];
 }
 
 template <typename CharT>
-inline bool is_ipv4_char(CharT c) {
+constexpr bool is_ipv4_char(CharT c) {
     return code_points.char_in_set(c, IPV4_CHAR_SET);
 }
 
 template <typename CharT>
-inline bool is_hex_char(CharT c) {
+constexpr bool is_hex_char(CharT c) {
     return code_points.char_in_set(c, HEX_DIGIT_SET);
 }
 
 template <typename CharT>
-inline bool is_scheme_char(CharT c) {
+constexpr bool is_scheme_char(CharT c) {
     return code_points.char_in_set(c, SCHEME_SET);
 }
 
 template <typename CharT>
-inline bool is_forbidden_domain_char(CharT c) {
+constexpr bool is_forbidden_domain_char(CharT c) {
     return code_points.char_in_set(c, DOMAIN_FORBIDDEN_SET);
 }
 
 template <typename CharT>
-inline bool is_forbidden_host_char(CharT c) {
+constexpr bool is_forbidden_host_char(CharT c) {
     return code_points.char_in_set(c, HOST_FORBIDDEN_SET);
 }
 
 template <typename CharT>
-inline bool is_ascii_domain_char(CharT c) {
+constexpr bool is_ascii_domain_char(CharT c) {
     return code_points.char_in_set(c, ASCII_DOMAIN_SET);
 }
 

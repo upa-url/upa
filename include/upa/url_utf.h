@@ -41,8 +41,8 @@ public:
 protected:
     // low level
     static bool read_code_point(const char*& first, const char* last, uint32_t& code_point) noexcept;
-    static bool read_code_point(const char16_t*& first, const char16_t* last, uint32_t& code_point) noexcept;
-    static bool read_code_point(const char32_t*& first, const char32_t* last, uint32_t& code_point) noexcept;
+    static constexpr bool read_code_point(const char16_t*& first, const char16_t* last, uint32_t& code_point) noexcept;
+    static constexpr bool read_code_point(const char32_t*& first, const char32_t* last, uint32_t& code_point) noexcept;
 private:
     const static char kReplacementCharUtf8[];
     const static uint8_t k_U8_LEAD3_T1_BITS[16];
@@ -179,7 +179,7 @@ namespace detail {
     // Get a supplementary code point value (U+10000..U+10ffff)
     // from its lead and trail surrogates.
     // Based on U16_GET_SUPPLEMENTARY in utf16.h from ICU
-    inline uint32_t u16_get_supplementary(uint32_t lead, uint32_t trail) noexcept {
+    constexpr uint32_t u16_get_supplementary(uint32_t lead, uint32_t trail) noexcept {
         constexpr uint32_t u16_surrogate_offset = (0xd800 << 10UL) + 0xdc00 - 0x10000;
         return (lead << 10UL) + trail - u16_surrogate_offset;
     }
@@ -187,7 +187,7 @@ namespace detail {
 
 // Modified version of the U16_NEXT_OR_FFFD macro in utf16.h from ICU
 
-inline bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) noexcept {
+constexpr bool url_utf::read_code_point(const char16_t*& first, const char16_t* last, uint32_t& c) noexcept {
     c = *first++;
     if (detail::u16_is_surrogate(c)) {
         if (detail::u16_is_surrogate_lead(c) && first != last && detail::u16_is_trail(*first)) {
@@ -201,7 +201,7 @@ inline bool url_utf::read_code_point(const char16_t*& first, const char16_t* las
     return true;
 }
 
-inline bool url_utf::read_code_point(const char32_t*& first, const char32_t*, uint32_t& c) noexcept {
+constexpr bool url_utf::read_code_point(const char32_t*& first, const char32_t*, uint32_t& c) noexcept {
     // no conversion
     c = *first++;
     // don't allow surogates (U+D800..U+DFFF) and too high values

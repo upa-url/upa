@@ -123,11 +123,11 @@ struct result_value {
     T value{};
     R result{};
 
-    result_value(R res) noexcept
+    constexpr result_value(R res) noexcept
         : result(res) {}
-    result_value(R res, T val) noexcept
+    constexpr result_value(R res, T val) noexcept
         : value(val), result(res) {}
-    [[nodiscard]] operator R() const noexcept {
+    [[nodiscard]] constexpr operator R() const noexcept {
         return result;
     }
 };

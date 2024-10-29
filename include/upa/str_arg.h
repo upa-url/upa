@@ -18,6 +18,7 @@ inline void procfn(StrT&& str) {
 #ifndef UPA_STR_ARG_H
 #define UPA_STR_ARG_H
 
+#include "config.h"
 #include "url_utf.h"
 #include <cassert>
 #include <cstddef>
@@ -76,26 +77,26 @@ public:
         >;
 
     // constructors
-    str_arg(const str_arg&) noexcept = default;
+    constexpr str_arg(const str_arg&) noexcept = default;
 
-    str_arg(const CharT* s)
+    constexpr str_arg(const CharT* s)
         : first_(s)
         , last_(s + traits_type::length(s))
     {}
 
     template <typename SizeT, std::enable_if_t<is_size_type_v<SizeT>, int> = 0>
-    str_arg(const CharT* s, SizeT length)
+    constexpr str_arg(const CharT* s, SizeT length)
         : first_(s)
         , last_(s + length)
     { assert(length >= 0); }
 
-    str_arg(const CharT* first, const CharT* last)
+    constexpr str_arg(const CharT* first, const CharT* last)
         : first_(first)
         , last_(last)
     { assert(first <= last); }
 
     // destructor
-    ~str_arg() noexcept = default;
+    UPA_CONSTEXPR_20 ~str_arg() noexcept = default;
 
     // assignment is not used
     str_arg& operator=(const str_arg&) = delete;
@@ -176,7 +177,7 @@ constexpr bool convertible_to_string_view_v =
 template<typename CharT, class ArgT>
 struct str_arg_char_common {
     using type = CharT;
-    static str_arg<CharT> to_str_arg(ArgT str) {
+    static constexpr str_arg<CharT> to_str_arg(ArgT str) {
         return { str.data(), str.size() };
     }
 };
@@ -234,7 +235,7 @@ struct str_arg_char : detail::str_arg_char_default<StrT> {};
 template<class CharT>
 struct str_arg_char<CharT*, std::enable_if_t<is_char_type_v<remove_cvref_t<CharT>>>> {
     using type = remove_cvref_t<CharT>;
-    static str_arg<type> to_str_arg(const type* s) {
+    static constexpr str_arg<type> to_str_arg(const type* s) {
         return s;
     }
 };
@@ -243,7 +244,7 @@ struct str_arg_char<CharT*, std::enable_if_t<is_char_type_v<remove_cvref_t<CharT
 template<class CharT>
 struct str_arg_char<str_arg<CharT>> {
     using type = CharT;
-    static str_arg<type> to_str_arg(str_arg<type> s) {
+    static constexpr str_arg<type> to_str_arg(str_arg<type> s) {
         return s;
     }
 };
@@ -267,7 +268,7 @@ using enable_if_str_arg_t = std::enable_if_t<
 // String arguments helper function
 
 template <class StrT>
-inline auto make_str_arg(StrT&& str) -> str_arg<str_arg_char_t<StrT>> {
+constexpr auto make_str_arg(StrT&& str) -> str_arg<str_arg_char_t<StrT>> {
     return str_arg_char_s<StrT>::to_str_arg(std::forward<StrT>(str));
 }
 
@@ -304,7 +305,7 @@ inline std::string&& make_string(std::string&& str) {
 }
 
 template <class StrT, enable_if_str_arg_to_char8_t<StrT> = 0>
-inline string_view make_string(StrT&& str) {
+constexpr string_view make_string(StrT&& str) {
     const auto inp = make_str_arg(std::forward<StrT>(str));
     return { inp.data(), inp.length() };
 }
