@@ -2,6 +2,9 @@
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
+// This file contains portions of modified code from the ICU project.
+// Copyright (c) 2016-2023 Unicode, Inc.
+//
 
 #ifndef UPA_URL_UTF_H
 #define UPA_URL_UTF_H
@@ -17,7 +20,7 @@ namespace upa {
 class url_utf {
 public:
     template <typename CharT>
-    static detail::result_value<uint32_t> read_utf_char(const CharT*& first, const CharT* last) noexcept;
+    static constexpr detail::result_value<uint32_t> read_utf_char(const CharT*& first, const CharT* last) noexcept;
 
     template <typename CharT>
     static void read_char_append_utf8(const CharT*& it, const CharT* last, std::string& output);
@@ -41,15 +44,30 @@ public:
     static int compare_by_code_units(const char* first1, const char* last1, const char* first2, const char* last2) noexcept;
 protected:
     // low level
-    static bool read_code_point(const char*& first, const char* last, uint32_t& code_point) noexcept;
+    static constexpr bool read_code_point(const char*& first, const char* last, uint32_t& code_point) noexcept;
     static constexpr bool read_code_point(const char16_t*& first, const char16_t* last, uint32_t& code_point) noexcept;
     static constexpr bool read_code_point(const char32_t*& first, const char32_t* last, uint32_t& code_point) noexcept;
 private:
     // Replacement character (U+FFFD)
     static inline constexpr std::string_view kReplacementCharUtf8{ "\xEF\xBF\xBD" };
 
-    const static uint8_t k_U8_LEAD3_T1_BITS[16];
-    const static uint8_t k_U8_LEAD4_T1_BITS[16];
+    // Following two arrays have values from corresponding macros in ICU 74.1 library's
+    // include\unicode\utf8.h file.
+
+    // Internal bit vector for 3-byte UTF-8 validity check, for use in U8_IS_VALID_LEAD3_AND_T1.
+    // Each bit indicates whether one lead byte + first trail byte pair starts a valid sequence.
+    // Lead byte E0..EF bits 3..0 are used as byte index,
+    // first trail byte bits 7..5 are used as bit index into that byte.
+    static inline constexpr uint8_t k_U8_LEAD3_T1_BITS[16] = {
+        0x20, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x10, 0x30, 0x30
+    };
+    // Internal bit vector for 4-byte UTF-8 validity check, for use in U8_IS_VALID_LEAD4_AND_T1.
+    // Each bit indicates whether one lead byte + first trail byte pair starts a valid sequence.
+    // First trail byte bits 7..4 are used as byte index,
+    // lead byte F0..F4 bits 2..0 are used as bit index into that byte.
+    static inline constexpr uint8_t k_U8_LEAD4_T1_BITS[16] = {
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E, 0x0F, 0x0F, 0x0F, 0x00, 0x00, 0x00, 0x00
+    };
 };
 
 
@@ -72,9 +90,9 @@ private:
 // and advances `first` to point to the next character.
 
 template <typename CharT>
-inline detail::result_value<uint32_t> url_utf::read_utf_char(const CharT*& first, const CharT* last) noexcept {
+constexpr detail::result_value<uint32_t> url_utf::read_utf_char(const CharT*& first, const CharT* last) noexcept {
     // read_code_point always initializes code_point
-    uint32_t code_point; // NOLINT(cppcoreguidelines-init-variables)
+    uint32_t code_point{};
     if (read_code_point(first, last, code_point))
         return { true, code_point };
     return { false, 0xFFFD }; // REPLACEMENT CHARACTER
@@ -113,7 +131,7 @@ inline void url_utf::read_char_append_utf8(const char*& it, const char* last, st
 
 // Modified version of the U8_INTERNAL_NEXT_OR_SUB macro in utf8.h from ICU
 
-inline bool url_utf::read_code_point(const char*& first, const char* last, uint32_t& c) noexcept {
+constexpr bool url_utf::read_code_point(const char*& first, const char* last, uint32_t& c) noexcept {
     c = static_cast<uint8_t>(*first++);
     if (c & 0x80) {
         uint8_t tmp = 0;

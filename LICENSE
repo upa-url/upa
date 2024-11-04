@@ -58,8 +58,8 @@ portions of modified code from the Chromium project licensed as follows:
 
 -------------------------------------------------------------------------------
 
-Files config.h, url_utf.cpp, url_utf.h contains portions of modified code from
-the ICU project licensed as follows:
+Files config.h, url_utf.h contains portions of modified code from the ICU
+project licensed as follows:
 
 UNICODE LICENSE V3
 
