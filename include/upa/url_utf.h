@@ -9,6 +9,7 @@
 #include "url_result.h"
 #include <cstdint> // uint8_t, uint32_t
 #include <string>
+#include <string_view>
 
 
 namespace upa {
@@ -44,7 +45,9 @@ protected:
     static constexpr bool read_code_point(const char16_t*& first, const char16_t* last, uint32_t& code_point) noexcept;
     static constexpr bool read_code_point(const char32_t*& first, const char32_t* last, uint32_t& code_point) noexcept;
 private:
-    const static char kReplacementCharUtf8[];
+    // Replacement character (U+FFFD)
+    static inline constexpr std::string_view kReplacementCharUtf8{ "\xEF\xBF\xBD" };
+
     const static uint8_t k_U8_LEAD3_T1_BITS[16];
     const static uint8_t k_U8_LEAD4_T1_BITS[16];
 };
@@ -95,7 +98,7 @@ inline void url_utf::read_char_append_utf8(const char*& it, const char* last, st
     if (read_code_point(it, last, code_point))
         output.append(start, it);
     else
-        output.append(static_cast<const char*>(kReplacementCharUtf8));
+        output.append(kReplacementCharUtf8);
 }
 
 // ------------------------------------------------------------------------
