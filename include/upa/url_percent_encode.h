@@ -13,7 +13,7 @@
 #include "str_arg.h"
 #include "url_utf.h"
 #include "util.h"
-#include <cstddef>
+#include <array>
 #include <cstdint> // uint8_t
 #include <initializer_list>
 #include <string>
@@ -44,8 +44,7 @@ public:
     /// @brief copy code points from @a other set
     /// @param[in] other code point set to copy from
     constexpr void copy(const code_point_set& other) {
-        for (std::size_t i = 0; i < arr_size_; ++i)
-            arr_[i] = other.arr_[i];
+        arr_ = other.arr_;
     }
 
     /// @brief exclude @a c code point from set
@@ -101,8 +100,7 @@ private:
     }
 
     // Data
-    static const std::size_t arr_size_ = 32;
-    uint8_t arr_[arr_size_] = {};
+    std::array<uint8_t, 32> arr_{};
 };
 
 
@@ -287,8 +285,7 @@ private:
     }
 
     // Data
-    static const std::size_t arr_size_ = 256;
-    uint8_t arr_[arr_size_] = {};
+    std::array<uint8_t, 256> arr_{};
 };
 
 inline constexpr code_points_multiset code_points;
