@@ -51,7 +51,7 @@ template <typename Out, typename T,
 #if defined(__clang__)
 __attribute__((no_sanitize("unsigned-integer-overflow")))
 #endif
-inline Out checked_diff(T a, T b) {
+constexpr Out checked_diff(T a, T b) {
     if (a >= b) {
         const UT diff = static_cast<UT>(static_cast<UT>(a) - static_cast<UT>(b));
         if (diff <= unsigned_limit<Out>::max())
@@ -95,7 +95,7 @@ inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
 
 // Append data to string
 
-inline std::size_t add_sizes(std::size_t size1, std::size_t size2, std::size_t max_size) {
+constexpr std::size_t add_sizes(std::size_t size1, std::size_t size2, std::size_t max_size) {
     if (max_size - size1 < size2)
         throw std::length_error("too big size");
     // now it is safe to add sizes
