@@ -1,5 +1,7 @@
 branches:
-  only: [ main ]
+  only:
+    - main
+    - /v\d+\.x/
 
 skip_commits:
   files:
