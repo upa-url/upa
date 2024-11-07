@@ -132,56 +132,83 @@ private:
 template<class T>
 using remove_cvptr_t = typename std::remove_cv<typename std::remove_pointer<T>::type>::type;
 
+template<class T>
+using remove_cvref_t = typename std::remove_cv<typename std::remove_reference<T>::type>::type;
+
 namespace detail {
-    // See: https://stackoverflow.com/a/9154394
 
-    // test class T has data() member
-    template<class T>
-    auto test_data(int) -> decltype(std::declval<T>().data());
-    template<class>
-    auto test_data(long) -> void;
+// See: https://stackoverflow.com/a/9154394
 
-    // test class T has size() member
-    template<class T>
-    auto test_size(int) -> decltype(std::declval<T>().size());
-    template<class>
-    auto test_size(long) -> void;
+// test class T has data() member
+template<class T>
+auto test_data(int) -> decltype(std::declval<T>().data());
+template<class>
+auto test_data(long) -> void;
 
-    // T::data() return type (void - if no such member)
-    template<class T>
-    using data_member_t = decltype(detail::test_data<T>(0));
+// test class T has size() member
+template<class T>
+auto test_size(int) -> decltype(std::declval<T>().size());
+template<class>
+auto test_size(long) -> void;
 
-    // T::size() return type (void - if no such member)
-    template<class T>
-    using size_member_t = decltype(detail::test_size<T>(0));
+// T::data() return type (void - if no such member)
+template<class T>
+using data_member_t = decltype(detail::test_data<T>(0));
+
+// T::size() return type (void - if no such member)
+template<class T>
+using size_member_t = decltype(detail::test_size<T>(0));
+
+// Check that StrT has data() and size() members of supported types
+
+template<class StrT>
+struct has_data_and_size : std::integral_constant<bool,
+    std::is_pointer<data_member_t<StrT>>::value &&
+    is_char_type<remove_cvptr_t<data_member_t<StrT>>>::value &&
+    is_size_type<size_member_t<StrT>>::value> {};
+
+// Default str_arg_char implementation
+
+template<class StrT, typename = void>
+struct str_arg_char_default {};
+
+// StrT has data() and size() members
+template<class StrT>
+struct str_arg_char_default<StrT, typename std::enable_if<
+    has_data_and_size<StrT>::value>::type> {
+    using type = remove_cvptr_t<data_member_t<StrT>>;
+
+    template <class STR>
+    static str_arg<type> to_str_arg(const STR& str) {
+        return { str.data(), str.size() };
+    }
+};
+
 } // namespace detail
 
 
 // Requirements for string arguments
 
 template<class StrT, typename = void>
-struct str_arg_char {};
+struct str_arg_char : detail::str_arg_char_default<StrT> {};
 
 // Null terminated string
 template<class CharT>
-struct str_arg_char<CharT*> : std::remove_cv<CharT> {
+struct str_arg_char<CharT*, typename std::enable_if<
+    is_char_type<remove_cvref_t<CharT>>::value>::type> {
+    using type = remove_cvref_t<CharT>;
 
-    template <typename T>
-    static str_arg<T> to_str_arg(const T* s) {
+    static str_arg<type> to_str_arg(const type* s) {
         return s;
     }
 };
 
-// String that has data() and size() members
-template<class StrT>
-struct str_arg_char<StrT> : std::enable_if<
-    std::is_pointer<detail::data_member_t<StrT>>::value &&
-    is_size_type<detail::size_member_t<StrT>>::value,
-    remove_cvptr_t<detail::data_member_t<StrT>>> {
-
-    template <class STR, typename T = typename STR::value_type>
-    static str_arg<T> to_str_arg(const STR& str) {
-        return { str.data(), str.size() };
+// str_arg input
+template<class CharT>
+struct str_arg_char<str_arg<CharT>> {
+    using type = CharT;
+    static str_arg<type> to_str_arg(str_arg<type> s) {
+        return s;
     }
 };
 
