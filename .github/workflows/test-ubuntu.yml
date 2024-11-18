@@ -99,7 +99,7 @@ jobs:
     - name: after test
       if: ${{ matrix.after_test }}
       run: ${{ matrix.after_test }}
-    - uses: codecov/codecov-action@v4
+    - uses: codecov/codecov-action@v5
       if: ${{ matrix.codecov }}
       with:
         files: ./coverage.info
