@@ -2,7 +2,9 @@
 
 For string input, the library supports UTF-8, UTF-16, UTF-32 encodings and several string types, including `std::basic_string`, `std::basic_string_view`, null-terminated strings of any char type: `char`, `char8_t`, `char16_t`, `char32_t`, or `wchar_t`.
 
-The ATL/MFC and Qt library string types are also supported. To use them you need to include the header files listed in the table below instead of `url.h`:
+Other classes that have a `data()` function that returns a pointer to one of the char types listed above and a `size()` function that has an integer return type are also supported (e.g. `std::vector<char>`).
+
+The ATL/MFC and Qt library string types are supported. To use them you need to include the header files listed in the table below instead of `url.h`:
 
 | Library | Supported string types | Include instead of `url.h` |
 |-|-|-|
