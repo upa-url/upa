@@ -24,11 +24,12 @@ void ipv4_serialize(uint32_t ipv4, std::string& output) {
 
 namespace {
 
-std::size_t longest_zero_sequence(
+inline std::size_t longest_zero_sequence(
     const uint16_t* first, const uint16_t* last,
     const uint16_t*& compress)
 {
-    std::size_t last_count = 0;
+    // The sequence to compress should be longer than 1 zero
+    std::size_t last_count = 1;
     for (auto it = first; it != last; ++it) {
         if (*it == 0) {
             auto ite = it + 1;
@@ -53,8 +54,6 @@ void ipv6_serialize(const uint16_t(&address)[8], std::string& output) {
 
     const uint16_t *compress = nullptr;
     const auto compress_length = longest_zero_sequence(first, last, compress);
-    if (compress_length == 1)
-        compress = nullptr;
 
     // "it" pointer corresponds to pieceIndex in the URL standard
     for (auto it = first; true;) {
