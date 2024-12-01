@@ -9,4 +9,4 @@ git submodule update --init --recursive
 deps/download-deps.sh
 
 # Download web-platform-tests
-test/download-wpt.sh
+test/download-tests.sh

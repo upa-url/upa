@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 #
-# Updates download-wpt.* script files with latest commit
+# Update download-tests.* script files with latest commit
 # hash from WPT
 #
-# Copyright 2023 Rimas Misevičius
+# Copyright 2023-2024 Rimas Misevičius
 # Distributed under the BSD-style license that can be
 # found in the LICENSE file.
 import json
@@ -27,5 +27,5 @@ new_hash = json_val[0]["sha"]
 print("Latest commit hash: " + new_hash)
 
 # Update script files with new HASH value
-update_hash_in_file("test/download-wpt.bat", "\r\n", new_hash)
-update_hash_in_file("test/download-wpt.sh", "\n", new_hash)
+update_hash_in_file("test/download-tests.bat", "\r\n", new_hash)
+update_hash_in_file("test/download-tests.sh", "\n", new_hash)
