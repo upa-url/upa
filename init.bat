@@ -9,4 +9,4 @@ REM Download dependencies
 call deps/download-deps.bat
 
 REM Download web-platform-tests
-call test/download-wpt.bat
+call test/download-tests.bat
