@@ -13,6 +13,7 @@
 /examples/extracted-cpp/*.cpp
 
 # downloadable tests directory
+/test/psl/
 /test/wpt/
 
 # Visual Studio

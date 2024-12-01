@@ -127,6 +127,7 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
   else()
     add_library(${upa_lib_target} STATIC
       src/idna.cpp
+      src/public_suffix_list.cpp
       src/url.cpp
       src/url_ip.cpp
       src/url_percent_encode.cpp
@@ -155,6 +156,7 @@ if (UPA_BUILD_TESTS)
       test/test-buffer.cpp
       test/test-ipv4.cpp
       test/test-ipv6.cpp
+      test/test-public_suffix_list.cpp
       test/test-str_arg.cpp
       test/test-utf.cpp
       test/test-util.cpp
