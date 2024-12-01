@@ -14,3 +14,10 @@ for f in setters_tests.json toascii.json urltestdata.json urltestdata-javascript
 do
   curl -fsS -o $p/wpt/$f https://raw.githubusercontent.com/web-platform-tests/wpt/${HASH}/url/resources/$f
 done
+
+# Commit hash of the Public Suffix List (PSL)
+# https://github.com/publicsuffix/list
+PSL_HASH=f34b2f1a960238cf765d2e70ca8459ea2de51ec7
+
+curl -fsS -o $p/psl/public_suffix_list.dat https://raw.githubusercontent.com/publicsuffix/list/${PSL_HASH}/public_suffix_list.dat
+curl -fsS -o $p/psl/tests.txt https://raw.githubusercontent.com/publicsuffix/list/${PSL_HASH}/tests/tests.txt
