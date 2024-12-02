@@ -18,7 +18,7 @@ function getUrl() {
     ? new Module.URL(elemUrl.value, elemBase.value)
     : new Module.URL(elemUrl.value);
   // apply setter
-  if (elemSetter.value.length !== 0)
+  if (elemUseSetter.checked)
     url[elemSetter.value] = elemSetterInp.value;
   return url;
 }
@@ -48,19 +48,22 @@ function onInpChange() {
 }
 
 function onSetterChange() {
-  elemSetterInp.disabled = elemSetter.value.length === 0;
+  elemSetter.disabled = !elemUseSetter.checked;
+  elemSetterInp.disabled = !elemUseSetter.checked;
   onInpChange();
 }
 
 // Input elements
 const elemUrl = document.getElementById("url");
 const elemBase = document.getElementById("base");
+const elemUseSetter = document.getElementById("use-setter");
 const elemSetter = document.getElementById("setter");
 const elemSetterInp = document.getElementById("setter-inp");
 
 // After text change
 elemUrl.addEventListener("input", onInpChange);
 elemBase.addEventListener("input", onInpChange);
+elemUseSetter.addEventListener("change", onSetterChange);
 elemSetter.addEventListener("change", onSetterChange);
 elemSetterInp.addEventListener("input", onInpChange);
 
