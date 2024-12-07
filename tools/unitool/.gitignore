@@ -1,0 +1,6 @@
+# CMake build directory
+/build/
+/out/
+
+# Unicode data
+/data/
