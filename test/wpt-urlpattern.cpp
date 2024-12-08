@@ -9,7 +9,7 @@ template <class K, class V>
 inline std::string vout(const std::unordered_map<K, V>& m);
 
 #include "ddt/DataDrivenTest.hpp"
-#include "picojson/picojson.h"
+#include "picojson_util.h"
 
 #include <filesystem>
 #include <fstream>
@@ -22,58 +22,6 @@ using namespace std::string_view_literals;
 
 // -----------------------------------------------------------------------------
 // parses urltestdata.json
-
-template <class OnArrayItem>
-class root_array_context : public picojson::deny_parse_context {
-    OnArrayItem on_array_item_;
-public:
-    root_array_context(OnArrayItem on_array_item)
-        : on_array_item_(on_array_item)
-    {}
-
-    // array as root
-    bool parse_array_start() { return true; }
-    bool parse_array_stop(std::size_t) { return true; }
-
-    template <typename Iter>
-    bool parse_array_item(picojson::input<Iter>& in, std::size_t) {
-        picojson::value item;
-
-        // parse the array item
-        picojson::default_parse_context ctx(&item);
-        if (!picojson::_parse(ctx, in))
-            return false;
-
-        // callback with array item
-        return on_array_item_(item);
-    }
-
-    // deny object as root
-    bool parse_object_start() { return false; }
-    bool parse_object_stop() { return false; }
-};
-
-template <typename Context>
-bool load_tests(Context& ctx, const std::filesystem::path& file_name) {
-    std::cout << "========== " << file_name << " ==========\n";
-    std::ifstream file(file_name, std::ios_base::in | std::ios_base::binary);
-    if (!file.is_open()) {
-        std::cerr << "Can't open file: " << file_name << std::endl;
-        return false;
-    }
-
-    std::string err;
-
-    // for unformatted reading use std::istreambuf_iterator
-    // http://stackoverflow.com/a/17776228/3908097
-    picojson::_parse(ctx, std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), &err);
-
-    if (!err.empty()) {
-        std::cerr << err << std::endl;
-        return false;
-    }
-    return true;
-}
 
 picojson::value json_parse(const char* str) {
     picojson::value v;
@@ -198,7 +146,7 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
     };
 
     // Load & run tests
-    root_array_context context{ [&](const picojson::value& item) {
+    json_util::root_array_context context{ [&](const picojson::value& item) {
         static const picojson::value empty_object_value{ picojson::object_type, false };
 
         if (item.is<picojson::object>()) {
@@ -416,9 +364,8 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
         return true;
     } };
 
-    if (!load_tests(context, file_name))
-        return 1;
-    return ddt.result();
+    const int res = json_util::load_file(context, file_name);
+    return res | ddt.result();
 }
 
 // create urlpattern
