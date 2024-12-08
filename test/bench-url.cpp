@@ -19,7 +19,7 @@
 // -----------------------------------------------------------------------------
 // Read samples from text file (URL in each line) and benchmark
 
-int benchmark_txt(const char* file_name, uint64_t min_iters) {
+int benchmark_txt(const std::filesystem::path& file_name, uint64_t min_iters) {
     std::vector<std::string> url_strings;
 
     // Load URL samples
@@ -60,7 +60,7 @@ int benchmark_txt(const char* file_name, uint64_t min_iters) {
 // -----------------------------------------------------------------------------
 // Read samples from urltestdata.json and benchmark
 
-int benchmark_wpt(const char* file_name, uint64_t min_iters) {
+int benchmark_wpt(const std::filesystem::path& file_name, uint64_t min_iters) {
     std::vector<std::pair<std::string, std::string>> url_samples;
 
     // Load URL samples
@@ -144,9 +144,9 @@ int main(int argc, const char* argv[])
         : min_iters_def;
 
     if (file_name.extension() == ".json") {
-        return benchmark_wpt(file_name.string().c_str(), min_iters);
+        return benchmark_wpt(file_name, min_iters);
     } else if (file_name.extension() == ".txt") {
-        return benchmark_txt(file_name.string().c_str(), min_iters);
+        return benchmark_txt(file_name, min_iters);
     }
 
     std::cerr << "File containing URLs should have .json or .txt extension.\n";

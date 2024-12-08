@@ -8,6 +8,7 @@
 // https://github.com/kazuho/picojson
 #include "picojson_util.h"
 
+#include <filesystem>
 #include <iostream>
 #include <string>
 
@@ -24,7 +25,7 @@ std::basic_ostream<CharT, Traits>& operator<<(
 // https://github.com/web-platform-tests/wpt/blob/master/url/urlsearchparams-sort.any.js
 //
 
-int test_from_file(const char* file_name, bool sort = false);
+int test_from_file(const std::filesystem::path& file_name, bool sort = false);
 
 int main(int argc, char** argv)
 {
@@ -108,7 +109,7 @@ void test_urlsearchparams_sort(DataDrivenTest& ddt, const TestObj& obj) {
 
 // Read data file and run tests from it
 
-int test_from_file(const char* file_name, bool sort)
+int test_from_file(const std::filesystem::path& file_name, bool sort)
 {
     DataDrivenTest ddt;
     ddt.config_show_passed(false);

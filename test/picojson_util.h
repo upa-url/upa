@@ -6,6 +6,7 @@
 // https://github.com/kazuho/picojson
 #include "picojson/picojson.h"
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <iterator>
@@ -134,7 +135,7 @@ enum {
 // Parses a JSON file using the specified PicoJSON parsing context
 
 template <typename Context>
-inline int load_file(Context& ctx, const char* file_name, const char* title = nullptr) {
+inline int load_file(Context& ctx, const std::filesystem::path& file_name, const char* title = nullptr) {
     try {
         if (title)
             std::cout << title << ": " << file_name << '\n';

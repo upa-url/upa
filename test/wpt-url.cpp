@@ -13,6 +13,7 @@
 
 #include "picojson_util.h"
 
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <string>
@@ -22,11 +23,11 @@
 
 // Test runner
 
-int run_parser_tests(DataDrivenTest& ddt, const char* file_name);
-int run_host_parser_tests(DataDrivenTest& ddt, const char* file_name);
-int run_idna_v2_tests(DataDrivenTest& ddt, const char* file_name, const char* fixes_file_name);
-int run_setter_tests(DataDrivenTest& ddt, const char* file_name);
-int run_percent_encoding_tests(DataDrivenTest& ddt, const char* file_name);
+int run_parser_tests(DataDrivenTest& ddt, const std::filesystem::path& file_name);
+int run_host_parser_tests(DataDrivenTest& ddt, const std::filesystem::path& file_name);
+int run_idna_v2_tests(DataDrivenTest& ddt, const std::filesystem::path& file_name, const char* fixes_file_name);
+int run_setter_tests(DataDrivenTest& ddt, const std::filesystem::path& file_name);
+int run_percent_encoding_tests(DataDrivenTest& ddt, const std::filesystem::path& file_name);
 
 template <typename RunTests, typename ...Args>
 int test_from_file(RunTests run_tests, Args&&... args);
@@ -436,7 +437,7 @@ void test_percent_encoding(DataDrivenTest& ddt, const EncodingObj& obj)
 
 // Read samples from JSON files and run tests
 
-int run_parser_tests(DataDrivenTest& ddt, const char* file_name) {
+int run_parser_tests(DataDrivenTest& ddt, const std::filesystem::path& file_name) {
     const auto test_item = [&](const picojson::value& item) {
         // analyze array item
         if (item.is<picojson::object>()) {
@@ -455,7 +456,7 @@ int run_parser_tests(DataDrivenTest& ddt, const char* file_name) {
     return json_util::load_file(context, file_name);
 }
 
-int run_host_parser_tests(DataDrivenTest& ddt, const char* file_name) {
+int run_host_parser_tests(DataDrivenTest& ddt, const std::filesystem::path& file_name) {
     const auto test_item = [&](const picojson::value& item) {
         // analyze array item
         if (item.is<picojson::object>()) {
@@ -474,7 +475,7 @@ int run_host_parser_tests(DataDrivenTest& ddt, const char* file_name) {
     return json_util::load_file(context, file_name);
 }
 
-int run_idna_v2_tests(DataDrivenTest& ddt, const char* file_name, const char* fixes_file_name) {
+int run_idna_v2_tests(DataDrivenTest& ddt, const std::filesystem::path& file_name, const char* fixes_file_name) {
     std::unordered_map<std::string, parsed_obj> fixes;
 
     if (fixes_file_name) {
@@ -520,7 +521,7 @@ int run_idna_v2_tests(DataDrivenTest& ddt, const char* file_name, const char* fi
 }
 
 // parses setters_tests.json
-int run_setter_tests(DataDrivenTest& ddt, const char* file_name) {
+int run_setter_tests(DataDrivenTest& ddt, const std::filesystem::path& file_name) {
     const auto test_item = [&](const std::string& setter_name, const picojson::value& item) {
         // analyze array item
         if (item.is<picojson::object>()) {
@@ -556,7 +557,7 @@ int run_setter_tests(DataDrivenTest& ddt, const char* file_name) {
 }
 
 // parses percent-encoding.json
-int run_percent_encoding_tests(DataDrivenTest& ddt, const char* file_name) {
+int run_percent_encoding_tests(DataDrivenTest& ddt, const std::filesystem::path& file_name) {
     const auto test_item = [&](const picojson::value& item) {
         // analyze array item
         if (item.is<picojson::object>()) {
