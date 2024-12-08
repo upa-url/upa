@@ -131,6 +131,7 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
     add_library(${upa_lib_target}
       src/idna.cpp
       src/public_suffix_list.cpp
+      src/unicode_id.cpp
       src/url.cpp
       src/url_ip.cpp
       src/url_search_params.cpp
@@ -186,6 +187,7 @@ if (UPA_BUILD_TESTS)
       test/wpt-url-setters-stripping.cpp
       test/wpt-url_search_params.cpp
       test/wpt-urlencoded-parser.cpp
+      test/wpt-urlpattern.cpp
     )
   endif()
   foreach(file ${test_files})
