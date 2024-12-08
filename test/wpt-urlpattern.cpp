@@ -1,0 +1,593 @@
+// Copyright 2023-2024 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+#include "upa/url.h"
+#include "upa/urlpattern.h"
+
+template <class K, class V>
+inline std::string vout(const std::unordered_map<K, V>& m);
+
+#include "ddt/DataDrivenTest.hpp"
+#include "picojson/picojson.h"
+
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <string>
+
+#define TEST_DEBUG 0
+
+using namespace std::string_view_literals;
+
+// -----------------------------------------------------------------------------
+// parses urltestdata.json
+
+template <class OnArrayItem>
+class root_array_context : public picojson::deny_parse_context {
+    OnArrayItem on_array_item_;
+public:
+    root_array_context(OnArrayItem on_array_item)
+        : on_array_item_(on_array_item)
+    {}
+
+    // array as root
+    bool parse_array_start() { return true; }
+    bool parse_array_stop(std::size_t) { return true; }
+
+    template <typename Iter>
+    bool parse_array_item(picojson::input<Iter>& in, std::size_t) {
+        picojson::value item;
+
+        // parse the array item
+        picojson::default_parse_context ctx(&item);
+        if (!picojson::_parse(ctx, in))
+            return false;
+
+        // callback with array item
+        return on_array_item_(item);
+    }
+
+    // deny object as root
+    bool parse_object_start() { return false; }
+    bool parse_object_stop() { return false; }
+};
+
+template <typename Context>
+bool load_tests(Context& ctx, const std::filesystem::path& file_name) {
+    std::cout << "========== " << file_name << " ==========\n";
+    std::ifstream file(file_name, std::ios_base::in | std::ios_base::binary);
+    if (!file.is_open()) {
+        std::cerr << "Can't open file: " << file_name << std::endl;
+        return false;
+    }
+
+    std::string err;
+
+    // for unformatted reading use std::istreambuf_iterator
+    // http://stackoverflow.com/a/17776228/3908097
+    picojson::_parse(ctx, std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>(), &err);
+
+    if (!err.empty()) {
+        std::cerr << err << std::endl;
+        return false;
+    }
+    return true;
+}
+
+picojson::value json_parse(const char* str) {
+    picojson::value v;
+    picojson::parse(v, str);
+    return v;
+}
+
+// https://github.com/web-platform-tests/wpt/blob/master/urlpattern/resources/urlpatterntests.js
+
+upa::pattern::urlpattern create_urlpattern(const picojson::array& pattern_arr);
+bool urlpattern_test(const upa::pattern::urlpattern& self, const picojson::array& input_arr);
+std::optional<upa::pattern::urlpattern_result> urlpattern_exec(const upa::pattern::urlpattern& self, const picojson::array& input_arr);
+
+
+auto get_component(const upa::url& url, std::string_view name) -> std::string_view {
+    if (name == "protocol"sv) return url.protocol();
+    if (name == "username"sv) return url.username();
+    if (name == "password"sv) return url.password();
+    if (name == "host"sv) return url.host();
+    if (name == "hostname"sv) return url.hostname();
+    if (name == "port"sv) return url.port();
+    if (name == "pathname"sv) return url.pathname();
+    if (name == "search"sv) return url.search();
+    if (name == "hash"sv) return url.hash();
+    throw std::out_of_range("not url componnent"); // TODO: message
+};
+
+auto get_component(const upa::pattern::urlpattern& urlpt, std::string_view name) -> std::string_view {
+    if (name == "protocol"sv) return urlpt.get_protocol();
+    if (name == "username"sv) return urlpt.get_username();
+    if (name == "password"sv) return urlpt.get_password();
+    if (name == "hostname"sv) return urlpt.get_hostname();
+    if (name == "port"sv) return urlpt.get_port();
+    if (name == "pathname"sv) return urlpt.get_pathname();
+    if (name == "search"sv) return urlpt.get_search();
+    if (name == "hash"sv) return urlpt.get_hash();
+    throw std::out_of_range("not urlpattern componnent"); // TODO: message
+};
+
+const upa::pattern::urlpattern_component_result& get_component_result(const upa::pattern::urlpattern_result& result, std::string_view name) {
+    if (name == "protocol"sv) return result.protocol;
+    if (name == "username"sv) return result.username;
+    if (name == "password"sv) return result.password;
+    if (name == "hostname"sv) return result.hostname;
+    if (name == "port"sv) return result.port;
+    if (name == "pathname"sv) return result.pathname;
+    if (name == "search"sv) return result.search;
+    if (name == "hash"sv) return result.hash;
+    throw std::out_of_range("not urlpattern_result componnent"); // TODO: message
+}
+
+template <class K, class V>
+inline std::string vout(const std::unordered_map<K, V>& m) {
+    bool first = true;
+    std::string out("{");
+    for (const auto& [key, val] : m) {
+        if (first) first = false; else out += ", ";
+        out += '\"';
+        out += key;
+        out += "\": ";
+        if (val) {
+            out += '\"';
+            out += *val;
+            out += '\"';
+        } else {
+            out += "null";
+        }
+    }
+    out += '}';
+    return out;
+}
+
+template<class StrT>
+void assert_object_equals(DataDrivenTest::TestCase& tc, const picojson::value& expected_obj,
+    const upa::pattern::urlpattern_component_result& res, const StrT& name)
+{
+    upa::pattern::urlpattern_component_result expected;
+
+    expected.input = expected_obj.get<picojson::object>().at("input").get<std::string>();
+    for (const auto& [key, val] : expected_obj.get<picojson::object>().at("groups").get<picojson::object>()) {
+        std::optional<std::string> value;
+        if (val.is<picojson::null>())
+            value = std::nullopt;
+        else
+            value = val.get<std::string>();
+        expected.groups.emplace(key, value);
+    }
+    tc.assert_equal(expected.input, res.input, std::string{name} + " - input");
+    tc.assert_equal(expected.groups, res.groups, std::string{name} + " - groups");
+}
+
+
+int wpt_urlpatterntests(const std::filesystem::path& file_name) {
+    DataDrivenTest ddt;
+#if TEST_DEBUG
+    ddt.config_debug_break(true);
+#endif
+
+    static const char* kComponents[] = {
+        "protocol",
+        "username",
+        "password",
+        "hostname",
+        "port",
+        "password",
+        "pathname",
+        "search",
+        "hash"
+    };
+
+    static constexpr auto get_prop = [](const picojson::object& obj, const char* name) -> const picojson::value* {
+        const auto it = obj.find(name);
+        if (it != obj.end())
+            return &it->second;
+        return nullptr;
+    };
+
+    static constexpr auto includes = [](const picojson::array& arr, const char* name) -> bool {
+        return std::any_of(arr.begin(), arr.end(), [&name](const picojson::value& val) {
+            return val.get<std::string>() == name;
+        });
+    };
+
+    // Load & run tests
+    root_array_context context{ [&](const picojson::value& item) {
+        static const picojson::value empty_object_value{ picojson::object_type, false };
+
+        if (item.is<picojson::object>()) {
+            try {
+                const picojson::object& entry = item.get<picojson::object>();
+                const auto entry_pattern = entry.at("pattern");
+                const auto* entry_inputs = get_prop(entry, "inputs");
+                const auto* entry_exactly_empty_components = get_prop(entry, "exactly_empty_components");
+                const auto* entry_expected_obj = get_prop(entry, "expected_obj");
+                const auto* entry_expected_match = get_prop(entry, "expected_match");
+
+                std::string test_case_name{"Pattern: "};
+                test_case_name.append(entry_pattern.serialize());
+                if (entry_inputs) {
+                    test_case_name.append(" Inputs: ");
+                    test_case_name.append(entry_inputs->serialize());
+                }
+
+                ddt.test_case(test_case_name, [&](DataDrivenTest::TestCase& tc) {
+                    if (entry_expected_obj && entry_expected_obj->is<std::string>() && entry_expected_obj->get<std::string>() == "error") {
+                        tc.assert_throws<upa::pattern::urlpattern_error>([&]() {
+                            create_urlpattern(entry_pattern.get<picojson::array>());
+                        }, "URLPattern() constructor");
+                        return;
+                    }
+
+                    const auto pattern = create_urlpattern(entry_pattern.get<picojson::array>());
+
+                    // If the expected_obj property is not present we will automatically
+                    // fill it with the most likely expected values.
+                    if (!entry_expected_obj)
+                        entry_expected_obj = &empty_object_value;
+
+                    // The compiled URLPattern object should have a property for each
+                    // component exposing the compiled pattern string.
+                    for (const char* component : kComponents) {
+                        // If the test case explicitly provides an expected pattern string,
+                        // then use that.  This is necessary in cases where the original
+                        // construction pattern gets canonicalized, etc.
+                        const auto* expected = get_prop(entry_expected_obj->get<picojson::object>(), component);
+                        std::string expected_str;
+                        if (expected) expected_str = expected->get<std::string>();
+
+                        // If there is no explicit expected pattern string, then compute
+                        // the expected value based on the URLPattern constructor args.
+                        if (expected == nullptr) {
+                            // First determine if there is a baseURL present in the pattern
+                            // input.  A baseURL can be the source for many component patterns.
+                            std::optional<upa::url> baseURL{};
+                            if (entry_pattern.get<picojson::array>().size() > 0 &&
+                                entry_pattern.get<picojson::array>()[0].is<picojson::object>() &&
+                                get_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), "baseURL"))
+                                baseURL.emplace(get_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), "baseURL")->get<std::string>());
+                            else if (entry_pattern.get<picojson::array>().size() > 1 &&
+                                entry_pattern.get<picojson::array>()[1].is<std::string>())
+                                baseURL.emplace(entry_pattern.get<picojson::array>()[1].get<std::string>());
+
+                            // We automatically populate the expected pattern string using
+                            // the following options in priority order:
+                            //
+                            //  1. If the original input explicitly provided a pattern, then
+                            //     echo that back as the expected value.
+                            //  2. If the baseURL exists and provides a component value then
+                            //     use that for the expected pattern.
+                            //  3. Otherwise fall back on the default pattern of `*` for an
+                            //     empty component pattern.
+                            if (entry_exactly_empty_components &&
+                                includes(entry_exactly_empty_components->get<picojson::array>(), component)) {
+                                expected_str = "";
+                            } else if (entry_pattern.get<picojson::array>().size() > 0 &&
+                                entry_pattern.get<picojson::array>()[0].is<picojson::object>() &&
+                                get_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), component)) {
+                                expected_str = get_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), component)->get<std::string>();
+                            } else if (baseURL) {
+                                auto base_value = get_component(*baseURL, component);
+                                // Unfortunately some URL() getters include separator chars; e.g.
+                                // the trailing `:` for the protocol.  Strip those off if necessary.
+                                if (component == "protocol") {
+                                    if (base_value.length() > 0) // MANO
+                                        base_value.remove_suffix(1);
+                                } else if (component == "search" || component == "hash") {
+                                    if (base_value.length() > 0) // MANO
+                                        base_value.remove_prefix(1);
+                                }
+                                expected_str = base_value;
+                            } else {
+                                expected_str = "*";
+                            }
+                        }
+                        // Finally, assert that the compiled object property matches the
+                        // expected property.
+                        tc.assert_equal(expected_str, get_component(pattern, component),
+                            std::string{ "compiled pattern property " } + component);
+                    }
+
+                    // entry.inputs
+                    if (entry_expected_match && entry_expected_match->is<std::string>() && entry_expected_match->get<std::string>() == "error") {
+                        // pattern.test
+                        tc.assert_throws<upa::pattern::urlpattern_error>([&]() {
+                            urlpattern_test(pattern, entry_inputs->get<picojson::array>());
+                        }, "test() result");
+
+                        // pattern.exec
+                        tc.assert_throws<upa::pattern::urlpattern_error>([&]() {
+                            urlpattern_exec(pattern, entry_inputs->get<picojson::array>());
+                        }, "exec() result");
+
+                        return;
+                    }
+
+                    // First, validate the test() method by converting the expected result to
+                    // a truthy value.
+                    tc.assert_equal(
+                        entry_expected_match && !entry_expected_match->is<picojson::null>(),
+                        urlpattern_test(pattern, entry_inputs->get<picojson::array>()),
+                        "test() result");
+
+                    // Next, start validating the exec() method.
+                    const auto exec_result = urlpattern_exec(pattern, entry_inputs->get<picojson::array>());
+
+                    // On a failed match exec() returns null.
+                    if (!entry_expected_match || !entry_expected_match->is<picojson::object>()) {
+                        // MANO: nullptr, picojson::null, std::nullopt
+                        tc.assert_equal(
+                            entry_expected_match == nullptr || entry_expected_match->is<picojson::null>(),
+                            exec_result == std::nullopt,
+                            "exec() failed match result");
+                        return;
+                    }
+                    // MANO:
+                    if (!exec_result) {
+                        tc.assert_equal(
+                            entry_expected_match == nullptr || entry_expected_match->is<picojson::null>(),
+                            exec_result == std::nullopt,
+                            "exec() failed match result");
+                        return;
+                    }
+
+                    const auto* entry_expected_match_inputs = get_prop(entry_expected_match->get<picojson::object>(), "inputs");
+                    if (!entry_expected_match_inputs)
+                        entry_expected_match_inputs = entry_inputs;
+
+                    // Next verify the result.input is correct.  This may be a structured
+                    // URLPatternInit dictionary object or a URL string.
+                    tc.assert_equal(
+                        entry_expected_match_inputs->get<picojson::array>().size(),
+                        exec_result->inputs.size(), // MANO: ? :
+                        "exec() result.inputs.length");
+#if 0
+                    for (int i = 0; i < exec_result->inputs.size(); ++i) {
+                        const auto input = exec_result->inputs[i];
+                        const auto expected_input = entry_expected_match_inputs->get<picojson::array>()[i];
+                        if (std::holds_alternative<std::string_view>(input)) {
+                            std::string str("exec() result.inputs[");
+                            str.append(std::to_string(i));
+                            str.append("]");
+                            tc.assert_equal(expected_input.get<std::string>(), std::get<std::string_view>(input), str);
+                            continue;
+                        }
+                        for (const char* component : kComponents) {
+                            // TODO:
+                            //assert_equals(input[component], expected_input[component],
+                            //    `exec() result.inputs[${i}][${component}]`);
+                        }
+                    }
+#endif
+
+                    // Next we will compare the URLPatternComponentResult for each of these
+                    // expected components.
+                    for (const char* component : kComponents) {
+                        picojson::value expected_obj;
+                        const auto* expected_obj_ptr = get_prop(entry_expected_match->get<picojson::object>(), component);
+                        if (expected_obj_ptr)
+                            expected_obj = *expected_obj_ptr;
+
+                        // If the test expectations don't include a component object, then
+                        // we auto-generate one. This is convenient for the many cases
+                        // where the pattern has a default wildcard or empty string pattern
+                        // for a component and the input is essentially empty.
+                        static const picojson::value empty_expected_obj = json_parse("{ \"input\": \"\", \"groups\": {} }");
+                        if (!expected_obj_ptr) {
+                            expected_obj = empty_expected_obj;
+
+                            // Next, we must treat default wildcards differently than empty string
+                            // patterns.  The wildcard results in a capture group, but the empty
+                            // string pattern does not.  The expectation object must list which
+                            // components should be empty instead of wildcards in
+                            // |exactly_empty_components|.
+                            if (!entry_exactly_empty_components ||
+                                !includes(entry_exactly_empty_components->get<picojson::array>(), component)) {
+                                // expected_obj.groups['0'] = '';
+                                expected_obj.get<picojson::object>().at("groups").get<picojson::object>()["0"] = picojson::value("");
+                            }
+                            //
+                        }
+
+                        std::string str{ "exec() result for " };
+                        str.append(component);
+                        assert_object_equals(tc,
+                            expected_obj,
+                            get_component_result(*exec_result, component),
+                            str);
+                    }
+                });
+            }
+            catch (const upa::pattern::urlpattern_error& ex) {
+                std::cout << "FAILURE: " << ex.what() << std::endl;
+                return true;
+            }
+            catch (const std::exception& ex) {
+                std::cout << "[ERR:invalid file]: " << ex.what() << std::endl;
+                return false;
+            }
+        }
+        return true;
+    } };
+
+    if (!load_tests(context, file_name))
+        return 1;
+    return ddt.result();
+}
+
+// create urlpattern
+
+upa::pattern::urlpattern_init create_urlpattern_init(const picojson::object& obj) {
+    upa::pattern::urlpattern_init init{};
+    for (const auto& [key, val] : obj) {
+        auto val_str = val.get<std::string>();
+        if (key == "protocol"sv)
+            init.protocol = std::move(val_str);
+        else if (key == "username"sv)
+            init.username = std::move(val_str);
+        else if (key == "password"sv)
+            init.password = std::move(val_str);
+        else if (key == "hostname"sv)
+            init.hostname = std::move(val_str);
+        else if (key == "port"sv)
+            init.port = std::move(val_str);
+        else if (key == "pathname"sv)
+            init.pathname = std::move(val_str);
+        else if (key == "search"sv)
+            init.search = std::move(val_str);
+        else if (key == "hash"sv)
+            init.hash = std::move(val_str);
+        else if (key == "baseURL"sv)
+            init.base_url = std::move(val_str);
+        else
+            ;// testo klaida
+    }
+    return init;
+}
+
+upa::pattern::urlpattern create_urlpattern(const picojson::array& pattern_arr) {
+    if (pattern_arr.empty())
+        return upa::pattern::urlpattern{};
+
+    std::optional<std::string> arg_str;
+    std::optional<std::string> arg_base;
+    std::optional<upa::pattern::urlpattern_init> arg_init;
+    upa::pattern::urlpattern_options arg_opt{};
+
+    if (pattern_arr.size() >= 1) {
+        if (pattern_arr[0].is<std::string>()) {
+            arg_str = pattern_arr[0].get<std::string>();
+        } else if (pattern_arr[0].is<picojson::object>()) {
+            const auto obj = pattern_arr[0].get<picojson::object>();
+            if (obj.find("ignoreCase") != obj.end())
+                arg_opt.ignore_case = obj.find("ignoreCase")->second.get<bool>();
+            else
+                arg_init = create_urlpattern_init(obj);
+        } else
+            ;// testo klaida
+    }
+    if (pattern_arr.size() >= 2) {
+        if (pattern_arr[1].is<std::string>()) {
+            arg_base = pattern_arr[1].get<std::string>();
+        } else if (pattern_arr[1].is<picojson::object>()) {
+            const auto obj = pattern_arr[1].get<picojson::object>();
+            if (obj.find("ignoreCase") != obj.end())
+                arg_opt.ignore_case = obj.find("ignoreCase")->second.get<bool>();
+            else
+                ;// testo klaida
+        } else
+            ;// testo klaida
+    }
+    if (pattern_arr.size() >= 3) {
+        if (pattern_arr[2].is<picojson::object>()) {
+            const auto obj = pattern_arr[2].get<picojson::object>();
+            if (obj.find("ignoreCase") != obj.end())
+                arg_opt.ignore_case = obj.find("ignoreCase")->second.get<bool>();
+            else
+                ;// testo klaida
+        } else
+            ;// testo klaida
+    }
+    if (pattern_arr.size() >= 4) {
+        // testo klaida
+    }
+
+    if (arg_str)
+        return upa::pattern::urlpattern(*arg_str, arg_base, arg_opt);
+    if (arg_base)
+        throw upa::pattern::urlpattern_error("Unexpected base URL"); // failure
+    if (arg_init)
+        return upa::pattern::urlpattern(*arg_init, arg_opt);
+
+    return upa::pattern::urlpattern(upa::pattern::urlpattern_init{}, arg_opt);
+}
+
+bool urlpattern_test(const upa::pattern::urlpattern& self, const picojson::array& input_arr) {
+    if (input_arr.empty())
+        return self.test(upa::pattern::urlpattern_init{});
+
+    std::optional<std::string> arg_str;
+    std::optional<std::string> arg_base;
+    std::optional<upa::pattern::urlpattern_init> arg_init;
+
+    if (input_arr.size() >= 1) {
+        if (input_arr[0].is<std::string>()) {
+            arg_str = input_arr[0].get<std::string>();
+        } else if (input_arr[0].is<picojson::object>()) {
+            const auto obj = input_arr[0].get<picojson::object>();
+            arg_init = create_urlpattern_init(obj);
+        } else
+            ;// testo klaida
+    }
+    if (input_arr.size() >= 2) {
+        if (input_arr[1].is<std::string>())
+            arg_base = input_arr[1].get<std::string>();
+        else
+            ;// testo klaida
+    }
+    if (input_arr.size() >= 3) {
+        // testo klaida
+    }
+
+    if (arg_str)
+        return self.test(*arg_str, arg_base);
+    if (arg_base)
+        throw upa::pattern::urlpattern_error("Unexpected base URL"); // failure
+    if (arg_init)
+        return self.test(*arg_init);
+
+    // testo klaida
+    return false;
+}
+
+std::optional<upa::pattern::urlpattern_result> urlpattern_exec(const upa::pattern::urlpattern& self, const picojson::array& input_arr) {
+    if (input_arr.empty())
+        return self.exec(upa::pattern::urlpattern_init{});
+
+    std::optional<std::string> arg_str;
+    std::optional<std::string> arg_base;
+    std::optional<upa::pattern::urlpattern_init> arg_init;
+
+    if (input_arr.size() >= 1) {
+        if (input_arr[0].is<std::string>()) {
+            arg_str = input_arr[0].get<std::string>();
+        } else if (input_arr[0].is<picojson::object>()) {
+            const auto obj = input_arr[0].get<picojson::object>();
+            arg_init = create_urlpattern_init(obj);
+        } else
+            ;// testo klaida
+    }
+    if (input_arr.size() >= 2) {
+        if (input_arr[1].is<std::string>())
+            arg_base = input_arr[1].get<std::string>();
+        else
+            ;// testo klaida
+    }
+    if (input_arr.size() >= 3) {
+        // testo klaida
+    }
+
+    if (arg_str)
+        return self.exec(*arg_str, arg_base);
+    if (arg_base)
+        throw upa::pattern::urlpattern_error("Unexpected base URL"); // failure
+    if (arg_init)
+        return self.exec(*arg_init);
+
+    // testo klaida
+    return std::nullopt;
+}
+
+
+// -----------------------------------------------------------------------------
+
+int main(int argc, const char* argv[])
+{
+    return wpt_urlpatterntests("wpt/urlpatterntestdata.json");
+}
