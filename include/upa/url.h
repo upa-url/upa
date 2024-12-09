@@ -2167,6 +2167,14 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                     ++pointer;
                 }
             }
+            if (pointer == last) {
+                // Optimization:
+                // "ws://h", "ws://h\" and "ws://h/" parses to "ws://h/"
+                // See: https://github.com/whatwg/url/pull/847
+                urls.append_empty_path_segment();
+                urls.commit_path();
+                return validation_errc::ok;
+            }
             state = path_state;
         } else if (pointer != last) {
             if (!state_override) {
