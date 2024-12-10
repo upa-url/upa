@@ -49,6 +49,22 @@ inline bool is_default_scheme_port(std::string_view scheme, std::string_view por
 // TODO: make public in URL library:
 // * make the list of special schemes public (see: protocol_component_matches_special_scheme)
 
+template <class StrT, upa::enable_if_str_arg_t<StrT> = 0>
+inline char32_t get_code_point(StrT&& input) {
+    const auto inp = upa::make_str_arg(std::forward<StrT>(input));
+    const auto* ptr = inp.begin();
+    return upa::url_utf::read_utf_char(ptr, inp.end()).value;
+}
+
+template <class StrT, upa::enable_if_str_arg_t<StrT> = 0>
+inline char32_t get_code_point(StrT&& input, std::size_t& ind) {
+    const auto inp = upa::make_str_arg(std::forward<StrT>(input));
+    const auto* ptr = inp.begin() + ind;
+    const char32_t cp = upa::url_utf::read_utf_char(ptr, inp.end()).value;
+    ind = ptr - inp.begin();
+    return cp;
+}
+
 ///////////////////////////////////////////////////////////////////////
 // 1. The URLPattern class
 // https://urlpattern.spec.whatwg.org/#urlpattern-class
@@ -1129,9 +1145,7 @@ struct tokenizer {
 
     // https://urlpattern.spec.whatwg.org/#get-the-next-code-point
     void get_the_next_code_point() {
-        // TODO: code point: get_code_point(input_, next_index_)
-        code_point_ = input_[next_index_];
-        ++next_index_;
+        code_point_ = get_code_point(input_, next_index_);
     }
 
     // https://urlpattern.spec.whatwg.org/#seek-and-get-the-next-code-point
@@ -1741,7 +1755,7 @@ inline pattern_string generate_pattern_string(const part_list& pt_list, const op
             pnext_pt != nullptr && pnext_pt->prefix_.empty() && pnext_pt->suffix_.empty())
         {
             if (pnext_pt->type_ == part::type::FIXED_TEXT)
-                needs_grouping = is_valid_name_code_point(pnext_pt->value_[0]/*TODO: code point*/, false);
+                needs_grouping = is_valid_name_code_point(get_code_point(pnext_pt->value_), false);
             else
                 needs_grouping = upa::detail::is_ascii_digit(pnext_pt->name_[0]);
         }
@@ -1777,7 +1791,7 @@ inline pattern_string generate_pattern_string(const part_list& pt_list, const op
                 result.push_back(')');
             }
             // 16. custom_name is true
-            else if (!pt.suffix_.empty() && is_valid_name_code_point(pt.suffix_[0]/*TODO: code point*/, false)) {
+            else if (!pt.suffix_.empty() && is_valid_name_code_point(get_code_point(pt.suffix_), false)) {
                 result.push_back('\\');
             }
             break;
