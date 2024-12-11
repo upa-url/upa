@@ -49,6 +49,10 @@ TEST_CASE("Test setters with special URL's") {
         CHECK_EQ(url.host(), "example.net:88");
         CHECK_EQ(url.port_int(), 88);
 
+        CHECK(url.port("90="));
+        CHECK_FALSE(url.port("abc"));
+        CHECK_EQ(url.port_int(), 90);
+
         CHECK(url.port(""));
         CHECK_EQ(url.host(), "example.net");
 

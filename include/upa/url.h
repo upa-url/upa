@@ -1982,10 +1982,11 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                         urls.clear_part(url::PORT);
                     }
                 }
-            }
-            // 2.2. If state override is given, then return
-            if (state_override)
-                return validation_errc::ok;
+                // 2.2. If state override is given, then return
+                if (state_override)
+                    return validation_errc::ok;
+            } else if (state_override)
+                return validation_errc::ignored;
             state = path_start_state;
             pointer = end_of_digits;
         } else {
