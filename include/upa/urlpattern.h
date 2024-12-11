@@ -1908,11 +1908,17 @@ inline std::string canonicalize_hostname(std::string_view value) {
     {
         upa::detail::url_serializer urls(dummy_url);
 
-        urls.set_scheme("http"); //LAIK-MANO: SPEC-BUG//
+        urls.set_scheme("http"); // MANO: SPEC-BUG
 
         const auto inp = upa::make_str_arg(value);
+#if 0
         const auto parse_result = upa::detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr,
             upa::detail::url_parser::hostname_state);
+#else
+        // SPEC-BUG: Use https://url.spec.whatwg.org/#concept-host-parser instead
+        // of "basic URL parser" (with hostname_state) to pass tests
+        const auto parse_result = upa::detail::url_parser::parse_host(urls, inp.begin(), inp.end());
+#endif
         if (!upa::success(parse_result))
             throw urlpattern_error("canonicalize a hostname error");
     }
@@ -1935,6 +1941,10 @@ inline std::string canonicalize_ipv6_hostname(std::string_view value) {
 // https://urlpattern.spec.whatwg.org/#canonicalize-a-port
 inline std::string canonicalize_port(std::string_view port_value, std::optional<std::string_view> protocol_value) {
     if (port_value.empty()) return {};
+
+    // SPEC-BUG: To pass tests all charcters must be digits
+    if (!std::all_of(port_value.begin(), port_value.end(), upa::detail::is_ascii_digit<char>))
+        throw urlpattern_error("canonicalize a port error");
 
     upa::url dummy_url{};
     {
