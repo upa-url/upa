@@ -9,11 +9,12 @@
 
 #include <cstdint>
 #include <iostream>
+#include <filesystem>
 #include <fstream>
 #include <string>
 #include <vector>
 
-int bench_psl_list(const char* filename) {
+int bench_psl_list(const std::filesystem::path& filename) {
     constexpr uint64_t min_iters = 128;
     std::vector<std::string> domain_list;
 
@@ -34,7 +35,7 @@ int bench_psl_list(const char* filename) {
         domain_list.push_back(line.substr(0, isep));
     }
 
-    const char* filename_psl = "psl/public_suffix_list.dat";
+    const std::filesystem::path filename_psl{ "psl/public_suffix_list.dat" };
 
     upa::public_suffix_list ps_list;
     if (!ps_list.load(filename_psl)) {

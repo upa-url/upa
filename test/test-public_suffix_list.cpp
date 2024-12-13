@@ -6,10 +6,11 @@
 
 #include <algorithm>
 #include <iostream>
+#include <filesystem>
 #include <fstream>
 #include <string>
 
-int test_public_suffix_list(const upa::public_suffix_list& ps_list, const char* filename) {
+int test_public_suffix_list(const upa::public_suffix_list& ps_list, const std::filesystem::path& filename) {
     // Open tests file
     std::ifstream finp(filename, std::ios_base::in | std::ios_base::binary);
     if (!finp) {
@@ -50,7 +51,7 @@ int test_public_suffix_list(const upa::public_suffix_list& ps_list, const char* 
 }
 
 int main() {
-    const char* filename_psl = "psl/public_suffix_list.dat";
+    const std::filesystem::path filename_psl{ "psl/public_suffix_list.dat" };
 
     upa::public_suffix_list ps_list;
     if (!ps_list.load(filename_psl)) {

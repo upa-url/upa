@@ -7,6 +7,7 @@
 
 #include "url.h"
 #include <cstddef>
+#include <filesystem>
 #include <fstream>
 #include <memory>
 #include <string>
@@ -19,8 +20,7 @@ namespace upa {
 class public_suffix_list {
 public:
     // Load public suffix list from file
-    template <typename CharT>
-    bool load(const CharT* filename) {
+    bool load(const std::filesystem::path& filename) {
         std::ifstream finp(filename, std::ios_base::in | std::ios_base::binary);
         return finp && load(finp);
     }
