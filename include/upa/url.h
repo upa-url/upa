@@ -51,8 +51,8 @@ namespace detail {
     class url_parser;
 
     // url_error what() values
-    extern const char kURLParseError[];
-    extern const char kBaseURLParseError[];
+    extern const char* const kURLParseError;
+    extern const char* const kBaseURLParseError;
 } // namespace detail
 
 /// @brief URL class

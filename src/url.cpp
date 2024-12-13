@@ -10,8 +10,8 @@ namespace detail {
 
 // url_error exception what() values
 
-const char kURLParseError[] = "URL parse error";
-const char kBaseURLParseError[] = "Base URL parse error";
+const char* const kURLParseError = "URL parse error";
+const char* const kBaseURLParseError = "Base URL parse error";
 
 // Part start
 
