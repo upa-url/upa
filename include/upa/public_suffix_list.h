@@ -18,13 +18,24 @@ namespace upa {
 
 class public_suffix_list {
 public:
+    // Load public suffix list from file
     template <typename CharT>
     bool load(const CharT* filename) {
         std::ifstream finp(filename, std::ios_base::in | std::ios_base::binary);
         return finp && load(finp);
     }
-    bool load(std::istream& input);
+    bool load(std::istream& input_stream);
 
+    // Push interface to load public suffix list 
+    struct push_context {
+        std::string remaining{};
+        std::uint8_t code_flags = 0;
+    };
+    void push_line(push_context& ctx, std::string_view line);
+    void push(push_context& ctx, std::string_view buff);
+    bool finalize(push_context& ctx);
+
+    // Get public suffix or registrable domain
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     std::string get_suffix(StrT&& str_host, bool reg_domain) const {
         try {
