@@ -132,6 +132,17 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
         "hash"
     };
 
+    static const std::unordered_map<std::string_view, std::vector<const char*>> EARLIER_COMPONENTS = {
+        {"protocol"sv, {}},
+        {"hostname"sv, {"protocol"}},
+        {"port"sv, {"protocol", "hostname"}},
+        {"username"sv, {}},
+        {"password"sv, {}},
+        {"pathname"sv, {"protocol", "hostname", "port"}},
+        {"search"sv, {"protocol", "hostname", "port", "pathname"}},
+        {"hash"sv, {"protocol", "hostname", "port", "pathname", "search"}}
+    };
+
     static constexpr auto get_prop = [](const picojson::object& obj, const char* name) -> const picojson::value* {
         const auto it = obj.find(name);
         if (it != obj.end())
@@ -143,6 +154,10 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
         return std::any_of(arr.begin(), arr.end(), [&name](const picojson::value& val) {
             return val.get<std::string>() == name;
         });
+    };
+
+    static constexpr auto some = [](auto arr, auto pred) {
+        return std::any_of(arr.begin(), arr.end(), pred);
     };
 
     // Load & run tests
@@ -209,10 +224,15 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
                             //
                             //  1. If the original input explicitly provided a pattern, then
                             //     echo that back as the expected value.
-                            //  2. If the baseURL exists and provides a component value then
+                            //  2. If an "earlier" component is specified, then a wildcard
+                            //     will be used rather than inheriting from the base URL.
+                            //  3. If the baseURL exists and provides a component value then
                             //     use that for the expected pattern.
-                            //  3. Otherwise fall back on the default pattern of `*` for an
+                            //  4. Otherwise fall back on the default pattern of `*` for an
                             //     empty component pattern.
+                            //
+                            //  Note that username and password are never inherited, and will only
+                            //  need to match if explicitly specified.
                             if (entry_exactly_empty_components &&
                                 includes(entry_exactly_empty_components->get<picojson::array>(), component)) {
                                 expected_str = "";
@@ -220,7 +240,13 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
                                 entry_pattern.get<picojson::array>()[0].is<picojson::object>() &&
                                 get_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), component)) {
                                 expected_str = get_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), component)->get<std::string>();
-                            } else if (baseURL) {
+                            } else if (entry_pattern.get<picojson::array>().size() > 0 &&
+                                entry_pattern.get<picojson::array>()[0].is<picojson::object>() &&
+                                some(EARLIER_COMPONENTS.at(component), [&entry_pattern](auto c) -> bool {
+                                    return get_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), c) != nullptr;
+                                })) {
+                                expected_str = "*";
+                            } else if (baseURL && component != "username"sv && component != "password"sv) {
                                 auto base_value = get_component(*baseURL, component);
                                 // Unfortunately some URL() getters include separator chars; e.g.
                                 // the trailing `:` for the protocol.  Strip those off if necessary.
