@@ -82,7 +82,7 @@ struct urlpattern_init {
     std::optional <std::string> base_url;
 };
 
-// 1.2. Constructor String Parsing
+// 1.6. Constructor string parsing
 // https://urlpattern.spec.whatwg.org/#constructor-string-parsing
 // https://urlpattern.spec.whatwg.org/#parse-a-constructor-string
 
@@ -218,7 +218,7 @@ constexpr std::string_view full_wildcard_regexp_value = ".*"sv;
 // https://urlpattern.spec.whatwg.org/#generate-a-segment-wildcard-regexp
 inline std::string generate_segment_wildcard_regexp(const options& opt);
 
-// 2.2.Converting Part Lists to Regular Expressions
+// 2.2. Converting part lists to regular expressions
 // https://urlpattern.spec.whatwg.org/#converting-part-lists-to-regular-expressions
 
 using string_list = std::vector<std::string>;
@@ -228,7 +228,7 @@ inline std::pair<std::string, string_list> generate_regular_expression_and_name_
 
 inline void append_escape_regexp_string(std::string& result, std::string_view input);
 
-// 2.3. Converting Part Lists to Pattern Strings
+// 2.3. Converting part lists to pattern strings
 // https://urlpattern.spec.whatwg.org/#converting-part-lists-to-pattern-strings
 
 inline pattern_string generate_pattern_string(const part_list& pt_list, const options& opt);
@@ -240,7 +240,7 @@ inline void append_convert_modifier_to_string(std::string& result, part::modifie
 // 3. Canonicalization
 // https://urlpattern.spec.whatwg.org/#canon
 
-// 3.1. Encoding Callbacks
+// 3.1. Encoding callbacks
 // https://urlpattern.spec.whatwg.org/#canon-encoding-callbacks
 
 inline std::string canonicalize_protocol(std::string_view value);
@@ -257,7 +257,7 @@ inline std::string canonicalize_opaque_pathname(std::string_view value);
 inline std::string canonicalize_search(std::string_view value);
 inline std::string canonicalize_hash(std::string_view value);
 
-// 3.2. URLPatternInit Processing
+// 3.2. URLPatternInit processing
 // https://urlpattern.spec.whatwg.org/#canon-processing-for-init
 
 enum class urlpattern_init_type { PATTERN, URL };
@@ -687,8 +687,9 @@ inline component::component(std::optional<std::string_view> input, encoding_call
     auto [regular_expression_string, name_list] =
         generate_regular_expression_and_name_list(pt_list, opt);
 
-    // 5. If options's ignore case is true then set flags to "vi".
-    // 6. Otherwise set flags to "v"
+    // 4. If options's ignore case is true then set flags to "vi".
+    // 5. Otherwise set flags to "v"
+    // TODO: "v" flag
     const std::regex::flag_type flag = opt.ignore_case
         ? (std::regex::ECMAScript | std::regex::icase)
         : std::regex::ECMAScript;
@@ -700,7 +701,7 @@ inline component::component(std::optional<std::string_view> input, encoding_call
         // Implementations are free to perform matching directly against the part list when possible;
         // e.g. when there are no custom regexp matching groups. If there are custom regular
         // expressions, however, its important that they be immediately evaluated in the compile
-        // a component algorithm so an error can be thrown if they are invalid.
+        // a component algorithm so an error can be thrown if they are invalid. 
     }
     catch (const std::regex_error&) {
         throw urlpattern_error("regular expression is not valid");
@@ -731,7 +732,7 @@ constexpr bool hostname_pattern_is_ipv6_address(pattern_string_view input) noexc
         (input[0] == '\\' && input[1] == '[');
 }
 
-// 1.2. Constructor String Parsing
+// 1.6. Constructor string parsing
 // https://urlpattern.spec.whatwg.org/#constructor-string-parsing
 
 // https://urlpattern.spec.whatwg.org/#constructor-string-parser
@@ -816,7 +817,7 @@ inline urlpattern_init parse_constructor_string(std::string_view input) {
         // Note
         // On every iteration of the parse loop the parser's token index will be incremented by its
         // token increment value. Typically this means incrementing by 1, but at certain times it is
-        // set to zero. The token increment is then always reset back to 1 at the top of the loop.
+        // set to zero. The token increment is then always reset back to 1 at the top of the loop. 
 
         if (parser.token_list_[parser.token_index_].type_ == token::type::END) {
             if (parser.state_ == state::INIT) {
@@ -1582,7 +1583,7 @@ inline bool pattern_parser::is_duplicate_name(std::string_view name) const noexc
     });
 }
 
-// 2.2. Converting Part Lists to Regular Expressions
+// 2.2. Converting part lists to regular expressions
 // https://urlpattern.spec.whatwg.org/#converting-part-lists-to-regular-expressions
 
 // https://urlpattern.spec.whatwg.org/#generate-a-regular-expression-and-name-list
@@ -1720,7 +1721,7 @@ inline void append_escape_regexp_string(std::string& result, std::string_view in
 }
 
 
-// 2.3. Converting Part Lists to Pattern Strings
+// 2.3. Converting part lists to pattern strings
 // https://urlpattern.spec.whatwg.org/#converting-part-lists-to-pattern-strings
 
 // https://urlpattern.spec.whatwg.org/#generate-a-pattern-string
@@ -1865,7 +1866,7 @@ inline void append_convert_modifier_to_string(std::string& result, part::modifie
 // 3. Canonicalization
 // https://urlpattern.spec.whatwg.org/#canon
 
-// 3.1. Encoding Callbacks
+// 3.1. Encoding callbacks
 // https://urlpattern.spec.whatwg.org/#canon-encoding-callbacks
 
 // TODO: (optimize): write a protocol parser to avoid having to use a URL parser
@@ -2064,7 +2065,7 @@ inline std::string canonicalize_hash(std::string_view value) {
 }
 
 
-// 3.2. URLPatternInit Processing
+// 3.2. URLPatternInit processing
 // https://urlpattern.spec.whatwg.org/#canon-processing-for-init
 
 inline std::string process_base_url_string(std::string_view input, urlpattern_init_type type);
