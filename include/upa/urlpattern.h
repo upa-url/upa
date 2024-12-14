@@ -799,19 +799,8 @@ inline urlpattern_init parse_constructor_string(std::string_view input) {
     using state = constructor_string_parser::state;
 
     constructor_string_parser parser{ input };
-    // Note
-    // When constructing a pattern using a URLPatternInit like new URLPattern({ pathname: 'foo' })
-    // any missing components will be defaulted to wildcards. In the constructor string case,
-    // however, all components are precisely defined as either empty string or a longer value. This
-    // is due to there being no way to simply "leave out" a component when writing a URL.
-    //
-    // To implement this we initialize components in parser's result with empty string in advance.
-    //
-    // We can't, however, do this immediately. We want to allow the baseURL to provide information
-    // for relative URLs, so we only want to set the default empty string values for components
-    // following the first component in the relative URL. We therefore wait to set the default
-    // component values until after we exit the "init" state.
 
+    // 2. While parser's token index is less than parser's token list size:
     while (parser.token_index_ < parser.token_list_.size()) {
         parser.token_increment_ = 1;
         // Note
@@ -835,11 +824,8 @@ inline urlpattern_init parse_constructor_string(std::string_view input) {
                     parser.change_state(state::HASH, 1);
                 } else if (parser.is_search_prefix()) {
                     parser.change_state(state::SEARCH, 1);
-                    parser.result_.hash = ""sv;
                 } else {
                     parser.change_state(state::PATHNAME, 0);
-                    parser.result_.search = ""sv;
-                    parser.result_.hash = ""sv;
                 }
                 parser.token_index_ += parser.token_increment_;
                 continue;
@@ -883,19 +869,8 @@ inline urlpattern_init parse_constructor_string(std::string_view input) {
 
         switch (parser.state_) {
         case state::INIT:
-            if (parser.is_protocol_suffix()) {
-                // Note
-                // We found a protocol suffix, so this is an absolute URLPattern constructor
-                // string. Therefore initialize all component to the empty string.
-                parser.result_.username = ""sv;
-                parser.result_.password = ""sv;
-                parser.result_.hostname = ""sv;
-                parser.result_.port = ""sv;
-                parser.result_.pathname = ""sv;
-                parser.result_.search = ""sv;
-                parser.result_.hash = ""sv;
+            if (parser.is_protocol_suffix())
                 parser.rewind_and_set_state(state::PROTOCOL);
-            }
             break;
         case state::PROTOCOL:
             if (parser.is_protocol_suffix()) {
@@ -907,8 +882,6 @@ inline urlpattern_init parse_constructor_string(std::string_view input) {
                 // password, hostname, and port components. Authority slashes can also cause us to
                 // look for these components as well. Otherwise we treat this as an "opaque path
                 // URL" and go straight to the pathname component.
-                if (parser.protocol_matches_special_scheme_flag_)
-                    parser.result_.pathname = "/"sv;
                 state next_state = state::PATHNAME;
                 std::size_t skip = 1;
                 if (parser.next_is_authority_slashes()) {
@@ -977,6 +950,16 @@ inline urlpattern_init parse_constructor_string(std::string_view input) {
         parser.token_index_ += parser.token_increment_;
     } // while
 
+    // 3. If parser's result contains "hostname" and not "port", then set parser's
+    // result["port"] to the empty string
+    if (parser.result_.hostname && !parser.result_.port)
+        parser.result_.port = ""sv;
+    // Note
+    // This is special-cased because when an author does not specify a port, they usually intend
+    // the default port. If any port is acceptable, the author can specify it as a wildcard
+    // explicitly. For example, "https://example.com/*" does not match URLs beginning with
+    // "https://example.com:8443/", which is a different origin.
+
     return std::move(parser.result_);
 }
 
@@ -998,6 +981,26 @@ inline void constructor_string_parser::change_state(state new_state, std::size_t
     case state::SEARCH: result_.search = make_component_string(); break;
     case state::HASH: result_.hash = make_component_string(); break;
     }
+
+    // If parser's state is not "init" and new state is not "done", then:
+    if (state_ != state::INIT && new_state != state::DONE) {
+        if (state_ >= state::PROTOCOL && state_ <= state::PASSWORD &&
+            new_state >= state::PORT && new_state <= state::HASH &&
+            !result_.hostname) {
+            result_.hostname = ""sv;
+        }
+        if (state_ >= state::PROTOCOL && state_ <= state::PORT &&
+            (new_state == state::SEARCH || new_state == state::HASH) &&
+            !result_.pathname) {
+            result_.pathname = protocol_matches_special_scheme_flag_ ? "/"sv : ""sv;
+        }
+        if (state_ >= state::PROTOCOL && state_ <= state::PATHNAME &&
+            new_state == state::HASH &&
+            !result_.search) {
+            result_.search = ""sv;
+        }
+    }
+
     state_ = new_state;
     token_index_ += skip;
     component_start_ = token_index_;
@@ -2098,18 +2101,33 @@ inline urlpattern_init process_urlpattern_init(const urlpattern_init& init, urlp
 
     std::optional<upa::url> base_url = std::nullopt;
     if (init.base_url) {
+        // construct and parse base_url
         base_url.emplace();
         if (!upa::success(base_url->parse(*init.base_url, nullptr)))
             throw urlpattern_error("invalid base URL");
 
-        result.protocol = process_base_url_string(base_url->get_part_view(upa::url::SCHEME), type);
-        result.username = process_base_url_string(base_url->get_part_view(upa::url::USERNAME), type);
-        result.password = process_base_url_string(base_url->get_part_view(upa::url::PASSWORD), type);
-        result.hostname = process_base_url_string(base_url->get_part_view(upa::url::HOST), type);
-        result.port = process_base_url_string(base_url->get_part_view(upa::url::PORT), type);
-        result.pathname = process_base_url_string(base_url->get_part_view(upa::url::PATH), type);
-        result.search = process_base_url_string(base_url->get_part_view(upa::url::QUERY), type);
-        result.hash = process_base_url_string(base_url->get_part_view(upa::url::FRAGMENT), type);
+        if (!init.protocol)
+            result.protocol = process_base_url_string(base_url->get_part_view(upa::url::SCHEME), type);
+        if (type != urlpattern_init_type::PATTERN &&
+            !init.protocol && !init.hostname && !init.port && !init.username) {
+            result.username = process_base_url_string(base_url->get_part_view(upa::url::USERNAME), type);
+            if (!init.password)
+                result.password = process_base_url_string(base_url->get_part_view(upa::url::PASSWORD), type);
+        }
+        if (!init.protocol && !init.hostname) {
+            result.hostname = process_base_url_string(base_url->get_part_view(upa::url::HOST), type);
+            if (!init.port) {
+                result.port = process_base_url_string(base_url->get_part_view(upa::url::PORT), type);
+                if (!init.pathname) {
+                    result.pathname = process_base_url_string(base_url->get_part_view(upa::url::PATH), type);
+                    if (!init.search) {
+                        result.search = process_base_url_string(base_url->get_part_view(upa::url::QUERY), type);
+                        if (!init.hash)
+                            result.hash = process_base_url_string(base_url->get_part_view(upa::url::FRAGMENT), type);
+                    }
+                }
+            }
+        }
     }
 
     if (init.protocol)
