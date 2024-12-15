@@ -67,6 +67,8 @@ inline char32_t get_code_point(StrT&& input, std::size_t& ind) {
 
 ///////////////////////////////////////////////////////////////////////
 // 1. The URLPattern class
+// 1.1. Introduction
+// 1.2. The URLPattern class
 // https://urlpattern.spec.whatwg.org/#urlpattern-class
 // https://urlpattern.spec.whatwg.org/#dictdef-urlpatterninit
 
@@ -88,8 +90,8 @@ struct urlpattern_init {
 
 inline urlpattern_init parse_constructor_string(std::string_view input);
 
-// 2. Patterns
-// https://urlpattern.spec.whatwg.org/#patterns
+// 2. Pattern strings
+// https://urlpattern.spec.whatwg.org/#pattern-strings
 
 // https://urlpattern.spec.whatwg.org/#pattern-string
 // A pattern string is a string that is written to match a set of target strings. A well formed
@@ -98,8 +100,8 @@ inline urlpattern_init parse_constructor_string(std::string_view input);
 using pattern_string = std::string;
 using pattern_string_view = std::string_view;
 
-// 2.1. Parsing Patterns
-// https://urlpattern.spec.whatwg.org/#parsing-patterns
+// 2.1. Parsing pattern strings
+// https://urlpattern.spec.whatwg.org/#parsing-pattern-strings
 
 // 2.1.1. Tokens
 // https://urlpattern.spec.whatwg.org/#tokens
@@ -266,10 +268,10 @@ inline urlpattern_init process_urlpattern_init(const urlpattern_init& init, urlp
 
 
 ///////////////////////////////////////////////////////////////////////
-// 1.1. Internals
-// https://urlpattern.spec.whatwg.org/#urlpattern-internals
 
+// 1.3. The URL pattern struct
 // https://urlpattern.spec.whatwg.org/#component
+
 struct component {
     component() = default;
     component(component&&) noexcept = default;
@@ -284,6 +286,9 @@ struct component {
     string_list group_name_list_;
     bool has_regexp_groups_ = false;
 };
+
+// 1.5. Internals
+// https://urlpattern.spec.whatwg.org/#urlpattern-internals
 
 // ....
 
@@ -300,7 +305,7 @@ inline bool protocol_component_matches_special_scheme(const component& protocol_
 constexpr bool hostname_pattern_is_ipv6_address(pattern_string_view input) noexcept;
 
 ///////////////////////////////////////////////////////////////////////
-// 1. The URLPattern class
+// 1.2. The URLPattern class
 // https://urlpattern.spec.whatwg.org/#urlpattern-class
 
 using urlpattern_input = std::variant<std::string_view, const urlpattern_init*>;
@@ -368,6 +373,8 @@ private:
         std::string_view hostname, std::string_view port, std::string_view pathname,
         std::string_view search, std::string_view hash) const;
 
+    // 1.3. The URL pattern struct
+    // https://urlpattern.spec.whatwg.org/#url-pattern
     component protocol_component_;
     component username_component_;
     component password_component_;
@@ -392,11 +399,14 @@ public:
 };
 
 ///////////////////////////////////////////////////////////////////////
-// 1. The URLPattern class
+// 1.2. The URLPattern class
 // https://urlpattern.spec.whatwg.org/#urlpattern-class
 
 // initialize (as constructors)
 // https://urlpattern.spec.whatwg.org/#urlpattern-initialize
+
+// 1.4. High-level operations: To create a URL pattern ...
+// https://urlpattern.spec.whatwg.org/#url-pattern-create
 
 inline urlpattern_init make_urlpattern_init(std::string_view input, std::optional<std::string_view> base_url) {
     urlpattern_init init{ parse_constructor_string(input) };
@@ -487,21 +497,8 @@ inline pattern_string_view urlpattern::get_hash() const noexcept {
     return hash_component_.pattern_string_;
 }
 
-bool urlpattern::has_regexp_groups() const noexcept {
-    // https://urlpattern.spec.whatwg.org/#url-pattern-has-regexp-groups
-    return
-        protocol_component_.has_regexp_groups_ ||
-        username_component_.has_regexp_groups_ ||
-        password_component_.has_regexp_groups_ ||
-        hostname_component_.has_regexp_groups_ ||
-        port_component_.has_regexp_groups_ ||
-        pathname_component_.has_regexp_groups_ ||
-        search_component_.has_regexp_groups_ ||
-        hash_component_.has_regexp_groups_;
-}
-
 // https://urlpattern.spec.whatwg.org/#dom-urlpattern-test
-// https://urlpattern.spec.whatwg.org/#match
+// https://urlpattern.spec.whatwg.org/#url-pattern-match
 
 inline upa::url parse_url_against_base(std::string_view input, std::optional<std::string_view> base_url_str) {
     upa::url url;
@@ -571,7 +568,7 @@ inline bool urlpattern::match_for_test(
 }
 
 // https://urlpattern.spec.whatwg.org/#dom-urlpattern-exec
-// https://urlpattern.spec.whatwg.org/#match
+// https://urlpattern.spec.whatwg.org/#url-pattern-match
 
 inline std::optional<urlpattern_result> urlpattern::exec(const urlpattern_init& input) const {
     urlpattern_init apply_result;
@@ -675,32 +672,21 @@ inline std::optional<urlpattern_result> urlpattern::match(std::vector<urlpattern
     return result;
 }
 
-// create a component match result
-// https://urlpattern.spec.whatwg.org/#create-a-component-match-result
+// https://urlpattern.spec.whatwg.org/#url-pattern-has-regexp-groups
 
-inline urlpattern_component_result create_component_match_result(const component& comp,
-    std::string_view input, const regex_exec_result& exec_result)
-{
-    urlpattern_component_result result;
-    result.input = input;
-
-    for (std::size_t index = 1; index < exec_result.size(); ++index) {
-        const auto& res = exec_result[index];
-        std::string_view name = comp.group_name_list_[index - 1];
-        std::optional<std::string_view> value{}; // std::nullopt
-        if (res.matched) {
-#ifdef UPA_CPP_20
-            value = std::string_view{ res.first, res.second };
-#else
-            value = input.substr(exec_result.position(index), exec_result.length(index));
-#endif
-        }
-        result.groups.emplace(name, value);
-    }
-    return result;
+bool urlpattern::has_regexp_groups() const noexcept {
+    return
+        protocol_component_.has_regexp_groups_ ||
+        username_component_.has_regexp_groups_ ||
+        password_component_.has_regexp_groups_ ||
+        hostname_component_.has_regexp_groups_ ||
+        port_component_.has_regexp_groups_ ||
+        pathname_component_.has_regexp_groups_ ||
+        search_component_.has_regexp_groups_ ||
+        hash_component_.has_regexp_groups_;
 }
 
-// 1.1. Internals
+// 1.5. Internals
 // https://urlpattern.spec.whatwg.org/#urlpattern-internals
 
 // compile a component
@@ -741,6 +727,33 @@ inline component::component(std::optional<std::string_view> input, encoding_call
         });
 }
 
+// create a component match result
+// https://urlpattern.spec.whatwg.org/#create-a-component-match-result
+
+inline urlpattern_component_result create_component_match_result(const component& comp,
+    std::string_view input, const regex_exec_result& exec_result)
+{
+    urlpattern_component_result result;
+    result.input = input;
+
+    for (std::size_t index = 1; index < exec_result.size(); ++index) {
+        const auto& res = exec_result[index];
+        std::string_view name = comp.group_name_list_[index - 1];
+        std::optional<std::string_view> value{}; // std::nullopt
+        if (res.matched) {
+#ifdef UPA_CPP_20
+            value = std::string_view{ res.first, res.second };
+#else
+            value = input.substr(exec_result.position(index), exec_result.length(index));
+#endif
+        }
+        result.groups.emplace(name, value);
+    }
+    return result;
+}
+
+// https://urlpattern.spec.whatwg.org/#protocol-component-matches-a-special-scheme
+
 inline bool protocol_component_matches_special_scheme(const component& protocol_component) {
     static std::string_view special_scheme_list[] = {
         "ftp"sv, "file"sv, "http"sv, "https"sv, "ws"sv, "wss"sv
@@ -751,6 +764,8 @@ inline bool protocol_component_matches_special_scheme(const component& protocol_
     }
     return false;
 }
+
+// https://urlpattern.spec.whatwg.org/#hostname-pattern-is-an-ipv6-address
 
 constexpr bool hostname_pattern_is_ipv6_address(pattern_string_view input) noexcept {
     // If input's code point length is less than 2, then return false.
