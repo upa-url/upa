@@ -415,10 +415,22 @@ inline urlpattern::urlpattern(const urlpattern_init& init, urlpattern_options op
     // null, null, null, null, null, null, null, and null.
     auto processed_init = process_urlpattern_init(init, urlpattern_init_type::PATTERN, false/*all nulls*/);
 
-    // If processedInit["protocol"] is a special scheme and processedInit["port"] is its
-    // corresponding default port, then set processedInit["port"] to the empty string
-    if (processed_init.protocol && // MANO
-        is_special_scheme(*processed_init.protocol) &&
+    // For each componentName of {"protocol", "username", "password", "hostname", "port", "pathname",
+    // "search", "hash"}:
+    // - If processedInit[componentName] does not exist, then set processedInit[componentName] to "*"
+    if (!processed_init.protocol) processed_init.protocol = "*"sv;
+    if (!processed_init.username) processed_init.username = "*"sv;
+    if (!processed_init.password) processed_init.password = "*"sv;
+    if (!processed_init.hostname) processed_init.hostname = "*"sv;
+    if (!processed_init.port) processed_init.port = "*"sv;
+    if (!processed_init.pathname) processed_init.pathname = "*"sv;
+    if (!processed_init.search) processed_init.search = "*"sv;
+    if (!processed_init.hash) processed_init.hash = "*"sv;
+
+    // If processedInit["protocol"] is a special scheme and processedInit["port"] is a string
+    // which represents its corresponding default port in radix-10 using ASCII digits then set
+    // processedInit["port"] to the empty string
+    if (is_special_scheme(*processed_init.protocol) &&
         is_default_scheme_port(*processed_init.protocol, *processed_init.port))
         processed_init.port = ""sv;
 
@@ -427,8 +439,7 @@ inline urlpattern::urlpattern(const urlpattern_init& init, urlpattern_options op
     username_component_ = component(processed_init.username, canonicalize_username, default_options);
     password_component_ = component(processed_init.password, canonicalize_password, default_options);
 
-    if (processed_init.hostname && // MANO
-        hostname_pattern_is_ipv6_address(*processed_init.hostname))
+    if (hostname_pattern_is_ipv6_address(*processed_init.hostname))
         hostname_component_ = component(processed_init.hostname, canonicalize_ipv6_hostname, hostname_options);
     else
         hostname_component_ = component(processed_init.hostname, canonicalize_hostname, hostname_options);
@@ -696,9 +707,8 @@ inline urlpattern_component_result create_component_match_result(const component
 // https://urlpattern.spec.whatwg.org/#compile-a-component
 
 inline component::component(std::optional<std::string_view> input, encoding_callback encoding_cb, const options& opt) {
-    // If input is null, then set input to "*"
-    if (!input)
-        input = "*"sv;
+    // Let part list be the result of running parse a pattern string given
+    // input, options, and encoding callback
     const auto pt_list = parse_pattern_string(*input, opt, encoding_cb);
     auto [regular_expression_string, name_list] =
         generate_regular_expression_and_name_list(pt_list, opt);
