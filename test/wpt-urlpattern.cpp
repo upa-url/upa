@@ -18,6 +18,7 @@ inline std::string vout(const std::unordered_map<K, V>& m);
 
 #define TEST_DEBUG 0
 
+using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 // -----------------------------------------------------------------------------
@@ -27,6 +28,76 @@ picojson::value json_parse(const char* str) {
     picojson::value v;
     picojson::parse(v, str);
     return v;
+}
+
+// https://github.com/web-platform-tests/wpt/blob/master/urlpattern/resources/urlpattern-hasregexpgroups-tests.js
+
+template <class T>
+upa::pattern::urlpattern_init create_urlpattern_init(const T& obj) {
+    upa::pattern::urlpattern_init init{};
+    for (const auto& [key, val] : obj) {
+        if (key == "protocol"sv)
+            init.protocol = val;
+        else if (key == "username"sv)
+            init.username = val;
+        else if (key == "password"sv)
+            init.password = val;
+        else if (key == "hostname"sv)
+            init.hostname = val;
+        else if (key == "port"sv)
+            init.port = val;
+        else if (key == "pathname"sv)
+            init.pathname = val;
+        else if (key == "search"sv)
+            init.search = val;
+        else if (key == "hash"sv)
+            init.hash = val;
+        else if (key == "baseURL"sv)
+            init.base_url = val;
+        else
+            throw std::out_of_range("urlpattern_init does not have: "s.append(key));
+    }
+    return init;
+}
+
+int wpt_urlpattern_hasregexpgroups_tests() {
+    DataDrivenTest ddt;
+#if TEST_DEBUG
+    ddt.config_debug_break(true);
+#endif
+
+    ddt.test_case("urlpattern has_regexp_groups() tests", [&](DataDrivenTest::TestCase& tc) {
+        tc.assert_equal(false, upa::pattern::urlpattern{}.has_regexp_groups(), "match-everything pattern");
+
+        for (std::string_view component : { "protocol", "username", "password", "hostname", "port", "pathname", "search", "hash" }) {
+            tc.assert_equal(false, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+                std::pair{component, "*"sv} }) }.has_regexp_groups(), "wildcard in "s.append(component));
+            tc.assert_equal(false, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+                std::pair{component, ":foo"sv} }) }.has_regexp_groups(), "segment wildcard in "s.append(component));
+            tc.assert_equal(false, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+                std::pair{component, ":foo?"sv} }) }.has_regexp_groups(), "optional segment wildcard in "s.append(component));
+            tc.assert_equal(true, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+                std::pair{component, ":foo(hi)"sv} }) }.has_regexp_groups(), "named regexp group in "s.append(component));
+            tc.assert_equal(true, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+                std::pair{component, "(hi)"sv} }) }.has_regexp_groups(), "anonymous regexp group in "s.append(component));
+            if (component != "protocol"sv && component != "port"sv) {
+                // These components are more narrow in what they accept in any case.
+                tc.assert_equal(false, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+                    std::pair{component, "a-{:hello}-z-*-a"sv} }) }.has_regexp_groups(),
+                    "wildcards mixed in with fixed text and wildcards in "s.append(component));
+                tc.assert_equal(true, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+                    std::pair{component, "a-(hi)-z-(lo)-a"sv} }) }.has_regexp_groups(),
+                    "regexp groups mixed in with fixed text and wildcards in "s.append(component));
+            }
+        }
+
+        tc.assert_equal(false, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+            std::pair{"pathname"sv, "/a/:foo/:baz?/b/*"sv}})}.has_regexp_groups(), "complex pathname with no regexp");
+        tc.assert_equal(true, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+            std::pair{"pathname"sv, "/a/:foo/:baz([a-z]+)?/b/*"sv}}) }.has_regexp_groups(), "complex pathname with regexp");
+    });
+
+    return ddt.result();
 }
 
 // https://github.com/web-platform-tests/wpt/blob/master/urlpattern/resources/urlpatterntests.js
@@ -562,5 +633,10 @@ std::optional<upa::pattern::urlpattern_result> urlpattern_exec(const upa::patter
 
 int main(int argc, const char* argv[])
 {
-    return wpt_urlpatterntests("wpt/urlpatterntestdata.json");
+    int err = 0;
+
+    err |= wpt_urlpattern_hasregexpgroups_tests();
+    err |= wpt_urlpatterntests("wpt/urlpatterntestdata.json");
+
+    return err;
 }
