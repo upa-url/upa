@@ -308,7 +308,7 @@ constexpr bool hostname_pattern_is_ipv6_address(pattern_string_view input) noexc
 // 1.2. The URLPattern class
 // https://urlpattern.spec.whatwg.org/#urlpattern-class
 
-using urlpattern_input = std::variant<std::string_view, const urlpattern_init*>;
+using urlpattern_input = std::variant<std::string_view, const urlpattern_init*, const upa::url*>;
 
 struct urlpattern_options {
     bool ignore_case = false;
@@ -320,6 +320,7 @@ struct urlpattern_component_result {
 };
 
 struct urlpattern_result {
+    // TODO: Optimize as max vector size here is 2 
     std::vector<urlpattern_input> inputs;
 
     urlpattern_component_result protocol;
@@ -345,10 +346,12 @@ public:
 
     bool test(const urlpattern_init& input) const;
     bool test(std::string_view input, std::optional<std::string_view> base_url_str = std::nullopt) const;
+    bool test(const upa::url& url) const;
 
     std::optional<urlpattern_result> exec(const urlpattern_init& input) const;
     std::optional<urlpattern_result> exec(std::string_view input,
         std::optional<std::string_view> base_url_str = std::nullopt) const;
+    std::optional<urlpattern_result> exec(const upa::url& url) const;
 
     // returns component's pattern_string_
     pattern_string_view get_protocol() const noexcept;
@@ -528,7 +531,10 @@ inline bool urlpattern::test(const urlpattern_init& input) const {
 }
 
 inline bool urlpattern::test(std::string_view input, std::optional<std::string_view> base_url_str) const {
-    upa::url url = parse_url_against_base(input, base_url_str);
+    return test(parse_url_against_base(input, base_url_str));
+}
+
+inline bool urlpattern::test(const upa::url& url) const {
     if (!url.is_valid())
         return false;
 
@@ -602,6 +608,24 @@ inline std::optional<urlpattern_result> urlpattern::exec(std::string_view input,
         // Append baseURLString to inputs
         inputs.push_back(*base_url_str);
     }
+
+    return match(std::move(inputs),
+        url.get_part_view(upa::url::SCHEME),
+        url.get_part_view(upa::url::USERNAME),
+        url.get_part_view(upa::url::PASSWORD),
+        url.get_part_view(upa::url::HOST),
+        url.get_part_view(upa::url::PORT),
+        url.get_part_view(upa::url::PATH),
+        url.get_part_view(upa::url::QUERY),
+        url.get_part_view(upa::url::FRAGMENT));
+}
+
+inline std::optional<urlpattern_result> urlpattern::exec(const upa::url& url) const {
+    if (!url.is_valid())
+        return std::nullopt;
+
+    // Append input to inputs
+    std::vector<urlpattern_input> inputs{ &url };
 
     return match(std::move(inputs),
         url.get_part_view(upa::url::SCHEME),
