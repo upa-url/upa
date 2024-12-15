@@ -282,6 +282,7 @@ struct component {
     pattern_string pattern_string_;
     std::regex regular_expression_;
     string_list group_name_list_;
+    bool has_regexp_groups_ = false;
 };
 
 // ....
@@ -353,6 +354,8 @@ public:
     pattern_string_view get_pathname() const noexcept;
     pattern_string_view get_search() const noexcept;
     pattern_string_view get_hash() const noexcept;
+    // Returns whether urlpattern contains one or more groups which uses regular expression matching
+    bool has_regexp_groups() const noexcept;
 
 private:
     bool match_for_test(
@@ -471,6 +474,19 @@ inline pattern_string_view urlpattern::get_search() const noexcept {
 }
 inline pattern_string_view urlpattern::get_hash() const noexcept {
     return hash_component_.pattern_string_;
+}
+
+bool urlpattern::has_regexp_groups() const noexcept {
+    // https://urlpattern.spec.whatwg.org/#url-pattern-has-regexp-groups
+    return
+        protocol_component_.has_regexp_groups_ ||
+        username_component_.has_regexp_groups_ ||
+        password_component_.has_regexp_groups_ ||
+        hostname_component_.has_regexp_groups_ ||
+        port_component_.has_regexp_groups_ ||
+        pathname_component_.has_regexp_groups_ ||
+        search_component_.has_regexp_groups_ ||
+        hash_component_.has_regexp_groups_;
 }
 
 // https://urlpattern.spec.whatwg.org/#dom-urlpattern-test
@@ -709,6 +725,10 @@ inline component::component(std::optional<std::string_view> input, encoding_call
 
     pattern_string_ = generate_pattern_string(pt_list, opt);
     group_name_list_ = std::move(name_list);
+    has_regexp_groups_ = std::any_of(pt_list.begin(), pt_list.end(),
+        [](const auto& pt) -> bool {
+            return pt.type_ == part::type::REGEXP;
+        });
 }
 
 inline bool protocol_component_matches_special_scheme(const component& protocol_component) {
