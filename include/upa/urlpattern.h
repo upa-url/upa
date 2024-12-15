@@ -2197,6 +2197,7 @@ inline urlpattern_init process_urlpattern_init(const urlpattern_init& init, urlp
 
 // https://urlpattern.spec.whatwg.org/#process-a-base-url-string
 inline std::string process_base_url_string(std::string_view input, urlpattern_init_type type) {
+    if (input.empty()) return {}; // MANO: optimization
     if (type != urlpattern_init_type::PATTERN)
         return std::string(input);
     return escape_pattern_string(input);
