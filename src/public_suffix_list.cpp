@@ -2,7 +2,9 @@
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-
+// Formal algorithm:
+// https://github.com/publicsuffix/list/wiki/Format#formal-algorithm
+//
 #include "upa/public_suffix_list.h"
 
 namespace upa {
@@ -13,6 +15,8 @@ namespace {
 class splitter {
 public:
     splitter(std::string_view domain);
+
+    bool contains_empty() const;
 
     void start();
     bool next(std::string& label);
@@ -54,6 +58,18 @@ inline splitter::splitter(std::string_view domain)
     label_ind_ = label_pos_.size();
 }
 
+inline bool splitter::contains_empty() const {
+    std::size_t label_end = domain_.length();
+    // label_pos_ has at least one element
+    for (std::size_t ind = label_pos_.size(); ; --ind) {
+        if (label_end - label_pos_[ind - 1] == 0)
+            return true;
+        if (ind == 1) break;
+        label_end = label_pos_[ind - 1] - 1; // skip '.'
+    }
+    return false;
+}
+
 inline void splitter::start() {
     label_end_ = domain_.length();
     label_ind_ = label_pos_.size();
@@ -77,14 +93,6 @@ inline bool splitter::next(std::string_view& label) {
         return true;
     }
     return false;
-}
-
-constexpr void trim_dots(std::string_view& sv) {
-    const auto* first = sv.data();
-    const auto* last = first + sv.length();
-    while (first != last && *first == '.') ++first;
-    while (first != last && *(last - 1) == '.') --last;
-    sv = std::string_view{ first, static_cast<std::size_t>(last - first) };
 }
 
 } // namespace
@@ -177,12 +185,13 @@ bool public_suffix_list::finalize(push_context& ctx) {
 
 
 std::string public_suffix_list::get_host_suffix(std::string_view hostname, bool reg_domain) const {
-    // Definitions. Empty labels are not permitted, meaning that leading
-    // and trailing dots are ignored.
-    trim_dots(hostname);
-
     // Split to labels
     splitter labels(hostname);
+
+    // Empty labels are not permitted, see:
+    // https://github.com/publicsuffix/list/wiki/Format#definitions
+    if (labels.contains_empty())
+        return {};
 
     const label_item* pli = &root_;
     std::uint8_t latest_code = 0;
