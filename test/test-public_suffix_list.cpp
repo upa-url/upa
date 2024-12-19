@@ -2,6 +2,7 @@
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
+#include "ddt/DataDrivenTest.hpp"
 #include "upa/public_suffix_list.h"
 
 #include <algorithm>
@@ -12,13 +13,14 @@
 
 int test_public_suffix_list(const upa::public_suffix_list& ps_list, const std::filesystem::path& filename) {
     // Open tests file
+    std::cout << "========== " << filename << " ==========\n";
     std::ifstream finp(filename, std::ios_base::in | std::ios_base::binary);
     if (!finp) {
         std::cerr << "Can not open: " << filename << '\n';
         return 1;
     }
 
-    int res = 0;
+    DataDrivenTest ddt;
 
     std::string line;
     while (std::getline(finp, line)) {
@@ -35,19 +37,16 @@ int test_public_suffix_list(const upa::public_suffix_list& ps_list, const std::f
         const std::string domain = line.substr(0, isep);
         const std::string expected = line.substr(isep + 1); // skip ' '
 
-        std::string output = ps_list.get_suffix(domain, true);
-        if (output.empty())
-            output = "null";
+        ddt.test_case(line, [&](DataDrivenTest::TestCase& tc) {
+            std::string output = ps_list.get_suffix(domain, true);
+            if (output.empty())
+                output = "null";
 
-        if (output == expected) {
-            std::cout << "OK: " << line << '\n';
-        } else {
-            std::cout << "FAIL: " << line << '\n';
-            std::cout << "  " << output << " != " << expected << '\n';
-            res = 1;
-        }
+            tc.assert_equal(expected, output, "get_suffix");
+        });
     }
-    return res;
+
+    return ddt.result();
 }
 
 int main() {
