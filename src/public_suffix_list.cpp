@@ -1,4 +1,4 @@
-// Copyright 2024 Rimas Misevičius
+// Copyright 2024-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -34,8 +34,8 @@ public:
     std::size_t size() const {
         return label_pos_.size();
     }
-    std::string get_str(std::size_t ind) const {
-        return std::string{ domain_.substr(label_pos_[ind]) };
+    std::size_t get_pos_by_index(std::size_t ind) const {
+        return label_pos_[ind];
     }
 
 private:
@@ -150,7 +150,6 @@ void public_suffix_list::push_line(push_context& ctx, std::string_view line) {
         insert(root_, line.substr(1), 1 | ctx.code_flags);
     else
         insert(root_, line, 2 | ctx.code_flags);
-
 }
 
 void public_suffix_list::push(push_context& ctx, std::string_view buff) {
@@ -184,7 +183,8 @@ bool public_suffix_list::finalize(push_context& ctx) {
 }
 
 
-std::string public_suffix_list::get_host_suffix(std::string_view hostname, bool reg_domain) const {
+public_suffix_list::result public_suffix_list::get_host_suffix_info(
+    std::string_view hostname, bool reg_domain) const {
     // Split to labels
     splitter labels(hostname);
 
@@ -223,9 +223,18 @@ std::string public_suffix_list::get_host_suffix(std::string_view hostname, bool 
     }
     if (latest_code) {
         const int ind_diff = static_cast<int>(latest_code & label_item::DIFF_MASK) - 2 + static_cast<int>(reg_domain);
-        if (ind_diff <= 0 || static_cast<std::size_t>(ind_diff) <= latest_ind)
-            return labels.get_str(latest_ind - ind_diff);
+        if (ind_diff <= 0 || static_cast<std::size_t>(ind_diff) <= latest_ind) {
+            const auto ind = latest_ind - ind_diff;
+            return { ind, labels.get_pos_by_index(ind) };
+        }
     }
+    return {};
+}
+
+std::string_view public_suffix_list::get_host_suffix_view(std::string_view hostname, bool reg_domain) const {
+    const auto res = get_host_suffix_info(hostname, reg_domain);
+    if (res)
+        return hostname.substr(res.first_label_pos);
     return {};
 }
 
