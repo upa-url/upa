@@ -1,4 +1,4 @@
-// Copyright 2024 Rimas Misevičius
+// Copyright 2024-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -16,6 +16,36 @@
 #include <utility>
 
 namespace upa {
+
+// get label position in hostname by it's index
+
+template <class StrT, enable_if_str_arg_t<StrT> = 0>
+constexpr std::size_t get_label_pos_by_index(StrT&& str_host, std::size_t index) {
+    const auto inp = make_str_arg(std::forward<StrT>(str_host));
+    const auto* first = inp.begin();
+    const auto* last = inp.end();
+    const auto* ptr = first;
+    for (; index > 0; --index) {
+        while (true) {
+            if (ptr == last)
+                return static_cast<std::size_t>(ptr - first);
+            const auto c = util::to_unsigned(*ptr);
+            if (c < 0x80) {
+                ++ptr; // advance to next char
+                if (c == '.')
+                    break;
+            } else {
+                const auto cp = url_utf::read_utf_char(ptr, last).value;
+                // These code points are mapped to '.' in the IDNA mapping table
+                if (cp == 0x3002 || cp == 0xFF0E || cp == 0xFF61)
+                    break;
+            }
+        }
+    }
+    return static_cast<std::size_t>(ptr - first);
+}
+
+// public_suffix_list class
 
 class public_suffix_list {
 public:
@@ -39,19 +69,44 @@ public:
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
     std::string get_suffix(StrT&& str_host, bool reg_domain) const {
         try {
-            return get_host_suffix(upa::url_host{ std::forward<StrT>(str_host) }.to_string(), reg_domain);
+            return std::string{ get_host_suffix_view(
+                upa::url_host{ std::forward<StrT>(str_host) }.to_string(),
+                reg_domain) };
         }
         catch (const upa::url_error&) {
             return {};
         }
     }
 
-    std::string get_suffix(const url& url, bool reg_domain) const {
-        return get_host_suffix(url.hostname(), reg_domain);
+    std::string_view get_suffix_view(const url& url, bool reg_domain) const {
+        return get_host_suffix_view(url.hostname(), reg_domain);
+    }
+
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    auto get_suffix_view(StrT&& str_host, bool reg_domain) const
+        -> std::basic_string_view<typename str_arg<str_arg_char_t<StrT>>::value_type> {
+        try {
+            const auto arg = make_str_arg(std::forward<StrT>(str_host));
+            const auto res = get_host_suffix_info(upa::url_host{ arg }.to_string(), reg_domain);
+            if (res) {
+                auto pos = get_label_pos_by_index(arg, res.first_label_ind);
+                return { arg.data() + pos, arg.size() - pos };
+            }
+        }
+        catch (const upa::url_error&) {}
+        return {};
     }
 
 private:
-    std::string get_host_suffix(std::string_view hostname, bool reg_domain) const;
+    struct result {
+        constexpr operator bool() const {
+            return first_label_ind != static_cast<std::size_t>(-1);
+        }
+        std::size_t first_label_ind = static_cast<std::size_t>(-1);
+        std::size_t first_label_pos = static_cast<std::size_t>(-1);
+    };
+    result get_host_suffix_info(std::string_view hostname, bool reg_domain) const;
+    std::string_view get_host_suffix_view(std::string_view hostname, bool reg_domain) const;
 
 private:
     struct label_item {

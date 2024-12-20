@@ -1,0 +1,6 @@
+// Unicode FULL STOP code points:
+// U+002E, U+3002, U+FF0E, U+FF61
+a.b.example.com example.com
+a。b。example。com example。com
+a．b．example．com example．com
+a｡b｡example｡com example｡com
