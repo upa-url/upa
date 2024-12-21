@@ -49,6 +49,19 @@ constexpr std::size_t get_label_pos_by_index(StrT&& str_host, std::size_t index)
 
 class public_suffix_list {
 public:
+    enum class option {
+        PUBLIC_SUFFIX = 0,
+        REGISTRABLE_DOMAIN = 1,
+        ALLOW_TRAILING_DOT = 2
+    };
+#ifdef __cpp_using_enum
+    using enum option; // C++20
+#else
+    static constexpr auto PUBLIC_SUFFIX = option::PUBLIC_SUFFIX;
+    static constexpr auto REGISTRABLE_DOMAIN = option::REGISTRABLE_DOMAIN;
+    static constexpr auto ALLOW_TRAILING_DOT = option::ALLOW_TRAILING_DOT;
+#endif
+
     // Load public suffix list from file
     bool load(const std::filesystem::path& filename) {
         std::ifstream finp(filename, std::ios_base::in | std::ios_base::binary);
@@ -67,30 +80,41 @@ public:
 
     // Get public suffix or registrable domain
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    std::string get_suffix(StrT&& str_host, bool reg_domain) const {
+    std::string get_suffix(StrT&& str_host, option opt) const {
         try {
-            return std::string{ get_host_suffix_view(
-                upa::url_host{ std::forward<StrT>(str_host) }.to_string(),
-                reg_domain) };
+            return std::string{ get_suffix_view(
+                upa::url_host{ std::forward<StrT>(str_host) },
+                opt) };
         }
         catch (const upa::url_error&) {
             return {};
         }
     }
 
-    std::string_view get_suffix_view(const url& url, bool reg_domain) const {
-        return get_host_suffix_view(url.hostname(), reg_domain);
+    std::string_view get_suffix_view(const url& url, option opt) const {
+        if (url.host_type() == HostType::Domain)
+            return get_host_suffix_view(url.hostname(), opt);
+        return {};
+    }
+
+    std::string_view get_suffix_view(const url_host& host, option opt) const {
+        if (host.type() == HostType::Domain)
+            return get_host_suffix_view(host.name(), opt);
+        return {};
     }
 
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    auto get_suffix_view(StrT&& str_host, bool reg_domain) const
+    auto get_suffix_view(StrT&& str_host, option opt) const
         -> std::basic_string_view<typename str_arg<str_arg_char_t<StrT>>::value_type> {
         try {
             const auto arg = make_str_arg(std::forward<StrT>(str_host));
-            const auto res = get_host_suffix_info(upa::url_host{ arg }.to_string(), reg_domain);
-            if (res) {
-                auto pos = get_label_pos_by_index(arg, res.first_label_ind);
-                return { arg.data() + pos, arg.size() - pos };
+            const upa::url_host host{ arg };
+            if (host.type() == HostType::Domain) {
+                const auto res = get_host_suffix_info(host.name(), opt);
+                if (res) {
+                    const auto pos = get_label_pos_by_index(arg, res.first_label_ind);
+                    return { arg.data() + pos, arg.size() - pos };
+                }
             }
         }
         catch (const upa::url_error&) {}
@@ -105,8 +129,14 @@ private:
         std::size_t first_label_ind = static_cast<std::size_t>(-1);
         std::size_t first_label_pos = static_cast<std::size_t>(-1);
     };
-    result get_host_suffix_info(std::string_view hostname, bool reg_domain) const;
-    std::string_view get_host_suffix_view(std::string_view hostname, bool reg_domain) const;
+    result get_host_suffix_info(std::string_view hostname, option opt) const;
+
+    std::string_view get_host_suffix_view(std::string_view hostname, option opt) const {
+        const auto res = get_host_suffix_info(hostname, opt);
+        if (res)
+            return hostname.substr(res.first_label_pos);
+        return {};
+    }
 
 private:
     struct label_item {
@@ -137,5 +167,10 @@ private:
 };
 
 } // namespace upa
+
+template<>
+struct enable_bitmask_operators<upa::public_suffix_list::option> {
+    static const bool enable = true;
+};
 
 #endif // UPA_PUBLIC_SUFFIX_LIST_H

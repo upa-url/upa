@@ -106,6 +106,13 @@ public:
         return type_;
     }
 
+    /// Hostname view
+    ///
+    /// @return serialized host as string_view
+    [[nodiscard]] string_view name() const {
+        return host_str_;
+    }
+
     /// Hostname stringifier
     ///
     /// @return host serialized to string

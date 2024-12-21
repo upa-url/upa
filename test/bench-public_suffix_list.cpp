@@ -1,4 +1,4 @@
-// Copyright 2024 Rimas Misevičius
+// Copyright 2024-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -46,7 +46,8 @@ int bench_psl_list(const std::filesystem::path& filename) {
     ankerl::nanobench::Bench().minEpochIterations(min_iters).run("public_suffix_list",
         [&] {
             for (const auto& str_domain : domain_list) {
-                std::string reg_domain = ps_list.get_suffix(str_domain, true);
+                std::string reg_domain = ps_list.get_suffix(str_domain,
+                    upa::public_suffix_list::REGISTRABLE_DOMAIN);
                 ankerl::nanobench::doNotOptimizeAway(reg_domain);
             }
         });
