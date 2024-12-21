@@ -1,0 +1,14 @@
+// Tests from example at https://url.spec.whatwg.org/#host-miscellaneous
+// Format: input SP expected suffix SP expected domain
+com com null
+example.com com example.com
+www.example.com com example.com
+sub.www.example.com com example.com
+EXAMPLE.COM com example.com
+example.com. com. example.com.
+github.io github.io null
+whatwg.github.io github.io whatwg.github.io
+إختبار xn--kgbechtv null
+example.إختبار xn--kgbechtv example.xn--kgbechtv
+sub.example.إختبار xn--kgbechtv example.xn--kgbechtv
+[2001:0db8:85a3:0000:0000:8a2e:0370:7334] null null
