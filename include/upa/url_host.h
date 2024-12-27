@@ -152,6 +152,49 @@ inline bool contains_forbidden_host_char(const CharT* first, const CharT* last) 
 } // namespace detail
 
 
+// IDNA
+// https://url.spec.whatwg.org/#idna
+
+/// @brief Implements the domain to Unicode algorithm
+///
+/// See: https://url.spec.whatwg.org/#concept-domain-to-unicode
+/// The domain to Unicode result is appended to the @a output, even if the
+/// function returns `false`.
+///
+/// @param[out] output string to store result
+/// @param[in]  input source domain string
+/// @param[in]  be_strict
+/// @param[in]  is_input_ascii
+/// @return `true` on success, or `false` on errors
+template <class CharT, class StrT, enable_if_str_arg_t<StrT> = 0>
+inline bool domain_to_unicode(std::basic_string<CharT>& output, StrT&& input,
+    bool be_strict = false, bool is_input_ascii = false)
+{
+    const auto inp = make_str_arg(std::forward<StrT>(input));
+    if constexpr (std::is_same_v<CharT, char32_t>) {
+        return idna::domain_to_unicode(output, inp.begin(), inp.end(), be_strict, is_input_ascii);
+    } else {
+        std::u32string domain;
+        const bool res = idna::domain_to_unicode(domain, inp.begin(), inp.end(), be_strict, is_input_ascii);
+        if constexpr (sizeof(CharT) == sizeof(char)) {
+            // char8_t, or char
+            for (auto cp : domain)
+                url_utf::append_utf8<std::basic_string<CharT>, detail::append_to_string>(cp, output);
+        } else if constexpr (sizeof(CharT) == sizeof(char16_t)) {
+            // char16_t, or wchar_t Windows
+            for (auto cp : domain)
+                url_utf::append_utf16(cp, output);
+        } else if constexpr (sizeof(CharT) == sizeof(char32_t)) {
+            // wchar_t non Windows
+            for (auto cp : domain)
+                output.push_back(static_cast<CharT>(cp));
+        } else {
+            static_assert(false, "unsupported output character type");
+        }
+        return res;
+    }
+}
+
 // The host parser
 // https://url.spec.whatwg.org/#concept-host-parser
 

@@ -247,28 +247,23 @@ TEST_SUITE("url_host") {
     }
 }
 
-#if 0
-
 // Test upa::domain_to_unicode function
 
-TEST_SUITE("domain_to_unicode") {
-    TEST_CASE("Valid input") {
-        upa::simple_buffer<char> output;
-        CHECK(upa::domain_to_unicode("abc", 3, output) == upa::validation_errc::ok);
-        CHECK(upa::string_view(output.data(), output.size()) == "abc");
+TEST_CASE_TEMPLATE_DEFINE("domain_to_unicode", CharT, test_domain_to_unicode) {
+    SUBCASE("Valid input") {
+        const std::basic_string<CharT> input{ 'a', 'b', 'c' };
+        std::basic_string<CharT> output;
+        CHECK(upa::domain_to_unicode(output, input));
+        CHECK(output == input);
     }
 
-    TEST_CASE("Valid long input") {
-        const std::string input = long_host();
-        upa::simple_buffer<char> output;
-        CHECK(upa::domain_to_unicode(input.data(), input.length(), output) == upa::validation_errc::ok);
-    }
-
-    TEST_CASE("Invalid input") {
-        upa::simple_buffer<char> output;
-        // IDNA errors are not failures for this function, so it returns `ok`
-        CHECK(upa::domain_to_unicode("xn--a.op", 8, output) == upa::validation_errc::ok);
+    SUBCASE("Invalid input") {
+        std::basic_string<CharT> output;
+        CHECK_FALSE(upa::domain_to_unicode(output, "xn--a.op"));
     }
 }
 
+TEST_CASE_TEMPLATE_INVOKE(test_domain_to_unicode, char, wchar_t, char16_t, char32_t);
+#ifdef __cpp_char8_t
+TEST_CASE_TEMPLATE_INVOKE(test_domain_to_unicode, char8_t);
 #endif

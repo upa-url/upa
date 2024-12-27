@@ -29,10 +29,8 @@ public:
     template <class Output, void appendByte(unsigned char, Output&)>
     static void append_utf8(uint32_t code_point, Output& output);
 
-/*** UNUSED ***
     template <class Output>
     static void append_utf16(uint32_t code_point, Output& output);
-***/
 
     // Convert to utf-8 string
     static std::string to_utf8_string(const char16_t* first, const char16_t* last);
@@ -99,8 +97,9 @@ constexpr detail::result_value<uint32_t> url_utf::read_utf_char(const CharT*& fi
 }
 
 namespace detail {
-    inline void append_to_string(uint8_t c, std::string& str) {
-        str.push_back(static_cast<char>(c));
+    template <typename CharT>
+    inline void append_to_string(uint8_t c, std::basic_string<CharT>& str) {
+        str.push_back(static_cast<CharT>(c));
     };
 } // namespace detail
 
@@ -257,7 +256,6 @@ inline void url_utf::append_utf8(uint32_t code_point, Output& output) {
     }
 }
 
-/*** UNUSED ***
 // Modified version of the U16_APPEND_UNSAFE macro in utf16.h from ICU
 //
 // It converts code_point to UTF-16 code units sequence and appends to output.
@@ -272,7 +270,6 @@ inline void url_utf::append_utf16(uint32_t code_point, Output& output) {
         output.push_back(static_cast<char16_t>((code_point & 0x3ff) | 0xdc00));
     }
 }
-***/
 
 
 } // namespace upa
