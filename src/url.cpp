@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -27,8 +27,21 @@ const uint8_t kPartStart[url::PART_COUNT] = {
 
 } // namespace detail
 
+// Gets start and end position of the specified URL part
 
-  // URL's part flag masks
+std::pair<std::size_t, std::size_t> url::get_part_pos(PartType t) const {
+    if (t == SCHEME)
+        return { 0, part_end_[SCHEME] };
+    const std::size_t e = part_end_[t];
+    if (e) {
+        std::size_t b = part_end_[t - 1];
+        if (b < e) b += detail::kPartStart[t];
+        return { b, e };
+    }
+    return { norm_url_.size(), norm_url_.size() };
+}
+
+// URL's part flag masks
 
 const unsigned url::kPartFlagMask[url::PART_COUNT] = {
     SCHEME_FLAG,
