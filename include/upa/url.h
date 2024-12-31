@@ -542,19 +542,38 @@ public:
     /// @return `true` if URL is valid, `false` otherwise
     [[nodiscard]] bool is_valid() const noexcept;
 
+    /// @brief Gets the start and end position of the specified URL part
+    ///
+    /// Returns the start and end position of the part (as defined in
+    /// https://url.spec.whatwg.org/#url-representation) in the string returned by the
+    /// `get_href()`, `href()` or `to_string()` functions.
+    ///
+    /// * `get_part_pos(upa::url::SCHEME)` - get a URL's **scheme** position
+    /// * `get_part_pos(upa::url::USERNAME)` - get a URL's **username** position
+    /// * `get_part_pos(upa::url::PASSWORD)` - get a URL's **password** position
+    /// * `get_part_pos(upa::url::HOST)` - get a URL's **host** position
+    /// * `get_part_pos(upa::url::PORT)` - get a URL's **port** position
+    /// * `get_part_pos(upa::url::PATH)` - get a URL's **path** position
+    /// * `get_part_pos(upa::url::QUERY)` - get a URL's **query** position
+    /// * `get_part_pos(upa::url::FRAGMENT)` - get a URL's **fragment** position
+    ///
+    /// @param[in] t URL's part
+    /// @return the start and end position of the specified URL part
+    [[nodiscard]] std::pair<std::size_t, std::size_t> get_part_pos(PartType t) const;
+
     /// @brief Gets URL's part (URL record member) as string
     ///
     /// Function to get ASCII string of any URL's part (URL record member) defined here:
     /// https://url.spec.whatwg.org/#url-representation
     ///
-    /// * `get_part_view(upa::url::SCHEME)` - get a URL’s **scheme** string
-    /// * `get_part_view(upa::url::USERNAME)` - get a URL’s **username** string
-    /// * `get_part_view(upa::url::PASSWORD)` - get a URL’s **password** string
-    /// * `get_part_view(upa::url::HOST)` - get a URL’s **host** serialized to string
-    /// * `get_part_view(upa::url::PORT)` - get a URL’s **port** serialized to string
-    /// * `get_part_view(upa::url::PATH)` - get a URL’s **path** serialized to string
-    /// * `get_part_view(upa::url::QUERY)` - get a URL’s **query** string
-    /// * `get_part_view(upa::url::FRAGMENT)` - get a URL’s **fragment** string
+    /// * `get_part_view(upa::url::SCHEME)` - get a URL's **scheme** string
+    /// * `get_part_view(upa::url::USERNAME)` - get a URL's **username** string
+    /// * `get_part_view(upa::url::PASSWORD)` - get a URL's **password** string
+    /// * `get_part_view(upa::url::HOST)` - get a URL's **host** serialized to string
+    /// * `get_part_view(upa::url::PORT)` - get a URL's **port** serialized to string
+    /// * `get_part_view(upa::url::PATH)` - get a URL's **path** serialized to string
+    /// * `get_part_view(upa::url::QUERY)` - get a URL's **query** string
+    /// * `get_part_view(upa::url::FRAGMENT)` - get a URL's **fragment** string
     ///
     /// @param[in] t URL's part
     /// @return URL's part string; it is empty if part is empty or null
