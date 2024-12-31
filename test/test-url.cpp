@@ -8,6 +8,20 @@
 #include "test-utils.h"
 #include <unordered_map>
 
+// Conversion to doctest String
+// https://github.com/doctest/doctest/blob/master/doc/markdown/stringification.md
+
+namespace doctest {
+    template <class T1, class T2>
+    struct StringMaker<std::pair<T1, T2>> {
+        static String convert(const std::pair<T1, T2>& value) {
+            std::stringstream strs;
+            strs << "(" << value.first << ", " << value.second << ")";
+            const auto str = strs.str();
+            return { str.data(), static_cast<String::size_type>(str.length()) };
+        }
+    };
+}
 
 template<class T>
 void discard(T&&) {}
@@ -461,6 +475,32 @@ TEST_CASE("url::has_opaque_path") {
 }
 
 // URL parts
+
+TEST_CASE("url::get_part_pos") {
+    upa::url url{ "s://u:p@h:1/?q#f" };
+
+    CHECK(url.get_part_pos(upa::url::SCHEME) == std::make_pair(std::size_t(0), std::size_t(1)));
+    CHECK(url.get_part_pos(upa::url::USERNAME) == std::make_pair(std::size_t(4), std::size_t(5)));
+    CHECK(url.get_part_pos(upa::url::PASSWORD) == std::make_pair(std::size_t(6), std::size_t(7)));
+    CHECK(url.get_part_pos(upa::url::HOST) == std::make_pair(std::size_t(8), std::size_t(9)));
+    CHECK(url.get_part_pos(upa::url::PORT) == std::make_pair(std::size_t(10), std::size_t(11)));
+    CHECK(url.get_part_pos(upa::url::PATH) == std::make_pair(std::size_t(11), std::size_t(12)));
+    CHECK(url.get_part_pos(upa::url::QUERY) == std::make_pair(std::size_t(13), std::size_t(14)));
+    CHECK(url.get_part_pos(upa::url::FRAGMENT) == std::make_pair(std::size_t(15), std::size_t(16)));
+
+    url.hash("");
+    CHECK(url.get_part_pos(upa::url::FRAGMENT) == std::make_pair(std::size_t(14), std::size_t(14)));
+
+    url.search("");
+    CHECK(url.get_part_pos(upa::url::QUERY) == std::make_pair(std::size_t(12), std::size_t(12)));
+    CHECK(url.get_part_pos(upa::url::FRAGMENT) == std::make_pair(std::size_t(12), std::size_t(12)));
+
+    url.parse("s://u:p@h:1");
+    CHECK(url.href() == "s://u:p@h:1");
+    CHECK(url.get_part_pos(upa::url::PATH) == std::make_pair(std::size_t(11), std::size_t(11)));
+    CHECK(url.get_part_pos(upa::url::QUERY) == std::make_pair(std::size_t(11), std::size_t(11)));
+    CHECK(url.get_part_pos(upa::url::FRAGMENT) == std::make_pair(std::size_t(11), std::size_t(11)));
+}
 
 TEST_CASE("url::is_empty and url::is_null") {
     upa::url url;
