@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -1209,20 +1209,22 @@ inline string_view url::pathname() const {
 }
 
 inline string_view url::search() const {
-    if (is_empty(QUERY))
-        return {};
-    // return with '?'
     const std::size_t b = part_end_[QUERY - 1];
     const std::size_t e = part_end_[QUERY];
+    // is empty?
+    if (b + 1 >= e)
+        return {};
+    // return with '?'
     return { norm_url_.data() + b, e - b };
 }
 
 inline string_view url::hash() const {
-    if (is_empty(FRAGMENT))
-        return {};
-    // return with '#'
     const std::size_t b = part_end_[FRAGMENT - 1];
     const std::size_t e = part_end_[FRAGMENT];
+    // is empty?
+    if (b + 1 >= e)
+        return {};
+    // return with '#'
     return { norm_url_.data() + b, e - b };
 }
 
