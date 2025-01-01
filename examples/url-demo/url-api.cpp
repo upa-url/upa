@@ -1,4 +1,4 @@
-// Copyright 2024 Rimas Misevičius
+// Copyright 2024-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -114,22 +114,22 @@ private:
 
 // Binding code
 EMSCRIPTEN_BINDINGS(url_api) {
-  class_<URL>("URL")
-    .constructor<std::string>()
-    .constructor<std::string, std::string>()
-    .property("href", &URL::get_href, &URL::set_href)
-    .property("origin", &URL::get_origin)
-    .property("protocol", &URL::get_protocol, &URL::set_protocol)
-    .property("username", &URL::get_username, &URL::set_username)
-    .property("password", &URL::get_password, &URL::set_password)
-    .property("host", &URL::get_host, &URL::set_host)
-    .property("hostname", &URL::get_hostname, &URL::set_hostname)
-    .property("port", &URL::get_port, &URL::set_port)
-    .property("path", &URL::get_path)
-    .property("pathname", &URL::get_pathname, &URL::set_pathname)
-    .property("search", &URL::get_search, &URL::set_search)
-    .property("hash", &URL::get_hash, &URL::set_hash)
-    // is valid?
-    .property("valid", &URL::valid)
-    .property("base_valid", &URL::base_valid);
+    class_<URL>("URL")
+        .constructor<std::string>()
+        .constructor<std::string, std::string>()
+        .property("href", &URL::get_href, &URL::set_href)
+        .property("origin", &URL::get_origin)
+        .property("protocol", &URL::get_protocol, &URL::set_protocol)
+        .property("username", &URL::get_username, &URL::set_username)
+        .property("password", &URL::get_password, &URL::set_password)
+        .property("host", &URL::get_host, &URL::set_host)
+        .property("hostname", &URL::get_hostname, &URL::set_hostname)
+        .property("port", &URL::get_port, &URL::set_port)
+        .property("path", &URL::get_path)
+        .property("pathname", &URL::get_pathname, &URL::set_pathname)
+        .property("search", &URL::get_search, &URL::set_search)
+        .property("hash", &URL::get_hash, &URL::set_hash)
+        // is valid?
+        .property("valid", &URL::valid)
+        .property("base_valid", &URL::base_valid);
 }
