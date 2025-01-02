@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 //
 #include "upa/url.h"
+#include "upa/public_suffix_list.h"
 
 #include <emscripten/bind.h>
 
@@ -111,6 +112,32 @@ private:
     bool m_base_valid;
 };
 
+class PSL {
+public:
+    PSL() = default;
+
+    void push(std::string buff) {
+        m_psl.push(m_ctx, buff);
+    }
+    bool finalize() {
+        const bool res = m_psl.finalize(m_ctx);
+        m_ctx.remaining.shrink_to_fit();
+        return res;
+    }
+
+    std::string public_suffix(std::string str_host) const {
+        return m_psl.get_suffix(str_host,
+            upa::public_suffix_list::ALLOW_TRAILING_DOT);
+    }
+    std::string registrable_domain(std::string str_host) const {
+        return m_psl.get_suffix(str_host,
+            upa::public_suffix_list::ALLOW_TRAILING_DOT |
+            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+    }
+private:
+    upa::public_suffix_list m_psl;
+    upa::public_suffix_list::push_context m_ctx;
+};
 
 // Binding code
 EMSCRIPTEN_BINDINGS(url_api) {
@@ -132,4 +159,11 @@ EMSCRIPTEN_BINDINGS(url_api) {
         // is valid?
         .property("valid", &URL::valid)
         .property("base_valid", &URL::base_valid);
+
+    class_<PSL>("PSL")
+        .constructor<>()
+        .function("push", &PSL::push)
+        .function("finalize", &PSL::finalize)
+        .function("public_suffix", &PSL::public_suffix)
+        .function("registrable_domain", &PSL::registrable_domain);
 }

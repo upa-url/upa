@@ -1,2 +1,4 @@
 # Ignore compiler output
 /www/url-api.*
+# Public Suffix List file
+/www/public_suffix_list.dat

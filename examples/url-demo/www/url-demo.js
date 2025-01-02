@@ -12,6 +12,8 @@ const component_list = [
   "origin"
 ];
 
+var public_suffix_list = null;
+
 function getUrl() {
   // construct URL
   const url = elemBase.value.length !== 0
@@ -36,6 +38,13 @@ function showResult(url) {
         elemComponent.textContent = url[component];
       }
     }
+    if (public_suffix_list) {
+      const trComponent = output.querySelector(".domain");
+      if (trComponent) {
+        trComponent.querySelector("td").textContent =
+          public_suffix_list.registrable_domain(url.hostname);
+      }
+    }
   } else {
     output.hidden = true;
     error.hidden = false;
@@ -53,6 +62,35 @@ function onSetterChange() {
   elemSetter.disabled = !elemUseSetter.checked;
   elemSetterInp.disabled = !elemUseSetter.checked;
   onInpChange();
+}
+
+async function onInit() {
+  onSetterChange();
+
+  // Download Public suffix list
+  const psl = new Module.PSL();
+  try {
+    const response = await fetch("public_suffix_list.dat");
+    const reader = response.body.getReader();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        if (psl.finalize())
+          public_suffix_list = psl;
+        else
+          psl.delete();
+        break;
+      }
+      psl.push(value);
+    }
+  } catch (error) {
+    psl.delete();
+  }
+  if (public_suffix_list) {
+    // show registrable domain row
+    document.querySelector("#url-output .domain").style.display = null;
+    onInpChange();
+  }
 }
 
 // Input elements
@@ -81,6 +119,6 @@ for (var component of component_list) {
 
 // Parse initial URL
 if (Module.URL)
-  onSetterChange();
+  onInit();
 else
-  Module['onRuntimeInitialized'] = onSetterChange;
+  Module["onRuntimeInitialized"] = onInit;
