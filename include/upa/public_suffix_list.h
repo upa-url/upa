@@ -62,6 +62,14 @@ public:
     static constexpr auto ALLOW_TRAILING_DOT = option::ALLOW_TRAILING_DOT;
 #endif
 
+    struct result {
+        constexpr operator bool() const {
+            return first_label_ind != static_cast<std::size_t>(-1);
+        }
+        std::size_t first_label_ind = static_cast<std::size_t>(-1);
+        std::size_t first_label_pos = static_cast<std::size_t>(-1);
+    };
+
     // Load public suffix list from file
     bool load(const std::filesystem::path& filename) {
         std::ifstream finp(filename, std::ios_base::in | std::ios_base::binary);
@@ -85,6 +93,30 @@ public:
             return std::string{ get_suffix_view(
                 upa::url_host{ std::forward<StrT>(str_host) },
                 opt) };
+        }
+        catch (const upa::url_error&) {
+            return {};
+        }
+    }
+
+    result get_suffix_info(const url& url, option opt) const {
+        if (url.host_type() == HostType::Domain)
+            return get_host_suffix_info(url.hostname(), opt);
+        return {};
+    }
+
+    result get_suffix_info(const url_host& host, option opt) const {
+        if (host.type() == HostType::Domain)
+            return get_host_suffix_info(host.name(), opt);
+        return {};
+    }
+
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    result get_suffix_info(StrT&& str_host, option opt) const {
+        try {
+            auto res = get_suffix_info(upa::url_host{ std::forward<StrT>(str_host) }, opt);
+            res.first_label_pos = get_label_pos_by_index(str_host, res.first_label_ind);
+            return res;
         }
         catch (const upa::url_error&) {
             return {};
@@ -122,13 +154,6 @@ public:
     }
 
 private:
-    struct result {
-        constexpr operator bool() const {
-            return first_label_ind != static_cast<std::size_t>(-1);
-        }
-        std::size_t first_label_ind = static_cast<std::size_t>(-1);
-        std::size_t first_label_pos = static_cast<std::size_t>(-1);
-    };
     result get_host_suffix_info(std::string_view hostname, option opt) const;
 
     std::string_view get_host_suffix_view(std::string_view hostname, option opt) const {
