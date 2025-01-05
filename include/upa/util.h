@@ -16,6 +16,11 @@
 
 namespace upa::util {
 
+// For use in static_assert, workaround before CWG2518/P2593R1
+
+template<class>
+constexpr bool false_v = false;
+
 // Integers
 
 // Some functions here use unsigned arithmetics with unsigned overflow intentionally.

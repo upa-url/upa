@@ -189,7 +189,7 @@ inline bool domain_to_unicode(std::basic_string<CharT>& output, StrT&& input,
             for (auto cp : domain)
                 output.push_back(static_cast<CharT>(cp));
         } else {
-            static_assert(false, "unsupported output character type");
+            static_assert(util::false_v<CharT>, "unsupported output character type");
         }
         return res;
     }
