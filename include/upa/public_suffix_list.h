@@ -48,6 +48,10 @@ constexpr std::size_t get_label_pos_by_index(StrT&& str_host, std::size_t index)
 // public_suffix_list class
 
 class public_suffix_list {
+    // label_item::code values
+    static constexpr std::uint8_t DIFF_MASK = 3;
+    static constexpr std::uint8_t IS_ICANN = 4;
+    static constexpr std::uint8_t IS_PRIVATE = 8;
 public:
     enum class option {
         PUBLIC_SUFFIX = 0,
@@ -63,11 +67,21 @@ public:
 #endif
 
     struct result {
-        constexpr operator bool() const {
+        constexpr operator bool() const noexcept {
             return first_label_ind != static_cast<std::size_t>(-1);
+        }
+        constexpr bool is_icann() const noexcept {
+            return (code_ & IS_ICANN) != 0;
+        }
+        constexpr bool is_private() const noexcept {
+            return (code_ & IS_PRIVATE) != 0;
+        }
+        constexpr bool wildcard_rule() const noexcept {
+            return (code_ & DIFF_MASK) == 3;
         }
         std::size_t first_label_ind = static_cast<std::size_t>(-1);
         std::size_t first_label_pos = static_cast<std::size_t>(-1);
+        std::uint8_t code_ = 0;
     };
 
     // Load public suffix list from file
@@ -182,10 +196,6 @@ private:
 
         std::uint8_t code = 0;
         std::unique_ptr<map_type> children;
-
-        static constexpr std::uint8_t DIFF_MASK = 3;
-        static constexpr std::uint8_t IS_ICANN = 4;
-        static constexpr std::uint8_t IS_PRIVATE = 8;
     };
 
     label_item root_;

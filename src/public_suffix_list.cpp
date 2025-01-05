@@ -132,11 +132,11 @@ void public_suffix_list::push_line(push_context& ctx, std::string_view line) {
     if (line.length() >= 2) {
         if (line[0] == '/' && line[1] == '/') {
             if (line == "// ===BEGIN ICANN DOMAINS===")
-                ctx.code_flags = label_item::IS_ICANN;
+                ctx.code_flags = IS_ICANN;
             else if (line == "// ===END ICANN DOMAINS===")
                 ctx.code_flags = 0;
             else if (line == "// ===BEGIN PRIVATE DOMAINS===")
-                ctx.code_flags = label_item::IS_PRIVATE;
+                ctx.code_flags = IS_PRIVATE;
             else if (line == "// ===END PRIVATE DOMAINS===")
                 ctx.code_flags = 0;
             return;
@@ -212,7 +212,7 @@ public_suffix_list::result public_suffix_list::get_host_suffix_info(
 #endif
             if (it != pli->children->end()) {
                 if (it->second.code && (
-                    (it->second.code & label_item::DIFF_MASK) != 3 || !labels.at_end())) {
+                    (it->second.code & DIFF_MASK) != 3 || !labels.at_end())) {
                     latest_code = it->second.code;
                     latest_ind = labels.index();
                 }
@@ -228,11 +228,11 @@ public_suffix_list::result public_suffix_list::get_host_suffix_info(
         break;
     }
     if (latest_code) {
-        const int ind_diff = static_cast<int>(latest_code & label_item::DIFF_MASK) - 2 +
+        const int ind_diff = static_cast<int>(latest_code & DIFF_MASK) - 2 +
             static_cast<int>(opt & REGISTRABLE_DOMAIN);
         if (ind_diff <= 0 || static_cast<std::size_t>(ind_diff) <= latest_ind) {
             const auto ind = latest_ind - ind_diff;
-            return { ind, labels.get_pos_by_index(ind) };
+            return { ind, labels.get_pos_by_index(ind), latest_code };
         }
     }
     return {};

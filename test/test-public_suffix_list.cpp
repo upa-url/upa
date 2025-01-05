@@ -133,6 +133,69 @@ TEST_SUITE("public_suffix_list::get_suffix") {
     }
 }
 
+TEST_SUITE("public_suffix_list::get_suffix_info") {
+    TEST_CASE("url with registrable domain") {
+        upa::url input{ "http://EXAMPLE.COM" };
+        const auto output = ps_list.get_suffix_info(input,
+            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+        INFO("input (url): ", input.href());
+        REQUIRE(static_cast<bool>(output));
+        CHECK(output.first_label_pos == 0);
+        CHECK(output.first_label_ind == 0);
+        CHECK(output.is_icann());
+        CHECK_FALSE(output.is_private());
+        CHECK_FALSE(output.wildcard_rule());
+    }
+    TEST_CASE("url with non-registrable domain") {
+        upa::url input{ "http://com" };
+        const auto output = ps_list.get_suffix_info(input,
+            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+        INFO("input (url): ", input.href());
+        REQUIRE_FALSE(static_cast<bool>(output));
+    }
+
+    TEST_CASE("url_host with registrable domain") {
+        upa::url_host input{ "upa-url.github.io" };
+        const auto output = ps_list.get_suffix_info(input,
+            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+        INFO("input (url_host): ", input.name());
+        REQUIRE(static_cast<bool>(output));
+        CHECK(output.first_label_pos == 0);
+        CHECK(output.first_label_ind == 0);
+        CHECK_FALSE(output.is_icann());
+        CHECK(output.is_private());
+        CHECK_FALSE(output.wildcard_rule());
+    }
+    TEST_CASE("url_host with non-registrable domain") {
+        upa::url_host input{ "github.io" };
+        const auto output = ps_list.get_suffix_info(input,
+            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+        INFO("input (url_host): ", input.name());
+        REQUIRE_FALSE(static_cast<bool>(output));
+    }
+
+    TEST_CASE("registrable domain") {
+        std::string input = "a.b.c.hosted.app";
+        const auto output = ps_list.get_suffix_info(input,
+            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+        INFO("input: ", input);
+        // Rule: *.hosted.app => registrable domain: b.c.hosted.app
+        REQUIRE(static_cast<bool>(output));
+        CHECK(output.first_label_pos == 2);
+        CHECK(output.first_label_ind == 1);
+        CHECK_FALSE(output.is_icann());
+        CHECK(output.is_private());
+        CHECK(output.wildcard_rule());
+    }
+    TEST_CASE("invalid domain") {
+        std::string input = "<>.com";
+        const auto output = ps_list.get_suffix_info(input,
+            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+        INFO("input: ", input);
+        REQUIRE_FALSE(static_cast<bool>(output));
+    }
+}
+
 TEST_SUITE("public_suffix_list::get_suffix_view") {
     TEST_CASE("url with registrable domain") {
         upa::url input{ "http://EXAMPLE.ORG" };
