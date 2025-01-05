@@ -1,15 +1,21 @@
-// Copyright 2024 Rimas Misevičius
+// Copyright 2024-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
 #include "ddt/DataDrivenTest.hpp"
 #include "upa/public_suffix_list.h"
 
+#define DOCTEST_CONFIG_IMPLEMENT
+#include "doctest/doctest.h"
+
 #include <algorithm>
 #include <iostream>
 #include <filesystem>
 #include <fstream>
 #include <string>
+
+// Global public suffix list
+upa::public_suffix_list ps_list;
 
 std::string ascii_lower(std::string_view inp) {
     std::string str;
@@ -18,7 +24,7 @@ std::string ascii_lower(std::string_view inp) {
     return str;
 }
 
-int test_public_suffix_list(const upa::public_suffix_list& ps_list, const std::filesystem::path& filename) {
+int test_public_suffix_list(const std::filesystem::path& filename) {
     // Open tests file
     std::cout << "========== " << filename << " ==========\n";
     std::ifstream finp(filename, std::ios_base::in);
@@ -58,7 +64,7 @@ int test_public_suffix_list(const upa::public_suffix_list& ps_list, const std::f
     return ddt.result();
 }
 
-int test_whatwg_public_suffix_list(const upa::public_suffix_list& ps_list, const std::filesystem::path& filename) {
+int test_whatwg_public_suffix_list(const std::filesystem::path& filename) {
     // Open tests file
     std::cout << "========== " << filename << " ==========\n";
     std::ifstream finp(filename, std::ios_base::in);
@@ -110,50 +116,65 @@ int test_whatwg_public_suffix_list(const upa::public_suffix_list& ps_list, const
     return ddt.result();
 }
 
-int test_public_suffix_list_functions(const upa::public_suffix_list& ps_list) {
-    DataDrivenTest ddt;
-
-    std::cout << "========== Test public_suffix_list functions ==========\n";
-
-    ddt.test_case("public_suffix_list::get_suffix", [&](DataDrivenTest::TestCase& tc) {
+TEST_SUITE("public_suffix_list::get_suffix") {
+    TEST_CASE("input with registrable domain") {
         std::string input = "example.com";
         std::string_view expected = input;
         std::string output = ps_list.get_suffix(input,
             upa::public_suffix_list::REGISTRABLE_DOMAIN);
-        tc.assert_equal(expected, output, "get_suffix(\"example.com\")");
-
-        input = "<>.com"; // invalid host
-        expected = "";
-        output = ps_list.get_suffix(input,
+        CHECK_MESSAGE(output == expected, "input: ", input);
+    }
+    TEST_CASE("input with invalid host") {
+        std::string input = "<>.com";
+        std::string_view expected = "";
+        std::string output = ps_list.get_suffix(input,
             upa::public_suffix_list::REGISTRABLE_DOMAIN);
-        tc.assert_equal(expected, output, "get_suffix(\"<>.com\")");
-    });
-
-    ddt.test_case("public_suffix_list::get_suffix_view", [&](DataDrivenTest::TestCase& tc) {
-        upa::url input{ "http://EXAMPLE.COM" };
-        std::string_view expected = "example.com";
-        std::string_view output = ps_list.get_suffix_view(input,
-            upa::public_suffix_list::REGISTRABLE_DOMAIN);
-        tc.assert_equal(expected, output, "get_suffix_view(url(\"http://EXAMPLE.COM\"))");
-    });
-
-    return ddt.result();
+        CHECK_MESSAGE(output == expected, "input: ", input);
+    }
 }
 
-int main() {
+TEST_SUITE("public_suffix_list::get_suffix_view") {
+    TEST_CASE("url with registrable domain") {
+        upa::url input{ "http://EXAMPLE.ORG" };
+        std::string_view expected = "example.org";
+        std::string_view output = ps_list.get_suffix_view(input,
+            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+        CHECK_MESSAGE(output == expected, "input (url): ", input.href());
+    }
+    TEST_CASE("url with non-registrable domain") {
+        upa::url input{ "http://org" };
+        std::string_view expected = "";
+        std::string_view output = ps_list.get_suffix_view(input,
+            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+        CHECK_MESSAGE(output == expected, "input (url): ", input.href());
+    }
+}
+
+int test_public_suffix_list_functions(int argc, char** argv) {
+    std::cout << "========== Test public_suffix_list functions ==========\n";
+
+    doctest::Context context;
+
+    // apply command line
+    context.applyCommandLine(argc, argv);
+
+    // run test cases
+    return context.run();
+}
+
+int main(int argc, char** argv) {
     const std::filesystem::path filename_psl{ "psl/public_suffix_list.dat" };
 
-    upa::public_suffix_list ps_list;
     if (!ps_list.load(filename_psl)) {
         std::cerr << "Can not open: " << filename_psl << '\n';
         return 1;
     }
 
     int err = 0;
-    err |= test_public_suffix_list(ps_list, "psl/tests.txt");
-    err |= test_public_suffix_list(ps_list, "data/my-psl-tests.txt");
-    err |= test_whatwg_public_suffix_list(ps_list, "data/whatwg-psl-tests.txt");
-    err |= test_public_suffix_list_functions(ps_list);
+    err |= test_public_suffix_list("psl/tests.txt");
+    err |= test_public_suffix_list("data/my-psl-tests.txt");
+    err |= test_whatwg_public_suffix_list("data/whatwg-psl-tests.txt");
+    err |= test_public_suffix_list_functions(argc, argv);
 
     return err;
 }
