@@ -107,14 +107,14 @@ constexpr std::size_t add_sizes(std::size_t size1, std::size_t size2, std::size_
     return size1 + size2;
 }
 
-template <class StrT>
-inline void append(std::string& dest, const StrT& src) {
+template <class CharT, class StrT>
+inline void append(std::basic_string<CharT>& dest, const StrT& src) {
 #ifdef _MSC_VER
-    if constexpr (!std::is_same_v<typename StrT::value_type, char>) {
+    if constexpr (!std::is_same_v<typename StrT::value_type, CharT>) {
         // the value_type of dest and src are different
         dest.reserve(add_sizes(dest.size(), src.size(), dest.max_size()));
         for (const auto c : src)
-            dest.push_back(static_cast<char>(c));
+            dest.push_back(static_cast<CharT>(c));
     } else
 #endif
     dest.append(src.begin(), src.end());

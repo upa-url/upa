@@ -177,17 +177,16 @@ inline bool domain_to_unicode(std::basic_string<CharT>& output, StrT&& input,
         std::u32string domain;
         const bool res = idna::domain_to_unicode(domain, inp.begin(), inp.end(), be_strict, is_input_ascii);
         if constexpr (sizeof(CharT) == sizeof(char)) {
-            // char8_t, or char
+            // CharT is char8_t, or char
             for (auto cp : domain)
                 url_utf::append_utf8<std::basic_string<CharT>, detail::append_to_string>(cp, output);
         } else if constexpr (sizeof(CharT) == sizeof(char16_t)) {
-            // char16_t, or wchar_t Windows
+            // CharT is char16_t, or wchar_t (Windows)
             for (auto cp : domain)
                 url_utf::append_utf16(cp, output);
         } else if constexpr (sizeof(CharT) == sizeof(char32_t)) {
-            // wchar_t non Windows
-            for (auto cp : domain)
-                output.push_back(static_cast<CharT>(cp));
+            // CharT is wchar_t (non Windows)
+            util::append(output, domain);
         } else {
             static_assert(util::false_v<CharT>, "unsupported output character type");
         }
