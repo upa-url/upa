@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -287,7 +287,7 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
     if (dest.need_save()) {
         // Return asciiDomain
         std::string& str_host = dest.hostStart();
-        util::append(str_host, buff_ascii);
+        str_host.append(buff_ascii);
         dest.hostDone(HostType::Domain);
     }
     return validation_errc::ok;

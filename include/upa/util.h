@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -102,28 +102,18 @@ constexpr std::size_t add_sizes(std::size_t size1, std::size_t size2, std::size_
     return size1 + size2;
 }
 
-#ifdef _MSC_VER
-// the value_type of dest and src are the same (char)
-template <class StrT,
-    std::enable_if_t<std::is_same_v<typename StrT::value_type, char>, int> = 0>
-inline void append(std::string& dest, const StrT& src) {
-    dest.append(src.begin(), src.end());
-}
-
-// the value_type of dest and src are different
-template <class StrT,
-    std::enable_if_t<!std::is_same_v<typename StrT::value_type, char>, int> = 0>
-inline void append(std::string& dest, const StrT& src) {
-    dest.reserve(add_sizes(dest.size(), src.size(), dest.max_size()));
-    for (const auto c : src)
-        dest.push_back(static_cast<char>(c));
-}
-#else
 template <class StrT>
 inline void append(std::string& dest, const StrT& src) {
+#ifdef _MSC_VER
+    if constexpr (!std::is_same_v<typename StrT::value_type, char>) {
+        // the value_type of dest and src are different
+        dest.reserve(add_sizes(dest.size(), src.size(), dest.max_size()));
+        for (const auto c : src)
+            dest.push_back(static_cast<char>(c));
+    } else
+#endif
     dest.append(src.begin(), src.end());
 }
-#endif
 
 template <class CharT, class UnaryOperation>
 inline void append_tr(std::string& dest, const CharT* first, const CharT* last, UnaryOperation unary_op) {

@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -601,6 +601,40 @@ TEST_CASE("Invalid UTF-32 in hostname") {
     CHECK_THROWS_AS(upa::url{ szUrl1 }, upa::url_error);
     CHECK_THROWS_AS(upa::url{ szUrl2 }, upa::url_error);
     CHECK_THROWS_AS(upa::url{ szUrl3 }, upa::url_error);
+}
+
+// UTF-16 URL input
+
+TEST_CASE("UTF-16 URL input") {
+    static const char16_t szUrl[] = u"ws://u:p@h:8080/pa/th?q#f";
+
+    upa::url url;
+    REQUIRE(upa::success(url.parse(szUrl)));
+    CHECK(url.protocol() == "ws:");
+    CHECK(url.username() == "u");
+    CHECK(url.password() == "p");
+    CHECK(url.hostname() == "h");
+    CHECK(url.port() == "8080");
+    CHECK(url.pathname() == "/pa/th");
+    CHECK(url.search() == "?q");
+    CHECK(url.hash() == "#f");
+}
+
+// UTF-32 URL input
+
+TEST_CASE("UTF-32 URL input") {
+    static const char32_t szUrl[] = U"ws://u:p@h:8080/pa/th?q#f";
+
+    upa::url url;
+    REQUIRE(upa::success(url.parse(szUrl)));
+    CHECK(url.protocol() == "ws:");
+    CHECK(url.username() == "u");
+    CHECK(url.password() == "p");
+    CHECK(url.hostname() == "h");
+    CHECK(url.port() == "8080");
+    CHECK(url.pathname() == "/pa/th");
+    CHECK(url.search() == "?q");
+    CHECK(url.hash() == "#f");
 }
 
 // URL utilities
