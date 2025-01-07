@@ -31,7 +31,7 @@ jobs:
         run: doc/download-theme.sh
       - uses: ssciwr/doxygen-install@v1
         with:
-          version: "1.12.0"
+          version: "1.13.1"
       - name: Run doxygen
         run: /usr/local/bin/doxygen
 
