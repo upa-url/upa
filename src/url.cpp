@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -29,13 +29,15 @@ const uint8_t kPartStart[url::PART_COUNT] = {
 
 // Gets start and end position of the specified URL part
 
-std::pair<std::size_t, std::size_t> url::get_part_pos(PartType t) const {
+std::pair<std::size_t, std::size_t> url::get_part_pos(PartType t, bool with_sep) const {
     if (t == SCHEME)
-        return { 0, part_end_[SCHEME] };
+        return { 0, part_end_[SCHEME] + static_cast<std::size_t>(with_sep &&
+            part_end_[SCHEME] != 0) };
     const std::size_t e = part_end_[t];
     if (e) {
         std::size_t b = part_end_[t - 1];
-        if (b < e) b += detail::kPartStart[t];
+        if (b < e && (!with_sep || t < QUERY || e - b == 1))
+            b += detail::kPartStart[t];
         return { b, e };
     }
     return { norm_url_.size(), norm_url_.size() };

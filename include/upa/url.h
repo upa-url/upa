@@ -557,9 +557,22 @@ public:
     /// * `get_part_pos(upa::url::QUERY)` - get a URL's **query** position
     /// * `get_part_pos(upa::url::FRAGMENT)` - get a URL's **fragment** position
     ///
+    /// If @a with_sep is `true`, then:
+    ///
+    /// * `get_part_pos(upa::url::SCHEME, true)` - gets position of URL's **scheme** along with `:`
+    ///   (corresponds to the return value of `protocol()`)
+    /// * `get_part_pos(upa::url::QUERY, true)` - gets position of URL's **query** along with `?`
+    ///   (corresponds to the return value of `search()`)
+    /// * `get_part_pos(upa::url::FRAGMENT, true)` - gets position of URL's **fragment** along
+    ///   with `#` (corresponds to the return value of `hash()`)
+    ///
+    /// For other @a t values, the @a with_sep has no effect.
+    ///
     /// @param[in] t URL's part
+    /// @param[in] with_sep
     /// @return the start and end position of the specified URL part
-    [[nodiscard]] std::pair<std::size_t, std::size_t> get_part_pos(PartType t) const;
+    [[nodiscard]] std::pair<std::size_t, std::size_t> get_part_pos(PartType t,
+        bool with_sep = false) const;
 
     /// @brief Gets URL's part (URL record member) as string
     ///

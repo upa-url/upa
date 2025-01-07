@@ -480,26 +480,47 @@ TEST_CASE("url::get_part_pos") {
     upa::url url{ "s://u:p@h:1/?q#f" };
 
     CHECK(url.get_part_pos(upa::url::SCHEME) == std::make_pair(std::size_t(0), std::size_t(1)));
+    CHECK(url.get_part_pos(upa::url::SCHEME, true) == std::make_pair(std::size_t(0), std::size_t(2)));
     CHECK(url.get_part_pos(upa::url::USERNAME) == std::make_pair(std::size_t(4), std::size_t(5)));
+    CHECK(url.get_part_pos(upa::url::USERNAME, true) == std::make_pair(std::size_t(4), std::size_t(5)));
     CHECK(url.get_part_pos(upa::url::PASSWORD) == std::make_pair(std::size_t(6), std::size_t(7)));
+    CHECK(url.get_part_pos(upa::url::PASSWORD, true) == std::make_pair(std::size_t(6), std::size_t(7)));
     CHECK(url.get_part_pos(upa::url::HOST) == std::make_pair(std::size_t(8), std::size_t(9)));
+    CHECK(url.get_part_pos(upa::url::HOST, true) == std::make_pair(std::size_t(8), std::size_t(9)));
     CHECK(url.get_part_pos(upa::url::PORT) == std::make_pair(std::size_t(10), std::size_t(11)));
+    CHECK(url.get_part_pos(upa::url::PORT, true) == std::make_pair(std::size_t(10), std::size_t(11)));
     CHECK(url.get_part_pos(upa::url::PATH) == std::make_pair(std::size_t(11), std::size_t(12)));
+    CHECK(url.get_part_pos(upa::url::PATH, true) == std::make_pair(std::size_t(11), std::size_t(12)));
     CHECK(url.get_part_pos(upa::url::QUERY) == std::make_pair(std::size_t(13), std::size_t(14)));
+    CHECK(url.get_part_pos(upa::url::QUERY, true) == std::make_pair(std::size_t(12), std::size_t(14)));
     CHECK(url.get_part_pos(upa::url::FRAGMENT) == std::make_pair(std::size_t(15), std::size_t(16)));
+    CHECK(url.get_part_pos(upa::url::FRAGMENT, true) == std::make_pair(std::size_t(14), std::size_t(16)));
 
     url.hash("");
     CHECK(url.get_part_pos(upa::url::FRAGMENT) == std::make_pair(std::size_t(14), std::size_t(14)));
+    CHECK(url.get_part_pos(upa::url::FRAGMENT, true) == std::make_pair(std::size_t(14), std::size_t(14)));
 
     url.search("");
     CHECK(url.get_part_pos(upa::url::QUERY) == std::make_pair(std::size_t(12), std::size_t(12)));
+    CHECK(url.get_part_pos(upa::url::QUERY, true) == std::make_pair(std::size_t(12), std::size_t(12)));
     CHECK(url.get_part_pos(upa::url::FRAGMENT) == std::make_pair(std::size_t(12), std::size_t(12)));
+    CHECK(url.get_part_pos(upa::url::FRAGMENT, true) == std::make_pair(std::size_t(12), std::size_t(12)));
 
     url.parse("s://u:p@h:1");
     CHECK(url.href() == "s://u:p@h:1");
     CHECK(url.get_part_pos(upa::url::PATH) == std::make_pair(std::size_t(11), std::size_t(11)));
+    CHECK(url.get_part_pos(upa::url::PATH, true) == std::make_pair(std::size_t(11), std::size_t(11)));
     CHECK(url.get_part_pos(upa::url::QUERY) == std::make_pair(std::size_t(11), std::size_t(11)));
+    CHECK(url.get_part_pos(upa::url::QUERY, true) == std::make_pair(std::size_t(11), std::size_t(11)));
     CHECK(url.get_part_pos(upa::url::FRAGMENT) == std::make_pair(std::size_t(11), std::size_t(11)));
+    CHECK(url.get_part_pos(upa::url::FRAGMENT, true) == std::make_pair(std::size_t(11), std::size_t(11)));
+
+    // empty query and fragment
+    url.parse("s://h/?#");
+    CHECK(url.get_part_pos(upa::url::QUERY) == std::make_pair(std::size_t(7), std::size_t(7)));
+    CHECK(url.get_part_pos(upa::url::QUERY, true) == std::make_pair(std::size_t(7), std::size_t(7)));
+    CHECK(url.get_part_pos(upa::url::FRAGMENT) == std::make_pair(std::size_t(8), std::size_t(8)));
+    CHECK(url.get_part_pos(upa::url::FRAGMENT, true) == std::make_pair(std::size_t(8), std::size_t(8)));
 }
 
 TEST_CASE("url::is_empty and url::is_null") {
