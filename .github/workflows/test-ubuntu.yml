@@ -53,7 +53,7 @@ jobs:
             install: "qt6-base-dev"
 
           - name: g++ C++17 Codecov
-            os: ubuntu-latest
+            os: ubuntu-22.04
             cxx_compiler: g++
             cxx_standard: 17
             cmake_options: "-DUPA_TEST_COVERAGE=ON"
