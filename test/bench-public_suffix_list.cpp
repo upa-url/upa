@@ -14,10 +14,11 @@
 #include <string>
 #include <vector>
 
-int bench_psl_list(const std::filesystem::path& filename) {
+int bench_psl_list(const std::filesystem::path& path, const std::filesystem::path& filename) {
     constexpr uint64_t min_iters = 128;
     std::vector<std::string> domain_list;
 
+    std::cout << "Load domains from: " << filename << '\n';
     std::ifstream finp(filename, std::ios_base::in | std::ios_base::binary);
     if (!finp) {
         std::cerr << "Can not open: " << filename << '\n';
@@ -35,7 +36,7 @@ int bench_psl_list(const std::filesystem::path& filename) {
         domain_list.push_back(line.substr(0, isep));
     }
 
-    const std::filesystem::path filename_psl{ "psl/public_suffix_list.dat" };
+    const std::filesystem::path filename_psl{ path / "public_suffix_list.dat" };
 
     upa::public_suffix_list ps_list;
     if (!ps_list.load(filename_psl)) {
@@ -55,6 +56,20 @@ int bench_psl_list(const std::filesystem::path& filename) {
     return 0;
 }
 
-int main() {
-    return bench_psl_list("psl/tests.txt");
+int main(int argc, const char* argv[])
+{
+    if (argc < 2 || argc > 3) {
+        std::cerr <<
+            "Usage: bench-public_suffix_list"
+            " <directory of public_suffix_list.dat>"
+            " [<file containing domains>]\n";
+        return 1;
+    }
+
+    const std::filesystem::path path = argv[1];
+    const std::filesystem::path filename = argc > 2
+        ? std::filesystem::path{ argv[2] }
+        : path / "tests.txt";
+
+    return bench_psl_list(path, filename);
 }

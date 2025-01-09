@@ -19,7 +19,7 @@ jobs:
             cxx_standard: 17
             cmake_options: "-DUPA_BUILD_BENCH=ON"
             after_test: |
-              build/bench-public_suffix_list
+              build/bench-public_suffix_list test/psl
               build/bench-url test/wpt/urltestdata.json
 
     steps:
