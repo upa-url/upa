@@ -39,7 +39,7 @@ public:
     }
 
 private:
-    const std::string_view domain_;
+    std::string_view domain_;
     std::vector<std::size_t> label_pos_;
 
     std::size_t label_end_ = 0;
@@ -53,7 +53,7 @@ inline splitter::splitter(std::string_view domain)
     label_pos_.reserve(16);
     label_pos_.push_back(0);
     std::size_t pos = 0;
-    while ((pos = domain_.find('.', pos)) != std::string::npos)
+    while ((pos = domain_.find('.', pos)) != std::string_view::npos)
         label_pos_.push_back(++pos); // skip '.' and add pos
     label_ind_ = label_pos_.size();
 }
@@ -111,7 +111,7 @@ bool public_suffix_list::load(std::istream& input_stream) {
 void public_suffix_list::push_line(push_context& ctx, std::string_view line) {
     static constexpr auto insert = [](label_item& root, std::string_view input, std::uint8_t code) {
         // TODO: maybe only to Punycode
-        std::string domain = upa::url_host{ input }.to_string();
+        const std::string domain = upa::url_host{ input }.to_string();
 
         splitter labels(domain);
         label_item* pli = &root;
@@ -133,11 +133,10 @@ void public_suffix_list::push_line(push_context& ctx, std::string_view line) {
         if (line[0] == '/' && line[1] == '/') {
             if (line == "// ===BEGIN ICANN DOMAINS===")
                 ctx.code_flags = IS_ICANN;
-            else if (line == "// ===END ICANN DOMAINS===")
-                ctx.code_flags = 0;
             else if (line == "// ===BEGIN PRIVATE DOMAINS===")
                 ctx.code_flags = IS_PRIVATE;
-            else if (line == "// ===END PRIVATE DOMAINS===")
+            else if (line == "// ===END ICANN DOMAINS===" ||
+                     line == "// ===END PRIVATE DOMAINS===")
                 ctx.code_flags = 0;
             return;
         }
@@ -155,17 +154,17 @@ void public_suffix_list::push_line(push_context& ctx, std::string_view line) {
 void public_suffix_list::push(push_context& ctx, std::string_view buff) {
     std::size_t sol = 0;
     if (!ctx.remaining.empty()) {
-        auto eol = buff.find('\n', 0);
+        const auto eol = buff.find('\n', 0);
         ctx.remaining += buff.substr(0, eol);
-        if (eol == buff.npos)
+        if (eol == std::string_view::npos)
             return;
         push_line(ctx, ctx.remaining);
         ctx.remaining.clear();
         sol = eol + 1; // skip '\n'
     }
     while (sol < buff.size()) {
-        auto eol = buff.find('\n', sol);
-        if (eol == buff.npos) {
+        const auto eol = buff.find('\n', sol);
+        if (eol == std::string_view::npos) {
             ctx.remaining = buff.substr(sol);
             return;
         }
