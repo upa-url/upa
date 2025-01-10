@@ -213,6 +213,33 @@ TEST_SUITE("public_suffix_list::get_suffix_view") {
     }
 }
 
+TEST_SUITE("public_suffix_list push interface") {
+    TEST_CASE("public_suffix_list::push") {
+        const std::filesystem::path filename{ "psl/public_suffix_list.dat" };
+        std::ifstream finp(filename, std::ios_base::in | std::ios_base::binary);
+        REQUIRE(finp);
+
+        upa::public_suffix_list psl;
+        upa::public_suffix_list::push_context ctx;
+        char buffer[64];
+        while (finp) {
+            finp.read(buffer, sizeof(buffer));
+            psl.push(ctx, { buffer, static_cast<std::size_t>(finp.gcount()) });
+        }
+        REQUIRE(psl.finalize(ctx));
+
+        CHECK(psl == ps_list);
+    }
+    TEST_CASE("public_suffix_list::finalize") {
+        upa::public_suffix_list psl;
+        upa::public_suffix_list::push_context ctx;
+        // Push text without EOL
+        psl.push(ctx, "github.io");
+        CHECK(psl.finalize(ctx));
+        CHECK(psl.get_suffix("upa-url.github.io") == "github.io");
+    }
+}
+
 int test_public_suffix_list_functions(int argc, char** argv) {
     std::cout << "========== Test public_suffix_list functions ==========\n";
 
