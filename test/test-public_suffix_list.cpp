@@ -116,6 +116,10 @@ int test_whatwg_public_suffix_list(const std::filesystem::path& filename) {
     return ddt.result();
 }
 
+TEST_CASE("get_label_pos_by_index") {
+    CHECK(upa::get_label_pos_by_index("b.a", 2) == 3);
+}
+
 TEST_SUITE("public_suffix_list::get_suffix") {
     TEST_CASE("input with registrable domain") {
         std::string input = "example.com";
@@ -151,7 +155,13 @@ TEST_SUITE("public_suffix_list::get_suffix_info") {
         const auto output = ps_list.get_suffix_info(input,
             upa::public_suffix_list::REGISTRABLE_DOMAIN);
         INFO("input (url): ", input.href());
-        REQUIRE_FALSE(static_cast<bool>(output));
+        CHECK_FALSE(static_cast<bool>(output));
+    }
+    TEST_CASE("url with IPv4 address") {
+        upa::url input{ "http://127.0.0.1" };
+        const auto output = ps_list.get_suffix_info(input);
+        INFO("input (url): ", input.href());
+        CHECK_FALSE(static_cast<bool>(output));
     }
 
     TEST_CASE("url_host with registrable domain") {
@@ -171,7 +181,13 @@ TEST_SUITE("public_suffix_list::get_suffix_info") {
         const auto output = ps_list.get_suffix_info(input,
             upa::public_suffix_list::REGISTRABLE_DOMAIN);
         INFO("input (url_host): ", input.name());
-        REQUIRE_FALSE(static_cast<bool>(output));
+        CHECK_FALSE(static_cast<bool>(output));
+    }
+    TEST_CASE("url_host with IPv4 address") {
+        upa::url_host input{ "127.0.0.1" };
+        const auto output = ps_list.get_suffix_info(input);
+        INFO("input (url_host): ", input.name());
+        CHECK_FALSE(static_cast<bool>(output));
     }
 
     TEST_CASE("registrable domain") {
@@ -211,6 +227,17 @@ TEST_SUITE("public_suffix_list::get_suffix_view") {
             upa::public_suffix_list::REGISTRABLE_DOMAIN);
         CHECK_MESSAGE(output == expected, "input (url): ", input.href());
     }
+    TEST_CASE("url with IPv6 address") {
+        upa::url input{ "http://[::1]" };
+        const auto output = ps_list.get_suffix_view(input);
+        CHECK_MESSAGE(output.empty(), "input (url): ", input.href());
+    }
+
+    TEST_CASE("invalid domain") {
+        std::string input = "<>.com";
+        const auto output = ps_list.get_suffix_view(input);
+        CHECK_MESSAGE(output.empty(), "input: ", input);
+    }
 }
 
 TEST_SUITE("public_suffix_list push interface") {
@@ -233,6 +260,8 @@ TEST_SUITE("public_suffix_list push interface") {
     TEST_CASE("public_suffix_list::finalize") {
         upa::public_suffix_list psl;
         upa::public_suffix_list::push_context ctx;
+        // Since PSL is empty, the "*" rule applies
+        CHECK(psl.get_suffix("upa-url.github.io") == "io");
         // Push text without EOL
         psl.push(ctx, "github.io");
         CHECK(psl.finalize(ctx));
