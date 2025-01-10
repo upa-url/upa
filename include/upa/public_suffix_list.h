@@ -102,7 +102,7 @@ public:
 
     // Get public suffix or registrable domain
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    std::string get_suffix(StrT&& str_host, option opt) const {
+    std::string get_suffix(StrT&& str_host, option opt = PUBLIC_SUFFIX) const {
         try {
             return std::string{ get_suffix_view(
                 upa::url_host{ std::forward<StrT>(str_host) },
@@ -113,20 +113,20 @@ public:
         }
     }
 
-    result get_suffix_info(const url& url, option opt) const {
+    result get_suffix_info(const url& url, option opt = PUBLIC_SUFFIX) const {
         if (url.host_type() == HostType::Domain)
             return get_host_suffix_info(url.hostname(), opt);
         return {};
     }
 
-    result get_suffix_info(const url_host& host, option opt) const {
+    result get_suffix_info(const url_host& host, option opt = PUBLIC_SUFFIX) const {
         if (host.type() == HostType::Domain)
             return get_host_suffix_info(host.name(), opt);
         return {};
     }
 
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    result get_suffix_info(StrT&& str_host, option opt) const {
+    result get_suffix_info(StrT&& str_host, option opt = PUBLIC_SUFFIX) const {
         try {
             auto res = get_suffix_info(upa::url_host{ std::forward<StrT>(str_host) }, opt);
             res.first_label_pos = get_label_pos_by_index(str_host, res.first_label_ind);
@@ -137,20 +137,20 @@ public:
         }
     }
 
-    std::string_view get_suffix_view(const url& url, option opt) const {
+    std::string_view get_suffix_view(const url& url, option opt = PUBLIC_SUFFIX) const {
         if (url.host_type() == HostType::Domain)
             return get_host_suffix_view(url.hostname(), opt);
         return {};
     }
 
-    std::string_view get_suffix_view(const url_host& host, option opt) const {
+    std::string_view get_suffix_view(const url_host& host, option opt = PUBLIC_SUFFIX) const {
         if (host.type() == HostType::Domain)
             return get_host_suffix_view(host.name(), opt);
         return {};
     }
 
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    auto get_suffix_view(StrT&& str_host, option opt) const
+    auto get_suffix_view(StrT&& str_host, option opt = PUBLIC_SUFFIX) const
         -> std::basic_string_view<typename str_arg<str_arg_char_t<StrT>>::value_type> {
         try {
             const auto arg = make_str_arg(std::forward<StrT>(str_host));
@@ -165,6 +165,10 @@ public:
         }
         catch (const upa::url_error&) {}
         return {};
+    }
+
+    bool operator==(const public_suffix_list& b) const {
+        return root_ == b.root_;
     }
 
 private:
@@ -196,6 +200,12 @@ private:
 
         std::uint8_t code = 0;
         std::unique_ptr<map_type> children;
+
+        bool operator==(const label_item& b) const {
+            return code == b.code && (
+                (!children && !b.children) ||
+                (children && b.children && *children == *b.children));
+        }
     };
 
     label_item root_;
