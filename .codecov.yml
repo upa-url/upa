@@ -10,6 +10,9 @@ ignore:
 
 coverage:
   status:
+    patch:
+      default:
+        target: 95%
     project:
       default:
         threshold: 0.5%
