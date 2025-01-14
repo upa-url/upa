@@ -996,6 +996,7 @@ INPUT                  = include/upa/url.h \
                          include/upa/url_result.h \
                          include/upa/url_search_params.h \
                          include/upa/url_percent_encode.h \
+                         include/upa/public_suffix_list.h \
                          README.md \
                          doc/string_input.md
 
