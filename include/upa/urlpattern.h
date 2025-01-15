@@ -2217,9 +2217,8 @@ inline urlpattern_init process_urlpattern_init(const urlpattern_init& init, urlp
 
         // If the following are all true:
         //  * baseURL is not null;
-        //  * baseURL has an opaque path; and
+        //  * baseURL does not have an opaque path; and
         //  * the result of running is an absolute pathname given result["pathname"] and type is false,
-        // SPEC-BUG must be: baseURL has an opaque path is false; and
         if (base_url && !base_url->has_opaque_path() &&
             !is_absolute_pathname(result_pathname, type))
         {
