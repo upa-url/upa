@@ -1413,7 +1413,7 @@ inline void url::swap(url& other) UPA_NOEXCEPT_17 {
 // Parser
 
 // Implements "basic URL parser" https://url.spec.whatwg.org/#concept-basic-url-parser
-// without encoding, url and state override arguments. It resets this url object to
+// without encoding, url and state override parameters. It resets this url object to
 // an empty value and then parses the input and modifies this url object.
 // Returns validation_errc::ok on success, or an error value on parsing failure.
 template <typename CharT>

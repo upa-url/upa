@@ -235,7 +235,7 @@ public:
     /// It updates connected URL only if something is removed.
     ///
     /// @param[in] p unary predicate which returns value of `bool` type and has
-    ///   `const value_type&` argument
+    ///   `const value_type&` parameter
     /// @return the number of pairs removed
     template <class UnaryPredicate>
     size_type remove_if(UnaryPredicate p);
