@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -13,6 +13,7 @@
 #include <cassert>
 #include <list>
 #include <memory>
+#include <ostream>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -373,6 +374,7 @@ private:
 
     friend class url;
     friend class detail::url_search_params_ptr;
+    friend std::ostream& operator<<(std::ostream& os, const url_search_params& usp);
 
 private:
     name_value_list params_;
@@ -766,6 +768,16 @@ inline std::string url_search_params::to_string() const {
 }
 
 // Non-member functions
+
+/// @brief Performs stream output on URL search parameters
+///
+/// Outputs URL search parameters serialized to application/x-www-form-urlencoded
+///
+/// @param[in] os the output stream to write to
+/// @param[in] usp the url_search_params object to serialize and output
+/// @return a reference to the output stream
+/// @see https://url.spec.whatwg.org/#urlencoded-serializing
+std::ostream& operator<<(std::ostream& os, const url_search_params& usp);
 
 /// @brief Swaps the contents of two url_search_params
 ///

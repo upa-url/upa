@@ -6,6 +6,7 @@
 #include "upa/url.h"
 #include "doctest-main.h"
 #include "test-utils.h"
+#include <sstream>
 #include <unordered_map>
 
 // Conversion to doctest String
@@ -874,4 +875,14 @@ TEST_CASE("std::hash<upa::url> and operator==") {
 
     CHECK(upa::url{ "about:blank" } == upa::url{ "about:blank" });
     CHECK_FALSE(upa::url{ "about:blank" } == upa::url{ "https://example.org/" });
+}
+
+// Test operator<<
+
+TEST_CASE("url operator<<") {
+    const auto input = "http://upa-url.github.io/docs";
+
+    std::ostringstream sout;
+    sout << upa::url{ input };
+    CHECK(sout.str() == input);
 }

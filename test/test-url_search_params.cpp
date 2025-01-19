@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -7,6 +7,7 @@
 #include "doctest-main.h"
 #include "test-utils.h"
 #include <map>
+#include <sstream>
 
 #if defined(__has_include)
 
@@ -494,4 +495,23 @@ TEST_CASE("url::search_params() and url::clear()") {
     CHECK(url.empty());
     CHECK(params.empty());
     CHECK(params.size() == 0);
+}
+
+// Test operator<<
+
+TEST_CASE("url_search_params operator<<") {
+    const auto input = "a=b&c=d";
+
+    SUBCASE("url_search_params") {
+        std::ostringstream sout;
+        sout << upa::url_search_params{ input };
+        CHECK(sout.str() == input);
+    }
+    SUBCASE("url::search_params()") {
+        upa::url u{ "http://example.com/" };
+        u.search(input);
+        std::ostringstream sout;
+        sout << u.search_params();
+        CHECK(sout.str() == input);
+    }
 }

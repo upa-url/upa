@@ -33,6 +33,7 @@
 #include <cstdint> // uint8_t
 #include <functional> // std::hash
 #include <iterator>
+#include <ostream>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -719,6 +720,7 @@ private:
     detail::url_search_params_ptr search_params_ptr_;
 
     friend bool operator==(const url& lhs, const url& rhs) noexcept;
+    friend std::ostream& operator<<(std::ostream& os, const url& url);
     friend struct std::hash<url>;
     friend class detail::url_serializer;
     friend class detail::url_setter;
@@ -3111,6 +3113,18 @@ inline bool equals(const url& lhs, const url& rhs, bool exclude_fragments = fals
 /// @brief Lexicographically compares two URL's
 inline bool operator==(const url& lhs, const url& rhs) noexcept {
     return lhs.norm_url_ == rhs.norm_url_;
+}
+
+/// @brief Performs stream output on URL
+///
+/// Outputs URL serialized to ASCII string
+///
+/// @param[in] os the output stream to write to
+/// @param[in] url the @ref url object to serialize and output
+/// @return a reference to the output stream
+/// @see https://url.spec.whatwg.org/#url-serializing
+inline std::ostream& operator<<(std::ostream& os, const url& url) {
+    return os << url.norm_url_;
 }
 
 /// @brief Swaps the contents of two URLs
