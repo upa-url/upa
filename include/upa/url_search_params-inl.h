@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -37,6 +37,16 @@ inline void url_search_params::update() {
             urls.set_flag(url::QUERY_FLAG); // not null query
         }
     }
+}
+
+// Non-member function
+
+// Performs stream output on serialized URL search parameters
+inline std::ostream& operator<<(std::ostream& os, const url_search_params& usp) {
+    if (usp.url_ptr_)
+        // Optimization: usp.url_ptr_ is synchronized with parameter list
+        return os << usp.url_ptr_->get_part_view(url::QUERY);
+    return os << usp.to_string();
 }
 
 namespace detail {
