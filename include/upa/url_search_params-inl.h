@@ -39,16 +39,6 @@ inline void url_search_params::update() {
     }
 }
 
-// Non-member function
-
-// Performs stream output on serialized URL search parameters
-inline std::ostream& operator<<(std::ostream& os, const url_search_params& usp) {
-    if (usp.url_ptr_)
-        // Optimization: usp.url_ptr_ is synchronized with parameter list
-        return os << usp.url_ptr_->get_part_view(url::QUERY);
-    return os << usp.to_string();
-}
-
 namespace detail {
 
  // url_search_params_ptr class
