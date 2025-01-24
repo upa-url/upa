@@ -500,18 +500,19 @@ TEST_CASE("url::search_params() and url::clear()") {
 // Test operator<<
 
 TEST_CASE("url_search_params operator<<") {
-    const auto input = "a=b&c=d";
+    const std::string input = "a=b&c=~";
+    const std::string expected = "a=b&c=%7E";
 
     SUBCASE("url_search_params") {
         std::ostringstream sout;
         sout << upa::url_search_params{ input };
-        CHECK(sout.str() == input);
+        CHECK(sout.str() == expected);
     }
     SUBCASE("url::search_params()") {
         upa::url u{ "http://example.com/" };
         u.search(input);
         std::ostringstream sout;
         sout << u.search_params();
-        CHECK(sout.str() == input);
+        CHECK(sout.str() == expected);
     }
 }

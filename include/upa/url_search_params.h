@@ -777,7 +777,9 @@ inline std::string url_search_params::to_string() const {
 /// @param[in] usp the url_search_params object to serialize and output
 /// @return a reference to the output stream
 /// @see https://url.spec.whatwg.org/#urlencoded-serializing
-std::ostream& operator<<(std::ostream& os, const url_search_params& usp);
+inline std::ostream& operator<<(std::ostream& os, const url_search_params& usp) {
+    return os << usp.to_string();
+}
 
 /// @brief Swaps the contents of two url_search_params
 ///
