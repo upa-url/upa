@@ -42,7 +42,7 @@ function showResult(url) {
       const trComponent = output.querySelector(".domain");
       if (trComponent) {
         trComponent.querySelector("td").textContent =
-          public_suffix_list.registrable_domain(url.hostname);
+          public_suffix_list.url_registrable_domain(url);
       }
     }
   } else {

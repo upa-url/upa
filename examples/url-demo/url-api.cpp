@@ -107,6 +107,10 @@ public:
     bool base_valid() const {
         return m_base_valid;
     }
+
+    const upa::url& url() const {
+        return m_url;
+    }
 private:
     upa::url m_url;
     bool m_base_valid;
@@ -133,6 +137,16 @@ public:
         return m_psl.get_suffix(str_host,
             upa::public_suffix_list::ALLOW_TRAILING_DOT |
             upa::public_suffix_list::REGISTRABLE_DOMAIN);
+    }
+
+    std::string url_public_suffix(const URL& url) const {
+        return std::string{ m_psl.get_suffix_view(url.url(),
+            upa::public_suffix_list::ALLOW_TRAILING_DOT) };
+    }
+    std::string url_registrable_domain(const URL& url) const {
+        return std::string{ m_psl.get_suffix_view(url.url(),
+            upa::public_suffix_list::ALLOW_TRAILING_DOT |
+            upa::public_suffix_list::REGISTRABLE_DOMAIN) };
     }
 private:
     upa::public_suffix_list m_psl;
@@ -165,5 +179,7 @@ EMSCRIPTEN_BINDINGS(url_api) {
         .function("push", &PSL::push)
         .function("finalize", &PSL::finalize)
         .function("public_suffix", &PSL::public_suffix)
-        .function("registrable_domain", &PSL::registrable_domain);
+        .function("registrable_domain", &PSL::registrable_domain)
+        .function("url_public_suffix", &PSL::url_public_suffix)
+        .function("url_registrable_domain", &PSL::url_registrable_domain);
 }
