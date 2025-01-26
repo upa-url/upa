@@ -44,7 +44,9 @@ function showResult(url) {
 }
 
 function onInpChange() {
-  showResult(getUrl());
+  const url = getUrl();
+  showResult(url);
+  url.delete();
 }
 
 function onSetterChange() {
