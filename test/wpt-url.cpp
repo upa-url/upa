@@ -308,6 +308,8 @@ void test_idna_v2(DataDrivenTest& ddt, const parsed_obj& obj)
     if (input->empty())
         return;
 
+    // Test upa::url::parse
+
     std::string str_case("ToASCII(\"" + *input + "\")");
     if (obj.has("comment"))
         str_case += " " + *obj.at("comment");
@@ -329,6 +331,37 @@ void test_idna_v2(DataDrivenTest& ddt, const parsed_obj& obj)
             tc.assert_equal(*output, url.hostname(), "hostname");
             tc.assert_equal("/x", url.pathname(), "pathname");
             tc.assert_equal(output_url, url.href(), "href");
+        }
+    });
+
+    // Test upa::idna::domain_to_ascii
+
+    const bool is_input_ascii = std::all_of(input->begin(), input->end(),
+        [](char c) { return static_cast<unsigned char>(c) < 0x80; });
+
+    str_case = "domain_to_ascii(\"" + *input + "\")";
+    if (obj.has("comment"))
+        str_case += " " + *obj.at("comment");
+
+    ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
+        std::string domain;
+        bool parse_success = upa::idna::domain_to_ascii(domain, input->data(), input->data() + input->size());
+
+        // check if parse must succeed
+        tc.assert_equal(output.has_value(), parse_success, "domain_to_ascii success");
+        if (parse_success && output) {
+            tc.assert_equal(*output, domain, "domain_to_ascii output");
+        }
+
+        if (is_input_ascii) {
+            domain.clear();
+            parse_success = upa::idna::domain_to_ascii(domain, input->data(), input->data() + input->size(), false, is_input_ascii);
+
+            // check if parse must succeed
+            tc.assert_equal(output.has_value(), parse_success, "ASCII domain_to_ascii success");
+            if (parse_success && output) {
+                tc.assert_equal(*output, domain, "ASCII domain_to_ascii output");
+            }
         }
     });
 }
