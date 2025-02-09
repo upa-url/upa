@@ -779,6 +779,12 @@ inline urlpattern_component_result create_component_match_result(const component
 // https://urlpattern.spec.whatwg.org/#protocol-component-matches-a-special-scheme
 
 inline bool protocol_component_matches_special_scheme(const component& protocol_component) {
+#if 1
+    return [](const auto& re, auto... scheme) {
+        return (... || std::regex_match(scheme.begin(), scheme.end(), re));
+    }(protocol_component.regular_expression_,
+        "ftp"sv, "file"sv, "http"sv, "https"sv, "ws"sv, "wss"sv);
+#else
     static std::string_view special_scheme_list[] = {
         "ftp"sv, "file"sv, "http"sv, "https"sv, "ws"sv, "wss"sv
     };
@@ -787,6 +793,7 @@ inline bool protocol_component_matches_special_scheme(const component& protocol_
             return true;
     }
     return false;
+#endif
 }
 
 // https://urlpattern.spec.whatwg.org/#hostname-pattern-is-an-ipv6-address
