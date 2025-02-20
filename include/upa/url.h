@@ -43,17 +43,30 @@
 // #define UPA_URL_USE_ENCODING
 
 namespace upa {
-
-// forward declarations
-
 namespace detail {
-    class url_serializer;
-    class url_setter;
-    class url_parser;
 
-    // url_error what() values
-    extern const char* const kURLParseError;
-    extern const char* const kBaseURLParseError;
+// Forward declarations
+class url_serializer;
+class url_setter;
+class url_parser;
+
+// Scheme info
+
+struct alignas(32) scheme_info {
+    string_view scheme;
+    int default_port;           // -1 if none
+    unsigned is_special : 1;    // "ftp", "file", "http", "https", "ws", "wss"
+    unsigned is_file : 1;       // "file"
+    unsigned is_http : 1;       // "http", "https"
+    unsigned is_ws : 1;         // "ws", "wss"
+};
+
+const scheme_info* get_scheme_info(string_view src);
+
+// url_error what() values
+extern const char* const kURLParseError;
+extern const char* const kBaseURLParseError;
+
 } // namespace detail
 
 /// @brief URL class
@@ -633,15 +646,6 @@ public:
     [[nodiscard]] std::string to_string() const;
 
 private:
-    struct alignas(32) scheme_info {
-        string_view scheme;
-        int default_port;           // -1 if none
-        unsigned is_special : 1;    // "ftp", "file", "http", "https", "ws", "wss"
-        unsigned is_file : 1;       // "file"
-        unsigned is_http : 1;       // "http", "https"
-        unsigned is_ws : 1;         // "ws", "wss"
-    };
-
     enum UrlFlag : unsigned {
         // not null flags
         SCHEME_FLAG = (1u << SCHEME),
@@ -677,10 +681,6 @@ private:
     template <class T, enable_if_str_arg_t<T> = 0>
     validation_errc for_can_parse(T&& str_url, const url* base);
 
-    // get scheme info
-    static const scheme_info kSchemes[];
-    static const scheme_info* get_scheme_info(string_view src);
-
     // set scheme
     template <class StringT>
     void set_scheme_str(StringT str);
@@ -714,7 +714,7 @@ private:
 private:
     std::string norm_url_;
     std::array<std::size_t, PART_COUNT> part_end_ = {};
-    const scheme_info* scheme_inf_ = nullptr;
+    const detail::scheme_info* scheme_inf_ = nullptr;
     unsigned flags_ = INITIAL_FLAGS;
     std::size_t path_segment_count_ = 0;
     detail::url_search_params_ptr search_params_ptr_;
@@ -818,7 +818,7 @@ public:
     bool is_special_scheme() const noexcept { return url_.is_special_scheme(); }
     bool is_file_scheme() const noexcept { return url_.is_file_scheme(); }
     bool has_credentials() const { return url_.has_credentials(); }
-    const url::scheme_info* scheme_inf() const noexcept { return url_.scheme_inf_; }
+    const detail::scheme_info* scheme_inf() const noexcept { return url_.scheme_inf_; }
     int port_int() const { return url_.port_int(); }
 
 protected:
@@ -1355,12 +1355,12 @@ inline void url::set_scheme(const url& src) {
 
 inline void url::set_scheme(const string_view str) {
     set_scheme_str(str);
-    scheme_inf_ = get_scheme_info(str);
+    scheme_inf_ = detail::get_scheme_info(str);
 }
 
 inline void url::set_scheme(std::size_t scheme_length) {
     part_end_[SCHEME] = scheme_length;
-    scheme_inf_ = get_scheme_info(get_part_view(SCHEME));
+    scheme_inf_ = detail::get_scheme_info(get_part_view(SCHEME));
 }
 
 // flags
@@ -1689,7 +1689,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                 str_scheme.push_back(static_cast<char>(*it | 0x20));
 
             if (state_override) {
-                const url::scheme_info* scheme_inf = url::get_scheme_info(str_scheme);
+                const auto* scheme_inf = detail::get_scheme_info(str_scheme);
                 const bool is_special_old = urls.is_special_scheme();
                 const bool is_special_new = scheme_inf && scheme_inf->is_special;
                 if (is_special_old != is_special_new)
