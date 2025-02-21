@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Rimas Misevičius
+// Copyright 2023-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -637,6 +637,7 @@ int main(int argc, const char* argv[])
 
     err |= wpt_urlpattern_hasregexpgroups_tests();
     err |= wpt_urlpatterntests("wpt/urlpatterntestdata.json");
+    err |= wpt_urlpatterntests("data/my-urlpatterntestdata.json");
 
     return err;
 }

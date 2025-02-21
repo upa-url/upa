@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Rimas Misevičius
+// Copyright 2023-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -10,6 +10,8 @@
 
 #include <algorithm>
 #include <cassert>
+#include <charconv>
+#include <cstdint>
 #include <optional>
 #include <regex>
 #include <stdexcept>
@@ -24,25 +26,24 @@ namespace upa::pattern {
 
 using namespace std::string_view_literals;
 
-// TODO: Move to URL library
+// Scheme info
 
-template <class StrT, upa::enable_if_str_arg_t<StrT> = 0>
-inline bool is_special_scheme(StrT&& input) {
-    // TODO: can be as url::get_scheme_info
-    // TODO: lines can be compared without conversion
-    auto str_input = upa::make_string(std::forward<StrT>(input));
-    return str_input == "ftp" || str_input == "file" || str_input == "http" ||
-        str_input == "https" || str_input == "ws" || str_input == "wss";
+inline bool is_special_scheme(std::string_view scheme) {
+    const auto* scheme_inf = detail::get_scheme_info(scheme);
+    return scheme_inf != nullptr && scheme_inf->is_special;
 }
 
-inline bool is_default_scheme_port(std::string_view scheme, std::string_view port) {
-    // TODO: can be used url::get_scheme_info adapted for different char types
-    if (scheme == "ftp")
-        return port == "21";
-    if (scheme == "http" || scheme == "ws")
-        return port == "80";
-    if (scheme == "https" || scheme == "wss")
-        return port == "443";
+inline bool is_special_scheme_default_port(std::string_view scheme, std::string_view port) {
+    // scheme is special?
+    const auto* scheme_inf = detail::get_scheme_info(scheme);
+    if (scheme_inf != nullptr && scheme_inf->is_special && scheme_inf->default_port >= 0) {
+        // port is valid and is the default scheme port?
+        const auto* first = port.data();
+        const auto* last = port.data() + port.length();
+        std::uint16_t nport = 0;
+        const auto r = std::from_chars(first, last, nport);
+        return r.ec == std::errc() && r.ptr == last && nport == scheme_inf->default_port;
+    }
     return false;
 }
 
@@ -443,8 +444,7 @@ inline urlpattern::urlpattern(const urlpattern_init& init, urlpattern_options op
     // If processedInit["protocol"] is a special scheme and processedInit["port"] is a string
     // which represents its corresponding default port in radix-10 using ASCII digits then set
     // processedInit["port"] to the empty string
-    if (is_special_scheme(*processed_init.protocol) &&
-        is_default_scheme_port(*processed_init.protocol, *processed_init.port))
+    if (is_special_scheme_default_port(*processed_init.protocol, *processed_init.port))
         processed_init.port = ""sv;
 
     // component constructor performs `compile a component`

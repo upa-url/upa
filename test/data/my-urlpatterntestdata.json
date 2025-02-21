@@ -1,0 +1,10 @@
+[
+  {
+    "pattern": [{ "protocol": "http", "port": "0080" }],
+    "inputs": [{ "protocol": "http", "port": "80" }],
+    "exactly_empty_components": [ "port" ],
+    "expected_match": {
+      "protocol": { "input": "http", "groups": {}}
+    }
+  }
+]
