@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -42,7 +42,8 @@ int main(int argc, char** argv)
     err |= test_from_file(run_host_parser_tests, "wpt/toascii.json");
     err |= test_from_file(run_setter_tests, "wpt/setters_tests.json");
     err |= test_from_file(run_percent_encoding_tests, "wpt/percent-encoding.json");
-    err |= test_from_file(run_idna_v2_tests, "wpt/IdnaTestV2.json", "data/IdnaTestV2-fixes.json");
+    err |= test_from_file(run_idna_v2_tests, "wpt/IdnaTestV2.json", nullptr);
+    err |= test_from_file(run_idna_v2_tests, "wpt/IdnaTestV2-removed.json", nullptr);
 
     // additional tests
     err |= test_from_file(run_parser_tests, "data/my-urltestdata.json");
@@ -223,7 +224,7 @@ void test_host_parser(DataDrivenTest& ddt, const parsed_obj& obj)
     // https://github.com/web-platform-tests/wpt/tree/master/url#toasciijson
     // https://github.com/web-platform-tests/wpt/pull/5976
     static constexpr auto make_url = [](const std::string& host)->std::string {
-        std::string str_url("http://");
+        std::string str_url("https://");
         str_url += host;
         str_url += "/x";
         return str_url;
@@ -289,16 +290,10 @@ void test_idna_v2(DataDrivenTest& ddt, const parsed_obj& obj)
     // https://github.com/web-platform-tests/wpt/tree/master/url#toasciijson
     // https://github.com/web-platform-tests/wpt/pull/5976
     static constexpr auto make_url = [](const std::string& host) -> std::string {
-        std::string str_url("http://");
+        std::string str_url("https://");
         str_url += host;
         str_url += "/x";
         return str_url;
-    };
-
-    static constexpr auto encodeHostEndingCodePoints = [](const std::string& input) -> std::string {
-        if (input.find_first_of(":/?#\\") != input.npos)
-            return encodeURIComponent(input);
-        return input;
     };
 
     // "input" and "output" are mandatory
@@ -308,12 +303,14 @@ void test_idna_v2(DataDrivenTest& ddt, const parsed_obj& obj)
     if (input->empty())
         return;
 
+    // Test upa::url::parse
+
     std::string str_case("ToASCII(\"" + *input + "\")");
     if (obj.has("comment"))
         str_case += " " + *obj.at("comment");
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
-        const std::string input_url(make_url(encodeHostEndingCodePoints(*input)));
+        const std::string input_url(make_url(*input));
 
         upa::url url;
         const bool parse_success = upa::success(url.parse(input_url));
@@ -329,6 +326,37 @@ void test_idna_v2(DataDrivenTest& ddt, const parsed_obj& obj)
             tc.assert_equal(*output, url.hostname(), "hostname");
             tc.assert_equal("/x", url.pathname(), "pathname");
             tc.assert_equal(output_url, url.href(), "href");
+        }
+    });
+
+    // Test upa::idna::domain_to_ascii
+
+    const bool is_input_ascii = std::all_of(input->begin(), input->end(),
+        [](char c) { return static_cast<unsigned char>(c) < 0x80; });
+
+    str_case = "domain_to_ascii(\"" + *input + "\")";
+    if (obj.has("comment"))
+        str_case += " " + *obj.at("comment");
+
+    ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
+        std::string domain;
+        bool parse_success = upa::idna::domain_to_ascii(domain, input->data(), input->data() + input->size());
+
+        // check if parse must succeed
+        tc.assert_equal(output.has_value(), parse_success, "domain_to_ascii success");
+        if (parse_success && output) {
+            tc.assert_equal(*output, domain, "domain_to_ascii output");
+        }
+
+        if (is_input_ascii) {
+            domain.clear();
+            parse_success = upa::idna::domain_to_ascii(domain, input->data(), input->data() + input->size(), false, is_input_ascii);
+
+            // check if parse must succeed
+            tc.assert_equal(output.has_value(), parse_success, "ASCII domain_to_ascii success");
+            if (parse_success && output) {
+                tc.assert_equal(*output, domain, "ASCII domain_to_ascii output");
+            }
         }
     });
 }

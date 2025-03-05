@@ -346,11 +346,13 @@ private:
     label_item root_;
 };
 
-} // namespace upa
+namespace idna {
 
 template<>
-struct enable_bitmask_operators<upa::public_suffix_list::option> {
-    static const bool enable = true;
-};
+struct enable_bitmask_operators<upa::public_suffix_list::option>
+    : public std::true_type {};
+
+} // namespace idna
+} // namespace upa
 
 #endif // UPA_PUBLIC_SUFFIX_LIST_H

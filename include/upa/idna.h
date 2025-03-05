@@ -1,4 +1,4 @@
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -6,7 +6,7 @@
 #define UPA_IDNA_H
 
 // #include "idna/idna.h"
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -14,8 +14,8 @@
 #define UPA_IDNA_IDNA_H
 
 // #include "bitmask_operators.hpp"
-#ifndef JSS_BITMASK_HPP
-#define JSS_BITMASK_HPP
+#ifndef UPA_IDNA_BITMASK_OPERATORS_HPP
+#define UPA_IDNA_BITMASK_OPERATORS_HPP
 
 // (C) Copyright 2015 Just Software Solutions Ltd
 //
@@ -51,71 +51,75 @@
 
 #include<type_traits>
 
-template<typename E>
-struct enable_bitmask_operators{
-    static const bool enable=false;
-};
+namespace upa { // NOLINT(modernize-concat-nested-namespaces)
+namespace idna {
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E>::type
-operator|(E lhs,E rhs){
-    typedef typename std::underlying_type<E>::type underlying;
+struct enable_bitmask_operators : public std::false_type {};
+
+} // namespace idna
+} // namespace upa
+
+template<typename E>
+constexpr typename std::enable_if<upa::idna::enable_bitmask_operators<E>::value, E>::type
+operator|(E lhs, E rhs) noexcept {
+    using underlying = typename std::underlying_type<E>::type;
     return static_cast<E>(
         static_cast<underlying>(lhs) | static_cast<underlying>(rhs));
 }
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E>::type
-operator&(E lhs,E rhs){
-    typedef typename std::underlying_type<E>::type underlying;
+constexpr typename std::enable_if<upa::idna::enable_bitmask_operators<E>::value, E>::type
+operator&(E lhs, E rhs) noexcept {
+    using underlying = typename std::underlying_type<E>::type;
     return static_cast<E>(
         static_cast<underlying>(lhs) & static_cast<underlying>(rhs));
 }
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E>::type
-operator^(E lhs,E rhs){
-    typedef typename std::underlying_type<E>::type underlying;
+constexpr typename std::enable_if<upa::idna::enable_bitmask_operators<E>::value, E>::type
+operator^(E lhs, E rhs) noexcept {
+    using underlying = typename std::underlying_type<E>::type;
     return static_cast<E>(
         static_cast<underlying>(lhs) ^ static_cast<underlying>(rhs));
 }
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E>::type
-operator~(E lhs){
-    typedef typename std::underlying_type<E>::type underlying;
+constexpr typename std::enable_if<upa::idna::enable_bitmask_operators<E>::value, E>::type
+operator~(E lhs) noexcept {
+    using underlying = typename std::underlying_type<E>::type;
     return static_cast<E>(
         ~static_cast<underlying>(lhs));
 }
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E&>::type
-operator|=(E& lhs,E rhs){
-    typedef typename std::underlying_type<E>::type underlying;
-    lhs=static_cast<E>(
+inline typename std::enable_if<upa::idna::enable_bitmask_operators<E>::value, E&>::type
+operator|=(E& lhs, E rhs) noexcept {
+    using underlying = typename std::underlying_type<E>::type;
+    lhs = static_cast<E>(
         static_cast<underlying>(lhs) | static_cast<underlying>(rhs));
     return lhs;
 }
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E&>::type
-operator&=(E& lhs,E rhs){
-    typedef typename std::underlying_type<E>::type underlying;
-    lhs=static_cast<E>(
+inline typename std::enable_if<upa::idna::enable_bitmask_operators<E>::value, E&>::type
+operator&=(E& lhs, E rhs) noexcept {
+    using underlying = typename std::underlying_type<E>::type;
+    lhs = static_cast<E>(
         static_cast<underlying>(lhs) & static_cast<underlying>(rhs));
     return lhs;
 }
 
 template<typename E>
-typename std::enable_if<enable_bitmask_operators<E>::enable,E&>::type
-operator^=(E& lhs,E rhs){
-    typedef typename std::underlying_type<E>::type underlying;
-    lhs=static_cast<E>(
+inline typename std::enable_if<upa::idna::enable_bitmask_operators<E>::value, E&>::type
+operator^=(E& lhs, E rhs) noexcept {
+    using underlying = typename std::underlying_type<E>::type;
+    lhs = static_cast<E>(
         static_cast<underlying>(lhs) ^ static_cast<underlying>(rhs));
     return lhs;
 }
 
-#endif
+#endif // UPA_IDNA_BITMASK_OPERATORS_HPP
 
 // #include "idna_table.h"
 // Copyright 2017-2024 Rimas Misevičius
@@ -144,7 +148,6 @@ const std::uint32_t CP_MAPPED = 0x0002 << 16;
 const std::uint32_t CP_DEVIATION = CP_VALID | CP_MAPPED; // 0x0003 << 16
 const std::uint32_t CP_DISALLOWED_STD3 = 0x0004 << 16;
 const std::uint32_t CP_NO_STD3_VALID = CP_VALID | CP_DISALLOWED_STD3;
-const std::uint32_t CP_NO_STD3_MAPPED = CP_MAPPED | CP_DISALLOWED_STD3;
 const std::uint32_t MAP_TO_ONE = 0x0008 << 16;
 // General_Category=Mark
 const std::uint32_t CAT_MARK = 0x0010 << 16;
@@ -177,18 +180,17 @@ extern const std::uint32_t blockData[];
 extern const std::uint16_t blockIndex[];
 extern const char32_t allCharsTo[];
 
-extern const std::uint32_t comp_disallowed[5];
-extern const std::uint32_t comp_disallowed_std3[21];
+extern const std::uint8_t comp_disallowed_std3[3];
 
 extern const std::uint8_t asciiData[128];
 // END-GENERATED
 
 
-inline std::uint32_t getStatusMask(bool useSTD3ASCIIRules) {
+constexpr std::uint32_t getStatusMask(bool useSTD3ASCIIRules) noexcept {
     return useSTD3ASCIIRules ? (0x0007 << 16) : (0x0003 << 16);
 }
 
-inline std::uint32_t getValidMask(bool useSTD3ASCIIRules, bool transitional) {
+inline std::uint32_t getValidMask(bool useSTD3ASCIIRules, bool transitional) noexcept {
     const std::uint32_t status_mask = getStatusMask(useSTD3ASCIIRules);
     // (CP_DEVIATION = CP_VALID | CP_MAPPED) & ~CP_MAPPED ==> CP_VALID
     return transitional ? status_mask : (status_mask & ~CP_MAPPED);
@@ -230,6 +232,26 @@ inline std::size_t apply_mapping(uint32_t val, StrT& output) {
 
 #endif // UPA_IDNA_IDNA_TABLE_H
 
+// #include "idna_version.h"
+// Copyright 2025 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+#ifndef UPA_IDNA_IDNA_VERSION_H
+#define UPA_IDNA_IDNA_VERSION_H
+
+// NOLINTBEGIN(*-macro-*)
+
+#define UPA_IDNA_VERSION_MAJOR 1
+#define UPA_IDNA_VERSION_MINOR 1
+#define UPA_IDNA_VERSION_PATCH 0
+
+#define UPA_IDNA_VERSION "1.1.0"
+
+// NOLINTEND(*-macro-*)
+
+#endif // UPA_IDNA_IDNA_VERSION_H
+ // IWYU pragma: export
 // #include "iterate_utf.h"
 // Copyright 2017-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
@@ -249,7 +271,7 @@ namespace util {
 constexpr char32_t kReplacementCharacter = 0xFFFD;
 
 // https://encoding.spec.whatwg.org/#utf-8-decoder
-inline uint32_t getCodePoint(const char*& it, const char* last) {
+inline uint32_t getCodePoint(const char*& it, const char* last) noexcept {
     const auto uchar = [](char c) { return static_cast<unsigned char>(c); };
     // assume it != last
     uint32_t c1 = uchar(*it++);
@@ -292,25 +314,25 @@ inline uint32_t getCodePoint(const char*& it, const char* last) {
 // Get code point from UTF-16
 
 template <class T>
-inline bool is_surrogate_lead(T ch) {
+constexpr bool is_surrogate_lead(T ch) noexcept {
     return (ch & 0xFFFFFC00) == 0xD800;
 }
 
 template <class T>
-inline bool is_surrogate_trail(T ch) {
+constexpr bool is_surrogate_trail(T ch) noexcept {
     return (ch & 0xFFFFFC00) == 0xDC00;
 }
 
 // Get a supplementary code point value(U + 10000..U + 10ffff)
 // from its lead and trail surrogates.
-inline uint32_t get_suplementary(uint32_t lead, uint32_t trail) {
-    const uint32_t surrogate_offset = (static_cast<uint32_t>(0xD800) << 10) + 0xDC00 - 0x10000;
+inline uint32_t get_suplementary(uint32_t lead, uint32_t trail) noexcept {
+    constexpr uint32_t surrogate_offset = (static_cast<uint32_t>(0xD800) << 10) + 0xDC00 - 0x10000;
     return (lead << 10) + trail - surrogate_offset;
 }
 
 // assumes it != last
 
-inline uint32_t getCodePoint(const char16_t*& it, const char16_t* last) {
+inline uint32_t getCodePoint(const char16_t*& it, const char16_t* last) noexcept {
     // assume it != last
     const uint32_t c1 = *it++;
     if (is_surrogate_lead(c1) && it != last) {
@@ -325,7 +347,7 @@ inline uint32_t getCodePoint(const char16_t*& it, const char16_t* last) {
 
 // Get code point from UTF-32
 
-inline uint32_t getCodePoint(const char32_t*& it, const char32_t*) {
+inline uint32_t getCodePoint(const char32_t*& it, const char32_t*) noexcept {
     // assume it != last
     return *it++;
 }
@@ -362,7 +384,6 @@ bool is_normalized_nfc(const char32_t* first, const char32_t* last);
 
 #endif // UPA_IDNA_NFC_H
 
-#include <algorithm>
 // #include <string>
 #include <type_traits> // std::make_unsigned
 
@@ -381,31 +402,24 @@ enum class Option {
     InputASCII        = 0x1000,
 };
 
-} // namespace idna
-} // namespace upa
-
-// enable bit mask operators on upa::idna::Option
 template<>
-struct enable_bitmask_operators<upa::idna::Option> {
-    static const bool enable = true;
-};
+struct enable_bitmask_operators<Option> : public std::true_type {};
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna {
+
 namespace detail {
 
 // Bit flags
-inline bool has(Option option, const Option value) {
+constexpr bool has(Option option, const Option value) noexcept {
     return (option & value) == value;
 }
 
-inline Option domain_options(bool be_strict, bool is_input_ascii) {
+inline Option domain_options(bool be_strict, bool is_input_ascii) noexcept {
     // https://url.spec.whatwg.org/#concept-domain-to-ascii
     // https://url.spec.whatwg.org/#concept-domain-to-unicode
     // Note. The to_unicode ignores Option::VerifyDnsLength
-    auto options = be_strict
-        ? Option::CheckBidi | Option::CheckJoiners | Option::UseSTD3ASCIIRules | Option::VerifyDnsLength
-        : Option::CheckBidi | Option::CheckJoiners;
+    auto options = Option::CheckBidi | Option::CheckJoiners;
+    if (be_strict)
+        options |= Option::CheckHyphens | Option::UseSTD3ASCIIRules | Option::VerifyDnsLength;
     if (is_input_ascii)
         options |= Option::InputASCII;
     return options;
@@ -472,13 +486,11 @@ inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_e
                 }
                 break;
             default:
-                // CP_DISALLOWED
-                // CP_NO_STD3_MAPPED, CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
-                // Starting with Unicode 15.1.0 - don't record an error
+                // CP_DISALLOWED or
+                // CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
+                // Starting with Unicode 15.1.0 don't record an error
                 if (is_to_ascii && // to_ascii optimization
-                    ((value & util::CP_DISALLOWED_STD3) == 0
-                    ? !std::binary_search(std::begin(util::comp_disallowed), std::end(util::comp_disallowed), cp)
-                    : !std::binary_search(std::begin(util::comp_disallowed_std3), std::end(util::comp_disallowed_std3), cp)))
+                    ((value & util::CP_DISALLOWED_STD3) == 0 || cp > 0x3E || cp < 0x3C))
                     return false;
                 mapped.push_back(cp);
                 break;
@@ -501,7 +513,7 @@ bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Opt
 /// @brief Implements the Unicode IDNA ToASCII
 ///
 /// See: https://www.unicode.org/reports/tr46/#ToASCII
-/// 
+///
 /// @param[out] domain buffer to store result string
 /// @param[in]  input source domain string
 /// @param[in]  input_end the end of source domain string
@@ -520,7 +532,7 @@ inline bool to_ascii(std::string& domain, const CharT* input, const CharT* input
 /// @brief Implements the Unicode IDNA ToUnicode
 ///
 /// See: https://www.unicode.org/reports/tr46/#ToUnicode
-/// 
+///
 /// @param[out] domain buffer to store result string
 /// @param[in]  input source domain string
 /// @param[in]  input_end the end of source domain string
@@ -596,7 +608,7 @@ constexpr unsigned make_unicode_version(unsigned n1, unsigned n2 = 0,
 /// @return encoded Unicode version
 /// @see make_unicode_version
 inline unsigned unicode_version() {
-    return make_unicode_version(15, 1);
+    return make_unicode_version(16);
 }
 
 
@@ -604,7 +616,7 @@ inline unsigned unicode_version() {
 } // namespace upa
 
 #endif // UPA_IDNA_IDNA_H
-
+ // IWYU pragma: export
 // #include "idna/punycode.h"
 // Copyright 2017-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
