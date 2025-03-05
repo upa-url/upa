@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -224,7 +224,7 @@ void test_host_parser(DataDrivenTest& ddt, const parsed_obj& obj)
     // https://github.com/web-platform-tests/wpt/tree/master/url#toasciijson
     // https://github.com/web-platform-tests/wpt/pull/5976
     static constexpr auto make_url = [](const std::string& host)->std::string {
-        std::string str_url("http://");
+        std::string str_url("https://");
         str_url += host;
         str_url += "/x";
         return str_url;
@@ -290,16 +290,10 @@ void test_idna_v2(DataDrivenTest& ddt, const parsed_obj& obj)
     // https://github.com/web-platform-tests/wpt/tree/master/url#toasciijson
     // https://github.com/web-platform-tests/wpt/pull/5976
     static constexpr auto make_url = [](const std::string& host) -> std::string {
-        std::string str_url("http://");
+        std::string str_url("https://");
         str_url += host;
         str_url += "/x";
         return str_url;
-    };
-
-    static constexpr auto encodeHostEndingCodePoints = [](const std::string& input) -> std::string {
-        if (input.find_first_of(":/?#\\") != input.npos)
-            return encodeURIComponent(input);
-        return input;
     };
 
     // "input" and "output" are mandatory
@@ -316,7 +310,7 @@ void test_idna_v2(DataDrivenTest& ddt, const parsed_obj& obj)
         str_case += " " + *obj.at("comment");
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
-        const std::string input_url(make_url(encodeHostEndingCodePoints(*input)));
+        const std::string input_url(make_url(*input));
 
         upa::url url;
         const bool parse_success = upa::success(url.parse(input_url));
