@@ -135,7 +135,7 @@ inline constexpr code_point_set special_query_no_encode_set{ [](code_point_set& 
 // https://url.spec.whatwg.org/#path-percent-encode-set
 inline constexpr code_point_set path_no_encode_set{ [](code_point_set& self) constexpr {
     self.copy(query_no_encode_set);
-    self.exclude({ 0x3F, 0x60, 0x7B, 0x7D });
+    self.exclude({ 0x3F, 0x5E, 0x60, 0x7B, 0x7D });
     } };
 
 // path percent-encode set with '%' (0x25)
@@ -156,7 +156,7 @@ inline constexpr code_point_set posix_path_no_encode_set{ [](code_point_set& sel
 // https://url.spec.whatwg.org/#userinfo-percent-encode-set
 inline constexpr code_point_set userinfo_no_encode_set{ [](code_point_set& self) constexpr {
     self.copy(path_no_encode_set);
-    self.exclude({ 0x2F, 0x3A, 0x3B, 0x3D, 0x40, 0x5B, 0x5C, 0x5D, 0x5E, 0x7C });
+    self.exclude({ 0x2F, 0x3A, 0x3B, 0x3D, 0x40, 0x5B, 0x5C, 0x5D, 0x7C });
     } };
 
 // component percent-encode set
