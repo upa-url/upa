@@ -22,8 +22,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna {
+namespace upa::idna {
 namespace {
 
 // Split
@@ -376,8 +375,7 @@ bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Opt
 
 
 } // namespace detail
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna
 // Copyright 2017-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
@@ -385,9 +383,7 @@ bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Opt
 // #include "upa/idna/idna_table.h"
 
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna { // NOLINT(modernize-concat-nested-namespaces)
-namespace util {
+namespace upa::idna::util {
 
 // BEGIN-GENERATED
 const std::uint32_t blockData[] = {
@@ -2555,9 +2551,7 @@ const std::uint8_t asciiData[128] = {
 
 // END-GENERATED
 
-} // namespace util
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna::util
 // Copyright 2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
@@ -2568,9 +2562,7 @@ const std::uint8_t asciiData[128] = {
 #include <cstddef>
 #include <cstdint>
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna { // NOLINT(modernize-concat-nested-namespaces)
-namespace normalize {
+namespace upa::idna::normalize {
 
 struct codepoint_key_val {
     char32_t key;
@@ -2650,9 +2642,7 @@ inline const char32_t* get_decomposition_chars(std::uint16_t di) {
     return static_cast<const char32_t*>(decomp_block_data) + (di & 0xFFF);
 }
 
-} // namespace normalize
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna::normalize
 
 #endif // #ifndef UPA_IDNA_NFC_TABLE_H
 // Copyright 2024 Rimas Misevičius
@@ -2664,11 +2654,10 @@ inline const char32_t* get_decomposition_chars(std::uint16_t di) {
 // #include "nfc_table.h"
 
 // #include <algorithm>
-// #include <iterator>
+#include <utility> // std::move
 
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna {
+namespace upa::idna {
 
 namespace hangul {
     constexpr char32_t SBase = 0xAC00;
@@ -2813,14 +2802,11 @@ void normalize_nfc(std::u32string& str) {
 bool is_normalized_nfc(const char32_t* first, const char32_t* last) {
     std::u32string str{ first, last };
     normalize_nfc(str);
-    return
-        std::distance(first, last) == str.length() &&
-        std::equal(first, last, str.data());
+    return std::equal(first, last, str.data(), str.data() + str.length());
 }
 
 
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna
 // Copyright 2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
@@ -2828,9 +2814,7 @@ bool is_normalized_nfc(const char32_t* first, const char32_t* last) {
 // #include "nfc_table.h"
 
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna { // NOLINT(modernize-concat-nested-namespaces)
-namespace normalize {
+namespace upa::idna::normalize {
 
 // BEGIN-GENERATED
 const std::uint8_t ccc_block[] = {
@@ -4112,9 +4096,7 @@ const char32_t decomp_block_data[] = {
 };
 // END-GENERATED
 
-} // namespace normalize
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna::normalize
 // Copyright 2017-2024 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
@@ -4125,9 +4107,7 @@ const char32_t decomp_block_data[] = {
 // #include <cstdint>
 #include <type_traits>
 
-namespace upa { // NOLINT(modernize-concat-nested-namespaces)
-namespace idna { // NOLINT(modernize-concat-nested-namespaces)
-namespace punycode {
+namespace upa::idna::punycode {
 
 namespace {
 
@@ -4150,7 +4130,7 @@ constexpr char delimiter = 0x2D;
 // basic(cp) tests whether cp is a basic code point:
 template <class T>
 constexpr bool basic(T cp) noexcept {
-    return static_cast<typename std::make_unsigned<T>::type>(cp) < 0x80;
+    return static_cast<std::make_unsigned_t<T>>(cp) < 0x80;
 }
 
 // decode_digit(cp) returns the numeric value of a basic code
@@ -4180,7 +4160,7 @@ constexpr std::size_t kMaxCodePoints = maxint;
 
 // Bias adaptation function
 
-inline punycode_uint adapt(punycode_uint delta, punycode_uint numpoints, bool firsttime)
+constexpr punycode_uint adapt(punycode_uint delta, punycode_uint numpoints, bool firsttime)
 {
     delta = firsttime ? delta / damp : delta >> 1; // delta >> 1 is a faster way of doing delta / 2
     delta += delta / numpoints;
@@ -4375,6 +4355,4 @@ status decode(std::u32string& output, const char32_t* first, const char32_t* las
 }
 
 
-} // namespace punycode
-} // namespace idna
-} // namespace upa
+} // namespace upa::idna::punycode
