@@ -7,7 +7,7 @@ The library is self-contained with no dependencies and requires a compiler that 
 ## Features and standard conformance
 
 This library is up to date with the URL Standard published on
-[19 August 2024 (commit 5861e02)](https://url.spec.whatwg.org/commit-snapshots/5861e023bbd695c92190aa6bb7cb3c6717dab33b/) and supports internationalized domain names as specified in the [UTS46 Unicode IDNA Compatibility Processing version 15.1.0](https://www.unicode.org/reports/tr46/tr46-31.html).
+[7 March 2025 (commit 076afff)](https://url.spec.whatwg.org/commit-snapshots/076afff1deece9b35222e45c535d370c59059e0d/) and supports internationalized domain names as specified in the [UTS46 Unicode IDNA Compatibility Processing version 16.0.0](https://www.unicode.org/reports/tr46/tr46-33.html).
 
 It implements:
 1. [URL class](https://url.spec.whatwg.org/#url-class): `upa::url`
