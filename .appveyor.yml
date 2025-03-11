@@ -11,8 +11,8 @@ skip_commits:
 
 environment:
   matrix:
-    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-      GENERATOR: Visual Studio 16 2019
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      GENERATOR: Visual Studio 15 2017
       CXX_STANDARD: 17
 
 before_build:
