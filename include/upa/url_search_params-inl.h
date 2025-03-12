@@ -29,7 +29,6 @@ inline void url_search_params::update() {
         if (empty()) {
             // set query to null
             urls.clear_part(url::QUERY);
-            urls.potentially_strip_trailing_spaces_from_an_opaque_path();
         } else {
             std::string& str_query = urls.start_part(url::QUERY);
             serialize(str_query);
