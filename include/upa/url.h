@@ -934,7 +934,7 @@ private:
     static void do_path_segment(const CharT* pointer, const CharT* last, std::string& output);
 
     template <typename CharT>
-    static void do_simple_path(const CharT* pointer, const CharT* last, std::string& output);
+    static void do_opaque_path(const CharT* pointer, const CharT* last, std::string& output);
 };
 
 
@@ -2243,7 +2243,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
         // UTF-8 percent encode using the C0 control percent-encode set,
         // and append the result to url's path string
         std::string& str_path = urls.start_path_string();
-        do_simple_path(pointer, end_of_path, str_path);
+        do_opaque_path(pointer, end_of_path, str_path);
         urls.save_path_string();
         pointer = end_of_path;
 
@@ -2456,7 +2456,7 @@ inline void url_parser::do_path_segment(const CharT* pointer, const CharT* last,
 }
 
 template <typename CharT>
-inline void url_parser::do_simple_path(const CharT* pointer, const CharT* last, std::string& output) {
+inline void url_parser::do_opaque_path(const CharT* pointer, const CharT* last, std::string& output) {
     using UCharT = std::make_unsigned_t<CharT>;
 
     // 3. of "opaque path state"
