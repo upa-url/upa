@@ -401,22 +401,22 @@ TEST_CASE("urlsearchparams-delete.any.js") {
         CHECK_MESSAGE(url.search() == "", "url.search does not have ?");
     }
 
-    SUBCASE("Changing the query of a URL with an opaque path can impact the path") {
+    SUBCASE("Changing the query of a URL with an opaque path with trailing spaces") {
         upa::url url("data:space    ?test");
         CHECK(url.search_params().has("test"));
         url.search_params().del("test");
         CHECK_FALSE(url.search_params().has("test"));
         CHECK_EQ(url.search(), "");
-        CHECK_EQ(url.pathname(), "space");
-        CHECK_EQ(url.href(), "data:space");
+        CHECK_EQ(url.pathname(), "space   %20");
+        CHECK_EQ(url.href(), "data:space   %20");
     }
 
-    SUBCASE("Changing the query of a URL with an opaque path can impact the path if the URL has no fragment") {
+    SUBCASE("Changing the query of a URL with an opaque path with trailing spaces and a fragment") {
         upa::url url("data:space    ?test#test");
         url.search_params().del("test");
         CHECK_EQ(url.search(), "");
-        CHECK_EQ(url.pathname(), "space    ");
-        CHECK_EQ(url.href(), "data:space    #test");
+        CHECK_EQ(url.pathname(), "space   %20");
+        CHECK_EQ(url.href(), "data:space   %20#test");
     }
 
     SUBCASE("Two-argument del()") {

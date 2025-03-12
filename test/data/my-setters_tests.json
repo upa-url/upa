@@ -96,12 +96,12 @@
             }
         },
         {
-            "comment": "Drop trailing spaces from trailing opaque paths",
+            "comment": "Percent encode ending space in opaque paths",
             "href": "sc: ?query",
             "new_value": "",
             "expected": {
-                "href": "sc:",
-                "pathname": "",
+                "href": "sc:%20",
+                "pathname": "%20",
                 "search": ""
             }
         }
@@ -109,12 +109,12 @@
 
     "hash": [
         {
-            "comment": "Drop trailing spaces from trailing opaque paths",
+            "comment": "Percent encode ending space in opaque paths",
             "href": "sc:  #fragment",
             "new_value": "",
             "expected": {
-                "href": "sc:",
-                "pathname": "",
+                "href": "sc: %20",
+                "pathname": " %20",
                 "hash": ""
             }
         }
