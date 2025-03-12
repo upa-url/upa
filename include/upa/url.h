@@ -931,10 +931,10 @@ public:
 
 private:
     template <typename CharT>
-    static bool do_path_segment(const CharT* pointer, const CharT* last, std::string& output);
+    static void do_path_segment(const CharT* pointer, const CharT* last, std::string& output);
 
     template <typename CharT>
-    static bool do_simple_path(const CharT* pointer, const CharT* last, std::string& output);
+    static void do_simple_path(const CharT* pointer, const CharT* last, std::string& output);
 };
 
 
@@ -2433,17 +2433,16 @@ inline void url_parser::parse_path(url_serializer& urls, const CharT* first, con
 }
 
 template <typename CharT>
-inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last, std::string& output) {
+inline void url_parser::do_path_segment(const CharT* pointer, const CharT* last, std::string& output) {
     using UCharT = std::make_unsigned_t<CharT>;
 
     // TODO-WARN: 2. [ 1 ... 2 ] validation error.
-    bool success = true;
     while (pointer < last) {
         // UTF-8 percent encode c using the default encode set
         const auto uch = static_cast<UCharT>(*pointer);
         if (uch >= 0x80) {
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
-            success &= detail::append_utf8_percent_encoded_char(pointer, last, output);
+            detail::append_utf8_percent_encoded_char(pointer, last, output);
         } else {
             // Just append the 7-bit character, possibly percent encoding it
             const auto uc = static_cast<unsigned char>(uch);
@@ -2454,11 +2453,10 @@ inline bool url_parser::do_path_segment(const CharT* pointer, const CharT* last,
             ++pointer;
         }
     }
-    return success;
 }
 
 template <typename CharT>
-inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, std::string& output) {
+inline void url_parser::do_simple_path(const CharT* pointer, const CharT* last, std::string& output) {
     using UCharT = std::make_unsigned_t<CharT>;
 
     // 3. of "opaque path state"
@@ -2466,13 +2464,12 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
     //  1. If c is not EOF code point, not a URL code point, and not "%", validation error.
     //  2. If c is "%" and remaining does not start with two ASCII hex digits, validation error.
 
-    bool success = true;
     while (pointer < last) {
         // UTF-8 percent encode c using the C0 control percent-encode set (U+0000 ... U+001F and >U+007E)
         const auto uch = static_cast<UCharT>(*pointer);
         if (uch >= 0x7f) {
             // invalid utf-8/16/32 sequences will be replaced with 0xfffd
-            success &= detail::append_utf8_percent_encoded_char(pointer, last, output);
+            detail::append_utf8_percent_encoded_char(pointer, last, output);
         } else {
             // Just append the 7-bit character, percent encoding C0 control chars
             const auto uc = static_cast<unsigned char>(uch);
@@ -2483,7 +2480,6 @@ inline bool url_parser::do_simple_path(const CharT* pointer, const CharT* last, 
             ++pointer;
         }
     }
-    return success;
 }
 
 } // namespace detail
