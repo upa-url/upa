@@ -390,6 +390,7 @@ struct SetterObj {
     {}
 
     std::string m_setter;
+    string_or_null m_comment;
     std::string m_href;
     std::string m_new_value;
     std::map<std::string, std::string> m_expected;
@@ -400,7 +401,9 @@ struct SetterObj {
 //
 void test_setter(DataDrivenTest& ddt, const SetterObj& obj)
 {
-    const std::string str_case("URL(\"" + obj.m_href + "\")." + obj.m_setter + "(\"" + obj.m_new_value + "\");");
+    std::string str_case("URL(\"" + obj.m_href + "\")." + obj.m_setter + "(\"" + obj.m_new_value + "\");");
+    if (obj.m_comment)
+        str_case.append(" " + *obj.m_comment);
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         // url parsing must succeed
@@ -578,6 +581,8 @@ int run_setter_tests(DataDrivenTest& ddt, const std::filesystem::path& file_name
 
             try {
                 const picojson::object& o = item.get<picojson::object>();
+                if (item.contains("comment"))
+                    obj.m_comment = string_or_null{ o.at("comment") };
                 obj.m_href = o.at("href").get<std::string>();
                 obj.m_new_value = o.at("new_value").get<std::string>();
                 const picojson::object& oexp = o.at("expected").get<picojson::object>();
