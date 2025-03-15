@@ -241,6 +241,7 @@ TEST_CASE("url::can_parse") {
 
         CHECK(upa::url::can_parse("aaa:b", nullptr));
         CHECK_FALSE(upa::url::can_parse("undefined", "aaa:b"));
+        CHECK_FALSE(upa::url::can_parse("undefined", "https://test:test/"));
 
         CHECK(upa::url::can_parse("aaa:/b", nullptr));
         CHECK(upa::url::can_parse("undefined", "aaa:/b"));
