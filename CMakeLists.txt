@@ -140,6 +140,9 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
   add_library(upa::${upa_lib_export} ALIAS ${upa_lib_target})
   set_target_properties(${upa_lib_target} PROPERTIES
     EXPORT_NAME ${upa_lib_export})
+  # GCC 8 requires linking with stdc++fs to use std::filesystem
+  target_link_libraries(${upa_lib_target} PRIVATE
+    $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
 endif()
 
 # Test targets
