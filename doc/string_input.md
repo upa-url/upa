@@ -1,6 +1,6 @@
 ## String input
 
-For string input, the library supports UTF-8, UTF-16, UTF-32 encodings and several string types, including `std::basic_string`, `std::basic_string_view`, null-terminated strings of any char type: `char`, `char8_t`, `char16_t`, `char32_t`, or `wchar_t`.
+For string input, the library supports UTF-8, UTF-16, UTF-32 encodings and several string types, including `std::basic_string`, `std::basic_string_view`, null-terminated strings of any char type: `char`, `char8_t`, `char16_t`, `char32_t`, or `wchar_t`. Also classes convertible to `std::basic_string_view` are supported (for example string classes of Qt 6.7 or latter).
 
 Other classes that have a `data()` function that returns a pointer to one of the char types listed above and a `size()` function that has an integer return type are also supported (e.g. `std::vector<char>`).
 
@@ -10,6 +10,9 @@ The ATL/MFC and Qt library string types are supported. To use them you need to i
 |-|-|-|
 | ATL/MFC | `CSimpleStringT`, `CStringT`, `CFixedStringT` | `url_for_atl.h` |
 | Qt | `QString`, `QStringView`, `QUtf8StringView` | `url_for_qt.h` |
+
+> [!NOTE]
+> As of version 6.7, Qt string classes are convertible to `std::basic_string_view`, so they are supported directly in `url.h`, and there is no need to include `url_for_qt.h`.
 
 Qt example:
 ```cpp

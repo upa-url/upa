@@ -2,7 +2,8 @@
 
 Upa URL is [WHATWG URL Standard](https://url.spec.whatwg.org/) compliant <b>U</b>RL <b>pa</b>rser library written in C++.
 
-The library is self-contained with no dependencies and requires a compiler that supports C++11 or later. It is known to compile with Clang 4, GCC 4.9, Microsoft Visual Studio 2015 or later. Can also be compiled to WebAssembly, see demo: https://upa-url.github.io/demo/
+The library is self-contained with no dependencies and requires a compiler that supports C++17 or later (for previous major version that requires C++11 or later, see [the v1.x branch](https://github.com/upa-url/upa/tree/v1.x)).
+It is known to compile with Clang 7, GCC 8, Microsoft Visual Studio 2017 or later. Can also be compiled to WebAssembly, see demo: https://upa-url.github.io/demo/
 
 ## Features and standard conformance
 
@@ -15,6 +16,7 @@ It implements:
 3. [URL record](https://url.spec.whatwg.org/#concept-url): `upa::url` has functions to examine URL record members: `get_part_view(PartType t)`, `is_empty(PartType t)` and `is_null(PartType t)`
 4. [URL equivalence](https://url.spec.whatwg.org/#url-equivalence): `upa::equals` function
 5. [Percent decoding and encoding](https://url.spec.whatwg.org/#percent-encoded-bytes) functions: `upa::percent_decode`, `upa::percent_encode` and `upa::encode_url_component`
+6. [Public Suffix List](https://publicsuffix.org/) class `upa::public_suffix_list` to get [public suffix](https://url.spec.whatwg.org/#host-public-suffix) and [registrable domain](https://url.spec.whatwg.org/#host-registrable-domain) of a host.
 
 It has some differences from the standard:
 1. Setters of the `upa::url` class are implemented as functions, which return `true` if value is accepted.
@@ -85,9 +87,7 @@ target_link_libraries(exe-target PRIVATE upa::url)
 
 ### vcpkg
 
-For use in C++17 or later projects, install Upa URL with `vcpkg install upa-url`.
-
-For use in C++11 and C++14 projects: `vcpkg install upa-url[cxx11]`.
+Install Upa URL with `vcpkg install upa-url`.
 
 ## Usage
 
@@ -179,6 +179,19 @@ try {
 }
 catch (const std::exception& ex) {
     std::cerr << "Error: " << ex.what() << '\n';
+}
+```
+
+Load the [Public Suffix List](https://publicsuffix.org/) and get [public suffix](https://url.spec.whatwg.org/#host-public-suffix) of a hostname:
+```cpp
+#include "upa/public_suffix_list.h"
+#include <iostream>
+
+int main() {
+    upa::public_suffix_list psl;
+    if (psl.load("public_suffix_list.dat"))
+        std::cout << psl.get_suffix("upa-url.github.io.",
+            upa::public_suffix_list::option::allow_trailing_dot) << '\n'; // github.io.
 }
 ```
 
