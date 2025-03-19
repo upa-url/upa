@@ -1,0 +1,11 @@
+{
+  "project": "upa/public_suffix_list.cpp",
+  "target": "single_include/upa/public_suffix_list.cpp",
+  "sources": [
+    "src/public_suffix_list.cpp"
+  ],
+  "include_paths": [
+    "include"
+  ],
+  "ignore_includes": true
+}
