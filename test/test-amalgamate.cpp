@@ -4,6 +4,7 @@
 //
 
 #include "upa/url.h"
+#include "upa/public_suffix_list.h"
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include "doctest/doctest.h"
@@ -24,4 +25,13 @@ TEST_CASE("url constructor & getters") {
     CHECK(url.pathname() == "/seg0/seg1/seg2");
     CHECK(url.search() == "?a=b");
     CHECK(url.hash() == "#frag");
+}
+
+TEST_CASE("public_suffix_list push_line & get_suffix") {
+    upa::public_suffix_list psl;
+    // push
+    upa::public_suffix_list::push_context ctx;
+    psl.push_line(ctx, "github.io");
+    // get info
+    CHECK(psl.get_suffix("upa-url.github.io") == "github.io");
 }
