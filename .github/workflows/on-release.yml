@@ -16,6 +16,9 @@ jobs:
       - name: Amalgamate source files
         run: tools/amalgamate.sh
 
+      - name: Compress amalgamated files
+        run: zip -rj single_include/upa/single_include.zip single_include/upa -i *.cpp *.h
+
       - name: Upload assets
         run: gh release upload ${{ github.ref_name }} single_include/upa/*.*
         env:
