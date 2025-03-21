@@ -29,9 +29,9 @@ jobs:
     - name: cmake
       run: cmake -S . -B build -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }} -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
     - name: build
-      run: cmake --build build --config Release
+      run: cmake --build build
     - name: test
-      run: ctest --test-dir build -C Release -V
+      run: ctest --test-dir build -V
     - name: after test
       if: ${{ matrix.after_test }}
       run: ${{ matrix.after_test }}
