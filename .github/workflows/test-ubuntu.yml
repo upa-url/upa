@@ -105,3 +105,32 @@ jobs:
         files: ./coverage.info
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: false
+
+  build_in_container:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.container }}
+    strategy:
+      matrix:
+        include:
+          - name: g++-8 C++17
+            container: gcc:8
+            cxx_standard: 17
+            cmake_options: ""
+
+    steps:
+    - name: apt-get install
+      if: ${{ matrix.install }}
+      run: |
+        apt-get update
+        apt-get install -y ${{ matrix.install }}
+    - uses: actions/checkout@v4
+    - uses: lukka/get-cmake@v3.31.6
+    - name: get dependencies
+      run: ./init.sh
+    - name: cmake
+      run: cmake -S . -B build -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
+    - name: build
+      run: cmake --build build
+    - name: test
+      run: cd build ; ctest -V
