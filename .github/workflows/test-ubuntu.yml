@@ -117,7 +117,7 @@ jobs:
             container: silkeh/clang:7
             cxx_standard: 17
             cmake_options: "-DCMAKE_CXX_FLAGS=-stdlib=libc++"
-            install: "curl git"
+            install: "curl git unzip"
 
           - name: g++-8 C++17
             container: gcc:8
