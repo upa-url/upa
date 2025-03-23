@@ -240,10 +240,10 @@ inline std::size_t apply_mapping(uint32_t val, StrT& output) {
 // NOLINTBEGIN(*-macro-*)
 
 #define UPA_IDNA_VERSION_MAJOR 2
-#define UPA_IDNA_VERSION_MINOR 0
+#define UPA_IDNA_VERSION_MINOR 1
 #define UPA_IDNA_VERSION_PATCH 0
 
-#define UPA_IDNA_VERSION "2.0.0"
+#define UPA_IDNA_VERSION "2.1.0"
 
 // NOLINTEND(*-macro-*)
 
