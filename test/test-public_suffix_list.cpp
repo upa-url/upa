@@ -53,7 +53,7 @@ int test_public_suffix_list(const std::filesystem::path& filename) {
         ddt.test_case(line, [&](DataDrivenTest::TestCase& tc) {
             // Tests expect lower case (ASCII) output
             std::string output = ascii_lower(ps_list.get_suffix_view(input,
-                upa::public_suffix_list::REGISTRABLE_DOMAIN));
+                upa::public_suffix_list::option::registrable_domain));
             if (output.empty())
                 output = "null";
 
@@ -99,17 +99,18 @@ int test_whatwg_public_suffix_list(const std::filesystem::path& filename) {
 
         ddt.test_case(line, [&](DataDrivenTest::TestCase& tc) {
             std::string output_suffix = ps_list.get_suffix(input,
-                upa::public_suffix_list::ALLOW_TRAILING_DOT);
+                upa::public_suffix_list::option::allow_trailing_dot);
             if (output_suffix.empty())
                 output_suffix = "null";
             tc.assert_equal(expected_suffix, output_suffix, "get_suffix");
 
             std::string output_domain = ps_list.get_suffix(input,
-                upa::public_suffix_list::ALLOW_TRAILING_DOT |
-                upa::public_suffix_list::REGISTRABLE_DOMAIN);
+                upa::public_suffix_list::option::allow_trailing_dot |
+                upa::public_suffix_list::option::registrable_domain);
             if (output_domain.empty())
                 output_domain = "null";
-            tc.assert_equal(expected_suffix, output_suffix, "get_suffix (REGISTRABLE_DOMAIN)");
+            tc.assert_equal(expected_suffix, output_suffix,
+                "get_suffix (option::registrable_domain)");
         });
     }
 
@@ -125,14 +126,14 @@ TEST_SUITE("public_suffix_list::get_suffix") {
         std::string input = "example.com";
         std::string_view expected = input;
         std::string output = ps_list.get_suffix(input,
-            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+            upa::public_suffix_list::option::registrable_domain);
         CHECK_MESSAGE(output == expected, "input: ", input);
     }
     TEST_CASE("input with invalid host") {
         std::string input = "<>.com";
         std::string_view expected = "";
         std::string output = ps_list.get_suffix(input,
-            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+            upa::public_suffix_list::option::registrable_domain);
         CHECK_MESSAGE(output == expected, "input: ", input);
     }
 }
@@ -141,7 +142,7 @@ TEST_SUITE("public_suffix_list::get_suffix_info") {
     TEST_CASE("url with registrable domain") {
         upa::url input{ "http://EXAMPLE.COM" };
         const auto output = ps_list.get_suffix_info(input,
-            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+            upa::public_suffix_list::option::registrable_domain);
         INFO("input (url): ", input.href());
         REQUIRE(static_cast<bool>(output));
         CHECK(output.first_label_pos == 0);
@@ -153,7 +154,7 @@ TEST_SUITE("public_suffix_list::get_suffix_info") {
     TEST_CASE("url with non-registrable domain") {
         upa::url input{ "http://com" };
         const auto output = ps_list.get_suffix_info(input,
-            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+            upa::public_suffix_list::option::registrable_domain);
         INFO("input (url): ", input.href());
         CHECK_FALSE(static_cast<bool>(output));
     }
@@ -167,7 +168,7 @@ TEST_SUITE("public_suffix_list::get_suffix_info") {
     TEST_CASE("url_host with registrable domain") {
         upa::url_host input{ "upa-url.github.io" };
         const auto output = ps_list.get_suffix_info(input,
-            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+            upa::public_suffix_list::option::registrable_domain);
         INFO("input (url_host): ", input.name());
         REQUIRE(static_cast<bool>(output));
         CHECK(output.first_label_pos == 0);
@@ -179,7 +180,7 @@ TEST_SUITE("public_suffix_list::get_suffix_info") {
     TEST_CASE("url_host with non-registrable domain") {
         upa::url_host input{ "github.io" };
         const auto output = ps_list.get_suffix_info(input,
-            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+            upa::public_suffix_list::option::registrable_domain);
         INFO("input (url_host): ", input.name());
         CHECK_FALSE(static_cast<bool>(output));
     }
@@ -193,7 +194,7 @@ TEST_SUITE("public_suffix_list::get_suffix_info") {
     TEST_CASE("registrable domain") {
         std::string input = "a.b.c.hosted.app";
         const auto output = ps_list.get_suffix_info(input,
-            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+            upa::public_suffix_list::option::registrable_domain);
         INFO("input: ", input);
         // Rule: *.hosted.app => registrable domain: b.c.hosted.app
         REQUIRE(static_cast<bool>(output));
@@ -206,7 +207,7 @@ TEST_SUITE("public_suffix_list::get_suffix_info") {
     TEST_CASE("invalid domain") {
         std::string input = "<>.com";
         const auto output = ps_list.get_suffix_info(input,
-            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+            upa::public_suffix_list::option::registrable_domain);
         INFO("input: ", input);
         REQUIRE_FALSE(static_cast<bool>(output));
     }
@@ -217,14 +218,14 @@ TEST_SUITE("public_suffix_list::get_suffix_view") {
         upa::url input{ "http://EXAMPLE.ORG" };
         std::string_view expected = "example.org";
         std::string_view output = ps_list.get_suffix_view(input,
-            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+            upa::public_suffix_list::option::registrable_domain);
         CHECK_MESSAGE(output == expected, "input (url): ", input.href());
     }
     TEST_CASE("url with non-registrable domain") {
         upa::url input{ "http://org" };
         std::string_view expected = "";
         std::string_view output = ps_list.get_suffix_view(input,
-            upa::public_suffix_list::REGISTRABLE_DOMAIN);
+            upa::public_suffix_list::option::registrable_domain);
         CHECK_MESSAGE(output == expected, "input (url): ", input.href());
     }
     TEST_CASE("url with IPv6 address") {

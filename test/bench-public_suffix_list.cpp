@@ -48,7 +48,7 @@ int bench_psl_list(const std::filesystem::path& path, const std::filesystem::pat
         [&] {
             for (const auto& str_domain : domain_list) {
                 std::string reg_domain = ps_list.get_suffix(str_domain,
-                    upa::public_suffix_list::REGISTRABLE_DOMAIN);
+                    upa::public_suffix_list::option::registrable_domain);
                 ankerl::nanobench::doNotOptimizeAway(reg_domain);
             }
         });

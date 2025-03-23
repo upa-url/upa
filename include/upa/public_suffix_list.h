@@ -89,19 +89,12 @@ public:
     /// @brief Options for public_suffix_list::get_suffix, public_suffix_list::get_suffix_info
     /// and public_suffix_list::get_suffix_view functions
     enum class option {
-        PUBLIC_SUFFIX = 0,      ///< to get public suffix
-        REGISTRABLE_DOMAIN = 1, ///< to get registrable domain
-        ALLOW_TRAILING_DOT = 2  ///< allow trailing dot in hostname input to get result as
+        public_suffix = 0,      ///< to get public suffix
+        registrable_domain = 1, ///< to get registrable domain
+        allow_trailing_dot = 2  ///< allow trailing dot in hostname input to get result as
                                 ///< defined in the URL standard; see:
                                 ///< https://url.spec.whatwg.org/#host-public-suffix
     };
-#ifdef __cpp_using_enum
-    using enum option; // C++20
-#else
-    static constexpr auto PUBLIC_SUFFIX = option::PUBLIC_SUFFIX;
-    static constexpr auto REGISTRABLE_DOMAIN = option::REGISTRABLE_DOMAIN;
-    static constexpr auto ALLOW_TRAILING_DOT = option::ALLOW_TRAILING_DOT;
-#endif
 
     /// @brief Return value type of the public_suffix_list::get_suffix_info function
     struct result {
@@ -188,7 +181,8 @@ public:
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    std::string get_suffix(StrT&& str_host, option opt = PUBLIC_SUFFIX) const {
+    std::string get_suffix(StrT&& str_host,
+        option opt = option::public_suffix) const {
         try {
             return std::string{ get_suffix_view(
                 upa::url_host{ std::forward<StrT>(str_host) },
@@ -207,7 +201,8 @@ public:
     /// @param[in] url the @ref url object
     /// @param[in] opt options
     /// @return information in the public_suffix_list::result type struct
-    result get_suffix_info(const url& url, option opt = PUBLIC_SUFFIX) const {
+    result get_suffix_info(const url& url,
+        option opt = option::public_suffix) const {
         if (url.host_type() == HostType::Domain)
             return get_host_suffix_info(url.hostname(), opt);
         return {};
@@ -221,7 +216,8 @@ public:
     /// @param[in] host the url_host object
     /// @param[in] opt options
     /// @return information in the public_suffix_list::result type struct
-    result get_suffix_info(const url_host& host, option opt = PUBLIC_SUFFIX) const {
+    result get_suffix_info(const url_host& host,
+        option opt = option::public_suffix) const {
         if (host.type() == HostType::Domain)
             return get_host_suffix_info(host.name(), opt);
         return {};
@@ -236,7 +232,8 @@ public:
     /// @param[in] opt options
     /// @return information in the public_suffix_list::result type struct
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    result get_suffix_info(StrT&& str_host, option opt = PUBLIC_SUFFIX) const {
+    result get_suffix_info(StrT&& str_host,
+        option opt = option::public_suffix) const {
         try {
             auto res = get_suffix_info(upa::url_host{ std::forward<StrT>(str_host) }, opt);
             res.first_label_pos = get_label_pos_by_index(str_host, res.first_label_ind);
@@ -255,7 +252,8 @@ public:
     /// @param[in] url the @ref url object
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
-    std::string_view get_suffix_view(const url& url, option opt = PUBLIC_SUFFIX) const {
+    std::string_view get_suffix_view(const url& url,
+        option opt = option::public_suffix) const {
         if (url.host_type() == HostType::Domain)
             return get_host_suffix_view(url.hostname(), opt);
         return {};
@@ -268,7 +266,8 @@ public:
     /// @param[in] host the url_host object
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
-    std::string_view get_suffix_view(const url_host& host, option opt = PUBLIC_SUFFIX) const {
+    std::string_view get_suffix_view(const url_host& host,
+        option opt = option::public_suffix) const {
         if (host.type() == HostType::Domain)
             return get_host_suffix_view(host.name(), opt);
         return {};
@@ -282,7 +281,7 @@ public:
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    auto get_suffix_view(StrT&& str_host, option opt = PUBLIC_SUFFIX) const
+    auto get_suffix_view(StrT&& str_host, option opt = option::public_suffix) const
         -> std::basic_string_view<typename str_arg<str_arg_char_t<StrT>>::value_type> {
         try {
             const auto arg = make_str_arg(std::forward<StrT>(str_host));

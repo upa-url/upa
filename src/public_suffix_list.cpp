@@ -187,7 +187,7 @@ public_suffix_list::result public_suffix_list::get_host_suffix_info(
     if (hostname.empty())
         return {};
 
-    if (static_cast<int>(opt & ALLOW_TRAILING_DOT) != 0 && hostname.back() == '.')
+    if (static_cast<int>(opt & option::allow_trailing_dot) != 0 && hostname.back() == '.')
         hostname.remove_suffix(1); // remove trailing dot
 
     // Split to labels
@@ -228,7 +228,7 @@ public_suffix_list::result public_suffix_list::get_host_suffix_info(
     }
     if (latest_code) {
         const int ind_diff = static_cast<int>(latest_code & DIFF_MASK) - 2 +
-            static_cast<int>(opt & REGISTRABLE_DOMAIN);
+            static_cast<int>(opt & option::registrable_domain);
         if (ind_diff <= 0 || static_cast<std::size_t>(ind_diff) <= latest_ind) {
             const auto ind = latest_ind - ind_diff;
             return { ind, labels.get_pos_by_index(ind), latest_code };
