@@ -113,7 +113,7 @@ int test_whatwg_public_suffix_list(const std::filesystem::path& filename) {
                 upa::public_suffix_list::option::registrable_domain);
             if (output_domain.empty())
                 output_domain = "null";
-            tc.assert_equal(expected_suffix, output_suffix,
+            tc.assert_equal(expected_domain, output_domain,
                 "get_suffix (option::registrable_domain)");
         });
     }
