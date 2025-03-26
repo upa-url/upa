@@ -7,8 +7,11 @@
 
 #include "url.h"
 #include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <ios>
+#include <istream>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -129,7 +132,7 @@ public:
     /// @param[in] filename the path to the Public Suffix List file
     /// @return true if the Public Suffix List was loaded successfully
     bool load(const std::filesystem::path& filename) {
-        std::ifstream finp(filename, std::ios_base::in | std::ios_base::binary);
+        std::ifstream finp(filename, std::ios::in | std::ios::binary);
         return finp && load(finp);
     }
     /// @brief Load Public Suffix List from stream

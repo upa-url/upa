@@ -8,11 +8,15 @@
 #define DOCTEST_CONFIG_IMPLEMENT
 #include "doctest/doctest.h"
 
-#include <algorithm>
-#include <iostream>
+#include <array>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <ios>
+#include <iostream>
 #include <string>
+#include <string_view>
+#include <utility>
 
 // Global public suffix list
 upa::public_suffix_list ps_list;
@@ -27,7 +31,7 @@ std::string ascii_lower(std::string_view inp) {
 int test_public_suffix_list(const std::filesystem::path& filename) {
     // Open tests file
     std::cout << "========== " << filename << " ==========\n";
-    std::ifstream finp(filename, std::ios_base::in);
+    std::ifstream finp(filename, std::ios::in);
     if (!finp) {
         std::cerr << "Can not open: " << filename << '\n';
         return 1;
@@ -67,7 +71,7 @@ int test_public_suffix_list(const std::filesystem::path& filename) {
 int test_whatwg_public_suffix_list(const std::filesystem::path& filename) {
     // Open tests file
     std::cout << "========== " << filename << " ==========\n";
-    std::ifstream finp(filename, std::ios_base::in);
+    std::ifstream finp(filename, std::ios::in);
     if (!finp) {
         std::cerr << "Can not open: " << filename << '\n';
         return 1;
@@ -244,15 +248,15 @@ TEST_SUITE("public_suffix_list::get_suffix_view") {
 TEST_SUITE("public_suffix_list push interface") {
     TEST_CASE("public_suffix_list::push") {
         const std::filesystem::path filename{ "psl/public_suffix_list.dat" };
-        std::ifstream finp(filename, std::ios_base::in | std::ios_base::binary);
+        std::ifstream finp(filename, std::ios::in | std::ios::binary);
         REQUIRE(finp);
 
         upa::public_suffix_list psl;
         upa::public_suffix_list::push_context ctx;
-        char buffer[64];
+        std::array<char, 64> buffer{};
         while (finp) {
-            finp.read(buffer, sizeof(buffer));
-            psl.push(ctx, { buffer, static_cast<std::size_t>(finp.gcount()) });
+            finp.read(buffer.data(), buffer.size());
+            psl.push(ctx, { buffer.data(), static_cast<std::size_t>(finp.gcount()) });
         }
         REQUIRE(psl.finalize(ctx));
 
