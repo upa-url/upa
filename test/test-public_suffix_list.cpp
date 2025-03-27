@@ -274,6 +274,49 @@ TEST_SUITE("public_suffix_list push interface") {
     }
 }
 
+TEST_SUITE("public_suffix_list::operator==") {
+    TEST_CASE("equal") {
+        upa::public_suffix_list psl1;
+        upa::public_suffix_list::push_context ctx1;
+        psl1.push_line(ctx1, "github.io");
+        psl1.push_line(ctx1, "examople.io");
+        upa::public_suffix_list psl2;
+        upa::public_suffix_list::push_context ctx2;
+        psl2.push_line(ctx2, "examople.io");
+        psl2.push_line(ctx2, "github.io");
+        CHECK(psl1 == psl2);
+    }
+    TEST_CASE("not equal") {
+        upa::public_suffix_list psl1;
+        upa::public_suffix_list::push_context ctx1;
+        psl1.push_line(ctx1, "github.io");
+        psl1.push_line(ctx1, "examople1.io");
+        upa::public_suffix_list psl2;
+        upa::public_suffix_list::push_context ctx2;
+        psl2.push_line(ctx2, "github.io");
+        psl2.push_line(ctx2, "examople2.io");
+        CHECK_FALSE(psl1 == psl2);
+    }
+}
+
+TEST_SUITE("public_suffix_list move construction and assignment") {
+    TEST_CASE("move construction") {
+        upa::public_suffix_list psl1;
+        upa::public_suffix_list::push_context ctx1;
+        psl1.push_line(ctx1, "github.io");
+        upa::public_suffix_list psl2{ std::move(psl1) };
+        CHECK(psl2.get_suffix("upa-url.github.io") == "github.io");
+    }
+    TEST_CASE("move assignment") {
+        upa::public_suffix_list psl1;
+        upa::public_suffix_list psl2;
+        upa::public_suffix_list::push_context ctx1;
+        psl1.push_line(ctx1, "github.io");
+        psl2 = std::move(psl1);
+        CHECK(psl2.get_suffix("upa-url.github.io") == "github.io");
+    }
+}
+
 int test_public_suffix_list_functions(int argc, char** argv) {
     std::cout << "========== Test public_suffix_list functions ==========\n";
 

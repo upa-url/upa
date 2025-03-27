@@ -304,9 +304,15 @@ public:
     /// @brief Compares @c *this with @p other
     /// @param[in] other the public_suffix_list to compare with
     /// @return true if both lists are equal
-    bool operator==(const public_suffix_list& other) const {
-        return root_ == other.root_;
-    }
+    bool operator==(const public_suffix_list& other) const;
+
+    // constructors, destructor, assignment operators
+    public_suffix_list();
+    ~public_suffix_list();
+    public_suffix_list(public_suffix_list&&) noexcept;
+    public_suffix_list(const public_suffix_list&) = delete;
+    public_suffix_list& operator=(public_suffix_list&&) noexcept;
+    public_suffix_list& operator=(const public_suffix_list&) = delete;
 
 private:
     result get_host_suffix_info(std::string_view hostname, option opt) const;

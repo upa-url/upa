@@ -237,4 +237,13 @@ public_suffix_list::result public_suffix_list::get_host_suffix_info(
     return {};
 }
 
+bool public_suffix_list::operator==(const public_suffix_list& other) const {
+    return root_ == other.root_;
+}
+
+public_suffix_list::public_suffix_list() = default;
+public_suffix_list::~public_suffix_list() = default;
+public_suffix_list::public_suffix_list(public_suffix_list&&) noexcept = default;
+public_suffix_list& public_suffix_list::operator=(public_suffix_list&&) noexcept = default;
+
 } // namespace upa
