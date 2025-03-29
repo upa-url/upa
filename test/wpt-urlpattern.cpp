@@ -4,6 +4,7 @@
 //
 #include "upa/url.h"
 #include "upa/urlpattern.h"
+#include "upa/regex_engine_std.h"
 
 template <class K, class V>
 inline std::string vout(const std::unordered_map<K, V>& m);
@@ -20,6 +21,8 @@ inline std::string vout(const std::unordered_map<K, V>& m);
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
+
+using urlpattern = typename upa::pattern::urlpattern<upa::pattern::regex_engine_std>;
 
 // -----------------------------------------------------------------------------
 // parses urltestdata.json
@@ -67,33 +70,33 @@ int wpt_urlpattern_hasregexpgroups_tests() {
 #endif
 
     ddt.test_case("urlpattern has_regexp_groups() tests", [&](DataDrivenTest::TestCase& tc) {
-        tc.assert_equal(false, upa::pattern::urlpattern{}.has_regexp_groups(), "match-everything pattern");
+        tc.assert_equal(false, urlpattern{}.has_regexp_groups(), "match-everything pattern");
 
         for (std::string_view component : { "protocol", "username", "password", "hostname", "port", "pathname", "search", "hash" }) {
-            tc.assert_equal(false, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+            tc.assert_equal(false, urlpattern{ create_urlpattern_init(std::initializer_list{
                 std::pair{component, "*"sv} }) }.has_regexp_groups(), "wildcard in "s.append(component));
-            tc.assert_equal(false, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+            tc.assert_equal(false, urlpattern{ create_urlpattern_init(std::initializer_list{
                 std::pair{component, ":foo"sv} }) }.has_regexp_groups(), "segment wildcard in "s.append(component));
-            tc.assert_equal(false, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+            tc.assert_equal(false, urlpattern{ create_urlpattern_init(std::initializer_list{
                 std::pair{component, ":foo?"sv} }) }.has_regexp_groups(), "optional segment wildcard in "s.append(component));
-            tc.assert_equal(true, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+            tc.assert_equal(true, urlpattern{ create_urlpattern_init(std::initializer_list{
                 std::pair{component, ":foo(hi)"sv} }) }.has_regexp_groups(), "named regexp group in "s.append(component));
-            tc.assert_equal(true, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+            tc.assert_equal(true, urlpattern{ create_urlpattern_init(std::initializer_list{
                 std::pair{component, "(hi)"sv} }) }.has_regexp_groups(), "anonymous regexp group in "s.append(component));
             if (component != "protocol"sv && component != "port"sv) {
                 // These components are more narrow in what they accept in any case.
-                tc.assert_equal(false, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+                tc.assert_equal(false, urlpattern{ create_urlpattern_init(std::initializer_list{
                     std::pair{component, "a-{:hello}-z-*-a"sv} }) }.has_regexp_groups(),
                     "wildcards mixed in with fixed text and wildcards in "s.append(component));
-                tc.assert_equal(true, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+                tc.assert_equal(true, urlpattern{ create_urlpattern_init(std::initializer_list{
                     std::pair{component, "a-(hi)-z-(lo)-a"sv} }) }.has_regexp_groups(),
                     "regexp groups mixed in with fixed text and wildcards in "s.append(component));
             }
         }
 
-        tc.assert_equal(false, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+        tc.assert_equal(false, urlpattern{ create_urlpattern_init(std::initializer_list{
             std::pair{"pathname"sv, "/a/:foo/:baz?/b/*"sv}})}.has_regexp_groups(), "complex pathname with no regexp");
-        tc.assert_equal(true, upa::pattern::urlpattern{ create_urlpattern_init(std::initializer_list{
+        tc.assert_equal(true, urlpattern{ create_urlpattern_init(std::initializer_list{
             std::pair{"pathname"sv, "/a/:foo/:baz([a-z]+)?/b/*"sv}}) }.has_regexp_groups(), "complex pathname with regexp");
     });
 
@@ -102,9 +105,9 @@ int wpt_urlpattern_hasregexpgroups_tests() {
 
 // https://github.com/web-platform-tests/wpt/blob/master/urlpattern/resources/urlpatterntests.js
 
-upa::pattern::urlpattern create_urlpattern(const picojson::array& pattern_arr);
-bool urlpattern_test(const upa::pattern::urlpattern& self, const picojson::array& input_arr);
-std::optional<upa::pattern::urlpattern_result> urlpattern_exec(const upa::pattern::urlpattern& self, const picojson::array& input_arr);
+urlpattern create_urlpattern(const picojson::array& pattern_arr);
+bool urlpattern_test(const urlpattern& self, const picojson::array& input_arr);
+std::optional<upa::pattern::urlpattern_result> urlpattern_exec(const urlpattern& self, const picojson::array& input_arr);
 
 
 auto get_component(const upa::url& url, std::string_view name) -> std::string_view {
@@ -120,7 +123,7 @@ auto get_component(const upa::url& url, std::string_view name) -> std::string_vi
     throw std::out_of_range("not url componnent"); // TODO: message
 };
 
-auto get_component(const upa::pattern::urlpattern& urlpt, std::string_view name) -> std::string_view {
+auto get_component(const urlpattern& urlpt, std::string_view name) -> std::string_view {
     if (name == "protocol"sv) return urlpt.get_protocol();
     if (name == "username"sv) return urlpt.get_username();
     if (name == "password"sv) return urlpt.get_password();
@@ -495,9 +498,9 @@ upa::pattern::urlpattern_init create_urlpattern_init(const picojson::object& obj
     return init;
 }
 
-upa::pattern::urlpattern create_urlpattern(const picojson::array& pattern_arr) {
+urlpattern create_urlpattern(const picojson::array& pattern_arr) {
     if (pattern_arr.empty())
-        return upa::pattern::urlpattern{};
+        return urlpattern{};
 
     std::optional<std::string> arg_str;
     std::optional<std::string> arg_base;
@@ -543,16 +546,16 @@ upa::pattern::urlpattern create_urlpattern(const picojson::array& pattern_arr) {
     }
 
     if (arg_str)
-        return upa::pattern::urlpattern(*arg_str, arg_base, arg_opt);
+        return urlpattern(*arg_str, arg_base, arg_opt);
     if (arg_base)
         throw upa::pattern::urlpattern_error("Unexpected base URL"); // failure
     if (arg_init)
-        return upa::pattern::urlpattern(*arg_init, arg_opt);
+        return urlpattern(*arg_init, arg_opt);
 
-    return upa::pattern::urlpattern(upa::pattern::urlpattern_init{}, arg_opt);
+    return urlpattern(upa::pattern::urlpattern_init{}, arg_opt);
 }
 
-bool urlpattern_test(const upa::pattern::urlpattern& self, const picojson::array& input_arr) {
+bool urlpattern_test(const urlpattern& self, const picojson::array& input_arr) {
     if (input_arr.empty())
         return self.test(upa::pattern::urlpattern_init{});
 
@@ -590,7 +593,7 @@ bool urlpattern_test(const upa::pattern::urlpattern& self, const picojson::array
     return false;
 }
 
-std::optional<upa::pattern::urlpattern_result> urlpattern_exec(const upa::pattern::urlpattern& self, const picojson::array& input_arr) {
+std::optional<upa::pattern::urlpattern_result> urlpattern_exec(const urlpattern& self, const picojson::array& input_arr) {
     if (input_arr.empty())
         return self.exec(upa::pattern::urlpattern_init{});
 
