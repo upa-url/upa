@@ -89,6 +89,7 @@ struct urlpattern_init {
 // https://urlpattern.spec.whatwg.org/#constructor-string-parsing
 // https://urlpattern.spec.whatwg.org/#parse-a-constructor-string
 
+template <class regex_engine>
 inline urlpattern_init parse_constructor_string(std::string_view input);
 
 // 2. Pattern strings
@@ -273,6 +274,7 @@ inline urlpattern_init process_urlpattern_init(const urlpattern_init& init, urlp
 // 1.3. The URL pattern struct
 // https://urlpattern.spec.whatwg.org/#component
 
+template <class regex_engine>
 struct component {
     component() = default;
     component(component&&) noexcept = default;
@@ -283,7 +285,7 @@ struct component {
 
     // well formed pattern string
     pattern_string pattern_string_;
-    std::regex regular_expression_;
+    regex_engine regular_expression_;
     string_list group_name_list_;
     bool has_regexp_groups_ = false;
 };
@@ -302,7 +304,8 @@ inline constexpr options default_options{};
 // TODO: if C++20 use designated initializers
 inline constexpr options hostname_options { "."sv };
 
-inline bool protocol_component_matches_special_scheme(const component& protocol_component);
+template <class regex_engine>
+inline bool protocol_component_matches_special_scheme(const component<regex_engine>& protocol_component);
 constexpr bool hostname_pattern_is_ipv6_address(pattern_string_view input) noexcept;
 
 ///////////////////////////////////////////////////////////////////////
@@ -334,6 +337,7 @@ struct urlpattern_result {
     urlpattern_component_result hash;
 };
 
+template <class regex_engine>
 class urlpattern {
 public:
     // constructor with urlpattern_init as URLPatternInput
@@ -379,14 +383,14 @@ private:
 
     // 1.3. The URL pattern struct
     // https://urlpattern.spec.whatwg.org/#url-pattern
-    component protocol_component_;
-    component username_component_;
-    component password_component_;
-    component hostname_component_;
-    component port_component_;
-    component pathname_component_;
-    component search_component_;
-    component hash_component_;
+    component<regex_engine> protocol_component_;
+    component<regex_engine> username_component_;
+    component<regex_engine> password_component_;
+    component<regex_engine> hostname_component_;
+    component<regex_engine> port_component_;
+    component<regex_engine> pathname_component_;
+    component<regex_engine> search_component_;
+    component<regex_engine> hash_component_;
 };
 
 ///////////////////////////////////////////////////////////////////////
@@ -412,19 +416,22 @@ public:
 // 1.4. High-level operations: To create a URL pattern ...
 // https://urlpattern.spec.whatwg.org/#url-pattern-create
 
+template <class regex_engine>
 inline urlpattern_init make_urlpattern_init(std::string_view input, std::optional<std::string_view> base_url) {
-    urlpattern_init init{ parse_constructor_string(input) };
+    urlpattern_init init{ parse_constructor_string<regex_engine>(input) };
     if (!base_url && !init.protocol)
         throw urlpattern_error("No base URL");
     init.base_url = base_url;
     return init;
 }
 
-inline urlpattern::urlpattern(std::string_view input, std::optional<std::string_view> base_url, urlpattern_options opt)
-    : urlpattern{ make_urlpattern_init(input, base_url), opt }
+template <class regex_engine>
+inline urlpattern<regex_engine>::urlpattern(std::string_view input, std::optional<std::string_view> base_url, urlpattern_options opt)
+    : urlpattern{ make_urlpattern_init<regex_engine>(input, base_url), opt }
 {}
 
-inline urlpattern::urlpattern(const urlpattern_init& init, urlpattern_options opt) {
+template <class regex_engine>
+inline urlpattern<regex_engine>::urlpattern(const urlpattern_init& init, urlpattern_options opt) {
     // Let processedInit be the result of process a URLPatternInit given init, "pattern",
     // null, null, null, null, null, null, null, and null.
     auto processed_init = process_urlpattern_init(init, urlpattern_init_type::PATTERN, false/*all nulls*/);
@@ -448,16 +455,16 @@ inline urlpattern::urlpattern(const urlpattern_init& init, urlpattern_options op
         processed_init.port = ""sv;
 
     // component constructor performs `compile a component`
-    protocol_component_ = component(processed_init.protocol, canonicalize_protocol, default_options);
-    username_component_ = component(processed_init.username, canonicalize_username, default_options);
-    password_component_ = component(processed_init.password, canonicalize_password, default_options);
+    protocol_component_ = component<regex_engine>(processed_init.protocol, canonicalize_protocol, default_options);
+    username_component_ = component<regex_engine>(processed_init.username, canonicalize_username, default_options);
+    password_component_ = component<regex_engine>(processed_init.password, canonicalize_password, default_options);
 
     if (hostname_pattern_is_ipv6_address(*processed_init.hostname))
-        hostname_component_ = component(processed_init.hostname, canonicalize_ipv6_hostname, hostname_options);
+        hostname_component_ = component<regex_engine>(processed_init.hostname, canonicalize_ipv6_hostname, hostname_options);
     else
-        hostname_component_ = component(processed_init.hostname, canonicalize_hostname, hostname_options);
+        hostname_component_ = component<regex_engine>(processed_init.hostname, canonicalize_hostname, hostname_options);
 
-    port_component_ = component(processed_init.port, canonicalize_port, default_options);
+    port_component_ = component<regex_engine>(processed_init.port, canonicalize_port, default_options);
 
     // Let compileOptions be a copy of the default options with
     // the ignore case property set to options["ignoreCase"].
@@ -466,37 +473,45 @@ inline urlpattern::urlpattern(const urlpattern_init& init, urlpattern_options op
         // pathname options
         // https://urlpattern.spec.whatwg.org/#pathname-options
         const options path_compile_opt{ "/"sv, "/"sv, opt.ignore_case };
-        pathname_component_ = component(processed_init.pathname, canonicalize_pathname, path_compile_opt);
+        pathname_component_ = component<regex_engine>(processed_init.pathname, canonicalize_pathname, path_compile_opt);
     } else {
-        pathname_component_ = component(processed_init.pathname, canonicalize_opaque_pathname, compile_opt);
+        pathname_component_ = component<regex_engine>(processed_init.pathname, canonicalize_opaque_pathname, compile_opt);
     }
-    search_component_ = component(processed_init.search, canonicalize_search, compile_opt);
-    hash_component_ = component(processed_init.hash, canonicalize_hash, compile_opt);
+    search_component_ = component<regex_engine>(processed_init.search, canonicalize_search, compile_opt);
+    hash_component_ = component<regex_engine>(processed_init.hash, canonicalize_hash, compile_opt);
 }
 
 // https://urlpattern.spec.whatwg.org/#dom-urlpattern-protocol
-inline pattern_string_view urlpattern::get_protocol() const noexcept {
+template <class regex_engine>
+inline pattern_string_view urlpattern<regex_engine>::get_protocol() const noexcept {
     return protocol_component_.pattern_string_;
 }
-inline pattern_string_view urlpattern::get_username() const noexcept {
+template <class regex_engine>
+inline pattern_string_view urlpattern<regex_engine>::get_username() const noexcept {
     return username_component_.pattern_string_;
 }
-inline pattern_string_view urlpattern::get_password() const noexcept {
+template <class regex_engine>
+inline pattern_string_view urlpattern<regex_engine>::get_password() const noexcept {
     return password_component_.pattern_string_;
 }
-inline pattern_string_view urlpattern::get_hostname() const noexcept {
+template <class regex_engine>
+inline pattern_string_view urlpattern<regex_engine>::get_hostname() const noexcept {
     return hostname_component_.pattern_string_;
 }
-inline pattern_string_view urlpattern::get_port() const noexcept {
+template <class regex_engine>
+inline pattern_string_view urlpattern<regex_engine>::get_port() const noexcept {
     return port_component_.pattern_string_;
 }
-inline pattern_string_view urlpattern::get_pathname() const noexcept {
+template <class regex_engine>
+inline pattern_string_view urlpattern<regex_engine>::get_pathname() const noexcept {
     return pathname_component_.pattern_string_;
 }
-inline pattern_string_view urlpattern::get_search() const noexcept {
+template <class regex_engine>
+inline pattern_string_view urlpattern<regex_engine>::get_search() const noexcept {
     return search_component_.pattern_string_;
 }
-inline pattern_string_view urlpattern::get_hash() const noexcept {
+template <class regex_engine>
+inline pattern_string_view urlpattern<regex_engine>::get_hash() const noexcept {
     return hash_component_.pattern_string_;
 }
 
@@ -516,7 +531,8 @@ inline upa::url parse_url_against_base(std::string_view input, std::optional<std
     return url;
 }
 
-inline bool urlpattern::test(const urlpattern_init& input) const {
+template <class regex_engine>
+inline bool urlpattern<regex_engine>::test(const urlpattern_init& input) const {
     urlpattern_init apply_result;
     try {
         apply_result = process_urlpattern_init(input, urlpattern_init_type::URL, true);
@@ -530,11 +546,13 @@ inline bool urlpattern::test(const urlpattern_init& input) const {
         *apply_result.search, *apply_result.hash);
 }
 
-inline bool urlpattern::test(std::string_view input, std::optional<std::string_view> base_url_str) const {
+template <class regex_engine>
+inline bool urlpattern<regex_engine>::test(std::string_view input, std::optional<std::string_view> base_url_str) const {
     return test(parse_url_against_base(input, base_url_str));
 }
 
-inline bool urlpattern::test(const upa::url& url) const {
+template <class regex_engine>
+inline bool urlpattern<regex_engine>::test(const upa::url& url) const {
     if (!url.is_valid())
         return false;
 
@@ -549,34 +567,28 @@ inline bool urlpattern::test(const upa::url& url) const {
         url.get_part_view(upa::url::FRAGMENT));
 }
 
-inline bool urlpattern::match_for_test(
+template <class regex_engine>
+inline bool urlpattern<regex_engine>::match_for_test(
     std::string_view protocol, std::string_view username, std::string_view password,
     std::string_view hostname, std::string_view port, std::string_view pathname,
     std::string_view search, std::string_view hash) const
 {
-    if (!std::regex_match(protocol.begin(), protocol.end(), protocol_component_.regular_expression_))
-        return false;
-    if (!std::regex_match(username.begin(), username.end(), username_component_.regular_expression_))
-        return false;
-    if (!std::regex_match(password.begin(), password.end(), password_component_.regular_expression_))
-        return false;
-    if (!std::regex_match(hostname.begin(), hostname.end(), hostname_component_.regular_expression_))
-        return false;
-    if (!std::regex_match(port.begin(), port.end(), port_component_.regular_expression_))
-        return false;
-    if (!std::regex_match(pathname.begin(), pathname.end(), pathname_component_.regular_expression_))
-        return false;
-    if (!std::regex_match(search.begin(), search.end(), search_component_.regular_expression_))
-        return false;
-    if (!std::regex_match(hash.begin(), hash.end(), hash_component_.regular_expression_))
-        return false;
-    return true;
+    return
+        protocol_component_.regular_expression_.test(protocol) &&
+        username_component_.regular_expression_.test(username) &&
+        password_component_.regular_expression_.test(password) &&
+        hostname_component_.regular_expression_.test(hostname) &&
+        port_component_.regular_expression_.test(port) &&
+        pathname_component_.regular_expression_.test(pathname) &&
+        search_component_.regular_expression_.test(search) &&
+        hash_component_.regular_expression_.test(hash);
 }
 
 // https://urlpattern.spec.whatwg.org/#dom-urlpattern-exec
 // https://urlpattern.spec.whatwg.org/#url-pattern-match
 
-inline std::optional<urlpattern_result> urlpattern::exec(const urlpattern_init& input) const {
+template <class regex_engine>
+inline std::optional<urlpattern_result> urlpattern<regex_engine>::exec(const urlpattern_init& input) const {
     urlpattern_init apply_result;
     try {
         apply_result = process_urlpattern_init(input, urlpattern_init_type::URL, true);
@@ -594,7 +606,8 @@ inline std::optional<urlpattern_result> urlpattern::exec(const urlpattern_init& 
         *apply_result.search, *apply_result.hash);
 }
 
-inline std::optional<urlpattern_result> urlpattern::exec(std::string_view input,
+template <class regex_engine>
+inline std::optional<urlpattern_result> urlpattern<regex_engine>::exec(std::string_view input,
     std::optional<std::string_view> base_url_str) const
 {
     // Parse input
@@ -620,7 +633,8 @@ inline std::optional<urlpattern_result> urlpattern::exec(std::string_view input,
         url.get_part_view(upa::url::FRAGMENT));
 }
 
-inline std::optional<urlpattern_result> urlpattern::exec(const upa::url& url) const {
+template <class regex_engine>
+inline std::optional<urlpattern_result> urlpattern<regex_engine>::exec(const upa::url& url) const {
     if (!url.is_valid())
         return std::nullopt;
 
@@ -638,47 +652,49 @@ inline std::optional<urlpattern_result> urlpattern::exec(const upa::url& url) co
         url.get_part_view(upa::url::FRAGMENT));
 }
 
-using regex_exec_result = std::match_results<std::string_view::const_iterator>;
-
-inline urlpattern_component_result create_component_match_result(const component& comp,
+template <class regex_engine, class regex_exec_result = typename regex_engine::result>
+inline urlpattern_component_result create_component_match_result(const component<regex_engine>& comp,
     std::string_view input, const regex_exec_result& exec_result);
 
-inline std::optional<urlpattern_result> urlpattern::match(std::vector<urlpattern_input>&& inputs,
+template <class regex_engine>
+inline std::optional<urlpattern_result> urlpattern<regex_engine>::match(std::vector<urlpattern_input>&& inputs,
     std::string_view protocol, std::string_view username, std::string_view password,
     std::string_view hostname, std::string_view port, std::string_view pathname,
     std::string_view search, std::string_view hash) const
 {
+    using regex_exec_result = typename regex_engine::result;
+
     // Let protocolExecResult be RegExpBuiltinExec(urlpattern's protocol component's regular expression, protocol).
     regex_exec_result protocol_exec_result;
-    if (!std::regex_match(protocol.begin(), protocol.end(), protocol_exec_result, protocol_component_.regular_expression_))
+    if (!protocol_component_.regular_expression_.exec(protocol, protocol_exec_result))
         return std::nullopt;
 
     regex_exec_result username_exec_result;
-    if (!std::regex_match(username.begin(), username.end(), username_exec_result, username_component_.regular_expression_))
+    if (!username_component_.regular_expression_.exec(username, username_exec_result))
         return std::nullopt;
 
     regex_exec_result password_exec_result;
-    if (!std::regex_match(password.begin(), password.end(), password_exec_result, password_component_.regular_expression_))
+    if (!password_component_.regular_expression_.exec(password, password_exec_result))
         return std::nullopt;
 
     regex_exec_result hostname_exec_result;
-    if (!std::regex_match(hostname.begin(), hostname.end(), hostname_exec_result, hostname_component_.regular_expression_))
+    if (!hostname_component_.regular_expression_.exec(hostname, hostname_exec_result))
         return std::nullopt;
 
     regex_exec_result port_exec_result;
-    if (!std::regex_match(port.begin(), port.end(), port_exec_result, port_component_.regular_expression_))
+    if (!port_component_.regular_expression_.exec(port, port_exec_result))
         return std::nullopt;
 
     regex_exec_result pathname_exec_result;
-    if (!std::regex_match(pathname.begin(), pathname.end(), pathname_exec_result, pathname_component_.regular_expression_))
+    if (!pathname_component_.regular_expression_.exec(pathname, pathname_exec_result))
         return std::nullopt;
 
     regex_exec_result search_exec_result;
-    if (!std::regex_match(search.begin(), search.end(), search_exec_result, search_component_.regular_expression_))
+    if (!search_component_.regular_expression_.exec(search, search_exec_result))
         return std::nullopt;
 
     regex_exec_result hash_exec_result;
-    if (!std::regex_match(hash.begin(), hash.end(), hash_exec_result, hash_component_.regular_expression_))
+    if (!hash_component_.regular_expression_.exec(hash, hash_exec_result))
         return std::nullopt;
 
     // Let result be a new URLPatternResult.
@@ -698,7 +714,8 @@ inline std::optional<urlpattern_result> urlpattern::match(std::vector<urlpattern
 
 // https://urlpattern.spec.whatwg.org/#url-pattern-has-regexp-groups
 
-bool urlpattern::has_regexp_groups() const noexcept {
+template <class regex_engine>
+bool urlpattern<regex_engine>::has_regexp_groups() const noexcept {
     return
         protocol_component_.has_regexp_groups_ ||
         username_component_.has_regexp_groups_ ||
@@ -716,32 +733,22 @@ bool urlpattern::has_regexp_groups() const noexcept {
 // compile a component
 // https://urlpattern.spec.whatwg.org/#compile-a-component
 
-inline component::component(std::optional<std::string_view> input, encoding_callback encoding_cb, const options& opt) {
+template <class regex_engine>
+inline component<regex_engine>::component(std::optional<std::string_view> input, encoding_callback encoding_cb, const options& opt) {
     // Let part list be the result of running parse a pattern string given
     // input, options, and encoding callback
     const auto pt_list = parse_pattern_string(*input, opt, encoding_cb);
     auto [regular_expression_string, name_list] =
         generate_regular_expression_and_name_list(pt_list, opt);
 
-    // 4. If options's ignore case is true then set flags to "vi".
-    // 5. Otherwise set flags to "v"
-    // TODO: "v" flag
-    const std::regex::flag_type flag = opt.ignore_case
-        ? (std::regex::ECMAScript | std::regex::icase)
-        : std::regex::ECMAScript;
-
-    try {
-        regular_expression_.assign(regular_expression_string.data(), regular_expression_string.length(), flag);
-        // Note
-        // The specification uses regular expressions to perform all matching, but this is not mandated.
-        // Implementations are free to perform matching directly against the part list when possible;
-        // e.g. when there are no custom regexp matching groups. If there are custom regular
-        // expressions, however, its important that they be immediately evaluated in the compile
-        // a component algorithm so an error can be thrown if they are invalid. 
-    }
-    catch (const std::regex_error&) {
+    // Note
+    // The specification uses regular expressions to perform all matching, but this is not mandated.
+    // Implementations are free to perform matching directly against the part list when possible;
+    // e.g. when there are no custom regexp matching groups. If there are custom regular
+    // expressions, however, its important that they be immediately evaluated in the compile
+    // a component algorithm so an error can be thrown if they are invalid. 
+    if (!regular_expression_.init(regular_expression_string, opt.ignore_case))
         throw urlpattern_error("regular expression is not valid");
-    }
 
     pattern_string_ = generate_pattern_string(pt_list, opt);
     group_name_list_ = std::move(name_list);
@@ -754,23 +761,16 @@ inline component::component(std::optional<std::string_view> input, encoding_call
 // create a component match result
 // https://urlpattern.spec.whatwg.org/#create-a-component-match-result
 
-inline urlpattern_component_result create_component_match_result(const component& comp,
+template <class regex_engine, class regex_exec_result>
+inline urlpattern_component_result create_component_match_result(const component<regex_engine>& comp,
     std::string_view input, const regex_exec_result& exec_result)
 {
     urlpattern_component_result result;
     result.input = input;
 
     for (std::size_t index = 1; index < exec_result.size(); ++index) {
-        const auto& res = exec_result[index];
         std::string_view name = comp.group_name_list_[index - 1];
-        std::optional<std::string_view> value{}; // std::nullopt
-        if (res.matched) {
-#ifdef UPA_CPP_20
-            value = std::string_view{ res.first, res.second };
-#else
-            value = input.substr(exec_result.position(index), exec_result.length(index));
-#endif
-        }
+        std::optional<std::string_view> value = exec_result.get(index, input);
         result.groups.emplace(name, value);
     }
     return result;
@@ -778,10 +778,11 @@ inline urlpattern_component_result create_component_match_result(const component
 
 // https://urlpattern.spec.whatwg.org/#protocol-component-matches-a-special-scheme
 
-inline bool protocol_component_matches_special_scheme(const component& protocol_component) {
+template <class regex_engine>
+inline bool protocol_component_matches_special_scheme(const component<regex_engine>& protocol_component) {
 #if 1
     return [](const auto& re, auto... scheme) {
-        return (... || std::regex_match(scheme.begin(), scheme.end(), re));
+        return (... || re.test(scheme));
     }(protocol_component.regular_expression_,
         "ftp"sv, "file"sv, "http"sv, "https"sv, "ws"sv, "wss"sv);
 #else
@@ -848,6 +849,7 @@ struct constructor_string_parser {
     bool is_ipv6_open() const;
     bool is_ipv6_close() const;
     std::string_view make_component_string() const;
+    template <class regex_engine>
     void compute_protocol_matches_special_scheme_flag();
 
     std::string_view input_;
@@ -871,6 +873,7 @@ inline constructor_string_parser::constructor_string_parser(std::string_view inp
     , token_list_{ tokenize(input, tokenize_policy::LENIENT) }
 {}
 
+template <class regex_engine>
 inline urlpattern_init parse_constructor_string(std::string_view input) {
     using state = constructor_string_parser::state;
 
@@ -950,7 +953,7 @@ inline urlpattern_init parse_constructor_string(std::string_view input) {
             break;
         case state::PROTOCOL:
             if (parser.is_protocol_suffix()) {
-                parser.compute_protocol_matches_special_scheme_flag();
+                parser.compute_protocol_matches_special_scheme_flag<regex_engine>();
                 // Note
                 // We need to eagerly compile the protocol component to determine if it matches any
                 // special schemes. If it does then certain special rules apply. It determines if
@@ -1207,9 +1210,10 @@ inline std::string_view constructor_string_parser::make_component_string() const
 }
 
 // https://urlpattern.spec.whatwg.org/#compute-protocol-matches-a-special-scheme-flag
+template <class regex_engine>
 inline void constructor_string_parser::compute_protocol_matches_special_scheme_flag() {
     const auto protocol_string = make_component_string();
-    const component protocol_component{ protocol_string,  canonicalize_protocol, default_options };
+    const component<regex_engine> protocol_component{ protocol_string,  canonicalize_protocol, default_options };
     if (protocol_component_matches_special_scheme(protocol_component))
         protocol_matches_special_scheme_flag_ = true;
 }
