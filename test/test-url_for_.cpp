@@ -5,7 +5,10 @@
 
 #include "doctest-main.h"
 
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && \
+    __has_include(<atlsimpstr.h>) && \
+    __has_include(<atlstr.h>) && \
+    __has_include(<cstringt.h>)
 # define UPA_TEST_URL_FOR_ATL
 # include "upa/url_for_atl.h"
 # include <atlsimpstr.h>
