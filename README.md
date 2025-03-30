@@ -34,7 +34,7 @@ For string input, the library supports UTF-8, UTF-16, UTF-32 encodings and sever
 
 ## Installation
 
-The simplest way is to use two amalgamated files: `url.h` and `url.cpp`. You can download them from [releases page](https://github.com/upa-url/upa/releases), or if you have installed Python, then generate them by running `tools/amalgamate.sh` script (`tools/amalgamate.bat` on Windows). The files will be created in the `single_include/upa` directory.
+The simplest way is to use amalgamated files: `url.h` and `url.cpp`. For the Public Suffix List functionality, you will also need `public_suffix_list.h` and `public_suffix_list.cpp`. You can download them from [releases page](https://github.com/upa-url/upa/releases), or if you have installed Python, then generate them by running `tools/amalgamate.sh` script (`tools\amalgamate.bat` on Windows). The files will be created in the `single_include/upa` directory.
 
 ### CMake
 
@@ -91,12 +91,17 @@ Install Upa URL with `vcpkg install upa-url`.
 
 ## Usage
 
-In source files, that use this library, the `upa/url.h` must be  included:
+Source files using this library must include `upa/url.h`:
 ```cpp
 #include "upa/url.h"
 ```
 
-If you are using CMake, see the [CMake section](#cmake) for how to link to the library. Alternatively, if you are using amalgamated files, then add the amalgamated `url.cpp` file to your project, otherwise add all the files from the `src/` directory to your project.
+To use the Public Suffix List, you must also include `upa/public_suffix_list.h`:
+```cpp
+#include "upa/public_suffix_list.h"
+```
+
+If you are using CMake, see the [CMake section](#cmake) for how to link to the library. Alternatively, if you are using amalgamated files, then add the amalgamated `url.cpp` file (and optionaly amalgamated `public_suffix_list.cpp`) to your project, otherwise add all the files from the `src/` directory to your project.
 
 ### Examples
 
