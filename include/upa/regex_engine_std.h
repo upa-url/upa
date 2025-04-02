@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <optional>
 #include <regex>
+#include <string>
 #include <string_view>
 
 namespace upa::pattern {
@@ -19,15 +20,10 @@ public:
         std::size_t size() const {
             return arr_.size();
         }
-        std::optional<std::string_view> get(std::size_t ind, std::string_view input) const {
+        std::optional<std::string> get(std::size_t ind, std::string_view) const {
             const auto& res = arr_[ind];
-            if (res.matched) {
-#ifdef UPA_CPP_20
-                return std::string_view{ res.first, res.second };
-#else
-                return input.substr(arr_.position(ind), arr_.length(ind));
-#endif
-            }
+            if (res.matched)
+                return std::string{ res.first, res.second };
             return std::nullopt;
         }
     private:

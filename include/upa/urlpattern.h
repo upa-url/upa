@@ -768,10 +768,10 @@ inline urlpattern_component_result create_component_match_result(const component
     urlpattern_component_result result;
     result.input = input;
 
-    for (std::size_t index = 1; index < exec_result.size(); ++index) {
+    const auto count = exec_result.size();
+    for (std::size_t index = 1; index < count; ++index) {
         std::string_view name = comp.group_name_list_[index - 1];
-        std::optional<std::string_view> value = exec_result.get(index, input);
-        result.groups.emplace(name, value);
+        result.groups.emplace(name, exec_result.get(index, input));
     }
     return result;
 }
