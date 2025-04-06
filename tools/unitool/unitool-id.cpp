@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Rimas Misevičius
+// Copyright 2023-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -15,8 +15,6 @@ constexpr std::size_t align_size(std::size_t alignment, std::size_t size) noexce
 void make_unicode_id_table(const std::filesystem::path& data_path) {
     using item_type = uint8_t;
     using item_num_type = item_type;
-
-    const int MAX_CODE_POINT = 0x10FFFF;
 
     const int index_levels = 1; // 1 arba 2
     const item_num_type bit_of_id_start = 0x01;
