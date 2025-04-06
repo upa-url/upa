@@ -17,6 +17,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <unordered_map>
 #include <utility> // pair
 #include <variant>
@@ -65,6 +66,46 @@ inline char32_t get_code_point(StrT&& input, std::size_t& ind) {
     ind = ptr - inp.begin();
     return cp;
 }
+
+///////////////////////////////////////////////////////////////////////
+// Requirements for regex_engine
+
+template<class T, class = void>
+struct has_regex_engine_members : std::false_type {};
+
+template<class T>
+struct has_regex_engine_members<T, std::void_t<
+        typename T::result,
+        // T::result members
+        decltype(std::declval<typename T::result>().size()),
+        decltype(std::declval<typename T::result>().get(std::declval<std::size_t>(),
+            std::declval<std::string_view>())),
+        // T members
+        decltype(std::declval<T>().init(std::declval<std::string_view>(), std::declval<bool>())),
+        decltype(std::declval<T>().exec(std::declval<std::string_view>(),
+            std::declval<typename T::result&>())),
+        decltype(std::declval<T>().test(std::declval<std::string_view>()))
+    >> : std::conjunction<
+        // Check the return value types of T::result members
+        std::is_same<decltype(std::declval<typename T::result>().size()), std::size_t>,
+        std::is_same<decltype(std::declval<typename T::result>().get(std::declval<std::size_t>(),
+            std::declval<std::string_view>())), std::optional<std::string>>,
+        // Check the return value types of T members
+        std::is_same<decltype(std::declval<T>().init(std::declval<std::string_view>(),
+            std::declval<bool>())), bool>,
+        std::is_same<decltype(std::declval<T>().exec(std::declval<std::string_view>(),
+            std::declval<typename T::result&>())), bool>,
+        std::is_same<decltype(std::declval<T>().test(std::declval<std::string_view>())), bool>
+    > {};
+
+template<class T>
+constexpr bool is_regex_engine_v =
+    std::is_default_constructible_v<T>
+    && std::is_copy_constructible_v<T>
+    && std::is_move_constructible_v<T>
+    && std::is_copy_assignable_v<T>
+    && std::is_move_assignable_v<T>
+    && has_regex_engine_members<T>::value;
 
 ///////////////////////////////////////////////////////////////////////
 // 1. The URLPattern class
@@ -337,7 +378,8 @@ struct urlpattern_result {
     urlpattern_component_result hash;
 };
 
-template <class regex_engine>
+template <class regex_engine,
+    typename = std::enable_if_t<is_regex_engine_v<regex_engine>>>
 class urlpattern {
 public:
     // constructor with urlpattern_init as URLPatternInput
@@ -425,13 +467,13 @@ inline urlpattern_init make_urlpattern_init(std::string_view input, std::optiona
     return init;
 }
 
-template <class regex_engine>
-inline urlpattern<regex_engine>::urlpattern(std::string_view input, std::optional<std::string_view> base_url, urlpattern_options opt)
+template <class regex_engine, typename E>
+inline urlpattern<regex_engine, E>::urlpattern(std::string_view input, std::optional<std::string_view> base_url, urlpattern_options opt)
     : urlpattern{ make_urlpattern_init<regex_engine>(input, base_url), opt }
 {}
 
-template <class regex_engine>
-inline urlpattern<regex_engine>::urlpattern(const urlpattern_init& init, urlpattern_options opt) {
+template <class regex_engine, typename E>
+inline urlpattern<regex_engine, E>::urlpattern(const urlpattern_init& init, urlpattern_options opt) {
     // Let processedInit be the result of process a URLPatternInit given init, "pattern",
     // null, null, null, null, null, null, null, and null.
     auto processed_init = process_urlpattern_init(init, urlpattern_init_type::PATTERN, false/*all nulls*/);
@@ -482,36 +524,36 @@ inline urlpattern<regex_engine>::urlpattern(const urlpattern_init& init, urlpatt
 }
 
 // https://urlpattern.spec.whatwg.org/#dom-urlpattern-protocol
-template <class regex_engine>
-inline pattern_string_view urlpattern<regex_engine>::get_protocol() const noexcept {
+template <class regex_engine, typename E>
+inline pattern_string_view urlpattern<regex_engine, E>::get_protocol() const noexcept {
     return protocol_component_.pattern_string_;
 }
-template <class regex_engine>
-inline pattern_string_view urlpattern<regex_engine>::get_username() const noexcept {
+template <class regex_engine, typename E>
+inline pattern_string_view urlpattern<regex_engine, E>::get_username() const noexcept {
     return username_component_.pattern_string_;
 }
-template <class regex_engine>
-inline pattern_string_view urlpattern<regex_engine>::get_password() const noexcept {
+template <class regex_engine, typename E>
+inline pattern_string_view urlpattern<regex_engine, E>::get_password() const noexcept {
     return password_component_.pattern_string_;
 }
-template <class regex_engine>
-inline pattern_string_view urlpattern<regex_engine>::get_hostname() const noexcept {
+template <class regex_engine, typename E>
+inline pattern_string_view urlpattern<regex_engine, E>::get_hostname() const noexcept {
     return hostname_component_.pattern_string_;
 }
-template <class regex_engine>
-inline pattern_string_view urlpattern<regex_engine>::get_port() const noexcept {
+template <class regex_engine, typename E>
+inline pattern_string_view urlpattern<regex_engine, E>::get_port() const noexcept {
     return port_component_.pattern_string_;
 }
-template <class regex_engine>
-inline pattern_string_view urlpattern<regex_engine>::get_pathname() const noexcept {
+template <class regex_engine, typename E>
+inline pattern_string_view urlpattern<regex_engine, E>::get_pathname() const noexcept {
     return pathname_component_.pattern_string_;
 }
-template <class regex_engine>
-inline pattern_string_view urlpattern<regex_engine>::get_search() const noexcept {
+template <class regex_engine, typename E>
+inline pattern_string_view urlpattern<regex_engine, E>::get_search() const noexcept {
     return search_component_.pattern_string_;
 }
-template <class regex_engine>
-inline pattern_string_view urlpattern<regex_engine>::get_hash() const noexcept {
+template <class regex_engine, typename E>
+inline pattern_string_view urlpattern<regex_engine, E>::get_hash() const noexcept {
     return hash_component_.pattern_string_;
 }
 
@@ -531,8 +573,8 @@ inline upa::url parse_url_against_base(std::string_view input, std::optional<std
     return url;
 }
 
-template <class regex_engine>
-inline bool urlpattern<regex_engine>::test(const urlpattern_init& input) const {
+template <class regex_engine, typename E>
+inline bool urlpattern<regex_engine, E>::test(const urlpattern_init& input) const {
     urlpattern_init apply_result;
     try {
         apply_result = process_urlpattern_init(input, urlpattern_init_type::URL, true);
@@ -546,13 +588,13 @@ inline bool urlpattern<regex_engine>::test(const urlpattern_init& input) const {
         *apply_result.search, *apply_result.hash);
 }
 
-template <class regex_engine>
-inline bool urlpattern<regex_engine>::test(std::string_view input, std::optional<std::string_view> base_url_str) const {
+template <class regex_engine, typename E>
+inline bool urlpattern<regex_engine, E>::test(std::string_view input, std::optional<std::string_view> base_url_str) const {
     return test(parse_url_against_base(input, base_url_str));
 }
 
-template <class regex_engine>
-inline bool urlpattern<regex_engine>::test(const upa::url& url) const {
+template <class regex_engine, typename E>
+inline bool urlpattern<regex_engine, E>::test(const upa::url& url) const {
     if (!url.is_valid())
         return false;
 
@@ -567,8 +609,8 @@ inline bool urlpattern<regex_engine>::test(const upa::url& url) const {
         url.get_part_view(upa::url::FRAGMENT));
 }
 
-template <class regex_engine>
-inline bool urlpattern<regex_engine>::match_for_test(
+template <class regex_engine, typename E>
+inline bool urlpattern<regex_engine, E>::match_for_test(
     std::string_view protocol, std::string_view username, std::string_view password,
     std::string_view hostname, std::string_view port, std::string_view pathname,
     std::string_view search, std::string_view hash) const
@@ -587,8 +629,8 @@ inline bool urlpattern<regex_engine>::match_for_test(
 // https://urlpattern.spec.whatwg.org/#dom-urlpattern-exec
 // https://urlpattern.spec.whatwg.org/#url-pattern-match
 
-template <class regex_engine>
-inline std::optional<urlpattern_result> urlpattern<regex_engine>::exec(const urlpattern_init& input) const {
+template <class regex_engine, typename E>
+inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(const urlpattern_init& input) const {
     urlpattern_init apply_result;
     try {
         apply_result = process_urlpattern_init(input, urlpattern_init_type::URL, true);
@@ -606,8 +648,8 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine>::exec(const url
         *apply_result.search, *apply_result.hash);
 }
 
-template <class regex_engine>
-inline std::optional<urlpattern_result> urlpattern<regex_engine>::exec(std::string_view input,
+template <class regex_engine, typename E>
+inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(std::string_view input,
     std::optional<std::string_view> base_url_str) const
 {
     // Parse input
@@ -633,8 +675,8 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine>::exec(std::stri
         url.get_part_view(upa::url::FRAGMENT));
 }
 
-template <class regex_engine>
-inline std::optional<urlpattern_result> urlpattern<regex_engine>::exec(const upa::url& url) const {
+template <class regex_engine, typename E>
+inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(const upa::url& url) const {
     if (!url.is_valid())
         return std::nullopt;
 
@@ -656,8 +698,8 @@ template <class regex_engine, class regex_exec_result = typename regex_engine::r
 inline urlpattern_component_result create_component_match_result(const component<regex_engine>& comp,
     std::string_view input, const regex_exec_result& exec_result);
 
-template <class regex_engine>
-inline std::optional<urlpattern_result> urlpattern<regex_engine>::match(std::vector<urlpattern_input>&& inputs,
+template <class regex_engine, typename E>
+inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::match(std::vector<urlpattern_input>&& inputs,
     std::string_view protocol, std::string_view username, std::string_view password,
     std::string_view hostname, std::string_view port, std::string_view pathname,
     std::string_view search, std::string_view hash) const
@@ -714,8 +756,8 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine>::match(std::vec
 
 // https://urlpattern.spec.whatwg.org/#url-pattern-has-regexp-groups
 
-template <class regex_engine>
-bool urlpattern<regex_engine>::has_regexp_groups() const noexcept {
+template <class regex_engine, typename E>
+bool urlpattern<regex_engine, E>::has_regexp_groups() const noexcept {
     return
         protocol_component_.has_regexp_groups_ ||
         username_component_.has_regexp_groups_ ||
