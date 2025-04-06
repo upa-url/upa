@@ -1,4 +1,4 @@
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -16,6 +16,8 @@
 
 namespace upa {
 namespace tools {
+
+inline constexpr int MAX_CODE_POINT = 0x10FFFF;
 
 // Split
 
