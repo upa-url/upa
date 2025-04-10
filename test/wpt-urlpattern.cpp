@@ -13,9 +13,10 @@ inline std::string vout(const std::unordered_map<K, V>& m);
 #include "picojson_util.h"
 
 #include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <string>
+#include <string_view>
+#include <vector>
 
 #define TEST_DEBUG 0
 
@@ -27,9 +28,9 @@ using urlpattern = typename upa::pattern::urlpattern<upa::pattern::regex_engine_
 // -----------------------------------------------------------------------------
 // parses urltestdata.json
 
-picojson::value json_parse(const char* str) {
+picojson::value json_parse(std::string_view strv) {
     picojson::value v;
-    picojson::parse(v, str);
+    picojson::parse(v, strv.begin(), strv.end(), nullptr);
     return v;
 }
 
@@ -194,37 +195,37 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
     ddt.config_debug_break(true);
 #endif
 
-    static const char* kComponents[] = {
-        "protocol",
-        "username",
-        "password",
-        "hostname",
-        "port",
-        "password",
-        "pathname",
-        "search",
-        "hash"
+    static const std::string_view kComponents[] = {
+        "protocol"sv,
+        "username"sv,
+        "password"sv,
+        "hostname"sv,
+        "port"sv,
+        "password"sv,
+        "pathname"sv,
+        "search"sv,
+        "hash"sv
     };
 
-    static const std::unordered_map<std::string_view, std::vector<const char*>> EARLIER_COMPONENTS = {
+    static const std::unordered_map<std::string_view, std::vector<std::string_view>> EARLIER_COMPONENTS = {
         {"protocol"sv, {}},
-        {"hostname"sv, {"protocol"}},
-        {"port"sv, {"protocol", "hostname"}},
+        {"hostname"sv, {"protocol"sv}},
+        {"port"sv, {"protocol"sv, "hostname"sv}},
         {"username"sv, {}},
         {"password"sv, {}},
-        {"pathname"sv, {"protocol", "hostname", "port"}},
-        {"search"sv, {"protocol", "hostname", "port", "pathname"}},
-        {"hash"sv, {"protocol", "hostname", "port", "pathname", "search"}}
+        {"pathname"sv, {"protocol"sv, "hostname"sv, "port"sv}},
+        {"search"sv, {"protocol"sv, "hostname"sv, "port"sv, "pathname"sv}},
+        {"hash"sv, {"protocol"sv, "hostname"sv, "port"sv, "pathname"sv, "search"sv}}
     };
 
-    static constexpr auto get_prop = [](const picojson::object& obj, const char* name) -> const picojson::value* {
-        const auto it = obj.find(name);
+    static constexpr auto get_prop = [](const picojson::object& obj, std::string_view name) -> const picojson::value* {
+        const auto it = obj.find(std::string{ name });
         if (it != obj.end())
             return &it->second;
         return nullptr;
     };
 
-    static constexpr auto includes = [](const picojson::array& arr, const char* name) -> bool {
+    static constexpr auto includes = [](const picojson::array& arr, std::string_view name) -> bool {
         return std::any_of(arr.begin(), arr.end(), [&name](const picojson::value& val) {
             return val.get<std::string>() == name;
         });
@@ -271,7 +272,7 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
 
                     // The compiled URLPattern object should have a property for each
                     // component exposing the compiled pattern string.
-                    for (const char* component : kComponents) {
+                    for (auto component : kComponents) {
                         // If the test case explicitly provides an expected pattern string,
                         // then use that.  This is necessary in cases where the original
                         // construction pattern gets canonicalized, etc.
@@ -324,10 +325,10 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
                                 auto base_value = get_component(*baseURL, component);
                                 // Unfortunately some URL() getters include separator chars; e.g.
                                 // the trailing `:` for the protocol.  Strip those off if necessary.
-                                if (component == "protocol") {
+                                if (component == "protocol"sv) {
                                     if (base_value.length() > 0) // MANO
                                         base_value.remove_suffix(1);
-                                } else if (component == "search" || component == "hash") {
+                                } else if (component == "search"sv || component == "hash"sv) {
                                     if (base_value.length() > 0) // MANO
                                         base_value.remove_prefix(1);
                                 }
@@ -339,7 +340,7 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
                         // Finally, assert that the compiled object property matches the
                         // expected property.
                         tc.assert_equal(expected_str, get_component(pattern, component),
-                            std::string{ "compiled pattern property " } + component);
+                            std::string{ "compiled pattern property " } + std::string{ component });
                     }
 
                     // entry.inputs
@@ -416,7 +417,7 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
 
                     // Next we will compare the URLPatternComponentResult for each of these
                     // expected components.
-                    for (const char* component : kComponents) {
+                    for (auto component : kComponents) {
                         picojson::value expected_obj;
                         const auto* expected_obj_ptr = get_prop(entry_expected_match->get<picojson::object>(), component);
                         if (expected_obj_ptr)
