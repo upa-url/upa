@@ -23,8 +23,8 @@ project(upa_url VERSION ${UPA_URL_VERSION} LANGUAGES CXX)
 # It also must be used as the package name argument to find_package
 set(upa_lib_name upa)
 # Exported name for library target files; also used to create an alias
-# target: upa::${upa_lib_export}
-set(upa_lib_export url)
+# target: upa::${upa_export_name}
+set(upa_export_name url)
 # The ${upa_lib_target} is the logical library target name; also used
 # to create the library filename
 set(upa_lib_target upa_url)
@@ -138,9 +138,9 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:include>)
   endif()
-  add_library(upa::${upa_lib_export} ALIAS ${upa_lib_target})
+  add_library(upa::${upa_export_name} ALIAS ${upa_lib_target})
   set_target_properties(${upa_lib_target} PROPERTIES
-    EXPORT_NAME ${upa_lib_export})
+    EXPORT_NAME ${upa_export_name})
   # GCC 8 requires linking with stdc++fs to use std::filesystem
   target_link_libraries(${upa_lib_target} PRIVATE
     $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
