@@ -139,7 +139,7 @@ public:
     ///
     /// @param[in] input_stream input stream of the Public Suffix List file
     /// @return true if the Public Suffix List was loaded successfully
-    bool load(std::istream& input_stream);
+    UPA_API bool load(std::istream& input_stream);
 
     // Push interface to load Public Suffix List
 
@@ -156,7 +156,7 @@ public:
     ///
     /// @param[in] ctx push context
     /// @param[in] line text line to push
-    void push_line(push_context& ctx, std::string_view line);
+    UPA_API void push_line(push_context& ctx, std::string_view line);
 
     /// @brief Push a chunk of the Public Suffix List file
     ///
@@ -165,7 +165,7 @@ public:
     ///
     /// @param[in] ctx push context
     /// @param[in] buff chunk content
-    void push(push_context& ctx, std::string_view buff);
+    UPA_API void push(push_context& ctx, std::string_view buff);
 
     /// @brief Finalizes when all chunks are processed
     ///
@@ -174,7 +174,7 @@ public:
     ///
     /// @param[in] ctx push context
     /// @return true if the Public Suffix List was loaded successfully
-    bool finalize(push_context& ctx);
+    UPA_API bool finalize(push_context& ctx);
 
     // Get public suffix or registrable domain
 
@@ -304,18 +304,18 @@ public:
     /// @brief Compares @c *this with @p other
     /// @param[in] other the public_suffix_list to compare with
     /// @return true if both lists are equal
-    bool operator==(const public_suffix_list& other) const;
+    UPA_API bool operator==(const public_suffix_list& other) const;
 
     // constructors, destructor, assignment operators
-    public_suffix_list();
-    ~public_suffix_list();
-    public_suffix_list(public_suffix_list&&) noexcept;
+    UPA_API public_suffix_list();
+    UPA_API ~public_suffix_list();
+    UPA_API public_suffix_list(public_suffix_list&&) noexcept;
     public_suffix_list(const public_suffix_list&) = delete;
-    public_suffix_list& operator=(public_suffix_list&&) noexcept;
+    UPA_API public_suffix_list& operator=(public_suffix_list&&) noexcept;
     public_suffix_list& operator=(const public_suffix_list&) = delete;
 
 private:
-    result get_host_suffix_info(std::string_view hostname, option opt) const;
+    UPA_API result get_host_suffix_info(std::string_view hostname, option opt) const;
 
     std::string_view get_host_suffix_view(std::string_view hostname, option opt) const {
         const auto res = get_host_suffix_info(hostname, opt);

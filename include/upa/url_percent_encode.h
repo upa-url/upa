@@ -10,6 +10,7 @@
 #ifndef UPA_URL_PERCENT_ENCODE_H
 #define UPA_URL_PERCENT_ENCODE_H
 
+#include "config.h" // IWYU pragma: export
 #include "str_arg.h"
 #include "url_utf.h"
 #include "util.h"
@@ -345,7 +346,7 @@ constexpr bool is_ascii_alpha(CharT ch) noexcept {
 
 // Maps the hex numerical values 0x0 to 0xf to the corresponding ASCII digit
 // that will be used to represent it.
-extern const char kHexCharLookup[0x10];
+extern UPA_API const char kHexCharLookup[0x10];
 
 // This lookup table allows fast conversion between ASCII hex letters and their
 // corresponding numerical value. The 8-bit range is divided up into 8
@@ -355,7 +356,7 @@ extern const char kHexCharLookup[0x10];
 // the corresponding numerical value.
 //
 // See hex_char_to_num for the lookup.
-extern const char kCharToHexLookup[8];
+extern UPA_API const char kCharToHexLookup[8];
 
 // Assumes the input is a valid hex digit! Call is_hex_char before using this.
 inline unsigned char hex_char_to_num(unsigned char c) noexcept {

@@ -122,14 +122,43 @@ operator^=(E& lhs, E rhs) noexcept {
 
 #endif // UPA_IDNA_BITMASK_OPERATORS_HPP
 
+// #include "config.h"
+// Copyright 2025 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+#ifndef UPA_IDNA_CONFIG_H
+#define UPA_IDNA_CONFIG_H
+
+// Define UPA_IDNA_API macro to mark symbols for export/import
+// when compiling as shared library
+#if defined (UPA_LIB_EXPORT) || defined (UPA_LIB_IMPORT)
+# ifdef _MSC_VER
+#  ifdef UPA_LIB_EXPORT
+#   define UPA_IDNA_API __declspec(dllexport)
+#  else
+#   define UPA_IDNA_API __declspec(dllimport)
+#  endif
+# elif defined(__clang__) || defined(__GNUC__)
+#  define UPA_IDNA_API __attribute__((visibility ("default")))
+# endif
+#endif
+#ifndef UPA_IDNA_API
+# define UPA_IDNA_API
+#endif
+
+#endif // UPA_IDNA_CONFIG_H
+ // IWYU pragma: export
 // #include "idna_table.h"
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
 #ifndef UPA_IDNA_IDNA_TABLE_H
 #define UPA_IDNA_IDNA_TABLE_H
 
+// #include "config.h"
+ // IWYU pragma: export
 #include <cstddef>
 #include <cstdint>
 
@@ -167,21 +196,21 @@ const std::uint32_t CAT_Bidi_ES_CS_ET_ON_BN = 0x4000 << 16;
 const std::uint32_t CAT_Bidi_NSM  = 0x8000 << 16;
 
 // BEGIN-GENERATED
-const std::size_t blockShift = 4;
-const std::uint32_t blockMask = 0xF;
-const std::uint32_t defaultStart = 0x323B0;
-const std::uint32_t defaultValue = 0;
-const std::uint32_t specRange1 = 0xE0100;
-const std::uint32_t specRange2 = 0xE01EF;
-const std::uint32_t specValue = 0x20000;
+const std::size_t uni_block_shift = 4;
+const std::uint32_t uni_block_mask = 0xF;
+const std::uint32_t uni_default_start = 0x323B0;
+const std::uint32_t uni_default_value = 0;
+const std::uint32_t uni_spec_range1 = 0xE0100;
+const std::uint32_t uni_spec_range2 = 0xE01EF;
+const std::uint32_t uni_spec_value = 0x20000;
 
-extern const std::uint32_t blockData[];
-extern const std::uint16_t blockIndex[];
-extern const char32_t allCharsTo[];
+extern UPA_IDNA_API const std::uint32_t uni_data[];
+extern UPA_IDNA_API const std::uint16_t uni_data_index[];
+extern UPA_IDNA_API const char32_t uni_chars_to[];
 
 extern const std::uint8_t comp_disallowed_std3[3];
 
-extern const std::uint8_t asciiData[128];
+extern UPA_IDNA_API const std::uint8_t ascii_data[128];
 // END-GENERATED
 
 
@@ -196,13 +225,14 @@ constexpr std::uint32_t getValidMask(bool useSTD3ASCIIRules, bool transitional) 
 }
 
 inline std::uint32_t getCharInfo(uint32_t cp) {
-    if (cp >= defaultStart) {
-        if (cp >= specRange1 && cp <= specRange2) {
-            return specValue;
+    if (cp >= uni_default_start) {
+        if (cp >= uni_spec_range1 && cp <= uni_spec_range2) {
+            return uni_spec_value;
         }
-        return defaultValue;
+        return uni_default_value;
     }
-    return blockData[(blockIndex[cp >> blockShift] << blockShift) | (cp & blockMask)];
+    return uni_data[(uni_data_index[cp >> uni_block_shift] << uni_block_shift) |
+        (cp & uni_block_mask)];
 }
 
 template <class StrT>
@@ -218,7 +248,7 @@ inline std::size_t apply_mapping(uint32_t val, StrT& output) {
             len += ind >> 8;
             ind &= 0xFF;
         }
-        const auto* ptr = static_cast<const char32_t*>(allCharsTo) + ind;
+        const auto* ptr = static_cast<const char32_t*>(uni_chars_to) + ind;
         output.append(ptr, len);
         return len;
     }
@@ -240,10 +270,10 @@ inline std::size_t apply_mapping(uint32_t val, StrT& output) {
 // NOLINTBEGIN(*-macro-*)
 
 #define UPA_IDNA_VERSION_MAJOR 2
-#define UPA_IDNA_VERSION_MINOR 1
+#define UPA_IDNA_VERSION_MINOR 2
 #define UPA_IDNA_VERSION_PATCH 0
 
-#define UPA_IDNA_VERSION "2.1.0"
+#define UPA_IDNA_VERSION "2.2.0"
 
 // NOLINTEND(*-macro-*)
 
@@ -352,23 +382,25 @@ constexpr uint32_t getCodePoint(const char32_t*& it, const char32_t*) noexcept {
 #endif // UPA_IDNA_ITERATE_UTF_H
 
 // #include "nfc.h"
-// Copyright 2024 Rimas Misevičius
+// Copyright 2024-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
 #ifndef UPA_IDNA_NFC_H
 #define UPA_IDNA_NFC_H
 
+// #include "config.h"
+ // IWYU pragma: export
 #include <string>
 
 namespace upa::idna {
 
 
-void compose(std::u32string& str);
-void canonical_decompose(std::u32string& str);
+UPA_IDNA_API void compose(std::u32string& str);
+UPA_IDNA_API void canonical_decompose(std::u32string& str);
 
-void normalize_nfc(std::u32string& str);
-bool is_normalized_nfc(const char32_t* first, const char32_t* last);
+UPA_IDNA_API void normalize_nfc(std::u32string& str);
+UPA_IDNA_API bool is_normalized_nfc(const char32_t* first, const char32_t* last);
 
 
 } // namespace upa::idna
@@ -432,7 +464,7 @@ inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_e
         if (has(options, Option::UseSTD3ASCIIRules)) {
             for (const auto* it = input; it != input_end; ++it) {
                 const auto cp = static_cast<UCharT>(*it);
-                switch (util::asciiData[cp]) {
+                switch (util::ascii_data[cp]) {
                 case util::AC_VALID:
                     mapped.push_back(cp);
                     break;
@@ -494,8 +526,8 @@ inline bool map(std::u32string& mapped, const CharT* input, const CharT* input_e
     return true;
 }
 
-bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options);
-bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Option options);
+UPA_IDNA_API bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options);
+UPA_IDNA_API bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Option options);
 
 } // namespace detail
 
@@ -607,13 +639,15 @@ inline unsigned unicode_version() {
 #endif // UPA_IDNA_IDNA_H
  // IWYU pragma: export
 // #include "idna/punycode.h"
-// Copyright 2017-2024 Rimas Misevičius
+// Copyright 2017-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
 #ifndef UPA_IDNA_PUNYCODE_H
 #define UPA_IDNA_PUNYCODE_H
 
+// #include "config.h"
+ // IWYU pragma: export
 // #include <string>
 
 namespace upa::idna::punycode {
@@ -625,8 +659,8 @@ enum class status {
     overflow = 3    // Wider integers needed to process input.
 };
 
-status encode(std::string& output, const char32_t* first, const char32_t* last);
-status decode(std::u32string& output, const char32_t* first, const char32_t* last);
+UPA_IDNA_API status encode(std::string& output, const char32_t* first, const char32_t* last);
+UPA_IDNA_API status decode(std::u32string& output, const char32_t* first, const char32_t* last);
 
 } // namespace upa::idna::punycode
 

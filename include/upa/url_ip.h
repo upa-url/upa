@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -6,6 +6,7 @@
 #ifndef UPA_URL_IP_H
 #define UPA_URL_IP_H
 
+#include "config.h" // IWYU pragma: export
 #include "url_percent_encode.h"
 #include "url_result.h"
 #include <algorithm>
@@ -212,7 +213,7 @@ inline validation_errc ipv4_parse(const CharT* first, const CharT* last, uint32_
 // IPv4 serializer
 // https://url.spec.whatwg.org/#concept-ipv4-serializer
 
-void ipv4_serialize(uint32_t ipv4, std::string& output);
+UPA_API void ipv4_serialize(uint32_t ipv4, std::string& output);
 
 
 // IPv6
@@ -387,7 +388,7 @@ inline validation_errc ipv6_parse(const CharT* first, const CharT* last, uint16_
 // IPv6 serializer
 // https://url.spec.whatwg.org/#concept-ipv6-serializer
 
-void ipv6_serialize(const uint16_t(&address)[8], std::string& output);
+UPA_API void ipv6_serialize(const uint16_t(&address)[8], std::string& output);
 
 
 } // namespace upa
