@@ -22,6 +22,11 @@ jobs:
               build/bench-public_suffix_list test/psl
               build/bench-url test/wpt/urltestdata.json
 
+          - name: clang++ C++20 shared-lib
+            cxx_compiler: clang++
+            cxx_standard: 20
+            cmake_options: "-DBUILD_SHARED_LIBS=ON"
+
     steps:
     - uses: actions/checkout@v4
     - name: get dependencies
