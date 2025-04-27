@@ -18,7 +18,7 @@
 #define UPA_URL_H
 
 #include "buffer.h"
-#include "config.h"
+#include "config.h"             // IWYU pragma: export
 #include "str_arg.h"            // IWYU pragma: export
 #include "url_host.h"           // IWYU pragma: export
 #include "url_percent_encode.h" // IWYU pragma: export
@@ -61,11 +61,11 @@ struct alignas(32) scheme_info {
     unsigned is_ws : 1;         // "ws", "wss"
 };
 
-const scheme_info* get_scheme_info(string_view src);
+UPA_API const scheme_info* get_scheme_info(string_view src);
 
 // url_error what() values
-extern const char* const kURLParseError;
-extern const char* const kBaseURLParseError;
+extern UPA_API const char* const kURLParseError;
+extern UPA_API const char* const kBaseURLParseError;
 
 } // namespace detail
 
@@ -585,7 +585,7 @@ public:
     /// @param[in] t URL's part
     /// @param[in] with_sep
     /// @return the start and end position of the specified URL part
-    [[nodiscard]] std::pair<std::size_t, std::size_t> get_part_pos(PartType t,
+    [[nodiscard]] UPA_API std::pair<std::size_t, std::size_t> get_part_pos(PartType t,
         bool with_sep = false) const;
 
     /// @brief Gets URL's part (URL record member) as string
@@ -668,7 +668,7 @@ private:
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
 
-    static const unsigned kPartFlagMask[url::PART_COUNT];
+    static UPA_API const unsigned kPartFlagMask[url::PART_COUNT];
 
     // parsing constructor
     template <class T, enable_if_str_arg_t<T> = 0>
@@ -937,7 +937,7 @@ private:
 
 
 // part start
-extern const uint8_t kPartStart[url::PART_COUNT];
+extern UPA_API const uint8_t kPartStart[url::PART_COUNT];
 
 constexpr int port_from_str(const char* first, const char* last) noexcept {
     int port = 0;

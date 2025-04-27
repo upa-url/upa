@@ -6,7 +6,7 @@
 #ifndef UPA_URL_SEARCH_PARAMS_H
 #define UPA_URL_SEARCH_PARAMS_H
 
-#include "config.h"
+#include "config.h" // IWYU pragma: export
 #include "str_arg.h"
 #include "url_percent_encode.h"
 #include "url_utf.h"
@@ -381,7 +381,7 @@ private:
     bool is_sorted_ = false;
     url* url_ptr_ = nullptr;
 
-    static const char kEncByte[0x100];
+    static UPA_API const char kEncByte[0x100];
 };
 
 

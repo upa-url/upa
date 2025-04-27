@@ -15,6 +15,9 @@ if (NOT upa_url_version_h MATCHES "[ \t]+UPA_URL_VERSION[ \t]+\"([0-9]+(\.[0-9]+
 endif()
 set(UPA_URL_VERSION ${CMAKE_MATCH_1})
 message(STATUS "Upa URL version: ${UPA_URL_VERSION}")
+# Create SOVERSION from major and minor version numbers
+string(REGEX MATCH "^[0-9]+\.[0-9]+" UPA_URL_SOVERSION ${UPA_URL_VERSION})
+message(STATUS "Upa URL SOVERSION: ${UPA_URL_SOVERSION}")
 
 # Project settings
 project(upa_url VERSION ${UPA_URL_VERSION} LANGUAGES CXX)
@@ -120,13 +123,13 @@ include_directories(deps)
 if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES OR
     UPA_BUILD_EXTRACTED OR UPA_INSTALL)
   if (UPA_AMALGAMATED)
-    add_library(${upa_lib_target} STATIC
+    add_library(${upa_lib_target}
       single_include/upa/url.cpp
       single_include/upa/public_suffix_list.cpp)
     target_include_directories(${upa_lib_target}
       INTERFACE single_include)
   else()
-    add_library(${upa_lib_target} STATIC
+    add_library(${upa_lib_target}
       src/idna.cpp
       src/public_suffix_list.cpp
       src/url.cpp
@@ -138,9 +141,18 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:include>)
   endif()
+  if (BUILD_SHARED_LIBS)
+    target_compile_definitions(${upa_lib_target} PRIVATE UPA_LIB_EXPORT
+      INTERFACE UPA_LIB_IMPORT)
+  endif ()
+  # Alias target for the library
   add_library(upa::${upa_export_name} ALIAS ${upa_lib_target})
   set_target_properties(${upa_lib_target} PROPERTIES
-    EXPORT_NAME ${upa_export_name})
+    EXPORT_NAME ${upa_export_name}
+    VERSION ${UPA_URL_VERSION}
+    SOVERSION ${UPA_URL_SOVERSION}
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN ON)
   # GCC 8 requires linking with stdc++fs to use std::filesystem
   target_link_libraries(${upa_lib_target} PRIVATE
     $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
@@ -258,6 +270,7 @@ if (UPA_INSTALL AND NOT UPA_AMALGAMATED)
     TARGETS ${upa_lib_target}
     EXPORT ${upa_lib_target}-targets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   )
 
   install(
