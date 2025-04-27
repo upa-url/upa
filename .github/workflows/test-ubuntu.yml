@@ -14,11 +14,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: clang++ C++20
+          - name: clang++ C++20 shared-lib
             os: ubuntu-latest
             cxx_compiler: clang++
             cxx_standard: 20
-            cmake_options: ""
+            cmake_options: "-DBUILD_SHARED_LIBS=ON"
 
           - name: clang++ C++17 with sanitizer
             os: ubuntu-latest
@@ -72,11 +72,11 @@ jobs:
             cmake_options: "-DUPA_AMALGAMATED=ON -DUPA_BUILD_EXAMPLES=ON"
             before_cmake: tools/amalgamate.sh
 
-          - name: g++-9 C++17
+          - name: g++-9 C++17 shared-lib
             os: ubuntu-22.04
             cxx_compiler: g++-9
             cxx_standard: 17
-            cmake_options: "-DUPA_BUILD_EXAMPLES=ON"
+            cmake_options: "-DUPA_BUILD_EXAMPLES=ON -DBUILD_SHARED_LIBS=ON"
 
     steps:
     - uses: actions/checkout@v4

@@ -26,11 +26,11 @@ jobs:
             cxx_standard: 20
             cmake_options: ""
 
-          - name: VS 2022 C++17
+          - name: VS 2022 C++17 shared-lib
             os: windows-2022
             generator: "Visual Studio 17 2022"
             cxx_standard: 17
-            cmake_options: ""
+            cmake_options: "-DBUILD_SHARED_LIBS=ON"
 
           - name: VS 2022 C++20
             os: windows-2022
@@ -44,11 +44,11 @@ jobs:
             cxx_standard: 23
             cmake_options: ""
 
-          - name: VS 2022 Clang C++17
+          - name: VS 2022 Clang C++17 shared-lib
             os: windows-2022
             generator: "Visual Studio 17 2022"
             cxx_standard: 17
-            cmake_options: "-T ClangCL"
+            cmake_options: "-T ClangCL -DBUILD_SHARED_LIBS=ON"
 
           - name: VS 2022 Clang C++20
             os: windows-2022
