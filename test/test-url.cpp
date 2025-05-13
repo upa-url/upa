@@ -924,3 +924,10 @@ TEST_CASE("url operator<<") {
     sout << upa::url{ input };
     CHECK(sout.str() == input);
 }
+
+// Test version
+
+TEST_CASE("Upa URL version") {
+    CHECK(upa::version_num() == UPA_URL_VERSION_NUM);
+    CHECK(upa::check_version());
+}

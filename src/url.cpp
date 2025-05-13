@@ -102,5 +102,11 @@ const unsigned url::kPartFlagMask[url::PART_COUNT] = {
     FRAGMENT_FLAG
 };
 
+// Upa URL version encoded to one number
+
+std::uint32_t version_num() {
+    return UPA_URL_VERSION_NUM;
+}
+
 
 } // namespace upa

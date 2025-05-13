@@ -3314,6 +3314,27 @@ template <class StrT, enable_if_str_arg_t<StrT> = 0>
     return path;
 }
 
+// Upa URL version functions
+
+/// @brief Get library version encoded to one number
+///
+/// For example, for the 2.1.0 version, it returns 0x00020100.
+///
+/// @return encoded version
+UPA_API std::uint32_t version_num();
+
+/// @brief Check used library version
+///
+/// Check that the Upa URL library used is compatible with the header
+/// files. This makes sense when using the shared Upa URL library.
+///
+/// @return true if they are compatible
+inline bool check_version() {
+    constexpr auto sover_mask = static_cast<std::uint32_t>(-1) ^
+        static_cast<std::uint32_t>(0xFF);
+    return (version_num() & sover_mask) ==
+        (static_cast<std::uint32_t>(UPA_URL_VERSION_NUM) & sover_mask);
+}
 
 } // namespace upa
 
