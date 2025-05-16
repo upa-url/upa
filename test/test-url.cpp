@@ -828,6 +828,15 @@ TEST_CASE("url_from_file_path") {
         CHECK(upa::url_from_file_path("/", upa::file_path_format::native).href() == "file:///");
 #endif
     }
+    SUBCASE("std::filesystem::path") {
+#ifdef _WIN32
+        std::filesystem::path path{ "c:\\dir\\file.txt" };
+        CHECK(upa::url_from_file_path(path).href() == "file:///c:/dir/file.txt");
+#else
+        std::filesystem::path path{ "/dir/file.txt" };
+        CHECK(upa::url_from_file_path(path).href() == "file:///dir/file.txt");
+#endif
+    }
 }
 
 TEST_CASE("path_from_file_url") {
