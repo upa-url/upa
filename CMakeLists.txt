@@ -37,7 +37,7 @@ if (NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
-# Upa URL is top level project?
+# Is the Upa URL a top-level project?
 if (NOT DEFINED UPA_MAIN_PROJECT)
   set(UPA_MAIN_PROJECT OFF)
   if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -46,8 +46,7 @@ if (NOT DEFINED UPA_MAIN_PROJECT)
 endif()
 
 # Options
-option(URL_BUILD_TESTS "Build the Upa URL tests." ${UPA_MAIN_PROJECT})
-option(UPA_BUILD_TESTS "Build the Upa URL tests." ${URL_BUILD_TESTS})
+option(UPA_BUILD_TESTS "Build the Upa URL tests." ${UPA_MAIN_PROJECT})
 option(UPA_BUILD_BENCH "Build the Upa URL benchmarks." OFF)
 option(UPA_BUILD_FUZZER "Build the Upa URL fuzzer." OFF)
 option(UPA_BUILD_EXAMPLES "Build the Upa URL examples." OFF)
