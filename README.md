@@ -45,6 +45,8 @@ cmake --build build
 cmake --install build
 ```
 
+This installs the Upa URL as a static library, which is recommended. To build and install it as a shared library, add the `-DBUILD_SHARED_LIBS=ON` option to the first command.
+
 To use library add `find_package(upa REQUIRED)` and link to `upa::url` target in your CMake project:
 ```cmake
 find_package(upa REQUIRED)
@@ -198,6 +200,24 @@ int main() {
         std::cout << psl.get_suffix("upa-url.github.io.",
             upa::public_suffix_list::option::allow_trailing_dot) << '\n'; // github.io.
 }
+```
+
+## Building and running tests
+
+Clone the repository (`git clone https://github.com/upa-url/upa.git`) and run `init.sh` (`init.bat` on Windows) in the repository's root directory to download the dependencies and test data files. These files are necessary for building and running tests, but not for the library itself.
+
+To build and run the tests, execute the following commands:
+```sh
+cmake -B build
+cmake --build build
+ctest --output-on-failure --test-dir build
+```
+
+On Windows, you need to specify the build configuration, for example, `Debug`:
+```sh
+cmake -B build
+cmake --build build --config Debug
+ctest --output-on-failure --test-dir build -C Debug
 ```
 
 ## License
