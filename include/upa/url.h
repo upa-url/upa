@@ -3239,7 +3239,7 @@ template <class StrT, enable_if_str_arg_t<StrT> = 0>
 ///
 /// @param[in] path absolute file path
 /// @return file URL
-inline url url_from_file_path(const std::filesystem::path& path) {
+[[nodiscard]] inline url url_from_file_path(const std::filesystem::path& path) {
 #ifdef _WIN32
     // On Windows, the native path is encoded in UTF-16
     return url_from_file_path(path.native());
@@ -3256,7 +3256,7 @@ inline url url_from_file_path(const std::filesystem::path& path) {
 /// @param[in] file_url file URL
 /// @param[in] format file path format, one of upa::file_path_format::posix,
 ///   upa::file_path_format::windows, upa::file_path_format::native
-/// @return OS path
+/// @return OS path encoded in UTF-8
 [[nodiscard]] inline std::string path_from_file_url(const url& file_url, file_path_format format = file_path_format::native) {
     if (!file_url.is_file_scheme())
         throw url_error(validation_errc::not_file_url, "Not a file URL");
