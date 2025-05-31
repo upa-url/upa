@@ -3331,6 +3331,25 @@ template <class StrT, enable_if_str_arg_t<StrT> = 0>
     return path;
 }
 
+/// @brief Get OS path as std::filesystem::path from file URL
+///
+/// Throws url_error exception on error.
+///
+/// @param[in] file_url file URL
+/// @return OS path as std::filesystem::path
+[[nodiscard]] inline std::filesystem::path fs_path_from_file_url(const url& file_url) {
+#ifdef UPA_CPP_20
+    const std::string path_str = path_from_file_url(file_url);
+    // the path_str is encoded in UTF-8
+    const auto* first = reinterpret_cast<const char8_t*>(path_str.data());
+    const auto* last = first + path_str.size();
+    return { first, last, std::filesystem::path::native_format };
+#else
+    // the u8path is deprecated in C++20
+    return std::filesystem::u8path(path_from_file_url(file_url));
+#endif
+}
+
 // Upa URL version functions
 
 /// @brief Get library version encoded to one number

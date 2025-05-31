@@ -907,6 +907,16 @@ TEST_CASE("path_from_file_url") {
     }
 }
 
+TEST_CASE("fs_path_from_file_url") {
+#ifdef _WIN32
+    const auto path = upa::fs_path_from_file_url(upa::url{ "file:///c:/dir/file-%C4%85-%C5%BE.txt" });
+    CHECK(path.u8string() == u8"c:\\dir\\file-\u0105-\u017E.txt");
+#else
+    const auto path = upa::fs_path_from_file_url(upa::url{ "file:///dir/file-%C4%85-%C5%BE.txt" });
+    CHECK(path.u8string() == u8"/dir/file-\u0105-\u017E.txt");
+#endif
+}
+
 // Test std::hash specialization and operator==
 
 TEST_CASE("std::hash<upa::url> and operator==") {

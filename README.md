@@ -26,7 +26,7 @@ Upa URL contains features not specified in the standard:
 1. The `upa::url` class has `path` getter (to get `pathname` concatenated with `search`)
 2. The `upa::url` class has the `get_part_pos` function to get the start and end position of the specified URL component in a URL string.
 3. Function to convert file system path to file URL: `upa::url_from_file_path`
-4. Function to get file system path from file URL: `upa::path_from_file_url`
+4. Functions to get file system path from file URL: `upa::path_from_file_url` and `upa::fs_path_from_file_url`
 5. Experimental URLHost class (see proposal: https://github.com/whatwg/url/pull/288): `upa::url_host`
 6. The `upa::url_search_params` class has a few additional functions: `remove`, `remove_if`
 
