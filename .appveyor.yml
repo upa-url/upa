@@ -15,6 +15,10 @@ environment:
       GENERATOR: Visual Studio 15 2017
       CXX_STANDARD: 17
 
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+      GENERATOR: Visual Studio 16 2019
+      CXX_STANDARD: 17
+
 before_build:
   - init.bat
   - cmake -S . -B build -G "%GENERATOR%" -A x64 -DCMAKE_CXX_STANDARD="%CXX_STANDARD%"
