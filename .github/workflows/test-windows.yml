@@ -54,4 +54,4 @@ jobs:
     - name: build
       run: cmake --build build --config Release
     - name: test
-      run: ctest --test-dir build -C Release -V
+      run: ctest --output-on-failure --test-dir build -C Release

@@ -20,4 +20,4 @@ task:
     cmake -S . -B build -DCMAKE_CXX_STANDARD=17
     cmake --build build
   test_script: |
-    cd build ; ctest -V
+    ctest --output-on-failure --test-dir build

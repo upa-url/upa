@@ -28,4 +28,4 @@ build_script:
 
 test_script:
   - cd build
-  - ctest -C Release -V
+  - ctest --output-on-failure -C Release

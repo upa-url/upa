@@ -36,7 +36,7 @@ jobs:
     - name: build
       run: cmake --build build
     - name: test
-      run: ctest --test-dir build -V
+      run: ctest --output-on-failure --test-dir build
     - name: after test
       if: ${{ matrix.after_test }}
       run: ${{ matrix.after_test }}
