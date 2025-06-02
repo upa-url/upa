@@ -38,7 +38,7 @@ const uint8_t kLengthToSchemesInd[] = {
 
 } // namespace
 
-const scheme_info* get_scheme_info(const string_view src) {
+const scheme_info* get_scheme_info(string_view src) {
     const std::size_t len = src.length();
     if (len <= max_scheme_length) {
         const int end = kLengthToSchemesInd[len + 1];

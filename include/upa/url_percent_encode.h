@@ -107,10 +107,6 @@ private:
 
 // Percent encode sets
 
-// If you edit following data, then please compile tools/dumpCharBitSets.cpp program
-// with C++17 compiler, run it and copy output to the url_percent_encode.cpp file.
-// This is required to support C++11, C++14 compilers.
-
 // fragment percent-encode set
 // https://url.spec.whatwg.org/#fragment-percent-encode-set
 inline constexpr code_point_set fragment_no_encode_set{ [](code_point_set& self) constexpr {

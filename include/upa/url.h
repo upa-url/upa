@@ -683,8 +683,7 @@ private:
     validation_errc for_can_parse(T&& str_url, const url* base);
 
     // set scheme
-    template <class StringT>
-    void set_scheme_str(StringT str);
+    void set_scheme_str(string_view str);
     void set_scheme(const url& src);
     void set_scheme(string_view str);
     void set_scheme(std::size_t scheme_length);
@@ -754,7 +753,7 @@ public:
 
     // set data
     void set_scheme(const url& src) { url_.set_scheme(src); }
-    void set_scheme(const string_view str) { url_.set_scheme(str); }
+    void set_scheme(string_view str) { url_.set_scheme(str); }
     void set_scheme(std::size_t scheme_length) { url_.set_scheme(scheme_length); }
 
     // set scheme
@@ -1339,11 +1338,10 @@ inline bool url::has_credentials() const {
 
 // set scheme
 
-template <class StringT>
-inline void url::set_scheme_str(const StringT str) {
+inline void url::set_scheme_str(string_view str) {
     norm_url_.clear(); // clear all
     part_end_[SCHEME] = str.length();
-    norm_url_.append(str.data(), str.length());
+    norm_url_.append(str);
     norm_url_ += ':';
 }
 
@@ -1352,7 +1350,7 @@ inline void url::set_scheme(const url& src) {
     scheme_inf_ = src.scheme_inf_;
 }
 
-inline void url::set_scheme(const string_view str) {
+inline void url::set_scheme(string_view str) {
     set_scheme_str(str);
     scheme_inf_ = detail::get_scheme_info(str);
 }
