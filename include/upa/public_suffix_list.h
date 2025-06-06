@@ -29,7 +29,7 @@ namespace upa {
 /// @param[in] index zero-based label index starting from the leftmost label
 /// @return label position in the @p str_host string
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
-constexpr std::size_t get_label_pos_by_index(StrT&& str_host, std::size_t index) {
+[[nodiscard]] constexpr std::size_t get_label_pos_by_index(StrT&& str_host, std::size_t index) {
     const auto inp = make_str_arg(std::forward<StrT>(str_host));
     const auto* first = inp.begin();
     const auto* last = inp.end();
@@ -102,19 +102,19 @@ public:
     /// @brief Return value type of the public_suffix_list::get_suffix_info function
     struct result {
         /// @return true if public suffix or registrable domain is not null
-        constexpr operator bool() const noexcept {
+        [[nodiscard]] constexpr operator bool() const noexcept {
             return first_label_ind != static_cast<std::size_t>(-1);
         }
         /// @return true if public suffix is in ICANN section
-        constexpr bool is_icann() const noexcept {
+        [[nodiscard]] constexpr bool is_icann() const noexcept {
             return (code_ & IS_ICANN) != 0;
         }
         /// @return true if public suffix is in PRIVATE section
-        constexpr bool is_private() const noexcept {
+        [[nodiscard]] constexpr bool is_private() const noexcept {
             return (code_ & IS_PRIVATE) != 0;
         }
         /// @return true if hostname matches wildcard rule
-        constexpr bool wildcard_rule() const noexcept {
+        [[nodiscard]] constexpr bool wildcard_rule() const noexcept {
             return (code_ & DIFF_MASK) == 3;
         }
         /// First label index of public suffix or registrable domain in hostname
@@ -146,7 +146,7 @@ public:
     /// @brief Push context for public_suffix_list::push_line, public_suffix_list::push
     /// and public_suffix_list::finalize functions
     struct push_context {
-        std::string remaining{};
+        std::string remaining;
         std::uint8_t code_flags = 0;
     };
 
@@ -184,7 +184,7 @@ public:
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    std::string get_suffix(StrT&& str_host,
+    [[nodiscard]] std::string get_suffix(StrT&& str_host,
         option opt = option::public_suffix) const {
         try {
             return std::string{ get_suffix_view(
@@ -204,7 +204,7 @@ public:
     /// @param[in] url the @ref url object
     /// @param[in] opt options
     /// @return information in the public_suffix_list::result type struct
-    result get_suffix_info(const url& url,
+    [[nodiscard]] result get_suffix_info(const url& url,
         option opt = option::public_suffix) const {
         if (url.host_type() == HostType::Domain)
             return get_host_suffix_info(url.hostname(), opt);
@@ -219,7 +219,7 @@ public:
     /// @param[in] host the url_host object
     /// @param[in] opt options
     /// @return information in the public_suffix_list::result type struct
-    result get_suffix_info(const url_host& host,
+    [[nodiscard]] result get_suffix_info(const url_host& host,
         option opt = option::public_suffix) const {
         if (host.type() == HostType::Domain)
             return get_host_suffix_info(host.name(), opt);
@@ -235,7 +235,7 @@ public:
     /// @param[in] opt options
     /// @return information in the public_suffix_list::result type struct
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    result get_suffix_info(StrT&& str_host,
+    [[nodiscard]] result get_suffix_info(StrT&& str_host,
         option opt = option::public_suffix) const {
         try {
             auto res = get_suffix_info(upa::url_host{ std::forward<StrT>(str_host) }, opt);
@@ -255,7 +255,7 @@ public:
     /// @param[in] url the @ref url object
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
-    std::string_view get_suffix_view(const url& url,
+    [[nodiscard]] std::string_view get_suffix_view(const url& url,
         option opt = option::public_suffix) const {
         if (url.host_type() == HostType::Domain)
             return get_host_suffix_view(url.hostname(), opt);
@@ -269,7 +269,7 @@ public:
     /// @param[in] host the url_host object
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
-    std::string_view get_suffix_view(const url_host& host,
+    [[nodiscard]] std::string_view get_suffix_view(const url_host& host,
         option opt = option::public_suffix) const {
         if (host.type() == HostType::Domain)
             return get_host_suffix_view(host.name(), opt);
@@ -284,7 +284,7 @@ public:
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    auto get_suffix_view(StrT&& str_host, option opt = option::public_suffix) const
+    [[nodiscard]] auto get_suffix_view(StrT&& str_host, option opt = option::public_suffix) const
         -> std::basic_string_view<typename str_arg<str_arg_char_t<StrT>>::value_type> {
         try {
             const auto arg = make_str_arg(std::forward<StrT>(str_host));
@@ -304,7 +304,7 @@ public:
     /// @brief Compares @c *this with @p other
     /// @param[in] other the public_suffix_list to compare with
     /// @return true if both lists are equal
-    UPA_API bool operator==(const public_suffix_list& other) const;
+    [[nodiscard]] UPA_API bool operator==(const public_suffix_list& other) const;
 
     // constructors, destructor, assignment operators
     UPA_API public_suffix_list();
