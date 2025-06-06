@@ -4,13 +4,221 @@
 //
 #include "upa/idna.h"
 
+// Copyright 2017-2025 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+#ifndef UPA_IDNA_IDNA_TABLE_H
+#define UPA_IDNA_IDNA_TABLE_H
+
+#include <cstddef>
+#include <cstdint>
+
+namespace upa::idna::util {
+
+// ASCII
+const std::uint8_t AC_VALID = 0x01;
+const std::uint8_t AC_MAPPED = 0x02;
+const std::uint8_t AC_DISALLOWED_STD3 = 0x04;
+
+// Unicode
+const std::uint32_t CP_DISALLOWED = 0;
+const std::uint32_t CP_VALID = 0x0001 << 16;
+const std::uint32_t CP_MAPPED = 0x0002 << 16;
+const std::uint32_t CP_DEVIATION = CP_VALID | CP_MAPPED; // 0x0003 << 16
+const std::uint32_t CP_DISALLOWED_STD3 = 0x0004 << 16;
+const std::uint32_t CP_NO_STD3_VALID = CP_VALID | CP_DISALLOWED_STD3;
+const std::uint32_t MAP_TO_ONE = 0x0008 << 16;
+// General_Category=Mark
+const std::uint32_t CAT_MARK = 0x0010 << 16;
+// ContextJ
+const std::uint32_t CAT_Virama   = 0x0020 << 16;
+//todo: as values >1
+const std::uint32_t CAT_Joiner_D = 0x0040 << 16;
+const std::uint32_t CAT_Joiner_L = 0x0080 << 16;
+const std::uint32_t CAT_Joiner_R = 0x0100 << 16;
+const std::uint32_t CAT_Joiner_T = 0x0200 << 16;
+// Bidi
+//todo: as values >1
+const std::uint32_t CAT_Bidi_L    = 0x0400 << 16;
+const std::uint32_t CAT_Bidi_R_AL = 0x0800 << 16;
+const std::uint32_t CAT_Bidi_AN   = 0x1000 << 16;
+const std::uint32_t CAT_Bidi_EN   = 0x2000 << 16;
+const std::uint32_t CAT_Bidi_ES_CS_ET_ON_BN = 0x4000 << 16;
+const std::uint32_t CAT_Bidi_NSM  = 0x8000 << 16;
+
+// BEGIN-GENERATED
+const std::size_t uni_block_shift = 4;
+const std::uint32_t uni_block_mask = 0xF;
+const std::uint32_t uni_default_start = 0x323B0;
+const std::uint32_t uni_default_value = 0;
+const std::uint32_t uni_spec_range1 = 0xE0100;
+const std::uint32_t uni_spec_range2 = 0xE01EF;
+const std::uint32_t uni_spec_value = 0x20000;
+
+extern const std::uint32_t uni_data[];
+extern const std::uint16_t uni_data_index[];
+extern const char32_t uni_chars_to[];
+
+extern const std::uint8_t comp_disallowed_std3[3];
+
+extern const std::uint8_t ascii_data[128];
+// END-GENERATED
+
+
+constexpr std::uint32_t getStatusMask(bool useSTD3ASCIIRules) noexcept {
+    return useSTD3ASCIIRules ? (0x0007 << 16) : (0x0003 << 16);
+}
+
+constexpr std::uint32_t getValidMask(bool useSTD3ASCIIRules, bool transitional) noexcept {
+    const std::uint32_t status_mask = getStatusMask(useSTD3ASCIIRules);
+    // (CP_DEVIATION = CP_VALID | CP_MAPPED) & ~CP_MAPPED ==> CP_VALID
+    return transitional ? status_mask : (status_mask & ~CP_MAPPED);
+}
+
+inline std::uint32_t getCharInfo(uint32_t cp) {
+    if (cp >= uni_default_start) {
+        if (cp >= uni_spec_range1 && cp <= uni_spec_range2) {
+            return uni_spec_value;
+        }
+        return uni_default_value;
+    }
+    return uni_data[(uni_data_index[cp >> uni_block_shift] << uni_block_shift) |
+        (cp & uni_block_mask)];
+}
+
+template <class StrT>
+inline std::size_t apply_mapping(uint32_t val, StrT& output) {
+    if (val & MAP_TO_ONE) {
+        output.push_back(val & 0xFFFF);
+        return 1;
+    }
+    if (val & 0xFFFF) {
+        std::size_t len = (val & 0xFFFF) >> 13;
+        std::size_t ind = val & 0x1FFF;
+        if (len == 7) {
+            len += ind >> 8;
+            ind &= 0xFF;
+        }
+        const auto* ptr = static_cast<const char32_t*>(uni_chars_to) + ind;
+        output.append(ptr, len);
+        return len;
+    }
+    return 0;
+}
+
+} // namespace upa::idna::util
+
+#endif // UPA_IDNA_IDNA_TABLE_H
 // Copyright 2017-2024 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+#ifndef UPA_IDNA_ITERATE_UTF_H
+#define UPA_IDNA_ITERATE_UTF_H
+
+// #include <cstdint>
+
+namespace upa::idna::util {
+
+// Get code point from UTF-8
+
+inline constexpr char32_t kReplacementCharacter = 0xFFFD;
+
+// https://encoding.spec.whatwg.org/#utf-8-decoder
+constexpr uint32_t getCodePoint(const char*& it, const char* last) noexcept {
+    const auto uchar = [](char c) { return static_cast<unsigned char>(c); };
+    // assume it != last
+    uint32_t c1 = uchar(*it++);
+    if (c1 >= 0x80) {
+        if (c1 < 0xC2 || c1 > 0xF4)
+            return kReplacementCharacter;
+        if (c1 <= 0xDF) {
+            // 2-bytes
+            if (it == last || uchar(*it) < 0x80 || uchar(*it) > 0xBF)
+                return kReplacementCharacter;
+            c1 = ((c1 & 0x1F) << 6) | (uchar(*it++) & 0x3F);
+        } else if (c1 <= 0xEF) {
+            // 3-bytes
+            const unsigned char clb = c1 == 0xE0 ? 0xA0 : 0x80;
+            const unsigned char cub = c1 == 0xED ? 0x9F : 0xBF;
+            if (it == last || uchar(*it) < clb || uchar(*it) > cub)
+                return kReplacementCharacter;
+            c1 = ((c1 & 0x0F) << 6) | (uchar(*it++) & 0x3F);
+            if (it == last || uchar(*it) < 0x80 || uchar(*it) > 0xBF)
+                return kReplacementCharacter;
+            c1 = (c1 << 6) | (uchar(*it++) & 0x3F);
+        } else {
+            // 4-bytes
+            const unsigned char clb = c1 == 0xF0 ? 0x90 : 0x80;
+            const unsigned char cub = c1 == 0xF4 ? 0x8F : 0xBF;
+            if (it == last || uchar(*it) < clb || uchar(*it) > cub)
+                return kReplacementCharacter;
+            c1 = ((c1 & 0x07) << 6) | (uchar(*it++) & 0x3F);
+            if (it == last || uchar(*it) < 0x80 || uchar(*it) > 0xBF)
+                return kReplacementCharacter;
+            c1 = (c1 << 6) | (uchar(*it++) & 0x3F);
+            if (it == last || uchar(*it) < 0x80 || uchar(*it) > 0xBF)
+                return kReplacementCharacter;
+            c1 = (c1 << 6) | (uchar(*it++) & 0x3F);
+        }
+    }
+    return c1;
+}
+
+// Get code point from UTF-16
+
+template <class T>
+constexpr bool is_surrogate_lead(T ch) noexcept {
+    return (ch & 0xFFFFFC00) == 0xD800;
+}
+
+template <class T>
+constexpr bool is_surrogate_trail(T ch) noexcept {
+    return (ch & 0xFFFFFC00) == 0xDC00;
+}
+
+// Get a supplementary code point value(U + 10000..U + 10ffff)
+// from its lead and trail surrogates.
+constexpr uint32_t get_suplementary(uint32_t lead, uint32_t trail) noexcept {
+    constexpr uint32_t surrogate_offset = (static_cast<uint32_t>(0xD800) << 10) + 0xDC00 - 0x10000;
+    return (lead << 10) + trail - surrogate_offset;
+}
+
+// assumes it != last
+
+constexpr uint32_t getCodePoint(const char16_t*& it, const char16_t* last) noexcept {
+    // assume it != last
+    const uint32_t c1 = *it++;
+    if (is_surrogate_lead(c1) && it != last) {
+        const uint32_t c2 = *it;
+        if (is_surrogate_trail(c2)) {
+            ++it;
+            return get_suplementary(c1, c2);
+        }
+    }
+    return c1;
+}
+
+// Get code point from UTF-32
+
+constexpr uint32_t getCodePoint(const char32_t*& it, const char32_t*) noexcept {
+    // assume it != last
+    return *it++;
+}
+
+} // namespace upa::idna::util
+
+#endif // UPA_IDNA_ITERATE_UTF_H
+// Copyright 2017-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
 // #include "upa/idna/idna.h"
 
-// #include "upa/idna/idna_table.h"
+// #include "idna_table.h"
+
+// #include "iterate_utf.h"
 
 // #include "upa/idna/nfc.h"
 
@@ -21,6 +229,7 @@
 #include <iterator>
 #include <stdexcept>
 #include <string>
+#include <type_traits> // std::make_unsigned
 
 namespace upa::idna {
 namespace {
@@ -307,6 +516,93 @@ inline void str_append(std::string& dest, InputIt first, InputIt last) {
 
 namespace detail {
 
+template <typename CharT>
+constexpr char ascii_to_lower_char(CharT c) noexcept {
+    return static_cast<char>((c <= 'Z' && c >= 'A') ? (c | 0x20) : c);
+}
+
+// IDNA map and normalize to NFC
+
+template <typename CharT>
+bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options, bool is_to_ascii) {
+    using UCharT = std::make_unsigned_t<CharT>;
+
+    // P1 - Map
+    if (has(options, Option::InputASCII)) {
+        // The input is in ASCII and can contain `xn--` labels
+        mapped.reserve(input_end - input);
+        if (has(options, Option::UseSTD3ASCIIRules)) {
+            for (const auto* it = input; it != input_end; ++it) {
+                const auto cp = static_cast<UCharT>(*it);
+                switch (util::ascii_data[cp]) {
+                case util::AC_VALID:
+                    mapped.push_back(cp);
+                    break;
+                case util::AC_MAPPED:
+                    mapped.push_back(cp | 0x20);
+                    break;
+                default:
+                    // util::AC_DISALLOWED_STD3
+                    if (is_to_ascii)
+                        return false;
+                    mapped.push_back(cp);
+                }
+            }
+        } else {
+            for (const auto* it = input; it != input_end; ++it)
+                mapped.push_back(ascii_to_lower_char(*it));
+        }
+    } else {
+        const uint32_t status_mask = util::getStatusMask(has(options, Option::UseSTD3ASCIIRules));
+        for (auto it = input; it != input_end; ) {
+            const uint32_t cp = util::getCodePoint(it, input_end);
+            const uint32_t value = util::getCharInfo(cp);
+
+            switch (value & status_mask) {
+            case util::CP_VALID:
+                mapped.push_back(cp);
+                break;
+            case util::CP_MAPPED:
+                if (has(options, Option::Transitional) && cp == 0x1E9E) {
+                    // replace U+1E9E capital sharp s by “ss”
+                    mapped.append(U"ss", 2);
+                } else {
+                    util::apply_mapping(value, mapped);
+                }
+                break;
+            case util::CP_DEVIATION:
+                if (has(options, Option::Transitional)) {
+                    util::apply_mapping(value, mapped);
+                } else {
+                    mapped.push_back(cp);
+                }
+                break;
+            default:
+                // CP_DISALLOWED or
+                // CP_NO_STD3_VALID if Option::UseSTD3ASCIIRules
+                // Starting with Unicode 15.1.0 don't record an error
+                if (is_to_ascii && // to_ascii optimization
+                    ((value & util::CP_DISALLOWED_STD3) == 0 || cp > 0x3E || cp < 0x3C))
+                    return false;
+                mapped.push_back(cp);
+                break;
+            }
+        }
+
+        // P2 - Normalize
+        normalize_nfc(mapped);
+    }
+
+    return true;
+}
+
+// The `map` function template instantiations
+template bool map(std::u32string&, const char*, const char*, Option, bool);
+template bool map(std::u32string&, const char16_t*, const char16_t*, Option, bool);
+template bool map(std::u32string&, const char32_t*, const char32_t*, Option, bool);
+
+// Performs ToASCII on IDNA-mapped and normalized to NFC input
+
 bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options) {
     // A1
     bool ok = processing_mapped(nullptr, mapped, options);
@@ -369,6 +665,8 @@ bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option o
     return ok;
 }
 
+// Performs ToUnicode on IDNA-mapped and normalized to NFC input
+
 bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Option options) {
     return processing_mapped(&domain, mapped, options);
 }
@@ -380,7 +678,7 @@ bool to_unicode_mapped(std::u32string& domain, const std::u32string& mapped, Opt
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-// #include "upa/idna/idna_table.h"
+// #include "idna_table.h"
 
 
 namespace upa::idna::util {
@@ -2559,8 +2857,8 @@ const std::uint8_t ascii_data[128] = {
 #ifndef UPA_IDNA_NFC_TABLE_H
 #define UPA_IDNA_NFC_TABLE_H
 
-#include <cstddef>
-#include <cstdint>
+// #include <cstddef>
+// #include <cstdint>
 
 namespace upa::idna::normalize {
 
@@ -4267,7 +4565,7 @@ const std::uint8_t quick_check_block_index[] = {
 
 // #include <algorithm>
 // #include <cstdint>
-#include <type_traits>
+// #include <type_traits>
 
 namespace upa::idna::punycode {
 

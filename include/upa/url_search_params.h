@@ -372,6 +372,8 @@ private:
 
     void update();
 
+    static UPA_API void urlencode_sv(std::string& encoded, string_view value);
+
     friend class url;
     friend class detail::url_search_params_ptr;
     friend std::ostream& operator<<(std::ostream& os, const url_search_params& usp);
@@ -380,8 +382,6 @@ private:
     name_value_list params_;
     bool is_sorted_ = false;
     url* url_ptr_ = nullptr;
-
-    static UPA_API const char kEncByte[0x100];
 };
 
 
@@ -735,25 +735,16 @@ inline url_search_params::name_value_list url_search_params::do_parse(bool rem_q
 template <class StrT, enable_if_str_arg_t<StrT>>
 inline void url_search_params::urlencode(std::string& encoded, StrT&& value) {
     const auto str_value = make_string(std::forward<StrT>(value));
-
-    for (const char c : str_value) {
-        const auto uc = static_cast<unsigned char>(c);
-        const char cenc = kEncByte[uc];
-        encoded.push_back(cenc);
-        if (cenc == '%') {
-            encoded.push_back(detail::kHexCharLookup[uc >> 4]);
-            encoded.push_back(detail::kHexCharLookup[uc & 0xF]);
-        }
-    }
+    urlencode_sv(encoded, str_value);
 }
 
 inline void url_search_params::serialize(std::string& query) const {
     auto it = params_.begin();
     if (it != params_.end()) {
         while (true) {
-            urlencode(query, it->first); // name
+            urlencode_sv(query, it->first); // name
             query.push_back('=');
-            urlencode(query, it->second); // value
+            urlencode_sv(query, it->second); // value
             if (++it == params_.end())
                 break;
             query.push_back('&');

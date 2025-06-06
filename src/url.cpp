@@ -51,23 +51,6 @@ const scheme_info* get_scheme_info(string_view src) {
     return nullptr;
 }
 
-// url_error exception what() values
-
-const char* const kURLParseError = "URL parse error";
-const char* const kBaseURLParseError = "Base URL parse error";
-
-// Part start
-
-const uint8_t kPartStart[url::PART_COUNT] = {
-    0, 0, 0,
-    1,   // ':' PASSWORD
-    0, 0,
-    1,   // ':' PORT
-    0, 0,
-    1,   // '?' QUERY
-    1    // '#' FRAGMENT
-};
-
 } // namespace detail
 
 // Gets start and end position of the specified URL part
@@ -85,22 +68,6 @@ std::pair<std::size_t, std::size_t> url::get_part_pos(PartType t, bool with_sep)
     }
     return { norm_url_.size(), norm_url_.size() };
 }
-
-// URL's part flag masks
-
-const unsigned url::kPartFlagMask[url::PART_COUNT] = {
-    SCHEME_FLAG,
-    0,  // SCHEME_SEP
-    USERNAME_FLAG,
-    PASSWORD_FLAG,
-    0,  // HOST_START
-    HOST_FLAG | HOST_TYPE_MASK,
-    PORT_FLAG,
-    0,  // PATH_PREFIX
-    PATH_FLAG | OPAQUE_PATH_FLAG,
-    QUERY_FLAG,
-    FRAGMENT_FLAG
-};
 
 // Upa URL version encoded to one number
 

@@ -64,9 +64,9 @@ struct alignas(32) scheme_info {
 
 UPA_API const scheme_info* get_scheme_info(string_view src);
 
-// url_error what() values
-extern UPA_API const char* const kURLParseError;
-extern UPA_API const char* const kBaseURLParseError;
+// Values of the what() function of url_error exception
+inline constexpr const char* kURLParseError = "URL parse error";
+inline constexpr const char* kBaseURLParseError = "Base URL parse error";
 
 } // namespace detail
 
@@ -669,7 +669,20 @@ private:
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
 
-    static UPA_API const unsigned kPartFlagMask[url::PART_COUNT];
+    // part flag masks
+    static constexpr unsigned kPartFlagMask[url::PART_COUNT] = {
+        SCHEME_FLAG,
+        0,  // SCHEME_SEP
+        USERNAME_FLAG,
+        PASSWORD_FLAG,
+        0,  // HOST_START
+        HOST_FLAG | HOST_TYPE_MASK,
+        PORT_FLAG,
+        0,  // PATH_PREFIX
+        PATH_FLAG | OPAQUE_PATH_FLAG,
+        QUERY_FLAG,
+        FRAGMENT_FLAG
+    };
 
     // parsing constructor
     template <class T, enable_if_str_arg_t<T> = 0>
@@ -936,8 +949,16 @@ private:
 };
 
 
-// part start
-extern UPA_API const uint8_t kPartStart[url::PART_COUNT];
+// Part start
+inline constexpr std::uint8_t kPartStart[url::PART_COUNT] = {
+    0, 0, 0,
+    1,  // ':' PASSWORD
+    0, 0,
+    1,  // ':' PORT
+    0, 0,
+    1,  // '?' QUERY
+    1   // '#' FRAGMENT
+};
 
 constexpr int port_from_str(const char* first, const char* last) noexcept {
     int port = 0;
