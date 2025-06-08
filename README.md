@@ -202,6 +202,14 @@ int main() {
 }
 ```
 
+## Using as a shared library
+
+For information on building as a shared library, see the [CMake section](#cmake).
+
+For performance reasons, it is recommended that you define the `UPA_LIB_IMPORT` macro when building your program against the shared library. If you installed the library with CMake and are building a program with CMake, this macro will already be defined.
+
+Use the `upa::check_version()` function to check if a shared library is compatible with a compiled program. It returns `true` if they are ABI compatible.
+
 ## Building and running tests
 
 Clone the repository (`git clone https://github.com/upa-url/upa.git`) and run `init.sh` (`init.bat` on Windows) in the repository's root directory to download the dependencies and test data files. These files are necessary for building and running tests, but not for the library itself.
