@@ -284,10 +284,10 @@ public:
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    [[nodiscard]] auto get_suffix_view(StrT&& str_host, option opt = option::public_suffix) const
+    [[nodiscard]] auto get_suffix_view(const StrT& str_host, option opt = option::public_suffix) const
         -> std::basic_string_view<typename str_arg<str_arg_char_t<StrT>>::value_type> {
         try {
-            const auto arg = make_str_arg(std::forward<StrT>(str_host));
+            const auto arg = make_str_arg(str_host);
             const upa::url_host host{ arg };
             if (host.type() == HostType::Domain) {
                 const auto res = get_host_suffix_info(host.name(), opt);
