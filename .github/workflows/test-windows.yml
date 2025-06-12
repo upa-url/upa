@@ -55,3 +55,33 @@ jobs:
       run: cmake --build build --config Release
     - name: test
       run: ctest --output-on-failure --test-dir build -C Release
+
+  build_mingw:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - name: mingw g++ C++17
+            os: windows-2025
+            generator: Ninja
+            cxx_standard: 17
+            cmake_options: "-DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Release"
+
+          - name: mingw g++ C++20 shared-lib
+            os: windows-2025
+            generator: Ninja
+            cxx_standard: 20
+            cmake_options: "-DCMAKE_CXX_COMPILER=g++ -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release"
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: get dependencies
+      run: init.bat
+      shell: cmd
+    - name: cmake
+      run: cmake -S . -B build -G "${{ matrix.generator }}" -DCMAKE_CXX_STANDARD=${{ matrix.cxx_standard }} ${{ matrix.cmake_options }}
+    - name: build
+      run: cmake --build build
+    - name: test
+      run: ctest --output-on-failure --test-dir build
