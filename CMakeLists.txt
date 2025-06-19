@@ -142,15 +142,16 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
   if (BUILD_SHARED_LIBS)
     target_compile_definitions(${upa_lib_target} PRIVATE UPA_LIB_EXPORT
       INTERFACE UPA_LIB_IMPORT)
+    set_target_properties(${upa_lib_target} PROPERTIES
+      VERSION ${UPA_URL_VERSION}
+      SOVERSION ${UPA_URL_SOVERSION}
+      CXX_VISIBILITY_PRESET hidden
+      VISIBILITY_INLINES_HIDDEN ON)
   endif ()
   # Alias target for the library
   add_library(upa::${upa_export_name} ALIAS ${upa_lib_target})
   set_target_properties(${upa_lib_target} PROPERTIES
-    EXPORT_NAME ${upa_export_name}
-    VERSION ${UPA_URL_VERSION}
-    SOVERSION ${UPA_URL_SOVERSION}
-    CXX_VISIBILITY_PRESET hidden
-    VISIBILITY_INLINES_HIDDEN ON)
+    EXPORT_NAME ${upa_export_name})
   # GCC 8 requires linking with stdc++fs to use std::filesystem
   target_link_libraries(${upa_lib_target} PRIVATE
     $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
