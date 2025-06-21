@@ -17,10 +17,10 @@ void make_unicode_id_table(const std::filesystem::path& data_path) {
     using item_num_type = item_type;
 
     const int index_levels = 1; // 1 arba 2
-    const item_num_type bit_of_id_start = 0x01;
-    const item_num_type bit_of_id_part = 0x10;
-    const std::size_t bit_shift = 2;
-    const char32_t bit_mask = 3;
+    const item_num_type id_start_bit = 0x01;
+    const item_num_type id_part_bit = 0x10;
+    const std::size_t id_bit_shift = 2;
+    const char32_t id_bit_mask = 3;
 
     std::vector<item_type> code_points_of_id_start_ch(MAX_CODE_POINT + 1);
     std::vector<item_type> code_points_of_id_part_ch(MAX_CODE_POINT + 1);
@@ -64,9 +64,9 @@ void make_unicode_id_table(const std::filesystem::path& data_path) {
     };
     for (std::uint32_t cp = 0; cp < code_point_count; ++cp) {
         if (code_points_of_id_start_ch[cp])
-            add_code_point(all_data, bit_of_id_start, cp);
+            add_code_point(all_data, id_start_bit, cp);
         if (code_points_of_id_part_ch[cp])
-            add_code_point(all_data, bit_of_id_part, cp);
+            add_code_point(all_data, id_part_bit, cp);
     }
 
     // Find block size
@@ -95,32 +95,32 @@ void make_unicode_id_table(const std::filesystem::path& data_path) {
         return;
     }
     // Constants
-    output_unsigned_constant(fout_head, "bit_of_id_start", bit_of_id_start, 16);
-    output_unsigned_constant(fout_head, "bit_of_id_part", bit_of_id_part, 16);
-    output_unsigned_constant(fout_head, "std::size_t", "bit_shift", bit_shift, 10);
-    output_unsigned_constant(fout_head, "char32_t", "bit_mask", bit_mask, 16);
+    output_unsigned_constant(fout_head, "id_start_bit", id_start_bit, 16);
+    output_unsigned_constant(fout_head, "id_part_bit", id_part_bit, 16);
+    output_unsigned_constant(fout_head, "std::size_t", "id_bit_shift", id_bit_shift, 10);
+    output_unsigned_constant(fout_head, "char32_t", "id_bit_mask", id_bit_mask, 16);
     fout_head << "\n";
-    output_unsigned_constant(fout_head, "std::size_t", "blockShift", binf.size_shift, 10);
-    output_unsigned_constant(fout_head, "blockMask", binf.code_point_mask(), 16);
+    output_unsigned_constant(fout_head, "std::size_t", "id_block_shift", binf.size_shift, 10);
+    output_unsigned_constant(fout_head, "id_block_mask", binf.code_point_mask(), 16);
     fout_head << "\n";
     // IdentifierStartChar
-    output_unsigned_constant(fout_head, "char32_t", "default_start_of_id_start", spec_id_start_ch.m_range[0].from, 16);
-    output_unsigned_constant(fout_head, sz_item_num_type, "default_value_of_id_start", spec_id_start_ch.m_range[0].value, 16);
+    output_unsigned_constant(fout_head, "char32_t", "id_start_default_start", spec_id_start_ch.m_range[0].from, 16);
+    output_unsigned_constant(fout_head, sz_item_num_type, "id_start_default_value", spec_id_start_ch.m_range[0].value, 16);
     // IdentifierPartChar
-    output_unsigned_constant(fout_head, "char32_t", "default_start_of_id_part", spec_id_part_ch.m_range[0].from, 16);
-    output_unsigned_constant(fout_head, sz_item_num_type, "default_value_of_id_part", spec_id_part_ch.m_range[0].value, 16);
+    output_unsigned_constant(fout_head, "char32_t", "id_part_default_start", spec_id_part_ch.m_range[0].from, 16);
+    output_unsigned_constant(fout_head, sz_item_num_type, "id_part_default_value", spec_id_part_ch.m_range[0].value, 16);
     if (spec_id_part_ch.m_range.size() >= 2) {
-        output_unsigned_constant(fout_head, "char32_t", "spec_from_of_id_part", spec_id_part_ch.m_range[1].from, 16);
-        output_unsigned_constant(fout_head, "char32_t", "spec_to_of_id_part", spec_id_part_ch.m_range[1].to, 16);
-        output_unsigned_constant(fout_head, sz_item_num_type, "spec_value_of_id_part", spec_id_part_ch.m_range[1].value, 16);
+        output_unsigned_constant(fout_head, "char32_t", "id_part_spec_from", spec_id_part_ch.m_range[1].from, 16);
+        output_unsigned_constant(fout_head, "char32_t", "id_part_spec_to", spec_id_part_ch.m_range[1].to, 16);
+        output_unsigned_constant(fout_head, sz_item_num_type, "id_part_spec_value", spec_id_part_ch.m_range[1].value, 16);
     }
     fout_head << "\n";
     // ---
 
     std::vector<int> blockIndex;
 
-    fout_head << "extern " << sz_item_num_type << " blockData[];\n";
-    fout << sz_item_num_type << " blockData[] = {";
+    fout_head << "extern " << sz_item_num_type << " id_data[];\n";
+    fout << sz_item_num_type << " id_data[] = {";
     {
         OutputFmt outfmt(fout, 100);
 
@@ -149,8 +149,8 @@ void make_unicode_id_table(const std::filesystem::path& data_path) {
     if (index_levels == 1) {
         // Vieno lygio indeksas
         const char* sztype = getUIntType(blockIndex);
-        fout_head << "extern " << sztype << " blockIndex[];\n";
-        fout << sztype << " blockIndex[] = {";
+        fout_head << "extern " << sztype << " id_index[];\n";
+        fout << sztype << " id_index[] = {";
         {
             OutputFmt outfmt(fout, 100);
             for (int index : blockIndex) {
