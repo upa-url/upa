@@ -28,8 +28,8 @@ const char32_t id_part_spec_from = 0xE0100;
 const char32_t id_part_spec_to = 0xE01EF;
 const std::uint8_t id_part_spec_value = 0x1;
 
-extern std::uint8_t id_data[];
-extern std::uint8_t id_index[];
+extern const std::uint8_t id_data[];
+extern const std::uint8_t id_index[];
 // END-GENERATED
 
 

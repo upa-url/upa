@@ -119,8 +119,8 @@ void make_unicode_id_table(const std::filesystem::path& data_path) {
 
     std::vector<int> all_index;
 
-    fout_head << "extern " << sz_item_num_type << " id_data[];\n";
-    fout << sz_item_num_type << " id_data[] = {";
+    fout_head << "extern const " << sz_item_num_type << " id_data[];\n";
+    fout << "const " << sz_item_num_type << " id_data[] = {";
     {
         OutputFmt outfmt(fout, 100);
 
@@ -149,8 +149,8 @@ void make_unicode_id_table(const std::filesystem::path& data_path) {
     if (index_levels == 1) {
         // Vieno lygio indeksas
         const char* sztype = getUIntType(all_index);
-        fout_head << "extern " << sztype << " id_index[];\n";
-        fout << sztype << " id_index[] = {";
+        fout_head << "extern const " << sztype << " id_index[];\n";
+        fout << "const " << sztype << " id_index[] = {";
         {
             OutputFmt outfmt(fout, 100);
             for (int index : all_index) {
