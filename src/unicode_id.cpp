@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Rimas Misevičius
+// Copyright 2023-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -7,7 +7,7 @@
 namespace upa::pattern::table {
 
 // BEGIN-GENERATED
-std::uint8_t blockData[] = {
+std::uint8_t id_data[] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0x11, 0, 0, 0xF0, 0xF0, 0x30, 0, 0xEE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
   0x77, 0x88, 0xEE, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x77, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x44, 0, 0,
   0xA2, 0x44, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x77, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x77,
@@ -339,7 +339,7 @@ std::uint8_t blockData[] = {
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
 };
 
-std::uint8_t blockIndex[] = {
+std::uint8_t id_index[] = {
   0, 1, 2, 2, 2, 3, 4, 5, 2, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
   25, 26, 27, 28, 29, 30, 2, 2, 31, 32, 33, 34, 35, 2, 2, 2, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45,
   46, 47, 48, 49, 2, 50, 2, 2, 51, 52, 53, 54, 55, 56, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57, 57,
