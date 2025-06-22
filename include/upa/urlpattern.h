@@ -13,7 +13,6 @@
 #include <charconv>
 #include <cstdint>
 #include <optional>
-#include <regex>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -50,6 +49,19 @@ inline bool is_special_scheme_default_port(std::string_view scheme, std::string_
 
 // TODO: make public in URL library:
 // * make the list of special schemes public (see: protocol_component_matches_special_scheme)
+
+// Parse URL against base URL
+
+inline upa::url parse_url_against_base(std::string_view input, std::optional<std::string_view> base_url_str) {
+    upa::url url;
+    if (base_url_str)
+        url.parse(input, *base_url_str);
+    else
+        url.parse(input);
+    return url;
+}
+
+// Get code point from a string
 
 template <class StrT, upa::enable_if_str_arg_t<StrT> = 0>
 inline char32_t get_code_point(StrT&& input) {
@@ -559,19 +571,6 @@ inline pattern_string_view urlpattern<regex_engine, E>::get_hash() const noexcep
 
 // https://urlpattern.spec.whatwg.org/#dom-urlpattern-test
 // https://urlpattern.spec.whatwg.org/#url-pattern-match
-
-inline upa::url parse_url_against_base(std::string_view input, std::optional<std::string_view> base_url_str) {
-    upa::url url;
-    if (base_url_str) {
-        upa::url base_url;
-        if (!upa::success(base_url.parse(*base_url_str, nullptr)))
-            return url; // non-valid
-        url.parse(input, &base_url);
-    } else {
-        url.parse(input, nullptr);
-    }
-    return url;
-}
 
 template <class regex_engine, typename E>
 inline bool urlpattern<regex_engine, E>::test(const urlpattern_init& input) const {
