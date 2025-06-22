@@ -152,8 +152,6 @@ inline urlpattern_init parse_constructor_string(std::string_view input);
 // A pattern string is a string that is written to match a set of target strings. A well formed
 // pattern string conforms to a particular pattern syntax. This pattern syntax is directly based
 // on the syntax used by the popular path-to-regexp JavaScript library.
-using pattern_string = std::string;
-using pattern_string_view = std::string_view;
 
 // 2.1. Parsing pattern strings
 // https://urlpattern.spec.whatwg.org/#parsing-pattern-strings
@@ -267,7 +265,8 @@ struct options {
 using encoding_callback = std::string (*)(std::string_view input);
 
 // https://urlpattern.spec.whatwg.org/#parse-a-pattern-string
-inline part_list parse_pattern_string(pattern_string_view input, const options& opt, encoding_callback encoding_cb);
+// input - pattern string to parse
+inline part_list parse_pattern_string(std::string_view input, const options& opt, encoding_callback encoding_cb);
 
 // https://urlpattern.spec.whatwg.org/#full-wildcard-regexp-value
 constexpr std::string_view full_wildcard_regexp_value = ".*"sv;
@@ -288,7 +287,7 @@ inline void append_escape_regexp_string(std::string& result, std::string_view in
 // 2.3. Converting part lists to pattern strings
 // https://urlpattern.spec.whatwg.org/#converting-part-lists-to-pattern-strings
 
-inline pattern_string generate_pattern_string(const part_list& pt_list, const options& opt);
+inline std::string generate_pattern_string(const part_list& pt_list, const options& opt);
 
 inline std::string escape_pattern_string(std::string_view input);
 inline void append_escape_pattern_string(std::string& result, std::string_view input);
@@ -337,7 +336,7 @@ struct component {
     component& operator=(component&&) noexcept = default;
 
     // well formed pattern string
-    pattern_string pattern_string_;
+    std::string pattern_string_;
     regex_engine regular_expression_;
     string_list group_name_list_;
     bool has_regexp_groups_ = false;
@@ -359,7 +358,8 @@ inline constexpr options hostname_options { "."sv };
 
 template <class regex_engine>
 inline bool protocol_component_matches_special_scheme(const component<regex_engine>& protocol_component);
-constexpr bool hostname_pattern_is_ipv6_address(pattern_string_view input) noexcept;
+// input - pattern string to check
+constexpr bool hostname_pattern_is_ipv6_address(std::string_view input) noexcept;
 
 ///////////////////////////////////////////////////////////////////////
 // 1.2. The URLPattern class
@@ -413,14 +413,14 @@ public:
     std::optional<urlpattern_result> exec(const upa::url& url) const;
 
     // returns component's pattern_string_
-    pattern_string_view get_protocol() const noexcept;
-    pattern_string_view get_username() const noexcept;
-    pattern_string_view get_password() const noexcept;
-    pattern_string_view get_hostname() const noexcept;
-    pattern_string_view get_port() const noexcept;
-    pattern_string_view get_pathname() const noexcept;
-    pattern_string_view get_search() const noexcept;
-    pattern_string_view get_hash() const noexcept;
+    std::string_view get_protocol() const noexcept;
+    std::string_view get_username() const noexcept;
+    std::string_view get_password() const noexcept;
+    std::string_view get_hostname() const noexcept;
+    std::string_view get_port() const noexcept;
+    std::string_view get_pathname() const noexcept;
+    std::string_view get_search() const noexcept;
+    std::string_view get_hash() const noexcept;
     // Returns whether urlpattern contains one or more groups which uses regular expression matching
     bool has_regexp_groups() const noexcept;
 
@@ -546,35 +546,35 @@ inline urlpattern<regex_engine, E>::urlpattern(const urlpattern_init& init, urlp
 
 // https://urlpattern.spec.whatwg.org/#dom-urlpattern-protocol
 template <class regex_engine, typename E>
-inline pattern_string_view urlpattern<regex_engine, E>::get_protocol() const noexcept {
+inline std::string_view urlpattern<regex_engine, E>::get_protocol() const noexcept {
     return protocol_component_.pattern_string_;
 }
 template <class regex_engine, typename E>
-inline pattern_string_view urlpattern<regex_engine, E>::get_username() const noexcept {
+inline std::string_view urlpattern<regex_engine, E>::get_username() const noexcept {
     return username_component_.pattern_string_;
 }
 template <class regex_engine, typename E>
-inline pattern_string_view urlpattern<regex_engine, E>::get_password() const noexcept {
+inline std::string_view urlpattern<regex_engine, E>::get_password() const noexcept {
     return password_component_.pattern_string_;
 }
 template <class regex_engine, typename E>
-inline pattern_string_view urlpattern<regex_engine, E>::get_hostname() const noexcept {
+inline std::string_view urlpattern<regex_engine, E>::get_hostname() const noexcept {
     return hostname_component_.pattern_string_;
 }
 template <class regex_engine, typename E>
-inline pattern_string_view urlpattern<regex_engine, E>::get_port() const noexcept {
+inline std::string_view urlpattern<regex_engine, E>::get_port() const noexcept {
     return port_component_.pattern_string_;
 }
 template <class regex_engine, typename E>
-inline pattern_string_view urlpattern<regex_engine, E>::get_pathname() const noexcept {
+inline std::string_view urlpattern<regex_engine, E>::get_pathname() const noexcept {
     return pathname_component_.pattern_string_;
 }
 template <class regex_engine, typename E>
-inline pattern_string_view urlpattern<regex_engine, E>::get_search() const noexcept {
+inline std::string_view urlpattern<regex_engine, E>::get_search() const noexcept {
     return search_component_.pattern_string_;
 }
 template <class regex_engine, typename E>
-inline pattern_string_view urlpattern<regex_engine, E>::get_hash() const noexcept {
+inline std::string_view urlpattern<regex_engine, E>::get_hash() const noexcept {
     return hash_component_.pattern_string_;
 }
 
@@ -844,7 +844,7 @@ inline bool protocol_component_matches_special_scheme(const component<regex_engi
 
 // https://urlpattern.spec.whatwg.org/#hostname-pattern-is-an-ipv6-address
 
-constexpr bool hostname_pattern_is_ipv6_address(pattern_string_view input) noexcept {
+constexpr bool hostname_pattern_is_ipv6_address(std::string_view input) noexcept {
     // If input's code point length is less than 2, then return false.
     // TODO: code point (not necessary)
     if (input.length() < 2)
@@ -1307,7 +1307,7 @@ struct tokenizer {
     }
 
     // members
-    pattern_string_view input_ {};
+    std::string_view input_ {};
     tokenize_policy policy_ = tokenize_policy::STRICT;
     token_list token_list_{};
     std::size_t index_ = 0;
@@ -1489,7 +1489,7 @@ struct pattern_parser {
 };
 
 // https://urlpattern.spec.whatwg.org/#parse-a-pattern-string
-inline part_list parse_pattern_string(pattern_string_view input, const options& opt, encoding_callback encoding_cb)
+inline part_list parse_pattern_string(std::string_view input, const options& opt, encoding_callback encoding_cb)
 {
     pattern_parser parser{ encoding_cb, generate_segment_wildcard_regexp(opt) };
     parser.token_list_ = tokenize(input, tokenize_policy::STRICT);
@@ -1853,7 +1853,7 @@ inline void append_escape_regexp_string(std::string& result, std::string_view in
 // https://urlpattern.spec.whatwg.org/#converting-part-lists-to-pattern-strings
 
 // https://urlpattern.spec.whatwg.org/#generate-a-pattern-string
-inline pattern_string generate_pattern_string(const part_list& pt_list, const options& opt) {
+inline std::string generate_pattern_string(const part_list& pt_list, const options& opt) {
     std::string result{};
 
     for (std::size_t index = 0; index < pt_list.size(); ++index) {
@@ -2197,7 +2197,8 @@ inline std::string canonicalize_hash(std::string_view value) {
 // https://urlpattern.spec.whatwg.org/#canon-processing-for-init
 
 inline std::string process_base_url_string(std::string_view input, urlpattern_init_type type);
-inline bool is_absolute_pathname(pattern_string_view input, urlpattern_init_type type) noexcept;
+// input - pattern string to check
+inline bool is_absolute_pathname(std::string_view input, urlpattern_init_type type) noexcept;
 inline std::string process_protocol_for_init(std::string_view value, urlpattern_init_type type);
 inline std::string process_username_for_init(std::string_view value, urlpattern_init_type type);
 inline std::string process_password_for_init(std::string_view value, urlpattern_init_type type);
@@ -2308,7 +2309,7 @@ inline std::string process_base_url_string(std::string_view input, urlpattern_in
 }
 
 // https://urlpattern.spec.whatwg.org/#is-an-absolute-pathname
-inline bool is_absolute_pathname(pattern_string_view input, urlpattern_init_type type) noexcept {
+inline bool is_absolute_pathname(std::string_view input, urlpattern_init_type type) noexcept {
     if (input.empty()) return false;
 
     if (input[0] == '/')
