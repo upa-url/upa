@@ -234,9 +234,9 @@ struct part {
     type type_;
     std::string value_;
     modifier modifier_;
-    std::string name_{};
-    std::string prefix_{};
-    std::string suffix_{};
+    std::string name_;
+    std::string prefix_;
+    std::string suffix_;
 };
 
 // https://urlpattern.spec.whatwg.org/#part-list
@@ -249,8 +249,8 @@ using part_list = std::vector<part>;
 // https://urlpattern.spec.whatwg.org/#options
 struct options {
     // ASCII code point or the empty string
-    std::string_view delimiter_code_point{}; // TODO: maybe char32_t?
-    std::string_view prefix_code_point{}; // TODO: maybe char32_t?
+    std::string_view delimiter_code_point; // TODO: maybe char32_t?
+    std::string_view prefix_code_point; // TODO: maybe char32_t?
     bool ignore_case = false;
 };
 
@@ -1307,9 +1307,9 @@ struct tokenizer {
     }
 
     // members
-    std::string_view input_ {};
+    std::string_view input_;
     tokenize_policy policy_ = tokenize_policy::STRICT;
-    token_list token_list_{};
+    token_list token_list_;
     std::size_t index_ = 0;
     std::size_t next_index_ = 0;
     // Unicode code point, initially null. But we don't need null value, because
@@ -1479,11 +1479,11 @@ struct pattern_parser {
 
     // members
 
-    token_list token_list_{};
-    encoding_callback encoding_cb_;
+    token_list token_list_;
+    encoding_callback encoding_cb_ = nullptr;
     std::string segment_wildcard_regexp_;
-    part_list part_list_{};
-    std::string pending_fixed_value_{};
+    part_list part_list_;
+    std::string pending_fixed_value_;
     std::size_t index_ = 0;
     std::size_t next_numeric_name_ = 0;
 };
