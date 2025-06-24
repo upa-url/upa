@@ -11,7 +11,7 @@
 #include <string>
 #include <string_view>
 
-namespace upa::pattern {
+namespace upa {
 
 class regex_engine_std {
 public:
@@ -58,6 +58,6 @@ private:
     std::regex re_;
 };
 
-} // namespace upa::pattern
+} // namespace upa
 
 #endif // UPA_REGEX_ENGINE_STD_H
