@@ -23,7 +23,7 @@ inline std::string vout(const std::unordered_map<K, V>& m);
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
-using urlpattern = typename upa::pattern::urlpattern<upa::pattern::regex_engine_std>;
+using urlpattern = typename upa::urlpattern<upa::regex_engine_std>;
 
 // -----------------------------------------------------------------------------
 // parses urltestdata.json
@@ -37,8 +37,8 @@ picojson::value json_parse(std::string_view strv) {
 // https://github.com/web-platform-tests/wpt/blob/master/urlpattern/resources/urlpattern-hasregexpgroups-tests.js
 
 template <class T>
-upa::pattern::urlpattern_init create_urlpattern_init(const T& obj) {
-    upa::pattern::urlpattern_init init{};
+upa::urlpattern_init create_urlpattern_init(const T& obj) {
+    upa::urlpattern_init init{};
     for (const auto& [key, val] : obj) {
         if (key == "protocol"sv)
             init.protocol = val;
@@ -108,7 +108,7 @@ int wpt_urlpattern_hasregexpgroups_tests() {
 
 urlpattern create_urlpattern(const picojson::array& pattern_arr);
 bool urlpattern_test(const urlpattern& self, const picojson::array& input_arr);
-std::optional<upa::pattern::urlpattern_result> urlpattern_exec(const urlpattern& self, const picojson::array& input_arr);
+std::optional<upa::urlpattern_result> urlpattern_exec(const urlpattern& self, const picojson::array& input_arr);
 
 
 auto get_component(const upa::url& url, std::string_view name) -> std::string_view {
@@ -136,7 +136,7 @@ auto get_component(const urlpattern& urlpt, std::string_view name) -> std::strin
     throw std::out_of_range("not urlpattern componnent"); // TODO: message
 };
 
-const upa::pattern::urlpattern_component_result& get_component_result(const upa::pattern::urlpattern_result& result, std::string_view name) {
+const upa::urlpattern_component_result& get_component_result(const upa::urlpattern_result& result, std::string_view name) {
     if (name == "protocol"sv) return result.protocol;
     if (name == "username"sv) return result.username;
     if (name == "password"sv) return result.password;
@@ -171,9 +171,9 @@ inline std::string vout(const std::unordered_map<K, V>& m) {
 
 template<class StrT>
 void assert_object_equals(DataDrivenTest::TestCase& tc, const picojson::value& expected_obj,
-    const upa::pattern::urlpattern_component_result& res, const StrT& name)
+    const upa::urlpattern_component_result& res, const StrT& name)
 {
-    upa::pattern::urlpattern_component_result expected;
+    upa::urlpattern_component_result expected;
 
     expected.input = expected_obj.get<picojson::object>().at("input").get<std::string>();
     for (const auto& [key, val] : expected_obj.get<picojson::object>().at("groups").get<picojson::object>()) {
@@ -257,7 +257,7 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
 
                 ddt.test_case(test_case_name, [&](DataDrivenTest::TestCase& tc) {
                     if (entry_expected_obj && entry_expected_obj->is<std::string>() && entry_expected_obj->get<std::string>() == "error") {
-                        tc.assert_throws<upa::pattern::urlpattern_error>([&]() {
+                        tc.assert_throws<upa::urlpattern_error>([&]() {
                             create_urlpattern(entry_pattern.get<picojson::array>());
                         }, "URLPattern() constructor");
                         return;
@@ -346,12 +346,12 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
                     // entry.inputs
                     if (entry_expected_match && entry_expected_match->is<std::string>() && entry_expected_match->get<std::string>() == "error") {
                         // pattern.test
-                        tc.assert_throws<upa::pattern::urlpattern_error>([&]() {
+                        tc.assert_throws<upa::urlpattern_error>([&]() {
                             urlpattern_test(pattern, entry_inputs->get<picojson::array>());
                         }, "test() result");
 
                         // pattern.exec
-                        tc.assert_throws<upa::pattern::urlpattern_error>([&]() {
+                        tc.assert_throws<upa::urlpattern_error>([&]() {
                             urlpattern_exec(pattern, entry_inputs->get<picojson::array>());
                         }, "exec() result");
 
@@ -453,7 +453,7 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
                     }
                 });
             }
-            catch (const upa::pattern::urlpattern_error& ex) {
+            catch (const upa::urlpattern_error& ex) {
                 std::cout << "FAILURE: " << ex.what() << std::endl;
                 return true;
             }
@@ -471,8 +471,8 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
 
 // create urlpattern
 
-upa::pattern::urlpattern_init create_urlpattern_init(const picojson::object& obj) {
-    upa::pattern::urlpattern_init init{};
+upa::urlpattern_init create_urlpattern_init(const picojson::object& obj) {
+    upa::urlpattern_init init{};
     for (const auto& [key, val] : obj) {
         auto val_str = val.get<std::string>();
         if (key == "protocol"sv)
@@ -505,8 +505,8 @@ urlpattern create_urlpattern(const picojson::array& pattern_arr) {
 
     std::optional<std::string> arg_str;
     std::optional<std::string> arg_base;
-    std::optional<upa::pattern::urlpattern_init> arg_init;
-    upa::pattern::urlpattern_options arg_opt{};
+    std::optional<upa::urlpattern_init> arg_init;
+    upa::urlpattern_options arg_opt{};
 
     if (pattern_arr.size() >= 1) {
         if (pattern_arr[0].is<std::string>()) {
@@ -549,20 +549,20 @@ urlpattern create_urlpattern(const picojson::array& pattern_arr) {
     if (arg_str)
         return urlpattern(*arg_str, arg_base, arg_opt);
     if (arg_base)
-        throw upa::pattern::urlpattern_error("Unexpected base URL"); // failure
+        throw upa::urlpattern_error("Unexpected base URL"); // failure
     if (arg_init)
         return urlpattern(*arg_init, arg_opt);
 
-    return urlpattern(upa::pattern::urlpattern_init{}, arg_opt);
+    return urlpattern(upa::urlpattern_init{}, arg_opt);
 }
 
 bool urlpattern_test(const urlpattern& self, const picojson::array& input_arr) {
     if (input_arr.empty())
-        return self.test(upa::pattern::urlpattern_init{});
+        return self.test(upa::urlpattern_init{});
 
     std::optional<std::string> arg_str;
     std::optional<std::string> arg_base;
-    std::optional<upa::pattern::urlpattern_init> arg_init;
+    std::optional<upa::urlpattern_init> arg_init;
 
     if (input_arr.size() >= 1) {
         if (input_arr[0].is<std::string>()) {
@@ -586,7 +586,7 @@ bool urlpattern_test(const urlpattern& self, const picojson::array& input_arr) {
     if (arg_str)
         return self.test(*arg_str, arg_base);
     if (arg_base)
-        throw upa::pattern::urlpattern_error("Unexpected base URL"); // failure
+        throw upa::urlpattern_error("Unexpected base URL"); // failure
     if (arg_init)
         return self.test(*arg_init);
 
@@ -594,13 +594,13 @@ bool urlpattern_test(const urlpattern& self, const picojson::array& input_arr) {
     return false;
 }
 
-std::optional<upa::pattern::urlpattern_result> urlpattern_exec(const urlpattern& self, const picojson::array& input_arr) {
+std::optional<upa::urlpattern_result> urlpattern_exec(const urlpattern& self, const picojson::array& input_arr) {
     if (input_arr.empty())
-        return self.exec(upa::pattern::urlpattern_init{});
+        return self.exec(upa::urlpattern_init{});
 
     std::optional<std::string> arg_str;
     std::optional<std::string> arg_base;
-    std::optional<upa::pattern::urlpattern_init> arg_init;
+    std::optional<upa::urlpattern_init> arg_init;
 
     if (input_arr.size() >= 1) {
         if (input_arr[0].is<std::string>()) {
@@ -624,7 +624,7 @@ std::optional<upa::pattern::urlpattern_result> urlpattern_exec(const urlpattern&
     if (arg_str)
         return self.exec(*arg_str, arg_base);
     if (arg_base)
-        throw upa::pattern::urlpattern_error("Unexpected base URL"); // failure
+        throw upa::urlpattern_error("Unexpected base URL"); // failure
     if (arg_init)
         return self.exec(*arg_init);
 
