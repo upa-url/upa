@@ -825,21 +825,10 @@ inline component<regex_engine>::component(std::optional<std::string_view> input,
 
 template <class regex_engine>
 inline bool protocol_component_matches_special_scheme(const component<regex_engine>& protocol_component) {
-#if 1
     return [](const auto& re, auto... scheme) {
         return (... || re.test(scheme));
     }(protocol_component.regular_expression_,
         "ftp"sv, "file"sv, "http"sv, "https"sv, "ws"sv, "wss"sv);
-#else
-    static std::string_view special_scheme_list[] = {
-        "ftp"sv, "file"sv, "http"sv, "https"sv, "ws"sv, "wss"sv
-    };
-    for (const auto& scheme : special_scheme_list) {
-        if (std::regex_match(scheme.begin(), scheme.end(), protocol_component.regular_expression_))
-            return true;
-    }
-    return false;
-#endif
 }
 
 // https://urlpattern.spec.whatwg.org/#hostname-pattern-is-an-ipv6-address
