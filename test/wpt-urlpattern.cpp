@@ -14,8 +14,10 @@ inline std::string vout(const std::unordered_map<K, V>& m);
 
 #include <filesystem>
 #include <iostream>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 #define TEST_DEBUG 0
@@ -106,9 +108,16 @@ int wpt_urlpattern_hasregexpgroups_tests() {
 
 // https://github.com/web-platform-tests/wpt/blob/master/urlpattern/resources/urlpatterntests.js
 
+struct exec_args {
+    exec_args(const picojson::array& input_arr);
+
+    std::variant<std::string, upa::urlpattern_init> arg_;
+    std::optional<std::string> base_;
+};
+
 urlpattern create_urlpattern(const picojson::array& pattern_arr);
-bool urlpattern_test(const urlpattern& self, const picojson::array& input_arr);
-std::optional<upa::urlpattern_result> urlpattern_exec(const urlpattern& self, const picojson::array& input_arr);
+bool urlpattern_test(const urlpattern& self, const exec_args& input);
+std::optional<upa::urlpattern_result> urlpattern_exec(const urlpattern& self, const exec_args& input);
 
 
 auto get_component(const upa::url& url, std::string_view name) -> std::string_view {
@@ -344,15 +353,16 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
                     }
 
                     // entry.inputs
+                    exec_args entry_inputs_args(entry_inputs->get<picojson::array>());
                     if (entry_expected_match && entry_expected_match->is<std::string>() && entry_expected_match->get<std::string>() == "error") {
                         // pattern.test
                         tc.assert_throws<upa::urlpattern_error>([&]() {
-                            urlpattern_test(pattern, entry_inputs->get<picojson::array>());
+                            urlpattern_test(pattern, entry_inputs_args);
                         }, "test() result");
 
                         // pattern.exec
                         tc.assert_throws<upa::urlpattern_error>([&]() {
-                            urlpattern_exec(pattern, entry_inputs->get<picojson::array>());
+                            urlpattern_exec(pattern, entry_inputs_args);
                         }, "exec() result");
 
                         return;
@@ -362,11 +372,11 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
                     // a truthy value.
                     tc.assert_equal(
                         entry_expected_match && !entry_expected_match->is<picojson::null>(),
-                        urlpattern_test(pattern, entry_inputs->get<picojson::array>()),
+                        urlpattern_test(pattern, entry_inputs_args),
                         "test() result");
 
                     // Next, start validating the exec() method.
-                    const auto exec_result = urlpattern_exec(pattern, entry_inputs->get<picojson::array>());
+                    const auto exec_result = urlpattern_exec(pattern, entry_inputs_args);
 
                     // On a failed match exec() returns null.
                     if (!entry_expected_match || !entry_expected_match->is<picojson::object>()) {
@@ -556,79 +566,54 @@ urlpattern create_urlpattern(const picojson::array& pattern_arr) {
     return urlpattern(upa::urlpattern_init{}, arg_opt);
 }
 
-bool urlpattern_test(const urlpattern& self, const picojson::array& input_arr) {
-    if (input_arr.empty())
-        return self.test(upa::urlpattern_init{});
+// Run urlpattern::test(...) and urlpattern::exec(...)
 
-    std::optional<std::string> arg_str;
-    std::optional<std::string> arg_base;
-    std::optional<upa::urlpattern_init> arg_init;
-
-    if (input_arr.size() >= 1) {
+exec_args::exec_args(const picojson::array& input_arr) {
+    if (input_arr.empty()) {
+        arg_ = upa::urlpattern_init{};
+    } else {
         if (input_arr[0].is<std::string>()) {
-            arg_str = input_arr[0].get<std::string>();
+            arg_ = input_arr[0].get<std::string>();
         } else if (input_arr[0].is<picojson::object>()) {
             const auto obj = input_arr[0].get<picojson::object>();
-            arg_init = create_urlpattern_init(obj);
-        } else
-            ;// testo klaida
-    }
-    if (input_arr.size() >= 2) {
-        if (input_arr[1].is<std::string>())
-            arg_base = input_arr[1].get<std::string>();
-        else
-            ;// testo klaida
-    }
-    if (input_arr.size() >= 3) {
-        // testo klaida
-    }
+            arg_ = create_urlpattern_init(obj);
+        } // else // TODO: error in test file
 
-    if (arg_str)
-        return self.test(*arg_str, arg_base);
-    if (arg_base)
-        throw upa::urlpattern_error("Unexpected base URL"); // failure
-    if (arg_init)
-        return self.test(*arg_init);
+        if (input_arr.size() >= 2) {
+            if (input_arr[1].is<std::string>()) {
+                base_ = input_arr[1].get<std::string>();
+            } // else // TODO: error in test file
+        }
 
-    // testo klaida
+        if (input_arr.size() >= 3) {
+            // TODO: error in test file
+        }
+    }
+}
+
+bool urlpattern_test(const urlpattern& self, const exec_args& input) {
+    if (std::holds_alternative<std::string>(input.arg_)) {
+        return self.test(std::get<std::string>(input.arg_), input.base_);
+    }
+    if (std::holds_alternative<upa::urlpattern_init>(input.arg_)) {
+        if (input.base_)
+            throw upa::urlpattern_error("Unexpected base URL"); // failure
+        return self.test(std::get<upa::urlpattern_init>(input.arg_));
+    }
+    // TODO: error in test file
     return false;
 }
 
-std::optional<upa::urlpattern_result> urlpattern_exec(const urlpattern& self, const picojson::array& input_arr) {
-    if (input_arr.empty())
-        return self.exec(upa::urlpattern_init{});
-
-    std::optional<std::string> arg_str;
-    std::optional<std::string> arg_base;
-    std::optional<upa::urlpattern_init> arg_init;
-
-    if (input_arr.size() >= 1) {
-        if (input_arr[0].is<std::string>()) {
-            arg_str = input_arr[0].get<std::string>();
-        } else if (input_arr[0].is<picojson::object>()) {
-            const auto obj = input_arr[0].get<picojson::object>();
-            arg_init = create_urlpattern_init(obj);
-        } else
-            ;// testo klaida
+std::optional<upa::urlpattern_result> urlpattern_exec(const urlpattern& self, const exec_args& input) {
+    if (std::holds_alternative<std::string>(input.arg_)) {
+        return self.exec(std::get<std::string>(input.arg_), input.base_);
     }
-    if (input_arr.size() >= 2) {
-        if (input_arr[1].is<std::string>())
-            arg_base = input_arr[1].get<std::string>();
-        else
-            ;// testo klaida
+    if (std::holds_alternative<upa::urlpattern_init>(input.arg_)) {
+        if (input.base_)
+            throw upa::urlpattern_error("Unexpected base URL"); // failure
+        return self.exec(std::get<upa::urlpattern_init>(input.arg_));
     }
-    if (input_arr.size() >= 3) {
-        // testo klaida
-    }
-
-    if (arg_str)
-        return self.exec(*arg_str, arg_base);
-    if (arg_base)
-        throw upa::urlpattern_error("Unexpected base URL"); // failure
-    if (arg_init)
-        return self.exec(*arg_init);
-
-    // testo klaida
+    // TODO: error in test file
     return std::nullopt;
 }
 
