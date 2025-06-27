@@ -6,19 +6,22 @@
 #include "upa/urlpattern.h"
 #include "upa/regex_engine_std.h"
 
-template <class K, class V>
-inline std::string vout(const std::unordered_map<K, V>& m);
-
-#include "ddt/DataDrivenTest.hpp"
-#include "picojson_util.h"
-
 #include <filesystem>
 #include <iostream>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <variant>
 #include <vector>
+
+template <class K, class V>
+inline std::string vout(const std::unordered_map<K, V>& m);
+template <class T>
+inline std::string vout(const std::optional<T>& o);
+
+#include "ddt/DataDrivenTest.hpp"
+#include "picojson_util.h"
 
 #define TEST_DEBUG 0
 
@@ -157,6 +160,19 @@ const upa::urlpattern_component_result& get_component_result(const upa::urlpatte
     throw std::out_of_range("not urlpattern_result componnent"); // TODO: message
 }
 
+auto get_member(const upa::urlpattern_init& init, std::string_view name) -> std::optional<std::string_view> {
+    if (name == "protocol"sv) return init.protocol;
+    if (name == "username"sv) return init.username;
+    if (name == "password"sv) return init.password;
+    if (name == "hostname"sv) return init.hostname;
+    if (name == "port"sv) return init.port;
+    if (name == "pathname"sv) return init.pathname;
+    if (name == "search"sv) return init.search;
+    if (name == "hash"sv) return init.hash;
+    if (name == "baseURL"sv) return init.base_url;
+    throw std::out_of_range("not urlpattern_init field"); // TODO: message
+}
+
 template <class K, class V>
 inline std::string vout(const std::unordered_map<K, V>& m) {
     bool first = true;
@@ -176,6 +192,11 @@ inline std::string vout(const std::unordered_map<K, V>& m) {
     }
     out += '}';
     return out;
+}
+
+template <class T>
+inline std::string vout(const std::optional<T>& o) {
+    return o ? std::string{ *o } : "null";
 }
 
 template<class StrT>
@@ -406,24 +427,44 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
                         entry_expected_match_inputs->get<picojson::array>().size(),
                         exec_result->inputs.size(), // MANO: ? :
                         "exec() result.inputs.length");
-#if 0
-                    for (int i = 0; i < exec_result->inputs.size(); ++i) {
-                        const auto input = exec_result->inputs[i];
-                        const auto expected_input = entry_expected_match_inputs->get<picojson::array>()[i];
-                        if (std::holds_alternative<std::string_view>(input)) {
-                            std::string str("exec() result.inputs[");
-                            str.append(std::to_string(i));
-                            str.append("]");
-                            tc.assert_equal(expected_input.get<std::string>(), std::get<std::string_view>(input), str);
-                            continue;
-                        }
-                        for (const char* component : kComponents) {
-                            // TODO:
-                            //assert_equals(input[component], expected_input[component],
-                            //    `exec() result.inputs[${i}][${component}]`);
+
+                    if (exec_result->inputs.size() == entry_expected_match_inputs->get<picojson::array>().size()) {
+                        for (int i = 0; i < exec_result->inputs.size(); ++i) {
+                            const auto input = exec_result->inputs[i];
+                            const auto expected_input = entry_expected_match_inputs->get<picojson::array>()[i];
+
+                            std::string val_name("exec() result.inputs[");
+                            val_name.append(std::to_string(i));
+                            val_name.append("]");
+
+                            if (expected_input.is<std::string>()) {
+                                if (std::holds_alternative<std::string_view>(input))
+                                    tc.assert_equal(expected_input.get<std::string>(), std::get<std::string_view>(input), val_name);
+                                else
+                                    tc.failure() << val_name << " is not string" << std::endl;
+                                continue;
+                            }
+                            if (expected_input.is<picojson::object>()) {
+                                if (std::holds_alternative<const upa::urlpattern_init*>(input)) {
+                                    /// auto expected_init = expected_input.get<picojson::object>();
+                                    const auto* input_init = std::get<const upa::urlpattern_init*>(input);
+
+                                    for (auto component : kComponents) {
+                                        const auto* expected_val_ptr = get_prop(expected_input.get<picojson::object>(), component);
+                                        std::optional<std::string> expected_val;
+                                        if (expected_val_ptr)
+                                            expected_val = expected_val_ptr->get<std::string>();
+                                        auto input_val = get_member(*input_init, component);
+
+                                        // `exec() result.inputs[${i}][${component}]`
+                                        std::string val_name_comp = val_name + "[" + std::string{ component } + "]";
+                                        tc.assert_equal(expected_val, input_val, val_name_comp);
+                                    }
+                                } else
+                                    tc.failure() << val_name << " is not urlpattern_init" << std::endl;
+                            } // else // TODO: error in test file
                         }
                     }
-#endif
 
                     // Next we will compare the URLPatternComponentResult for each of these
                     // expected components.
