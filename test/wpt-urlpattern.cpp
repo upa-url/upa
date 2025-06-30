@@ -4,7 +4,11 @@
 //
 #include "upa/url.h"
 #include "upa/urlpattern.h"
-#include "upa/regex_engine_std.h"
+#ifdef UPA_TEST_WITH_STD_REGEX
+# include "upa/regex_engine_std.h"
+#else
+# include "upa/regex_engine_srell.h"
+#endif
 
 #include <filesystem>
 #include <iostream>
@@ -28,7 +32,11 @@ inline std::string vout(const std::optional<T>& o);
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
+#ifdef UPA_TEST_WITH_STD_REGEX
 using urlpattern = typename upa::urlpattern<upa::regex_engine_std>;
+#else
+using urlpattern = typename upa::urlpattern<upa::regex_engine_srell>;
+#endif
 
 // -----------------------------------------------------------------------------
 // parses urltestdata.json
