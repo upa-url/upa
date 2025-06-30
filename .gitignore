@@ -2,9 +2,11 @@
 /build/
 
 # downloadable dependencies
-/deps/ankerl/
-/deps/doctest/
-/deps/picojson/
+/deps/ankerl/*
+/deps/doctest/*
+/deps/picojson/*
+/deps/srell/*
+!/deps/*/.gitkeep
 
 # generated files
 /doc/html/
