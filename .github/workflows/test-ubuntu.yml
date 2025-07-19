@@ -114,10 +114,10 @@ jobs:
       matrix:
         include:
           - name: clang++-7 C++17
-            container: silkeh/clang:7
+            container: ubuntu:20.04
             cxx_standard: 17
-            cmake_options: "-DCMAKE_CXX_FLAGS=-stdlib=libc++"
-            install: "curl git unzip"
+            cmake_options: "-G Ninja -DCMAKE_CXX_COMPILER=clang++-7 -DCMAKE_CXX_FLAGS=-stdlib=libc++"
+            install: "curl git unzip clang-7 libc++-7-dev libc++abi-7-dev"
 
           - name: g++-8 C++17
             container: gcc:8
