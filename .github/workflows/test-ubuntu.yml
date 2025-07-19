@@ -116,7 +116,7 @@ jobs:
           - name: clang++-7 C++17
             container: ubuntu:20.04
             cxx_standard: 17
-            cmake_options: "-DCMAKE_CXX_FLAGS=-stdlib=libc++"
+            cmake_options: "-G Ninja -DCMAKE_CXX_FLAGS=-stdlib=libc++"
             install: "curl git unzip clang-7 libc++-7-dev libc++abi-7-dev"
 
           - name: g++-8 C++17
