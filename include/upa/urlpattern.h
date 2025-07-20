@@ -193,8 +193,8 @@ using token_list = std::vector<token>;
 
 // https://urlpattern.spec.whatwg.org/#tokenize-policy
 enum class tokenize_policy {
-    STRICT,
-    LENIENT
+    strict,
+    lenient
 };
 
 // https://urlpattern.spec.whatwg.org/#tokenize
@@ -221,13 +221,13 @@ struct part {
 
     enum class modifier {
         /// The part does not have a modifier.
-        NONE,
+        none,
         /// The part has an optional modifier indicated by the U+003F (?) code point.
-        OPTIONAL,
+        optional,
         /// The part has a "zero or more" modifier indicated by the U+002A (*) code point.
-        ZERO_OR_MORE,
+        zero_or_more,
         /// The part has a "one or more" modifier indicated by the U+002B (+) code point.
-        ONE_OR_MORE
+        one_or_more
     };
 
     part(type t, std::string&& value, modifier m)
@@ -925,7 +925,7 @@ struct constructor_string_parser {
 
 inline constructor_string_parser::constructor_string_parser(std::string_view input)
     : input_{ input }
-    , token_list_{ tokenize(input, tokenize_policy::LENIENT) }
+    , token_list_{ tokenize(input, tokenize_policy::lenient) }
 {}
 
 template <class regex_engine>
@@ -1309,16 +1309,16 @@ struct tokenizer {
 
     // https://urlpattern.spec.whatwg.org/#process-a-tokenizing-error
     void process_tokenizing_error(std::size_t next_pos, std::size_t value_pos) {
-        if (policy_ == tokenize_policy::STRICT) {
+        if (policy_ == tokenize_policy::strict) {
             throw urlpattern_error("tokenizing error");
         }
-        assert(policy_ == tokenize_policy::LENIENT);
+        assert(policy_ == tokenize_policy::lenient);
         add_token_with_default_length(token::type::INVALID_CHAR, next_pos, value_pos);
     }
 
     // members
     std::string_view input_;
-    tokenize_policy policy_ = tokenize_policy::STRICT;
+    tokenize_policy policy_ = tokenize_policy::strict;
     token_list token_list_;
     std::size_t index_ = 0;
     std::size_t next_index_ = 0;
@@ -1502,7 +1502,7 @@ struct pattern_parser {
 inline part_list parse_pattern_string(std::string_view input, const options& opt, encoding_callback encoding_cb)
 {
     pattern_parser parser{ encoding_cb, generate_segment_wildcard_regexp(opt) };
-    parser.token_list_ = tokenize(input, tokenize_policy::STRICT);
+    parser.token_list_ = tokenize(input, tokenize_policy::strict);
 
     while (parser.index_ < parser.token_list_.size()) {
         // Example
@@ -1629,7 +1629,7 @@ inline void pattern_parser::maybe_add_part_from_pending_fixed_value() {
         return;
     auto encoded_value = encoding_cb_(pending_fixed_value_);
     pending_fixed_value_.clear(); // set to the empty string
-    part_list_.emplace_back(part::type::FIXED_TEXT, std::move(encoded_value), part::modifier::NONE);
+    part_list_.emplace_back(part::type::FIXED_TEXT, std::move(encoded_value), part::modifier::none);
 }
 
 // https://urlpattern.spec.whatwg.org/#add-a-part
@@ -1637,16 +1637,16 @@ inline void pattern_parser::add_part(std::string_view prefix, const token* pname
     const token* pregexp_or_wildcard_token, std::string_view suffix,
     const token* pmodifier_token)
 {
-    part::modifier modifier = part::modifier::NONE;
+    part::modifier modifier = part::modifier::none;
     if (pmodifier_token) {
         if (pmodifier_token->value_ == "?"sv)
-            modifier = part::modifier::OPTIONAL;
+            modifier = part::modifier::optional;
         else if (pmodifier_token->value_ == "*"sv)
-            modifier = part::modifier::ZERO_OR_MORE;
+            modifier = part::modifier::zero_or_more;
         else if (pmodifier_token->value_ == "+"sv)
-            modifier = part::modifier::ONE_OR_MORE;
+            modifier = part::modifier::one_or_more;
     }
-    if (pname_token == nullptr && pregexp_or_wildcard_token == nullptr && modifier == part::modifier::NONE) {
+    if (pname_token == nullptr && pregexp_or_wildcard_token == nullptr && modifier == part::modifier::none) {
         // Note
         // This was a "{foo}" grouping. We add this to the pending fixed value
         // so that it will be combined with any previous or subsequent text.
@@ -1735,7 +1735,7 @@ inline std::pair<std::string, string_list> generate_regular_expression_and_name_
 
     for (const auto& pt : pt_list) {
         if (pt.type_ == part::type::FIXED_TEXT) {
-            if (pt.modifier_ == part::modifier::NONE) {
+            if (pt.modifier_ == part::modifier::none) {
                 append_escape_regexp_string(result, pt.value_);
             } else {
                 // Note
@@ -1776,7 +1776,7 @@ inline std::pair<std::string, string_list> generate_regular_expression_and_name_
             //
             // If there is a repeating modifier, however, we will use the more complex form:
             // ((?:<regexp value>)<modifier>)
-            if (pt.modifier_ == part::modifier::NONE || pt.modifier_ == part::modifier::OPTIONAL) {
+            if (pt.modifier_ == part::modifier::none || pt.modifier_ == part::modifier::optional) {
                 result.push_back('(');
                 result.append(regexp_value);
                 result.push_back(')');
@@ -1791,7 +1791,7 @@ inline std::pair<std::string, string_list> generate_regular_expression_and_name_
             continue;
         }
 
-        if (pt.modifier_ == part::modifier::NONE || pt.modifier_ == part::modifier::OPTIONAL) {
+        if (pt.modifier_ == part::modifier::none || pt.modifier_ == part::modifier::optional) {
             // Note
             // This section handles non-repeating parts with a prefix or suffix. There is an inner capturing
             // group that contains the primary regexp value. The inner group is then combined with the prefix
@@ -1809,7 +1809,7 @@ inline std::pair<std::string, string_list> generate_regular_expression_and_name_
             continue;
         }
 
-        assert(pt.modifier_ == part::modifier::ZERO_OR_MORE || pt.modifier_ == part::modifier::ONE_OR_MORE);
+        assert(pt.modifier_ == part::modifier::zero_or_more || pt.modifier_ == part::modifier::one_or_more);
         assert(!pt.prefix_.empty() || !pt.suffix_.empty());
         // Note
         // Repeating parts with a prefix or suffix are dramatically more complicated. We want to exclude
@@ -1830,7 +1830,7 @@ inline std::pair<std::string, string_list> generate_regular_expression_and_name_
         result.append("))*)");
         append_escape_regexp_string(result, pt.suffix_);
         result.push_back(')');
-        if (pt.modifier_ == part::modifier::ZERO_OR_MORE)
+        if (pt.modifier_ == part::modifier::zero_or_more)
         result.push_back('?');
     } // for
 
@@ -1870,7 +1870,7 @@ inline std::string generate_pattern_string(const part_list& pt_list, const optio
         const auto& pt = pt_list[index];
         // pprevious_pt, pnext_pt will be defined below
         if (pt.type_ == part::type::FIXED_TEXT) {
-            if (pt.modifier_ == part::modifier::NONE) {
+            if (pt.modifier_ == part::modifier::none) {
                 append_escape_pattern_string(result, pt.value_);
                 continue;
             }
@@ -1890,7 +1890,7 @@ inline std::string generate_pattern_string(const part_list& pt_list, const optio
             (!pt.prefix_.empty() && pt.prefix_ != opt.prefix_code_point);
 
         if (!needs_grouping && custom_name &&
-            pt.type_ == part::type::SEGMENT_WILDCARD && pt.modifier_ == part::modifier::NONE &&
+            pt.type_ == part::type::SEGMENT_WILDCARD && pt.modifier_ == part::modifier::none &&
             pnext_pt != nullptr && pnext_pt->prefix_.empty() && pnext_pt->suffix_.empty())
         {
             if (pnext_pt->type_ == part::type::FIXED_TEXT)
@@ -1938,7 +1938,7 @@ inline std::string generate_pattern_string(const part_list& pt_list, const optio
             if (!custom_name && (
                 pprevious_pt == nullptr ||
                 pprevious_pt->type_ == part::type::FIXED_TEXT ||
-                pprevious_pt->modifier_ != part::modifier::NONE ||
+                pprevious_pt->modifier_ != part::modifier::none ||
                 needs_grouping ||
                 !pt.prefix_.empty())) {
                 result.push_back('*');
@@ -1989,13 +1989,13 @@ inline void append_escape_pattern_string(std::string& result, std::string_view i
 // https://urlpattern.spec.whatwg.org/#convert-a-modifier-to-a-string
 inline void append_convert_modifier_to_string(std::string& result, part::modifier modifier) {
     switch (modifier) {
-    case part::modifier::ZERO_OR_MORE:
+    case part::modifier::zero_or_more:
         result.push_back('*');
         break;
-    case part::modifier::OPTIONAL:
+    case part::modifier::optional:
         result.push_back('?');
         break;
-    case part::modifier::ONE_OR_MORE:
+    case part::modifier::one_or_more:
         result.push_back('+');
         break;
     }
