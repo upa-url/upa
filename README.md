@@ -87,9 +87,24 @@ CPMAddPackage("gh:upa-url/upa@2.2.0")
 target_link_libraries(exe-target PRIVATE upa::url)
 ```
 
+### Conan
+
+Install the latest version of Upa URL:
+```sh
+conan install --requires=upa-url/[*]
+```
+
+### Homebrew
+
+```sh
+brew install upa-url/tap/upa-url
+```
+
 ### vcpkg
 
-Install Upa URL with `vcpkg install upa-url`.
+```sh
+vcpkg install upa-url
+```
 
 ## Usage
 
