@@ -17,7 +17,7 @@ jobs:
       # Used in Doxyfile: PROJECT_NUMBER = $(UPA_DOCS_VERSION)
       UPA_DOCS_VERSION: ${{ github.ref_name }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # Check C++ examples in documentation
       - name: Extract and try to build C++ examples from docs
@@ -41,7 +41,7 @@ jobs:
         run: echo "upa_checkout=$(git ls-remote --heads https://github.com/$upa_docs_repository.git refs/heads/gh-pages)" >> "$GITHUB_ENV"
 
       - name: Checkout ${{ env.upa_docs_repository }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         if: env.upa_deploy && env.upa_checkout
         with:
           repository: ${{ env.upa_docs_repository }}

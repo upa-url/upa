@@ -28,7 +28,7 @@ jobs:
             cmake_options: "-DBUILD_SHARED_LIBS=ON"
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: get dependencies
       run: ./init.sh
     - name: cmake

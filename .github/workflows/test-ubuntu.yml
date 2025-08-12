@@ -79,7 +79,7 @@ jobs:
             cmake_options: "-DUPA_BUILD_EXAMPLES=ON -DBUILD_SHARED_LIBS=ON"
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: apt-get install
       if: ${{ matrix.install }}
       run: |
@@ -130,7 +130,7 @@ jobs:
       run: |
         apt-get update
         apt-get install -y ${{ matrix.install }}
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - uses: lukka/get-cmake@v4.0.2
     - name: get dependencies
       run: |
