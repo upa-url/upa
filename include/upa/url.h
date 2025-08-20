@@ -1237,12 +1237,12 @@ inline string_view url::port() const {
 
 inline int url::port_int() const {
     const auto vport = get_part_view(PORT);
-    return vport.length() ? detail::port_from_str(vport.data(), vport.data() + vport.length()) : -1;
+    return !vport.empty() ? detail::port_from_str(vport.data(), vport.data() + vport.length()) : -1;
 }
 
 inline int url::real_port_int() const {
     const auto vport = get_part_view(PORT);
-    if (vport.length())
+    if (!vport.empty())
         return detail::port_from_str(vport.data(), vport.data() + vport.length());
     return scheme_inf_ ? scheme_inf_->default_port : -1;
 }
@@ -2515,7 +2515,7 @@ inline void url_parser::do_opaque_path(const CharT* pointer, const CharT* last, 
 
 inline string_view url::get_path_first_string(std::size_t len) const {
     string_view pathv = get_part_view(PATH);
-    if (pathv.length() == 0 || has_opaque_path())
+    if (pathv.empty() || has_opaque_path())
         return pathv;
     // skip '/'
     pathv.remove_prefix(1);
