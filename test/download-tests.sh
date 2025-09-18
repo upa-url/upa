@@ -17,7 +17,7 @@ done
 
 # Commit hash of the Public Suffix List (PSL)
 # https://github.com/publicsuffix/list
-PSL_HASH=f34b2f1a960238cf765d2e70ca8459ea2de51ec7
+PSL_HASH=4a97adbc7f153c31b7d0f62a32bf856f0f1ee6c2
 
 curl -fsS -o $p/psl/public_suffix_list.dat https://raw.githubusercontent.com/publicsuffix/list/${PSL_HASH}/public_suffix_list.dat
 curl -fsS -o $p/psl/tests.txt https://raw.githubusercontent.com/publicsuffix/list/${PSL_HASH}/tests/tests.txt
