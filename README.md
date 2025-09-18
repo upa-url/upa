@@ -8,7 +8,7 @@ It is known to compile with Clang 7, GCC 8, Microsoft Visual Studio 2017 or late
 ## Features and standard conformance
 
 This library is up to date with the URL Standard published on
-[14 March 2025 (commit 6c78200)](https://url.spec.whatwg.org/commit-snapshots/6c782003a2d53b1feecd072d1006eb8f1d65fb2d/) and supports internationalized domain names as specified in the [UTS46 Unicode IDNA Compatibility Processing version 16.0.0](https://www.unicode.org/reports/tr46/tr46-33.html).
+[14 March 2025 (commit 6c78200)](https://url.spec.whatwg.org/commit-snapshots/6c782003a2d53b1feecd072d1006eb8f1d65fb2d/) and supports internationalized domain names as specified in the [UTS46 Unicode IDNA Compatibility Processing version 17.0.0](https://www.unicode.org/reports/tr46/tr46-35.html).
 
 It implements:
 1. [URL class](https://url.spec.whatwg.org/#url-class): `upa::url`
