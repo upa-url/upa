@@ -1,5 +1,5 @@
 task:
-  skip: "changesIncludeOnly('.github/**' , 'doc/**', '**.md')"
+  skip: "changesIncludeOnly('.github/**' , 'doc/**', '**.md', 'Doxyfile')"
 
   matrix:
     - name: Alpine arm64
