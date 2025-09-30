@@ -402,9 +402,9 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-href
     ///
     /// @return serialized URL
-    [[nodiscard]] string_view href() const;
+    [[nodiscard]] string_view href() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link href() const @endlink
-    [[nodiscard]] string_view get_href() const { return href(); }
+    [[nodiscard]] string_view get_href() const UPA_LIFETIMEBOUND { return href(); }
 
     /// @brief The origin getter
     ///
@@ -421,45 +421,45 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-protocol
     ///
     /// @return URL's scheme, followed by U+003A (:)
-    [[nodiscard]] string_view protocol() const;
+    [[nodiscard]] string_view protocol() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link protocol() const @endlink
-    [[nodiscard]] string_view get_protocol() const { return protocol(); }
+    [[nodiscard]] string_view get_protocol() const UPA_LIFETIMEBOUND { return protocol(); }
 
     /// @brief The username getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-username
     ///
     /// @return URL’s username
-    [[nodiscard]] string_view username() const;
+    [[nodiscard]] string_view username() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link username() const @endlink
-    [[nodiscard]] string_view get_username() const { return username(); }
+    [[nodiscard]] string_view get_username() const UPA_LIFETIMEBOUND { return username(); }
 
     /// @brief The password getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-password
     ///
     /// @return URL’s password
-    [[nodiscard]] string_view password() const;
+    [[nodiscard]] string_view password() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link password() const @endlink
-    [[nodiscard]] string_view get_password() const { return password(); }
+    [[nodiscard]] string_view get_password() const UPA_LIFETIMEBOUND { return password(); }
 
     /// @brief The host getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-host
     ///
     /// @return URL’s host, serialized, followed by U+003A (:) and URL’s port, serialized
-    [[nodiscard]] string_view host() const;
+    [[nodiscard]] string_view host() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link host() const @endlink
-    [[nodiscard]] string_view get_host() const { return host(); }
+    [[nodiscard]] string_view get_host() const UPA_LIFETIMEBOUND { return host(); }
 
     /// @brief The hostname getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-hostname
     ///
     /// @return URL’s host, serialized
-    [[nodiscard]] string_view hostname() const;
+    [[nodiscard]] string_view hostname() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link hostname() const @endlink
-    [[nodiscard]] string_view get_hostname() const { return hostname(); }
+    [[nodiscard]] string_view get_hostname() const UPA_LIFETIMEBOUND { return hostname(); }
 
     /// @brief The host_type getter
     ///
@@ -471,9 +471,9 @@ public:
     /// More info: https://url.spec.whatwg.org/#dom-url-port
     ///
     /// @return URL’s port, serialized, if URL’s port is not null, otherwise empty string
-    [[nodiscard]] string_view port() const;
+    [[nodiscard]] string_view port() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link port() const @endlink
-    [[nodiscard]] string_view get_port() const { return port(); }
+    [[nodiscard]] string_view get_port() const UPA_LIFETIMEBOUND { return port(); }
 
     /// @return URL’s port, converted to `int` value, if URL’s port is not null,
     ///   otherwise `-1`
@@ -487,36 +487,36 @@ public:
     /// @brief The path getter
     ///
     /// @return URL's path, serialized, followed by U+003F (?) and URL’s query
-    [[nodiscard]] string_view path() const;
+    [[nodiscard]] string_view path() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link path() const @endlink
-    [[nodiscard]] string_view get_path() const { return path(); }
+    [[nodiscard]] string_view get_path() const UPA_LIFETIMEBOUND { return path(); }
 
     /// @brief The pathname getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-pathname
     ///
     /// @return URL’s path, serialized
-    [[nodiscard]] string_view pathname() const;
+    [[nodiscard]] string_view pathname() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link pathname() const @endlink
-    [[nodiscard]] string_view get_pathname() const { return pathname(); }
+    [[nodiscard]] string_view get_pathname() const UPA_LIFETIMEBOUND { return pathname(); }
 
     /// @brief The search getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-search
     ///
     /// @return empty string or U+003F (?), followed by URL’s query
-    [[nodiscard]] string_view search() const;
+    [[nodiscard]] string_view search() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link search() const @endlink
-    [[nodiscard]] string_view get_search() const { return search(); }
+    [[nodiscard]] string_view get_search() const UPA_LIFETIMEBOUND { return search(); }
 
     /// @brief The hash getter
     ///
     /// More info: https://url.spec.whatwg.org/#dom-url-hash
     ///
     /// @return empty string or U+0023 (#), followed by URL’s fragment
-    [[nodiscard]] string_view hash() const;
+    [[nodiscard]] string_view hash() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link hash() const @endlink
-    [[nodiscard]] string_view get_hash() const { return hash(); }
+    [[nodiscard]] string_view get_hash() const UPA_LIFETIMEBOUND { return hash(); }
 
     /// @brief The searchParams getter
     ///
@@ -526,7 +526,7 @@ public:
     /// operation (except @c safe_assign, which preserves reference validity).
     ///
     /// @return reference to this’s query object (url_search_params class)
-    url_search_params& search_params()&;
+    url_search_params& search_params()& UPA_LIFETIMEBOUND;
 
     /// @brief The searchParams getter for rvalue url
     ///
@@ -541,7 +541,7 @@ public:
     ///
     /// @param[in] exclude_fragment exclude fragment when serializing
     /// @return serialized URL as string_view
-    [[nodiscard]] string_view serialize(bool exclude_fragment = false) const;
+    [[nodiscard]] string_view serialize(bool exclude_fragment = false) const UPA_LIFETIMEBOUND;
 
     // Get url info
 
@@ -605,7 +605,7 @@ public:
     ///
     /// @param[in] t URL's part
     /// @return URL's part string; it is empty if part is empty or null
-    [[nodiscard]] string_view get_part_view(PartType t) const;
+    [[nodiscard]] string_view get_part_view(PartType t) const UPA_LIFETIMEBOUND;
 
     /// @brief Checks whether the URL's part (URL record member) is empty or null
     ///
@@ -702,7 +702,7 @@ private:
     void set_scheme(std::size_t scheme_length);
 
     // path util
-    string_view get_path_first_string(std::size_t len) const;
+    string_view get_path_first_string(std::size_t len) const UPA_LIFETIMEBOUND;
     // path shortening
     bool get_path_rem_last(std::size_t& path_end, std::size_t& path_segment_count) const;
     bool get_shorten_path(std::size_t& path_end, std::size_t& path_segment_count) const;
@@ -1167,7 +1167,7 @@ inline void url::move_record(url& other) noexcept {
 
 // url getters
 
-inline string_view url::href() const {
+inline string_view url::href() const UPA_LIFETIMEBOUND {
     return norm_url_;
 }
 
@@ -1201,20 +1201,20 @@ inline std::string url::origin() const {
     return "null"; // opaque origin
 }
 
-inline string_view url::protocol() const {
+inline string_view url::protocol() const UPA_LIFETIMEBOUND {
     // "scheme:"
     return { norm_url_.data(), part_end_[SCHEME] ? part_end_[SCHEME] + 1 : 0 };
 }
 
-inline string_view url::username() const {
+inline string_view url::username() const UPA_LIFETIMEBOUND {
     return get_part_view(USERNAME);
 }
 
-inline string_view url::password() const {
+inline string_view url::password() const UPA_LIFETIMEBOUND {
     return get_part_view(PASSWORD);
 }
 
-inline string_view url::host() const {
+inline string_view url::host() const UPA_LIFETIMEBOUND {
     if (is_null(HOST))
         return {};
     // "hostname:port"
@@ -1223,7 +1223,7 @@ inline string_view url::host() const {
     return { norm_url_.data() + b, e - b };
 }
 
-inline string_view url::hostname() const {
+inline string_view url::hostname() const UPA_LIFETIMEBOUND {
     return get_part_view(HOST);
 }
 
@@ -1231,7 +1231,7 @@ inline HostType url::host_type() const noexcept {
     return static_cast<HostType>((flags_ & HOST_TYPE_MASK) >> HOST_TYPE_SHIFT);
 }
 
-inline string_view url::port() const {
+inline string_view url::port() const UPA_LIFETIMEBOUND {
     return get_part_view(PORT);
 }
 
@@ -1248,20 +1248,20 @@ inline int url::real_port_int() const {
 }
 
 // pathname + search
-inline string_view url::path() const {
+inline string_view url::path() const UPA_LIFETIMEBOUND {
     // "pathname?query"
     const std::size_t b = part_end_[PATH - 1];
     const std::size_t e = part_end_[QUERY] ? part_end_[QUERY] : part_end_[PATH];
     return { norm_url_.data() + b, e ? e - b : 0 };
 }
 
-inline string_view url::pathname() const {
+inline string_view url::pathname() const UPA_LIFETIMEBOUND {
     // https://url.spec.whatwg.org/#dom-url-pathname
     // already serialized as needed
     return get_part_view(PATH);
 }
 
-inline string_view url::search() const {
+inline string_view url::search() const UPA_LIFETIMEBOUND {
     const std::size_t b = part_end_[QUERY - 1];
     const std::size_t e = part_end_[QUERY];
     // is empty?
@@ -1271,7 +1271,7 @@ inline string_view url::search() const {
     return { norm_url_.data() + b, e - b };
 }
 
-inline string_view url::hash() const {
+inline string_view url::hash() const UPA_LIFETIMEBOUND {
     const std::size_t b = part_end_[FRAGMENT - 1];
     const std::size_t e = part_end_[FRAGMENT];
     // is empty?
@@ -1281,7 +1281,7 @@ inline string_view url::hash() const {
     return { norm_url_.data() + b, e - b };
 }
 
-inline url_search_params& url::search_params()& {
+inline url_search_params& url::search_params()& UPA_LIFETIMEBOUND {
     if (!search_params_ptr_)
         search_params_ptr_.init(this);
     return *search_params_ptr_;
@@ -1303,7 +1303,7 @@ inline void url::parse_search_params() {
         search_params_ptr_.parse_params(get_part_view(QUERY));
 }
 
-inline string_view url::serialize(bool exclude_fragment) const {
+inline string_view url::serialize(bool exclude_fragment) const UPA_LIFETIMEBOUND {
     if (exclude_fragment && part_end_[FRAGMENT])
         return { norm_url_.data(), part_end_[QUERY] };
     return norm_url_;
@@ -1319,7 +1319,7 @@ inline bool url::is_valid() const noexcept {
     return !!(flags_ & VALID_FLAG);
 }
 
-inline string_view url::get_part_view(PartType t) const {
+inline string_view url::get_part_view(PartType t) const UPA_LIFETIMEBOUND {
     if (t == SCHEME)
         return { norm_url_.data(), part_end_[SCHEME] };
     // begin & end offsets
@@ -2513,7 +2513,7 @@ inline void url_parser::do_opaque_path(const CharT* pointer, const CharT* last, 
 
 // path util
 
-inline string_view url::get_path_first_string(std::size_t len) const {
+inline string_view url::get_path_first_string(std::size_t len) const UPA_LIFETIMEBOUND {
     string_view pathv = get_part_view(PATH);
     if (pathv.empty() || has_opaque_path())
         return pathv;
