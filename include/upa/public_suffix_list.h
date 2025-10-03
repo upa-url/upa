@@ -255,7 +255,7 @@ public:
     /// @param[in] url the @ref url object
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
-    [[nodiscard]] std::string_view get_suffix_view(const url& url,
+    [[nodiscard]] std::string_view get_suffix_view(const url& url UPA_LIFETIMEBOUND,
         option opt = option::public_suffix) const {
         if (url.host_type() == HostType::Domain)
             return get_host_suffix_view(url.hostname(), opt);
@@ -269,7 +269,7 @@ public:
     /// @param[in] host the url_host object
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
-    [[nodiscard]] std::string_view get_suffix_view(const url_host& host,
+    [[nodiscard]] std::string_view get_suffix_view(const url_host& host UPA_LIFETIMEBOUND,
         option opt = option::public_suffix) const {
         if (host.type() == HostType::Domain)
             return get_host_suffix_view(host.name(), opt);
