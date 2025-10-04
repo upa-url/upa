@@ -109,7 +109,7 @@ public:
     /// Hostname view
     ///
     /// @return serialized host as string_view
-    [[nodiscard]] string_view name() const {
+    [[nodiscard]] string_view name() const UPA_LIFETIMEBOUND {
         return host_str_;
     }
 
