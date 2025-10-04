@@ -34,16 +34,12 @@ public:
     bool init(std::string_view regex_str, bool ignore_case) {
         // 4. If options's ignore case is true then set flags to "vi".
         // 5. Otherwise set flags to "v"
-        const srell::regex::flag_type flag = ignore_case
-            ? (srell::regex::ECMAScript | srell::regex::unicodesets | srell::regex::icase)
-            : (srell::regex::ECMAScript | srell::regex::unicodesets);
-        try {
-            re_.assign(regex_str.data(), regex_str.length(), flag);
-            return true;
-        }
-        catch (const srell::regex_error&) {
-            return false;
-        }
+        const auto commonflags = srell::regex::ECMAScript | srell::regex::unicodesets |
+            srell::regex::quiet; // do not throw a srell::regex_error on errors
+        const auto flag = ignore_case
+            ? (commonflags | srell::regex::icase)
+            : commonflags;
+        return re_.assign(regex_str.data(), regex_str.length(), flag).ecode() == 0;
     }
 
     bool exec(std::string_view input, result& res) const {
