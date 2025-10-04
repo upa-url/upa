@@ -34,7 +34,7 @@ public:
     bool init(std::string_view regex_str, bool ignore_case) {
         // 4. If options's ignore case is true then set flags to "vi".
         // 5. Otherwise set flags to "v"
-        const auto commonflags = srell::regex::ECMAScript | srell::regex::unicodesets |
+        const auto commonflags = srell::regex::ECMAScript | srell::regex::vmode |
             srell::regex::quiet; // do not throw a srell::regex_error on errors
         const auto flag = ignore_case
             ? (commonflags | srell::regex::icase)
