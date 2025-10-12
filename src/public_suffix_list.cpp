@@ -178,6 +178,8 @@ bool public_suffix_list::finalize(push_context& ctx) {
         push_line(ctx, ctx.remaining);
         ctx.remaining.clear();
     }
+    // free up memory
+    ctx.remaining.shrink_to_fit();
     return ctx.code_flags == 0;
 }
 

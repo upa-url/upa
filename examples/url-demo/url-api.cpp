@@ -124,9 +124,7 @@ public:
         m_psl.push(m_ctx, buff);
     }
     bool finalize() {
-        const bool res = m_psl.finalize(m_ctx);
-        m_ctx.remaining.shrink_to_fit();
-        return res;
+        return m_psl.finalize(m_ctx);
     }
 
     std::string public_suffix(std::string str_host) const {
