@@ -245,6 +245,18 @@ TEST_SUITE("public_suffix_list::get_suffix_view") {
     }
 }
 
+TEST_CASE("public_suffix_list edge cases") {
+    upa::public_suffix_list psl;
+    upa::public_suffix_list::push_context ctx;
+    psl.push_line(ctx, "github.io");
+    psl.push_line(ctx, "c.b.a");
+    REQUIRE(psl.finalize(ctx));
+    CHECK(psl.get_suffix("upa-url.github.io") == "github.io");
+    // If no rules match, the prevailing rule is "*"
+    CHECK(psl.get_suffix("abc.io") == "io");
+    CHECK(psl.get_suffix("d.b.a") == "a");
+}
+
 TEST_SUITE("public_suffix_list push interface") {
     TEST_CASE("public_suffix_list::push") {
         const std::filesystem::path filename{ "psl/public_suffix_list.dat" };

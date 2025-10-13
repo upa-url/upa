@@ -24,9 +24,6 @@ public:
     std::size_t index() const {
         return label_ind_;
     }
-    bool at_begin() const {
-        return label_ind_ == label_pos_.size() - 1;
-    }
     bool at_end() const {
         return label_ind_ == 0;
     }
@@ -221,10 +218,10 @@ public_suffix_list::result public_suffix_list::get_host_suffix_info(
                 continue;
             }
         }
-        if (labels.at_begin()) {
+        if (latest_code == 0) {
             // Unlisted TLD: If no rules match, the prevailing rule is "*"
             latest_code = 2;
-            latest_ind = labels.index();
+            latest_ind = labels.size() - 1; // index of rightmost label
         }
         break;
     }
