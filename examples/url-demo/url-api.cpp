@@ -128,22 +128,18 @@ public:
     }
 
     std::string public_suffix(std::string str_host) const {
-        return m_psl.get_suffix(str_host,
-            upa::public_suffix_list::option::allow_trailing_dot);
+        return m_psl.get_suffix(str_host);
     }
     std::string registrable_domain(std::string str_host) const {
         return m_psl.get_suffix(str_host,
-            upa::public_suffix_list::option::allow_trailing_dot |
             upa::public_suffix_list::option::registrable_domain);
     }
 
     std::string url_public_suffix(const URL& url) const {
-        return std::string{ m_psl.get_suffix_view(url.url(),
-            upa::public_suffix_list::option::allow_trailing_dot) };
+        return std::string{ m_psl.get_suffix_view(url.url()) };
     }
     std::string url_registrable_domain(const URL& url) const {
         return std::string{ m_psl.get_suffix_view(url.url(),
-            upa::public_suffix_list::option::allow_trailing_dot |
             upa::public_suffix_list::option::registrable_domain) };
     }
 private:
