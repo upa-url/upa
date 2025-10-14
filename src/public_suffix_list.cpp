@@ -186,7 +186,7 @@ public_suffix_list::result public_suffix_list::get_host_suffix_info(
     if (hostname.empty())
         return {};
 
-    if (static_cast<int>(opt & option::allow_trailing_dot) != 0 && hostname.back() == '.')
+    if (hostname.back() == '.')
         hostname.remove_suffix(1); // remove trailing dot
 
     // Split to labels

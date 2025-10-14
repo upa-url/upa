@@ -102,14 +102,12 @@ int test_whatwg_public_suffix_list(const std::filesystem::path& filename) {
         const std::string expected_domain = line.substr(isep2 + 1); // skip ' '
 
         ddt.test_case(line, [&](DataDrivenTest::TestCase& tc) {
-            std::string output_suffix = ps_list.get_suffix(input,
-                upa::public_suffix_list::option::allow_trailing_dot);
+            std::string output_suffix = ps_list.get_suffix(input);
             if (output_suffix.empty())
                 output_suffix = "null";
             tc.assert_equal(expected_suffix, output_suffix, "get_suffix");
 
             std::string output_domain = ps_list.get_suffix(input,
-                upa::public_suffix_list::option::allow_trailing_dot |
                 upa::public_suffix_list::option::registrable_domain);
             if (output_domain.empty())
                 output_domain = "null";
@@ -258,6 +256,10 @@ TEST_CASE("public_suffix_list edge cases") {
     CHECK(psl.get_suffix("a") == "a");
     CHECK(psl.get_suffix("b.a") == "a");
     CHECK(psl.get_suffix("d.b.a") == "a");
+    // Trailing dot in hostname
+    CHECK(psl.get_suffix("io.") == "io.");
+    // Empty label in hostname
+    CHECK(psl.get_suffix(".") == "");
 }
 
 TEST_SUITE("public_suffix_list push interface") {

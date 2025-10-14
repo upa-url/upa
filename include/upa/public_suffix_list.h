@@ -94,9 +94,8 @@ public:
     enum class option {
         public_suffix = 0,      ///< to get public suffix
         registrable_domain = 1, ///< to get registrable domain
-        allow_trailing_dot = 2  ///< allow trailing dot in hostname input to get result as
-                                ///< defined in the URL standard; see:
-                                ///< https://url.spec.whatwg.org/#host-public-suffix
+        allow_trailing_dot [[deprecated]] = 2 ///< this option has no effect because trailing
+                                              ///< dot in hostname is always allowed
     };
 
     /// @brief Return value type of the public_suffix_list::get_suffix_info function
