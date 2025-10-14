@@ -201,37 +201,32 @@ public_suffix_list::result public_suffix_list::get_host_suffix_info(
     std::uint8_t latest_code = 0;
     std::size_t latest_ind = 0;
     std::string_view label;
-    while (labels.next(label)) {
-        if (pli->children) {
+    while (labels.next(label) && pli->children) {
 #ifdef __cpp_lib_generic_unordered_lookup
-            auto it = pli->children->find(label);
+        auto it = pli->children->find(label);
 #else
-            auto it = pli->children->find(std::string{ label });
+        auto it = pli->children->find(std::string{ label });
 #endif
-            if (it != pli->children->end()) {
-                if (it->second.code && (
-                    (it->second.code & DIFF_MASK) != 3 || !labels.at_end())) {
-                    latest_code = it->second.code;
-                    latest_ind = labels.index();
-                }
-                pli = &it->second;
-                continue;
-            }
+        if (it == pli->children->end())
+            break;
+        if (it->second.code && (
+            (it->second.code & DIFF_MASK) != 3 || !labels.at_end())) {
+            latest_code = it->second.code;
+            latest_ind = labels.index();
         }
-        if (latest_code == 0) {
-            // Unlisted TLD: If no rules match, the prevailing rule is "*"
-            latest_code = 2;
-            latest_ind = labels.size() - 1; // index of rightmost label
-        }
-        break;
+        pli = &it->second;
     }
-    if (latest_code) {
-        const int ind_diff = static_cast<int>(latest_code & DIFF_MASK) - 2 +
-            static_cast<int>(opt & option::registrable_domain);
-        if (ind_diff <= 0 || static_cast<std::size_t>(ind_diff) <= latest_ind) {
-            const auto ind = latest_ind - ind_diff;
-            return { ind, labels.get_pos_by_index(ind), latest_code };
-        }
+    if (latest_code == 0) {
+        // Unlisted TLD: If no rules match, the prevailing rule is "*"
+        latest_code = 2;
+        latest_ind = labels.size() - 1; // index of rightmost label
+    }
+    // Calculate result
+    const int ind_diff = static_cast<int>(latest_code & DIFF_MASK) - 2 +
+        static_cast<int>(opt & option::registrable_domain);
+    if (ind_diff <= 0 || static_cast<std::size_t>(ind_diff) <= latest_ind) {
+        const auto ind = latest_ind - ind_diff;
+        return { ind, labels.get_pos_by_index(ind), latest_code };
     }
     return {};
 }

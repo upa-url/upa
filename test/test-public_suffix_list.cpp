@@ -253,7 +253,10 @@ TEST_CASE("public_suffix_list edge cases") {
     REQUIRE(psl.finalize(ctx));
     CHECK(psl.get_suffix("upa-url.github.io") == "github.io");
     // If no rules match, the prevailing rule is "*"
+    CHECK(psl.get_suffix("io") == "io");
     CHECK(psl.get_suffix("abc.io") == "io");
+    CHECK(psl.get_suffix("a") == "a");
+    CHECK(psl.get_suffix("b.a") == "a");
     CHECK(psl.get_suffix("d.b.a") == "a");
 }
 
