@@ -6,7 +6,7 @@ p="$(dirname "$0")"
 
 # The version of Doxygen Awesome theme to download from
 # https://github.com/jothepro/doxygen-awesome-css
-VERSION=v2.4.0
+VERSION=v2.4.1
 
 mkdir -p ${p}/theme
 
