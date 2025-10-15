@@ -218,7 +218,7 @@ public_suffix_list::result public_suffix_list::get_host_suffix_info(
     }
     if (latest_code == 0) {
         // Unlisted TLD: If no rules match, the prevailing rule is "*"
-        latest_code = 2;
+        latest_code = 2 | NO_RULES_MATCH;
         latest_ind = labels.size() - 1; // index of rightmost label
     }
     // Calculate result

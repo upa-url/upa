@@ -152,6 +152,7 @@ TEST_SUITE("public_suffix_list::get_suffix_info") {
         CHECK(output.is_icann());
         CHECK_FALSE(output.is_private());
         CHECK_FALSE(output.wildcard_rule());
+        CHECK(output.is_rules_match());
     }
     TEST_CASE("url with non-registrable domain") {
         upa::url input{ "http://com" };
@@ -178,6 +179,7 @@ TEST_SUITE("public_suffix_list::get_suffix_info") {
         CHECK_FALSE(output.is_icann());
         CHECK(output.is_private());
         CHECK_FALSE(output.wildcard_rule());
+        CHECK(output.is_rules_match());
     }
     TEST_CASE("url_host with non-registrable domain") {
         upa::url_host input{ "github.io" };
@@ -205,6 +207,7 @@ TEST_SUITE("public_suffix_list::get_suffix_info") {
         CHECK_FALSE(output.is_icann());
         CHECK(output.is_private());
         CHECK(output.wildcard_rule());
+        CHECK(output.is_rules_match());
     }
     TEST_CASE("invalid domain") {
         std::string input = "<>.com";
@@ -212,6 +215,19 @@ TEST_SUITE("public_suffix_list::get_suffix_info") {
             upa::public_suffix_list::option::registrable_domain);
         INFO("input: ", input);
         REQUIRE_FALSE(static_cast<bool>(output));
+    }
+
+    TEST_CASE("public suffix - no rules match") {
+        std::string input = "name.no-rules-match";
+        const auto output = ps_list.get_suffix_info(input);
+        INFO("input: ", input);
+        REQUIRE(static_cast<bool>(output));
+        CHECK(output.first_label_pos == 5);
+        CHECK(output.first_label_ind == 1);
+        CHECK_FALSE(output.is_icann());
+        CHECK_FALSE(output.is_private());
+        CHECK_FALSE(output.wildcard_rule());
+        CHECK_FALSE(output.is_rules_match());
     }
 }
 
