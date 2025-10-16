@@ -138,14 +138,14 @@ void public_suffix_list::push_line(push_context& ctx, std::string_view line) {
             return;
         }
         if (line[0] == '*' && line[1] == '.') {
-            insert(root_, line.substr(2), 3 | ctx.code_flags);
+            insert(root_, line.substr(2), 3 | IS_RULE | ctx.code_flags);
             return;
         }
     }
     if (line[0] == '!')
-        insert(root_, line.substr(1), 1 | ctx.code_flags);
+        insert(root_, line.substr(1), 1 | IS_RULE | ctx.code_flags);
     else
-        insert(root_, line, 2 | ctx.code_flags);
+        insert(root_, line, 2 | IS_RULE | ctx.code_flags);
 }
 
 void public_suffix_list::push(push_context& ctx, std::string_view buff) {
@@ -218,7 +218,7 @@ public_suffix_list::result public_suffix_list::get_host_suffix_info(
     }
     if (latest_code == 0) {
         // Unlisted TLD: If no rules match, the prevailing rule is "*"
-        latest_code = 2 | NO_RULES_MATCH;
+        latest_code = 2;
         latest_ind = labels.size() - 1; // index of rightmost label
     }
     // Calculate result

@@ -85,10 +85,10 @@ template <class StrT, enable_if_str_arg_t<StrT> = 0>
 /// @endcode
 class public_suffix_list {
     // label_item::code values
-    static constexpr std::uint8_t DIFF_MASK = 3;
-    static constexpr std::uint8_t IS_ICANN = 4;
-    static constexpr std::uint8_t IS_PRIVATE = 8;
-    static constexpr std::uint8_t NO_RULES_MATCH = 16;
+    static constexpr std::uint8_t DIFF_MASK  = 0x03;
+    static constexpr std::uint8_t IS_RULE    = 0x04;
+    static constexpr std::uint8_t IS_ICANN   = 0x08;
+    static constexpr std::uint8_t IS_PRIVATE = 0x10;
 public:
     /// @brief Options for public_suffix_list::get_suffix, public_suffix_list::get_suffix_info
     /// and public_suffix_list::get_suffix_view functions
@@ -119,7 +119,7 @@ public:
         }
         /// @return true if there is a rule match (listed TLD)
         [[nodiscard]] constexpr bool is_rules_match() const noexcept {
-            return (code_ & NO_RULES_MATCH) == 0;
+            return (code_ & IS_RULE) != 0;
         }
         /// First label index of public suffix or registrable domain in hostname
         std::size_t first_label_ind = static_cast<std::size_t>(-1);
