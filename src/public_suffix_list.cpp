@@ -102,7 +102,7 @@ bool public_suffix_list::load(std::istream& input_stream) {
     std::string line;
     while (std::getline(input_stream, line))
         push_line(ctx, line);
-    return ctx.code_flags == 0;
+    return !input_stream.bad() && ctx.code_flags == 0;
 }
 
 void public_suffix_list::push_line(push_context& ctx, std::string_view line) {
