@@ -102,7 +102,7 @@ bool public_suffix_list::load(std::istream& input_stream) {
     std::string line;
     while (std::getline(input_stream, line))
         push_line(ctx, line);
-    return !input_stream.bad() && ctx.code_flags == 0;
+    return !input_stream.bad() && ctx.error == 0 && ctx.code_flags == 0;
 }
 
 void public_suffix_list::push_line(push_context& ctx, std::string_view line) {
@@ -124,28 +124,33 @@ void public_suffix_list::push_line(push_context& ctx, std::string_view line) {
         }
     };
 
-    if (line.empty())
-        return;
-    if (line.length() >= 2) {
-        if (line[0] == '/' && line[1] == '/') {
-            if (line == "// ===BEGIN ICANN DOMAINS===")
-                ctx.code_flags = IS_ICANN;
-            else if (line == "// ===BEGIN PRIVATE DOMAINS===")
-                ctx.code_flags = IS_PRIVATE;
-            else if (line == "// ===END ICANN DOMAINS===" ||
-                     line == "// ===END PRIVATE DOMAINS===")
-                ctx.code_flags = 0;
+    try {
+        if (line.empty())
             return;
+        if (line.length() >= 2) {
+            if (line[0] == '/' && line[1] == '/') {
+                if (line == "// ===BEGIN ICANN DOMAINS===")
+                    ctx.code_flags = IS_ICANN;
+                else if (line == "// ===BEGIN PRIVATE DOMAINS===")
+                    ctx.code_flags = IS_PRIVATE;
+                else if (line == "// ===END ICANN DOMAINS===" ||
+                    line == "// ===END PRIVATE DOMAINS===")
+                    ctx.code_flags = 0;
+                return;
+            }
+            if (line[0] == '*' && line[1] == '.') {
+                insert(root_, line.substr(2), 3 | IS_RULE | ctx.code_flags);
+                return;
+            }
         }
-        if (line[0] == '*' && line[1] == '.') {
-            insert(root_, line.substr(2), 3 | IS_RULE | ctx.code_flags);
-            return;
-        }
+        if (line[0] == '!')
+            insert(root_, line.substr(1), 1 | IS_RULE | ctx.code_flags);
+        else
+            insert(root_, line, 2 | IS_RULE | ctx.code_flags);
     }
-    if (line[0] == '!')
-        insert(root_, line.substr(1), 1 | IS_RULE | ctx.code_flags);
-    else
-        insert(root_, line, 2 | IS_RULE | ctx.code_flags);
+    catch (const upa::url_error&) {
+        ctx.error |= 1;
+    }
 }
 
 void public_suffix_list::push(push_context& ctx, std::string_view buff) {
@@ -177,7 +182,7 @@ bool public_suffix_list::finalize(push_context& ctx) {
     }
     // free up memory
     ctx.remaining.shrink_to_fit();
-    return ctx.code_flags == 0;
+    return ctx.error == 0 && ctx.code_flags == 0;
 }
 
 

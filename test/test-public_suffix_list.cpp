@@ -14,6 +14,7 @@
 #include <fstream>
 #include <ios>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -276,6 +277,20 @@ TEST_CASE("public_suffix_list edge cases") {
     CHECK(psl.get_suffix("io.") == "io.");
     // Empty label in hostname
     CHECK(psl.get_suffix(".") == "");
+}
+
+TEST_SUITE("Invalid PSL") {
+    TEST_CASE("public_suffix_list::load") {
+        std::stringstream strm{ "^^^.com" };
+        upa::public_suffix_list psl;
+        CHECK_FALSE(psl.load(strm));
+    }
+    TEST_CASE("public_suffix_list::push_line") {
+        upa::public_suffix_list psl;
+        upa::public_suffix_list::push_context ctx;
+        psl.push_line(ctx, "^^^.com");
+        CHECK_FALSE(psl.finalize(ctx));
+    }
 }
 
 TEST_SUITE("public_suffix_list push interface") {

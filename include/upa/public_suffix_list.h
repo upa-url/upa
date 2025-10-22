@@ -152,6 +152,7 @@ public:
     struct push_context {
         std::string remaining;
         std::uint8_t code_flags = 0;
+        std::uint8_t error = 0;
     };
 
     /// @brief Push a line of the Public Suffix List file
