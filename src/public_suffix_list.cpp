@@ -231,7 +231,8 @@ public_suffix_list::result public_suffix_list::get_host_suffix_info(
         static_cast<int>(opt & option::registrable_domain);
     if (ind_diff <= 0 || static_cast<std::size_t>(ind_diff) <= latest_ind) {
         const auto ind = latest_ind - ind_diff;
-        return { ind, labels.get_pos_by_index(ind), latest_code };
+        if (ind < labels.size())
+            return { ind, labels.get_pos_by_index(ind), latest_code };
     }
     return {};
 }

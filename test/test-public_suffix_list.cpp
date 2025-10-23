@@ -260,23 +260,33 @@ TEST_SUITE("public_suffix_list::get_suffix_view") {
     }
 }
 
-TEST_CASE("public_suffix_list edge cases") {
-    upa::public_suffix_list psl;
-    upa::public_suffix_list::push_context ctx;
-    psl.push_line(ctx, "github.io");
-    psl.push_line(ctx, "c.b.a");
-    REQUIRE(psl.finalize(ctx));
-    CHECK(psl.get_suffix("upa-url.github.io") == "github.io");
-    // If no rules match, the prevailing rule is "*"
-    CHECK(psl.get_suffix("io") == "io");
-    CHECK(psl.get_suffix("abc.io") == "io");
-    CHECK(psl.get_suffix("a") == "a");
-    CHECK(psl.get_suffix("b.a") == "a");
-    CHECK(psl.get_suffix("d.b.a") == "a");
-    // Trailing dot in hostname
-    CHECK(psl.get_suffix("io.") == "io.");
-    // Empty label in hostname
-    CHECK(psl.get_suffix(".") == "");
+TEST_SUITE("public_suffix_list edge cases") {
+    TEST_CASE("various cases") {
+        upa::public_suffix_list psl;
+        upa::public_suffix_list::push_context ctx;
+        psl.push_line(ctx, "github.io");
+        psl.push_line(ctx, "c.b.a");
+        REQUIRE(psl.finalize(ctx));
+        CHECK(psl.get_suffix("upa-url.github.io") == "github.io");
+        // If no rules match, the prevailing rule is "*"
+        CHECK(psl.get_suffix("io") == "io");
+        CHECK(psl.get_suffix("abc.io") == "io");
+        CHECK(psl.get_suffix("a") == "a");
+        CHECK(psl.get_suffix("b.a") == "a");
+        CHECK(psl.get_suffix("d.b.a") == "a");
+        // Trailing dot in hostname
+        CHECK(psl.get_suffix("io.") == "io.");
+        // Empty label in hostname
+        CHECK(psl.get_suffix(".") == "");
+    }
+    TEST_CASE("one label rule with a '!'") {
+        upa::public_suffix_list psl;
+        upa::public_suffix_list::push_context ctx;
+        psl.push_line(ctx, "!ne");
+        CHECK(psl.finalize(ctx));
+        CHECK(psl.get_suffix("ne") == "");
+        CHECK(psl.get_suffix("a.ne") == "");
+    }
 }
 
 TEST_SUITE("Invalid PSL") {
