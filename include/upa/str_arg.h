@@ -20,6 +20,7 @@ inline void procfn(StrT&& str) {
 
 #include "config.h"
 #include "url_utf.h"
+#include "util.h"
 #include <cassert>
 #include <cstddef>
 #include <string>
@@ -80,19 +81,16 @@ public:
     constexpr str_arg(const str_arg&) noexcept = default;
 
     constexpr str_arg(const CharT* s)
-        : first_(s)
-        , last_(s + traits_type::length(s))
+        : str_arg{ util::to_string_view<value_type>(s, traits_type::length(s)) }
     {}
 
     template <typename SizeT, std::enable_if_t<is_size_type_v<SizeT>, int> = 0>
     constexpr str_arg(const CharT* s, SizeT length)
-        : first_(s)
-        , last_(s + length)
-    { assert(length >= 0); }
+        : str_arg{ util::to_string_view<value_type>(s, length) }
+    {}
 
     constexpr str_arg(const CharT* first, const CharT* last)
-        : first_(first)
-        , last_(last)
+        : str_arg{ util::to_string_view<value_type>(first, last - first) }
     { assert(first <= last); }
 
     // destructor
@@ -103,24 +101,29 @@ public:
 
     // output
     constexpr const value_type* begin() const noexcept {
-        return reinterpret_cast<const value_type*>(first_);
+        return first_;
     }
     constexpr const value_type* end() const noexcept {
-        return reinterpret_cast<const value_type*>(last_);
+        return last_;
     }
     constexpr const value_type* data() const noexcept {
-        return begin();
+        return first_;
     }
     constexpr std::size_t length() const noexcept {
-        return end() - begin();
+        return last_ - first_;
     }
     constexpr std::size_t size() const noexcept {
         return length();
     }
 
 private:
-    const input_type* first_;
-    const input_type* last_;
+    constexpr str_arg(std::basic_string_view<value_type> sv)
+        : first_{ sv.data() }
+        , last_{ sv.data() + sv.size() }
+    {}
+
+    const value_type* first_;
+    const value_type* last_;
 };
 
 
