@@ -1971,15 +1971,16 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                     return validation_errc::host_missing;
                 }
                 // 3.2. if state override is given, buffer is the empty string, and either
-                // url includes credentials or url’s port is non-null, return.
+                // url includes credentials or url’s port is non-null, then return failure.
                 if (state_override && (urls.has_credentials() || !urls.is_null(url::PORT))) {
-                    return validation_errc::ignored; // can not make host empty
+                    return validation_errc::ignored; // failure: can not make host empty
                 }
             }
 
-            // 2.2. If state override is given and state override is hostname state, then return
+            // 2.2. If state override is given and state override is hostname state, then
+            // return failure.
             if (is_port && state_override == hostname_state)
-                return validation_errc::ignored; // host with port not accepted
+                return validation_errc::ignored; // failure: host with port not accepted
 
             // parse and set host:
             const auto res = parse_host(urls, pointer, it_host_end);
@@ -2038,7 +2039,7 @@ inline validation_errc url_parser::url_parse(url_serializer& urls, const CharT* 
                 if (state_override)
                     return validation_errc::ok;
             } else if (state_override)
-                return validation_errc::ignored;
+                return validation_errc::ignored; // failure
             state = path_start_state;
             pointer = end_of_digits;
         } else {
