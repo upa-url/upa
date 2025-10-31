@@ -3361,9 +3361,8 @@ template <class StrT, enable_if_str_arg_t<StrT> = 0>
 #ifdef UPA_CPP_20
     const std::string path_str = path_from_file_url(file_url);
     // the path_str is encoded in UTF-8
-    const auto* first = reinterpret_cast<const char8_t*>(path_str.data());
-    const auto* last = first + path_str.size();
-    return { first, last, std::filesystem::path::native_format };
+    return { util::to_string_view<char8_t>(path_str.data(), path_str.size()),
+        std::filesystem::path::native_format };
 #else
     // the u8path is deprecated in C++20
     return std::filesystem::u8path(path_from_file_url(file_url));

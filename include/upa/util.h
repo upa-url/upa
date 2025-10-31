@@ -8,10 +8,15 @@
 
 #include "config.h"
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <limits>
+#ifdef __cpp_lib_start_lifetime_as
+# include <memory>
+#endif
 #include <stdexcept>
 #include <string>
+#include <string_view>
 #include <type_traits>
 
 namespace upa::util {
@@ -96,6 +101,28 @@ inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
         output[--count] = digit[num % base];
         num /= base;
     } while (num);
+}
+
+// Convert any char type string to std::basic_string_view
+
+template <typename T, typename SizeT>
+constexpr std::basic_string_view<T> to_string_view(const T* str, SizeT length) {
+    assert(length >= 0);
+    return { str, static_cast<std::size_t>(length) };
+}
+
+template <typename T, typename CharT, typename SizeT,
+    std::enable_if_t<!std::is_same_v<T, CharT> && sizeof(T) == sizeof(CharT), int> = 0>
+inline std::basic_string_view<T> to_string_view(const CharT* src, SizeT length) {
+    assert(length >= 0);
+    const auto size = static_cast<std::size_t>(length);
+#ifdef __cpp_lib_start_lifetime_as
+    const T* str = std::start_lifetime_as_array<T>(src, size);
+#else
+    UPA_ALIASING_BARRIER(src)
+    const T* str = reinterpret_cast<const T*>(src);
+#endif
+    return { str, size };
 }
 
 // Append data to string
