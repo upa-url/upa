@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -60,35 +60,30 @@ constexpr bool is_derived_from_v =
 
 // string args helper class
 
-template <typename CharT>
+template <typename T>
 class str_arg {
 public:
-    using input_type = CharT;
-    using traits_type = std::char_traits<input_type>;
     // output value type
     using value_type =
-        // wchar_t type will be converted to char16_t or char32_t type equivalent by size
-        std::conditional_t<std::is_same_v<CharT, wchar_t>, std::conditional_t<sizeof(wchar_t) == sizeof(char16_t), char16_t, char32_t>,
-#ifdef __cpp_char8_t
-        // char8_t type will be converted to char type
-        std::conditional_t<std::is_same_v<CharT, char8_t>, char, input_type>
-#else
-        input_type
-#endif
-        >;
+        // char, char8_t
+        std::conditional_t<sizeof(T) == sizeof(char), char,
+        // char16_t, char32_t, wchar_t
+        std::conditional_t<sizeof(T) == sizeof(char16_t), char16_t,
+        std::conditional_t<sizeof(T) == sizeof(char32_t), char32_t,
+        T>>>;
 
     // constructors
     constexpr str_arg(const str_arg&) noexcept = default;
 
-    constexpr str_arg(const CharT* s)
-        : str_arg{ util::to_string_view<value_type>(s, traits_type::length(s)) }
-    {}
-
-    template <typename SizeT, std::enable_if_t<is_size_type_v<SizeT>, int> = 0>
+    template <typename CharT, typename SizeT,
+        std::enable_if_t<sizeof(CharT) == sizeof(value_type), int> = 0,
+        std::enable_if_t<is_size_type_v<SizeT>, int> = 0>
     constexpr str_arg(const CharT* s, SizeT length)
         : str_arg{ util::to_string_view<value_type>(s, length) }
     {}
 
+    template <typename CharT,
+        std::enable_if_t<sizeof(CharT) == sizeof(value_type), int> = 0>
     constexpr str_arg(const CharT* first, const CharT* last)
         : str_arg{ util::to_string_view<value_type>(first, last - first) }
     { assert(first <= last); }
@@ -126,6 +121,9 @@ private:
     const value_type* last_;
 };
 
+// str_arg deduction guide
+template <typename CharT, typename T>
+str_arg(const CharT*, T) -> str_arg<CharT>;
 
 // String type helpers
 
@@ -238,8 +236,8 @@ struct str_arg_char : detail::str_arg_char_default<StrT> {};
 template<class CharT>
 struct str_arg_char<CharT*, std::enable_if_t<is_char_type_v<remove_cvref_t<CharT>>>> {
     using type = remove_cvref_t<CharT>;
-    static constexpr str_arg<type> to_str_arg(const type* s) {
-        return s;
+    static constexpr str_arg<type> to_str_arg(const type* sz) {
+        return { sz, std::char_traits<type>::length(sz) };
     }
 };
 

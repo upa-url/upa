@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2025 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -82,9 +82,9 @@ inline void test_char() {
     procfn(vptr);
 
     // upa::str_arg
-    upa::str_arg<CharT> arg{ arr };
+    upa::str_arg<CharT> arg{ arr, N };
     procfn(arg);
-    const upa::str_arg carg{ arr };
+    const upa::str_arg carg{ arr, N };
     procfn(carg);
 
     procfn(upa::str_arg{ arr, N });
