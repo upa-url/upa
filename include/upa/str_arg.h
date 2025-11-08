@@ -170,7 +170,6 @@ constexpr bool has_data_and_size_v =
 template<class StrT, typename CharT>
 constexpr bool convertible_to_string_view_v =
     std::is_convertible_v<StrT, std::basic_string_view<CharT>> &&
-    !has_data_and_size_v<StrT> &&
     !std::is_same_v<StrT, std::nullptr_t>;
 
 // Common class for converting input to str_arg
@@ -183,18 +182,22 @@ struct str_arg_char_common {
     }
 };
 
-// Default str_arg_char implementation
+// StrT has data() and size() members
 
 template<class StrT, typename = void>
-struct str_arg_char_default {};
+struct str_arg_char_data_size {};
 
-// StrT has data() and size() members
 template<class StrT>
-struct str_arg_char_default<StrT, std::enable_if_t<
+struct str_arg_char_data_size<StrT, std::enable_if_t<
     has_data_and_size_v<StrT>>>
     : str_arg_char_common<
     remove_cvptr_t<detail::data_member_t<StrT>>,
     remove_cvref_t<StrT> const&> {};
+
+// Default str_arg_char implementation
+
+template<class StrT, typename = void>
+struct str_arg_char_default : str_arg_char_data_size<StrT> {};
 
 // StrT is convertible to std::basic_string_view
 template<class StrT>
@@ -205,7 +208,8 @@ struct str_arg_char_default<StrT, std::enable_if_t<
 #ifdef __cpp_char8_t
 template<class StrT>
 struct str_arg_char_default<StrT, std::enable_if_t<
-    convertible_to_string_view_v<StrT, char8_t>>>
+    convertible_to_string_view_v<StrT, char8_t> &&
+    !convertible_to_string_view_v<StrT, char>>>
     : str_arg_char_common<char8_t, std::basic_string_view<char8_t>> {};
 #endif
 
@@ -221,7 +225,9 @@ struct str_arg_char_default<StrT, std::enable_if_t<
 
 template<class StrT>
 struct str_arg_char_default<StrT, std::enable_if_t<
-    convertible_to_string_view_v<StrT, wchar_t>>>
+    convertible_to_string_view_v<StrT, wchar_t> &&
+    !convertible_to_string_view_v<StrT, char16_t> &&
+    !convertible_to_string_view_v<StrT, char32_t>>>
     : str_arg_char_common<wchar_t, std::basic_string_view<wchar_t>> {};
 
 } // namespace detail

@@ -111,6 +111,11 @@ inline void test_char() {
     procfn(str);
     procfn(std::basic_string<CharT>{ arr });
 
+    // std::basic_string_view
+    const std::basic_string_view<CharT> strv{ arr };
+    procfn(strv);
+    procfn(std::basic_string_view<CharT>{ arr });
+
     // custom strings
     procfn(ConvertibleString<CharT>{cptr, N});
     procfn(CustomString<CharT>{cptr, N});
