@@ -20,35 +20,26 @@
 
 namespace upa {
 
-
 namespace detail {
 
 // is key value pair
 template <typename>
-struct is_pair : std::false_type {};
+constexpr bool is_pair_v = false;
 
 template<class T1, class T2>
-struct is_pair<std::pair<T1, T2>> : std::true_type {};
+constexpr bool is_pair_v<std::pair<T1, T2>> = true;
 
-// Get iterable's value type
-// https://stackoverflow.com/a/29634934
-template <typename T>
-auto iterable_value(int) -> decltype(
+// is iterable over the std::pair values
+template<class T, typename = void>
+constexpr bool is_iterable_pairs_v = false;
+
+template<class T>
+constexpr bool is_iterable_pairs_v<T, std::void_t<decltype(
+    // https://stackoverflow.com/a/29634934
     std::begin(std::declval<T&>()) != std::end(std::declval<T&>()), // begin/end and operator !=
     ++std::declval<decltype(std::begin(std::declval<T&>()))&>(), // operator ++
     *std::begin(std::declval<T&>()) // operator *
-);
-template <typename T>
-auto iterable_value(long) -> void;
-
-template<class T>
-using iterable_value_t = std::remove_cv_t<std::remove_reference_t<
-    decltype(iterable_value<T>(0))
->>;
-
-// is iterable over the std::pair values
-template<class T>
-constexpr bool is_iterable_pairs_v = is_pair<iterable_value_t<T>>::value;
+    )>> = is_pair_v<remove_cvref_t<decltype(*std::begin(std::declval<T&>()))>>;
 
 // enable if `Base` is not the base class of `T`
 template<class Base, class T>
