@@ -135,35 +135,19 @@ using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
 namespace detail {
 
-// See: https://stackoverflow.com/a/9154394
-
-// test class T has data() member
-template<class T>
-auto test_data(int) -> decltype(std::declval<T>().data());
-template<class>
-auto test_data(long) -> void;
-
-// test class T has size() member
-template<class T>
-auto test_size(int) -> decltype(std::declval<T>().size());
-template<class>
-auto test_size(long) -> void;
-
-// T::data() return type (void - if no such member)
-template<class T>
-using data_member_t = decltype(detail::test_data<T>(0));
-
-// T::size() return type (void - if no such member)
-template<class T>
-using size_member_t = decltype(detail::test_size<T>(0));
-
 // Check that StrT has data() and size() members of supported types
 
+template<class StrT, typename = void>
+constexpr bool has_data_and_size_v = false;
+
 template<class StrT>
-constexpr bool has_data_and_size_v =
-    std::is_pointer_v<detail::data_member_t<StrT>> &&
-    is_char_type_v<remove_cvptr_t<detail::data_member_t<StrT>>> &&
-    is_size_type_v<detail::size_member_t<StrT>>;
+constexpr bool has_data_and_size_v<StrT, std::void_t<
+    decltype(std::declval<StrT>().data()),
+    decltype(std::declval<StrT>().size())>> =
+    // check members types
+    std::is_pointer_v<decltype(std::declval<StrT>().data())> &&
+    is_char_type_v<remove_cvptr_t<decltype(std::declval<StrT>().data())>> &&
+    is_size_type_v<decltype(std::declval<StrT>().size())>;
 
 // Check StrT is convertible to std::basic_string_view
 
@@ -191,7 +175,7 @@ template<class StrT>
 struct str_arg_char_data_size<StrT, std::enable_if_t<
     has_data_and_size_v<StrT>>>
     : str_arg_char_common<
-    remove_cvptr_t<detail::data_member_t<StrT>>,
+    remove_cvptr_t<decltype(std::declval<StrT>().data())>,
     remove_cvref_t<StrT> const&> {};
 
 // Default str_arg_char implementation
