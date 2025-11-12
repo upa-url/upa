@@ -185,6 +185,12 @@ public:
 
     /// @brief Get public suffix or registrable domain
     ///
+    /// Returns public suffix if @p opt has default or option::public_suffix value; and
+    /// returns registrable domain if @p opt is option::registrable_domain.
+    ///
+    /// In case of error or if there is no public suffix or registrable domain, it returns
+    /// an empty string.
+    ///
     /// @param[in] str_host hostname string
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
@@ -255,7 +261,14 @@ public:
     /// @brief Get public suffix or registrable domain as string view
     ///
     /// Returns the public suffix or registrable domain of a hostname returned
-    /// by url::hostname() const.
+    /// by url::hostname() const. To get the public suffix, use the default @p opt
+    /// value; to get the registrable domain, set @p opt to option::registrable_domain.
+    ///
+    /// The returned view is only valid as long as the @p url exists and has not been
+    /// modified.
+    ///
+    /// In case of error or if there is no public suffix or registrable domain, it returns
+    /// an empty string view.
     ///
     /// @param[in] url the @ref url object
     /// @param[in] opt options
@@ -269,7 +282,15 @@ public:
 
     /// @brief Get public suffix or registrable domain as string view
     ///
-    /// Returns the public suffix or registrable domain of the @p host.
+    /// Returns the public suffix or registrable domain of the @p host. To get the public
+    /// suffix, use the default @p opt value; to get the registrable domain, set @p opt to
+    /// option::registrable_domain.
+    ///
+    /// The returned view is only valid as long as the @p host exists and has not been
+    /// modified.
+    ///
+    /// In case of error or if there is no public suffix or registrable domain, it returns
+    /// an empty string view.
     ///
     /// @param[in] host the url_host object
     /// @param[in] opt options
@@ -283,7 +304,15 @@ public:
 
     /// @brief Get public suffix or registrable domain as string view
     ///
-    /// Returns the public suffix or registrable domain of the @p str_host string.
+    /// Returns the public suffix or registrable domain of the @p str_host string. To get the
+    /// public suffix, use the default @p opt value; to get the registrable domain, set @p opt
+    /// to option::registrable_domain.
+    ///
+    /// The returned view is only valid as long as the @p str_host exists and has not been
+    /// modified.
+    ///
+    /// In case of error or if there is no public suffix or registrable domain, it returns
+    /// an empty string view.
     ///
     /// @param[in] str_host hostname string
     /// @param[in] opt options
