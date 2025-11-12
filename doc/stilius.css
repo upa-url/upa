@@ -1,0 +1,6 @@
+/* Fix for doxygen 1.15 and doxygen-awesome 2.4.1.
+   See: https://github.com/jothepro/doxygen-awesome-css/issues/199
+*/
+dl.note .tt, dl.remark .tt {
+  background-color: var(--code-background);
+}
