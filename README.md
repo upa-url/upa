@@ -212,8 +212,7 @@ Load the [Public Suffix List](https://publicsuffix.org/) and get [public suffix]
 int main() {
     upa::public_suffix_list psl;
     if (psl.load("public_suffix_list.dat"))
-        std::cout << psl.get_suffix("upa-url.github.io.",
-            upa::public_suffix_list::option::allow_trailing_dot) << '\n'; // github.io.
+        std::cout << psl.get_suffix("upa-url.github.io.") << '\n'; // github.io.
 }
 ```
 
