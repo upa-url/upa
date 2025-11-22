@@ -11,11 +11,13 @@
 #endif
 
 #include <filesystem>
+#include <initializer_list>
 #include <iostream>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -37,6 +39,12 @@ using urlpattern = typename upa::urlpattern<upa::regex_engine_std>;
 #else
 using urlpattern = typename upa::urlpattern<upa::regex_engine_srell>;
 #endif
+
+// This is a workaround for Clang versions earlier than 19. These versions of Clang
+// do not deduce the template argument type of the std::initializer_list from a list
+// of objects (using CTAD), so we specify this type explicitly.
+// See: https://stackoverflow.com/q/55205176
+using string_view_pairs = std::initializer_list<std::pair<std::string_view, std::string_view>>;
 
 // -----------------------------------------------------------------------------
 // parses urltestdata.json
@@ -87,30 +95,30 @@ int wpt_urlpattern_hasregexpgroups_tests() {
         tc.assert_equal(false, urlpattern{}.has_regexp_groups(), "match-everything pattern");
 
         for (std::string_view component : { "protocol", "username", "password", "hostname", "port", "pathname", "search", "hash" }) {
-            tc.assert_equal(false, urlpattern{ create_urlpattern_init(std::initializer_list{
+            tc.assert_equal(false, urlpattern{ create_urlpattern_init(string_view_pairs{
                 std::pair{component, "*"sv} }) }.has_regexp_groups(), "wildcard in "s.append(component));
-            tc.assert_equal(false, urlpattern{ create_urlpattern_init(std::initializer_list{
+            tc.assert_equal(false, urlpattern{ create_urlpattern_init(string_view_pairs{
                 std::pair{component, ":foo"sv} }) }.has_regexp_groups(), "segment wildcard in "s.append(component));
-            tc.assert_equal(false, urlpattern{ create_urlpattern_init(std::initializer_list{
+            tc.assert_equal(false, urlpattern{ create_urlpattern_init(string_view_pairs{
                 std::pair{component, ":foo?"sv} }) }.has_regexp_groups(), "optional segment wildcard in "s.append(component));
-            tc.assert_equal(true, urlpattern{ create_urlpattern_init(std::initializer_list{
+            tc.assert_equal(true, urlpattern{ create_urlpattern_init(string_view_pairs{
                 std::pair{component, ":foo(hi)"sv} }) }.has_regexp_groups(), "named regexp group in "s.append(component));
-            tc.assert_equal(true, urlpattern{ create_urlpattern_init(std::initializer_list{
+            tc.assert_equal(true, urlpattern{ create_urlpattern_init(string_view_pairs{
                 std::pair{component, "(hi)"sv} }) }.has_regexp_groups(), "anonymous regexp group in "s.append(component));
             if (component != "protocol"sv && component != "port"sv) {
                 // These components are more narrow in what they accept in any case.
-                tc.assert_equal(false, urlpattern{ create_urlpattern_init(std::initializer_list{
+                tc.assert_equal(false, urlpattern{ create_urlpattern_init(string_view_pairs{
                     std::pair{component, "a-{:hello}-z-*-a"sv} }) }.has_regexp_groups(),
                     "wildcards mixed in with fixed text and wildcards in "s.append(component));
-                tc.assert_equal(true, urlpattern{ create_urlpattern_init(std::initializer_list{
+                tc.assert_equal(true, urlpattern{ create_urlpattern_init(string_view_pairs{
                     std::pair{component, "a-(hi)-z-(lo)-a"sv} }) }.has_regexp_groups(),
                     "regexp groups mixed in with fixed text and wildcards in "s.append(component));
             }
         }
 
-        tc.assert_equal(false, urlpattern{ create_urlpattern_init(std::initializer_list{
+        tc.assert_equal(false, urlpattern{ create_urlpattern_init(string_view_pairs{
             std::pair{"pathname"sv, "/a/:foo/:baz?/b/*"sv}})}.has_regexp_groups(), "complex pathname with no regexp");
-        tc.assert_equal(true, urlpattern{ create_urlpattern_init(std::initializer_list{
+        tc.assert_equal(true, urlpattern{ create_urlpattern_init(string_view_pairs{
             std::pair{"pathname"sv, "/a/:foo/:baz([a-z]+)?/b/*"sv}}) }.has_regexp_groups(), "complex pathname with regexp");
     });
 
