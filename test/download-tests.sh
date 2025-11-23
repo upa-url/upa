@@ -15,6 +15,15 @@ do
   curl -fsS -o $p/wpt/$f https://raw.githubusercontent.com/web-platform-tests/wpt/${HASH}/url/resources/$f
 done
 
+# Commit hash of URL Pattern web-platform-tests
+# https://github.com/web-platform-tests/wpt/tree/master/urlpattern
+URLP_HASH=ef6d83d789483763207af8cedcbf1f3c1317b981
+
+for f in urlpatterntestdata.json
+do
+  curl -fsS -o $p/wpt/$f https://raw.githubusercontent.com/web-platform-tests/wpt/${URLP_HASH}/urlpattern/resources/$f
+done
+
 # Commit hash of the Public Suffix List (PSL)
 # https://github.com/publicsuffix/list
 PSL_HASH=4a97adbc7f153c31b7d0f62a32bf856f0f1ee6c2
