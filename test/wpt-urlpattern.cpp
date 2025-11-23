@@ -224,10 +224,10 @@ void assert_object_equals(DataDrivenTest::TestCase& tc, const picojson::value& e
     expected.input = expected_obj.get<picojson::object>().at("input").get<std::string>();
     for (const auto& [key, val] : expected_obj.get<picojson::object>().at("groups").get<picojson::object>()) {
         std::optional<std::string> value;
-        if (val.is<picojson::null>())
+        if (val.template is<picojson::null>())
             value = std::nullopt;
         else
-            value = val.get<std::string>();
+            value = val.template get<std::string>();
         expected.groups.emplace(key, value);
     }
     tc.assert_equal(expected.input, res.input, std::string{name} + " - input");
