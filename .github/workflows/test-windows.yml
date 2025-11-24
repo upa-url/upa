@@ -57,7 +57,7 @@ jobs:
             cmake_options: "-T ClangCL"
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: get dependencies
       run: init.bat
       shell: cmd
@@ -87,7 +87,7 @@ jobs:
             cmake_options: "-DCMAKE_CXX_COMPILER=g++ -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release"
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: get dependencies
       run: init.bat
       shell: cmd
