@@ -369,7 +369,13 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
                             } else if (entry_pattern.get<picojson::array>().size() > 0 &&
                                 entry_pattern.get<picojson::array>()[0].is<picojson::object>() &&
                                 some(EARLIER_COMPONENTS.at(component), [&entry_pattern](auto c) -> bool {
-                                    return get_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), c) != nullptr;
+                                    // Check whether obj has property c
+                                    const auto obj = entry_pattern.get<picojson::array>()[0].get<picojson::object>();
+#ifdef UPA_CPP_20
+                                    return obj.contains(std::string{ c });
+#else
+                                    return obj.find(std::string{ c }) != obj.end();
+#endif
                                 })) {
                                 expected_str = "*";
                             } else if (baseURL && component != "username"sv && component != "password"sv) {
