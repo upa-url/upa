@@ -372,7 +372,7 @@ constexpr bool hostname_pattern_is_ipv6_address(std::string_view input) noexcept
 // 1.2. The URLPattern class
 // https://urlpattern.spec.whatwg.org/#urlpattern-class
 
-using urlpattern_input = std::variant<std::string_view, const urlpattern_init*, const upa::url*>;
+using urlpattern_input = std::variant<std::string_view, const urlpattern_init*>;
 
 struct urlpattern_options {
     bool ignore_case = false;
@@ -707,8 +707,8 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(const 
     if (!url.is_valid())
         return std::nullopt;
 
-    // Append input to inputs
-    std::vector<urlpattern_input> inputs{ &url };
+    // If input is a URL, then append the serialization of input to inputs.
+    std::vector<urlpattern_input> inputs{ url.href() };
 
     return match(std::move(inputs),
         url.get_part_view(upa::url::SCHEME),
