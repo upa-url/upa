@@ -2131,10 +2131,8 @@ inline std::string canonicalize_pathname(std::string_view value) {
     {
         upa::detail::url_serializer urls(dummy_url);
         const auto inp = upa::make_str_arg(modified_value);
-        const auto parse_result = upa::detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr,
+        upa::detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr,
             upa::detail::url_parser::path_start_state);
-        if (!upa::success(parse_result))
-            throw urlpattern_error("canonicalize a pathname error");
     }
     auto result = dummy_url.get_part_view(upa::url::PATH);
     // If leading slash is false, then set result to the code point
@@ -2175,10 +2173,8 @@ inline std::string canonicalize_search(std::string_view value) {
         //TODO: urls.set_flag(upa::url::QUERY_FLAG);
 
         const auto inp = upa::make_str_arg(value);
-        const auto parse_result = upa::detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr,
+        upa::detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr,
             upa::detail::url_parser::query_state);
-        if (!upa::success(parse_result))
-            throw urlpattern_error("canonicalize a search error");
     }
     return std::string{ dummy_url.get_part_view(upa::url::QUERY) };
 }
@@ -2194,10 +2190,8 @@ inline std::string canonicalize_hash(std::string_view value) {
         //TODO: urls.set_flag(upa::url::FRAGMENT_FLAG);
 
         const auto inp = upa::make_str_arg(value);
-        const auto parse_result = upa::detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr,
+        upa::detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr,
             upa::detail::url_parser::fragment_state);
-        if (!upa::success(parse_result))
-            throw urlpattern_error("canonicalize a hash error");
     }
     return std::string{ dummy_url.get_part_view(upa::url::FRAGMENT) };
 }
