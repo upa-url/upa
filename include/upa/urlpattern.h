@@ -1334,9 +1334,9 @@ inline bool is_valid_name_code_point(char32_t code_point, bool first) noexcept {
         : table::is_identifier_part(code_point);
 }
 
-// https://urlpattern.spec.whatwg.org/#is-ascii
-inline bool is_ascii(char32_t code_point) noexcept {
-    return code_point >= 0 && code_point <= 0x7F;
+// https://infra.spec.whatwg.org/#ascii-code-point
+constexpr bool is_ascii(char32_t code_point) noexcept {
+    return code_point <= 0x7F;
 }
 
 // https://urlpattern.spec.whatwg.org/#tokenize
