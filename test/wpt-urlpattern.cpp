@@ -276,6 +276,14 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
         return nullptr;
     };
 
+    static constexpr auto has_prop = [](const picojson::object& obj, std::string_view name) -> bool {
+#ifdef UPA_CPP_20
+        return obj.contains(std::string{ name });
+#else
+        return obj.find(std::string{ name }) != obj.end();
+#endif
+    };
+
     static constexpr auto includes = [](const picojson::array& arr, std::string_view name) -> bool {
         return std::any_of(arr.begin(), arr.end(), [&name](const picojson::value& val) {
             return val.get<std::string>() == name;
@@ -339,7 +347,7 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
                             std::optional<upa::url> baseURL{};
                             if (entry_pattern.get<picojson::array>().size() > 0 &&
                                 entry_pattern.get<picojson::array>()[0].is<picojson::object>() &&
-                                get_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), "baseURL"))
+                                has_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), "baseURL"))
                                 baseURL.emplace(get_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), "baseURL")->get<std::string>());
                             else if (entry_pattern.get<picojson::array>().size() > 1 &&
                                 entry_pattern.get<picojson::array>()[1].is<std::string>())
@@ -364,7 +372,7 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
                                 expected_str = "";
                             } else if (entry_pattern.get<picojson::array>().size() > 0 &&
                                 entry_pattern.get<picojson::array>()[0].is<picojson::object>() &&
-                                get_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), component)) {
+                                has_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), component)) {
                                 expected_str = get_prop(entry_pattern.get<picojson::array>()[0].get<picojson::object>(), component)->get<std::string>();
                             } else if (entry_pattern.get<picojson::array>().size() > 0 &&
                                 entry_pattern.get<picojson::array>()[0].is<picojson::object>() &&
