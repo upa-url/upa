@@ -17,7 +17,7 @@ done
 
 # Commit hash of URL Pattern web-platform-tests
 # https://github.com/web-platform-tests/wpt/tree/master/urlpattern
-URLP_HASH=ef6d83d789483763207af8cedcbf1f3c1317b981
+URLP_HASH=f07d05f49c679a62dd112e18aa07405859745952
 
 for f in urlpatterntestdata.json
 do
