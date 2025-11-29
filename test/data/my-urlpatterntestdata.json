@@ -6,5 +6,29 @@
     "expected_match": {
       "protocol": { "input": "http", "groups": {}}
     }
+  },
+  {
+    "pattern": [{ "port": "443" }],
+    "inputs": [{ "port": "443" }],
+    "exactly_empty_components": [ "port" ],
+    "expected_match": null
+  },
+  {
+    "pattern": [{ "port": "443" }],
+    "inputs": [{ "port": "" }],
+    "exactly_empty_components": [ "port" ],
+    "expected_match": {
+      "port": { "input": "", "groups": {}}
+    }
+  },
+  {
+    "pattern": [{ "search": "q=a'z" }],
+    "inputs": [{ "search": "q=a'z" }],
+    "expected_obj": {
+      "search": "q=a%27z"
+    },
+    "expected_match": {
+      "search": { "input": "q=a%27z", "groups": {}}
+    }
   }
 ]

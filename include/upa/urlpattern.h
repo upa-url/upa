@@ -2013,16 +2013,19 @@ inline void append_convert_modifier_to_string(std::string& result, part::modifie
 inline std::string canonicalize_protocol(std::string_view value) {
     if (value.empty()) return {};
 
+    // * Let parseResult (res_url) be the result of running the basic URL parser given
+    //   value followed by "://dummy.invalid/".
+    // HACK: To improve performance, we use "h" instead of "dummy.invalid".
     // TODO: concatenate strings
     std::string inp(value);
-    inp.append("://dummy.test");
+    inp.append("://h/");
 
     // Note, state override is not used here because it enforces restrictions that are only appropriate for the
     // protocol setter. Instead we use the protocol to parse a dummy URL using the normal parsing entry point.
-    upa::url dummy_url;
-    if (!upa::success(dummy_url.parse(inp, nullptr)))
+    upa::url res_url;
+    if (!upa::success(res_url.parse(inp, nullptr)))
         throw urlpattern_error("invalid protocol");
-    return std::string{ dummy_url.get_part_view(upa::url::SCHEME) };
+    return std::string{ res_url.get_part_view(upa::url::SCHEME) };
 }
 
 // https://urlpattern.spec.whatwg.org/#canonicalize-a-username
@@ -2043,21 +2046,22 @@ inline std::string canonicalize_password(std::string_view value) {
 inline std::string canonicalize_hostname(std::string_view value) {
     if (value.empty()) return {};
 
+    // * Let dummyURL be the result of creating a dummy URL.
+    // * Let parseResult be the result of running the basic URL parser given value
+    //   with dummyURL as url and hostname state as state override.
     upa::url dummy_url{};
     {
         upa::detail::url_serializer urls(dummy_url);
-
-        urls.set_scheme("http"); // MANO: SPEC-BUG
+        urls.set_scheme("https");
 
         const auto inp = upa::make_str_arg(value);
-#if 0
         const auto parse_result = upa::detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr,
             upa::detail::url_parser::hostname_state);
-#else
-        // SPEC-BUG: Use https://url.spec.whatwg.org/#concept-host-parser instead
-        // of "basic URL parser" (with hostname_state) to pass tests
-        const auto parse_result = upa::detail::url_parser::parse_host(urls, inp.begin(), inp.end());
-#endif
+
+        // TODO: Optimization possibility:
+        // Remove all ASCII tab or newline from input, find end of host  (:, /, ?, #) and then:
+        // const auto parse_result = upa::detail::url_parser::parse_host(urls, inp.begin(), inp.end());
+
         if (!upa::success(parse_result))
             throw urlpattern_error("canonicalize a hostname error");
     }
@@ -2081,17 +2085,23 @@ inline std::string canonicalize_ipv6_hostname(std::string_view value) {
 inline std::string canonicalize_port(std::string_view port_value, std::optional<std::string_view> protocol_value) {
     if (port_value.empty()) return {};
 
-    // SPEC-BUG: To pass tests all charcters must be digits
-    if (!std::all_of(port_value.begin(), port_value.end(), upa::detail::is_ascii_digit<char>))
-        throw urlpattern_error("canonicalize a port error");
-
+    // * Let dummyURL be the result of creating a dummy URL.
+    // * If protocolValue was given, then set dummyURL’s scheme to protocolValue.
+    // * Let parseResult be the result of running basic URL parser given portValue
+    //   with dummyURL as url and port state as state override. 
     upa::url dummy_url{};
     {
         upa::detail::url_serializer urls(dummy_url);
         if (protocol_value)
             urls.set_scheme(*protocol_value);
+        else
+            urls.set_scheme("https");
         // Note, we set the URL record's scheme in order for the basic URL parser
         // to recognize and normalize default port values.
+
+        // HACK: To improve performance, we use "h" instead of "dummy.invalid".
+        urls.hostStart().push_back('h');
+        urls.hostDone(upa::HostType::Domain);
 
         const auto inp = upa::make_str_arg(port_value);
         const auto parse_result = upa::detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr,
@@ -2127,9 +2137,20 @@ inline std::string canonicalize_pathname(std::string_view value) {
 
     modified_value.append(value);
 
+    // * Let dummyURL be the result of creating a dummy URL.
+    // * Empty dummyURL’s path.
+    // * Run basic URL parser given modified value with dummyURL as url and
+    //   path start state as state override.
     upa::url dummy_url{};
     {
         upa::detail::url_serializer urls(dummy_url);
+        /*** This code is unnecessary ***
+        urls.set_scheme("https");
+        // HACK: To improve performance, we use "h" instead of "dummy.invalid".
+        urls.hostStart().push_back('h');
+        urls.hostDone(upa::HostType::Domain);
+        ***/
+
         const auto inp = upa::make_str_arg(modified_value);
         upa::detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr,
             upa::detail::url_parser::path_start_state);
@@ -2146,10 +2167,14 @@ inline std::string canonicalize_pathname(std::string_view value) {
 inline std::string canonicalize_opaque_pathname(std::string_view value) {
     if (value.empty()) return {};
 
+    // * Let dummyURL be the result of creating a dummy URL.
+    // * Set dummyURL’s path to the empty string.
+    // * Let parseResult be the result of running URL parsing given value with
+    //   dummyURL as url and opaque path state as state override.
     upa::url dummy_url{};
     {
         upa::detail::url_serializer urls(dummy_url);
-        // Set dummyURL's path to the empty string (so path becomes opaque,
+        // Set dummyURL’s path to the empty string (so path becomes opaque,
         // see: https://url.spec.whatwg.org/#url-opaque-path)
         urls.set_has_opaque_path();
 
@@ -2166,9 +2191,19 @@ inline std::string canonicalize_opaque_pathname(std::string_view value) {
 inline std::string canonicalize_search(std::string_view value) {
     if (value.empty()) return {};
 
+    // * Let dummyURL be the result of creating a dummy URL.
+    // * Set dummyURL’s query to the empty string.
+    // * Run basic URL parser given value with dummyURL as url and query state as state override.
     upa::url dummy_url{};
     {
         upa::detail::url_serializer urls(dummy_url);
+        // Setting the scheme to special ensures that the query will be percent
+        // encoded using the special-query percent-encode set.
+        urls.set_scheme("https");
+        // HACK: To improve performance, we use "h" instead of "dummy.invalid".
+        urls.hostStart().push_back('h');
+        urls.hostDone(upa::HostType::Domain);
+
         // Set dummyURL's query to the empty string.
         //TODO: urls.set_flag(upa::url::QUERY_FLAG);
 
@@ -2183,9 +2218,19 @@ inline std::string canonicalize_search(std::string_view value) {
 inline std::string canonicalize_hash(std::string_view value) {
     if (value.empty()) return {};
 
+    // * Let dummyURL be the result of creating a dummy URL.
+    // * Set dummyURL’s fragment to the empty string.
+    // * Run basic URL parser given value with dummyURL as url and fragment state as state override.
     upa::url dummy_url{};
     {
         upa::detail::url_serializer urls(dummy_url);
+        /*** This code is unnecessary ***
+        urls.set_scheme("https");
+        // HACK: To improve performance, we use "h" instead of "dummy.invalid".
+        urls.hostStart().push_back('h');
+        urls.hostDone(upa::HostType::Domain);
+        ***/
+
         // Set dummyURL's fragment to the empty string.
         //TODO: urls.set_flag(upa::url::FRAGMENT_FLAG);
 
