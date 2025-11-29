@@ -2253,9 +2253,9 @@ inline std::string process_username_for_init(std::string_view value, urlpattern_
 inline std::string process_password_for_init(std::string_view value, urlpattern_init_type type);
 inline std::string process_hostname_for_init(std::string_view value, urlpattern_init_type type);
 inline std::string process_port_for_init(std::string_view port_value,
-    std::optional<std::string_view> protocol_value, urlpattern_init_type type);
+    std::string_view protocol_value, urlpattern_init_type type);
 inline std::string process_pathname_for_init(std::string_view pathname_value,
-    std::optional<std::string_view> protocol_value, urlpattern_init_type type);
+    std::string_view protocol_value, urlpattern_init_type type);
 inline std::string process_search_for_init(std::string_view value, urlpattern_init_type type);
 inline std::string process_hash_for_init(std::string_view value, urlpattern_init_type type);
 
@@ -2313,8 +2313,10 @@ inline urlpattern_init process_urlpattern_init(const urlpattern_init& init, urlp
         result.password = process_password_for_init(*init.password, type);
     if (init.hostname)
         result.hostname = process_hostname_for_init(*init.hostname, type);
+    // Let resultProtocolString be result["protocol"] if it exists; otherwise the empty string
+    const std::string_view result_protocol_string = result.protocol ? *result.protocol : ""sv;
     if (init.port)
-        result.port = process_port_for_init(*init.port, result.protocol, type);
+        result.port = process_port_for_init(*init.port, result_protocol_string, type);
     if (init.pathname) {
         std::string new_pathname; // must have lifetime as result_pathname
 
@@ -2339,7 +2341,7 @@ inline urlpattern_init process_urlpattern_init(const urlpattern_init& init, urlp
                 result_pathname = new_pathname;
             }
         }
-        result.pathname = process_pathname_for_init(result_pathname, result.protocol, type);
+        result.pathname = process_pathname_for_init(result_pathname, result_protocol_string, type);
     }
     if (init.search)
         result.search = process_search_for_init(*init.search, type);
@@ -2411,7 +2413,7 @@ inline std::string process_hostname_for_init(std::string_view value, urlpattern_
 
 // https://urlpattern.spec.whatwg.org/#process-port-for-init
 inline std::string process_port_for_init(std::string_view port_value,
-    std::optional<std::string_view> protocol_value, urlpattern_init_type type)
+    std::string_view protocol_value, urlpattern_init_type type)
 {
     if (type == urlpattern_init_type::PATTERN)
         return std::string{ port_value };
@@ -2420,13 +2422,13 @@ inline std::string process_port_for_init(std::string_view port_value,
 
 // https://urlpattern.spec.whatwg.org/#process-pathname-for-init
 inline std::string process_pathname_for_init(std::string_view pathname_value,
-    std::optional<std::string_view> protocol_value, urlpattern_init_type type)
+    std::string_view protocol_value, urlpattern_init_type type)
 {
     if (type == urlpattern_init_type::PATTERN)
         return std::string{ pathname_value };
     // If protocolValue is a special scheme or the empty string, then return
     // the result of running canonicalize a pathname given pathnameValue.
-    if (protocol_value && (protocol_value->empty() || is_special_scheme(*protocol_value)))
+    if (protocol_value.empty() || is_special_scheme(protocol_value))
         return canonicalize_pathname(pathname_value);
     // Note
     // If the protocolValue is the empty string then no value was provided for protocol in the constructor
