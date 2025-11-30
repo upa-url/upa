@@ -722,6 +722,27 @@ std::optional<upa::urlpattern_result> urlpattern_exec(const urlpattern& self, co
     return std::nullopt;
 }
 
+// -----------------------------------------------------------------------------
+// Test is_identifier_start and is_identifier_part
+
+int test_unicode_identifiers() {
+    DataDrivenTest ddt;
+
+    ddt.test_case("Test is_identifier_start", [&](DataDrivenTest::TestCase& tc) {
+        tc.assert_equal(true, upa::pattern::table::is_identifier_start('$'), "'$'");
+        tc.assert_equal(true, upa::pattern::table::is_identifier_start('_'), "'_'");
+        tc.assert_equal(false, upa::pattern::table::is_identifier_start(0xE0100), "0xE0100");
+        tc.assert_equal(false, upa::pattern::table::is_identifier_start(0x10FFFF), "0x10FFFF");
+    });
+    ddt.test_case("Test is_identifier_part", [&](DataDrivenTest::TestCase& tc) {
+        tc.assert_equal(true, upa::pattern::table::is_identifier_part('$'), "'$'");
+        tc.assert_equal(true, upa::pattern::table::is_identifier_part('_'), "'_'");
+        tc.assert_equal(true, upa::pattern::table::is_identifier_part(0xE0100), "0xE0100");
+        tc.assert_equal(false, upa::pattern::table::is_identifier_part(0x10FFFF), "0x10FFFF");
+    });
+
+    return ddt.result();
+}
 
 // -----------------------------------------------------------------------------
 
@@ -733,6 +754,7 @@ int main(int argc, const char* argv[])
     err |= wpt_urlpattern_hasregexpgroups_tests();
     err |= wpt_urlpatterntests("wpt/urlpatterntestdata.json");
     err |= wpt_urlpatterntests("data/my-urlpatterntestdata.json");
+    err |= test_unicode_identifiers();
 
     return err;
 }

@@ -5,7 +5,7 @@
 p="$(dirname "$0")"
 
 # Unicode version
-UVER=15.1.0
+UVER=17.0.0
 
 mkdir -p $p/data
 
