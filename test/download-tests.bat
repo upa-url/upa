@@ -15,7 +15,7 @@ for %%f in (setters_tests.json toascii.json urltestdata.json urltestdata-javascr
 
 REM Commit hash of URL Pattern web-platform-tests
 REM https://github.com/web-platform-tests/wpt/tree/master/urlpattern
-set URLP_HASH=f07d05f49c679a62dd112e18aa07405859745952
+set URLP_HASH=aed1f3d244c589317f0b6bcb84867f11bfd9353c
 
 for %%f in (urlpatterntestdata.json) do (
   curl -fsS -o %p%\wpt\%%f https://raw.githubusercontent.com/web-platform-tests/wpt/%URLP_HASH%/urlpattern/resources/%%f
