@@ -60,6 +60,35 @@ picojson::value json_parse(std::string_view strv) {
     return v;
 }
 
+// https://github.com/web-platform-tests/wpt/blob/master/urlpattern/urlpattern-constructor.html
+
+int wpt_urlpattern_constructor() {
+    DataDrivenTest ddt;
+#if TEST_DEBUG
+    ddt.config_debug_break(true);
+#endif
+
+    ddt.test_case("Test unclosed token", [&](DataDrivenTest::TestCase& tc) {
+        tc.assert_throws<upa::urlpattern_error>([&]() {
+            urlpattern{ upa::url("https://example.org/%(").to_string() };
+        }, "new URLPattern(new URL('https://example.org/%('))");
+        tc.assert_throws<upa::urlpattern_error>([&]() {
+            urlpattern{ upa::url("https://example.org/%((").to_string() };
+        }, "new URLPattern(new URL('https://example.org/%(('))");
+        tc.assert_throws<upa::urlpattern_error>([&]() {
+            urlpattern{ "(\\" };
+        }, "new URLPattern('(\\')");
+    });
+
+    // The following JavaScript test is skipped because C++ does not have
+    // an equivalent of the value undefined:
+    // test(() => {
+    //   new URLPattern(undefined, undefined);
+    // }, `Test constructor with undefined`);
+
+    return ddt.result();
+}
+
 // https://github.com/web-platform-tests/wpt/blob/master/urlpattern/resources/urlpattern-hasregexpgroups-tests.js
 
 template <class T>
@@ -700,6 +729,7 @@ int main(int argc, const char* argv[])
 {
     int err = 0;
 
+    err |= wpt_urlpattern_constructor();
     err |= wpt_urlpattern_hasregexpgroups_tests();
     err |= wpt_urlpatterntests("wpt/urlpatterntestdata.json");
     err |= wpt_urlpatterntests("data/my-urlpatterntestdata.json");
