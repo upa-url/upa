@@ -4,7 +4,7 @@ REM the directory path of this file
 set p=%~dp0
 
 REM Unicode version
-set UVER=15.1.0
+set UVER=17.0.0
 
 mkdir %p%\data
 

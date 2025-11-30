@@ -43,8 +43,6 @@ void make_unicode_id_table(const std::filesystem::path& data_path) {
     id_start_ch_code_points['_'] = 1;
     // ID_Continue: https://tc39.es/ecma262/#prod-IdentifierPartChar
     id_part_ch_code_points['$'] = 1;
-    id_part_ch_code_points[0x200C] = 1; // <ZWNJ>
-    id_part_ch_code_points[0x200D] = 1; // <ZWJ>
 
     // For new unicode standard version (>15.0) revise max_range_count values
     special_ranges<item_num_type> id_start_ch_spec(id_start_ch_code_points, 1);
