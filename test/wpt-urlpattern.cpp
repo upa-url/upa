@@ -7,11 +7,6 @@
 #ifdef UPA_TEST_WITH_STD_REGEX
 # include "upa/regex_engine_std.h"
 #else
-#if defined(_MSC_VER) && defined(__clang__)
-// There is a bug in the SRELL that prevents SIMD usage when building with
-// Clang-cl. This is a temporary workaround until the bug is fixed.
-# define SRELL_NO_SIMD
-#endif
 # include "upa/regex_engine_srell.h"
 #endif
 
