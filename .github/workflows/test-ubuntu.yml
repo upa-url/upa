@@ -130,7 +130,7 @@ jobs:
         apt-get update
         apt-get install -y ${{ matrix.install }}
     - uses: actions/checkout@v6
-    - uses: lukka/get-cmake@v4.2.0
+    - uses: lukka/get-cmake@v4.2.1
     - name: get dependencies
       run: |
         git config --global --add safe.directory $(pwd)
