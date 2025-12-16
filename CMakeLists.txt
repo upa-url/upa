@@ -135,7 +135,8 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
       src/url.cpp
       src/url_ip.cpp
       src/url_search_params.cpp
-      src/url_utf.cpp)
+      src/url_utf.cpp
+      src/urlpattern.cpp)
     target_include_directories(${upa_lib_target} PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:include>)
