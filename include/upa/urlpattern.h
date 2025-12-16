@@ -5,8 +5,8 @@
 #ifndef UPA_URLPATTERN_H
 #define UPA_URLPATTERN_H
 
-#include "unicode_id.h"
 #include "url.h"
+#include "unicode_id.h"
 
 #include <algorithm>
 #include <cassert>
