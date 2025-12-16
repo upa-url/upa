@@ -130,15 +130,37 @@ constexpr bool is_regex_engine_v =
 // https://urlpattern.spec.whatwg.org/#dictdef-urlpatterninit
 
 struct urlpattern_init {
-    std::optional <std::string> protocol;
-    std::optional <std::string> username;
-    std::optional <std::string> password;
-    std::optional <std::string> hostname;
-    std::optional <std::string> port;
-    std::optional <std::string> pathname;
-    std::optional <std::string> search;
-    std::optional <std::string> hash;
-    std::optional <std::string> base_url;
+    std::optional<std::string> protocol;
+    std::optional<std::string> username;
+    std::optional<std::string> password;
+    std::optional<std::string> hostname;
+    std::optional<std::string> port;
+    std::optional<std::string> pathname;
+    std::optional<std::string> search;
+    std::optional<std::string> hash;
+    std::optional<std::string> base_url;
+
+    // Get value of member by name
+    std::optional<std::string_view> get(std::string_view name) const {
+        if (auto ptr = get_member(name))
+            return this->*ptr;
+        return std::nullopt;
+    }
+
+    // Set value of member by name
+    void set(std::string_view name, std::string&& value) {
+        if (auto ptr = get_member(name))
+            this->*ptr = std::move(value);
+    }
+    void set(std::string_view name, std::string_view value) {
+        if (auto ptr = get_member(name))
+            this->*ptr = std::string{ value };
+    }
+
+private:
+    // Get member by name
+    [[nodiscard]] UPA_API static std::optional<std::string> urlpattern_init::*
+        get_member(std::string_view name);
 };
 
 namespace pattern {

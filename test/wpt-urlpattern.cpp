@@ -25,6 +25,7 @@ template <class K, class V>
 inline std::string vout(const std::unordered_map<K, V>& m);
 template <class T>
 inline std::string vout(const std::optional<T>& o);
+constexpr std::string_view vout(std::nullopt_t);
 
 #include "ddt/DataDrivenTest.hpp"
 #include "picojson_util.h"
@@ -63,6 +64,8 @@ int wpt_urlpattern_constructor() {
     ddt.config_debug_break(true);
 #endif
 
+    std::cout << "========== urlpattern constructor ==========\n";
+
     ddt.test_case("Test unclosed token", [&](DataDrivenTest::TestCase& tc) {
         tc.assert_throws<upa::urlpattern_error>([&]() {
             urlpattern{ upa::url("https://example.org/%(").to_string() };
@@ -88,29 +91,9 @@ int wpt_urlpattern_constructor() {
 
 template <class T>
 upa::urlpattern_init create_urlpattern_init(const T& obj) {
-    upa::urlpattern_init init{};
-    for (const auto& [key, val] : obj) {
-        if (key == "protocol"sv)
-            init.protocol = val;
-        else if (key == "username"sv)
-            init.username = val;
-        else if (key == "password"sv)
-            init.password = val;
-        else if (key == "hostname"sv)
-            init.hostname = val;
-        else if (key == "port"sv)
-            init.port = val;
-        else if (key == "pathname"sv)
-            init.pathname = val;
-        else if (key == "search"sv)
-            init.search = val;
-        else if (key == "hash"sv)
-            init.hash = val;
-        else if (key == "baseURL"sv)
-            init.base_url = val;
-        else
-            throw std::out_of_range("urlpattern_init does not have: "s.append(key));
-    }
+    upa::urlpattern_init init;
+    for (const auto& [key, val] : obj)
+        init.set(key, val);
     return init;
 }
 
@@ -119,6 +102,8 @@ int wpt_urlpattern_hasregexpgroups_tests() {
 #if TEST_DEBUG
     ddt.config_debug_break(true);
 #endif
+
+    std::cout << "========== urlpattern has regexp groups ==========\n";
 
     ddt.test_case("urlpattern has_regexp_groups() tests", [&](DataDrivenTest::TestCase& tc) {
         tc.assert_equal(false, urlpattern{}.has_regexp_groups(), "match-everything pattern");
@@ -205,19 +190,6 @@ const upa::urlpattern_component_result& get_component_result(const upa::urlpatte
     throw std::out_of_range("not urlpattern_result componnent"); // TODO: message
 }
 
-auto get_member(const upa::urlpattern_init& init, std::string_view name) -> std::optional<std::string_view> {
-    if (name == "protocol"sv) return init.protocol;
-    if (name == "username"sv) return init.username;
-    if (name == "password"sv) return init.password;
-    if (name == "hostname"sv) return init.hostname;
-    if (name == "port"sv) return init.port;
-    if (name == "pathname"sv) return init.pathname;
-    if (name == "search"sv) return init.search;
-    if (name == "hash"sv) return init.hash;
-    if (name == "baseURL"sv) return init.base_url;
-    throw std::out_of_range("not urlpattern_init field"); // TODO: message
-}
-
 template <class K, class V>
 inline std::string vout(const std::unordered_map<K, V>& m) {
     bool first = true;
@@ -242,6 +214,10 @@ inline std::string vout(const std::unordered_map<K, V>& m) {
 template <class T>
 inline std::string vout(const std::optional<T>& o) {
     return o ? std::string{ *o } : "null";
+}
+
+constexpr std::string_view vout(std::nullopt_t) {
+    return "null"sv;
 }
 
 template<class StrT>
@@ -508,17 +484,20 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
                                     /// auto expected_init = expected_input.get<picojson::object>();
                                     const auto* input_init = std::get<const upa::urlpattern_init*>(input);
 
-                                    for (auto component : kComponents) {
-                                        const auto* expected_val_ptr = get_prop(expected_input.get<picojson::object>(), component);
-                                        std::optional<std::string> expected_val;
-                                        if (expected_val_ptr)
-                                            expected_val = expected_val_ptr->get<std::string>();
-                                        auto input_val = get_member(*input_init, component);
+                                    if (input_init) {
+                                        for (auto component : kComponents) {
+                                            const auto* expected_val_ptr = get_prop(expected_input.get<picojson::object>(), component);
+                                            std::optional<std::string> expected_val;
+                                            if (expected_val_ptr)
+                                                expected_val = expected_val_ptr->get<std::string>();
+                                            auto input_val = input_init->get(component);
 
-                                        // `exec() result.inputs[${i}][${component}]`
-                                        std::string val_name_comp = val_name + "[" + std::string{ component } + "]";
-                                        tc.assert_equal(expected_val, input_val, val_name_comp);
-                                    }
+                                            // `exec() result.inputs[${i}][${component}]`
+                                            std::string val_name_comp = val_name + "[" + std::string{ component } + "]";
+                                            tc.assert_equal(expected_val, input_val, val_name_comp);
+                                        }
+                                    } else
+                                        tc.failure() << val_name << " is null urlpattern_init" << std::endl;
                                 } else
                                     tc.failure() << val_name << " is not urlpattern_init" << std::endl;
                             } // else // TODO: error in test file
@@ -582,30 +561,9 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
 // create urlpattern
 
 upa::urlpattern_init create_urlpattern_init(const picojson::object& obj) {
-    upa::urlpattern_init init{};
-    for (const auto& [key, val] : obj) {
-        auto val_str = val.get<std::string>();
-        if (key == "protocol"sv)
-            init.protocol = std::move(val_str);
-        else if (key == "username"sv)
-            init.username = std::move(val_str);
-        else if (key == "password"sv)
-            init.password = std::move(val_str);
-        else if (key == "hostname"sv)
-            init.hostname = std::move(val_str);
-        else if (key == "port"sv)
-            init.port = std::move(val_str);
-        else if (key == "pathname"sv)
-            init.pathname = std::move(val_str);
-        else if (key == "search"sv)
-            init.search = std::move(val_str);
-        else if (key == "hash"sv)
-            init.hash = std::move(val_str);
-        else if (key == "baseURL"sv)
-            init.base_url = std::move(val_str);
-        else
-            ;// testo klaida
-    }
+    upa::urlpattern_init init;
+    for (const auto& [key, val] : obj)
+        init.set(key, val.get<std::string>());
     return init;
 }
 
@@ -718,10 +676,63 @@ std::optional<upa::urlpattern_result> urlpattern_exec(const urlpattern& self, co
 }
 
 // -----------------------------------------------------------------------------
+// Test urlpattern_init
+
+int test_urlpattern_init() {
+    static constexpr std::pair<std::string_view, std::string_view> members[] = {
+        { "protocol"sv, "protocol"sv },
+        { "username"sv, "username"sv },
+        { "password"sv, "password"sv },
+        { "hostname"sv, "hostname"sv },
+        { "port"sv, "port"sv },
+        { "pathname"sv, "pathname"sv },
+        { "search"sv, "search"sv },
+        { "hash"sv, "hash"sv },
+        { "baseURL"sv, "baseURL"sv }
+    };
+    static constexpr std::string_view not_members[] = {
+        "no"sv,
+        "no_such"sv,
+        "no_such_member"sv,
+        "post"sv
+    };
+
+    DataDrivenTest ddt;
+
+    std::cout << "========== urlpattern_init ==========\n";
+
+    ddt.test_case("Test urlpattern_init set() & get()", [&](DataDrivenTest::TestCase& tc) {
+        upa::urlpattern_init init1, init2;
+        // get when no values are set
+        for (auto [key, val] : members) {
+            tc.assert_equal(std::nullopt, init1.get(key), std::string{ "init1.get('" } + std::string{ key } + "')");
+        }
+        // set values
+        for (auto [key, val] : members) {
+            init1.set(key, std::string{ val });
+            init2.set(key, val);
+        }
+        // check values
+        for (auto [key, val] : members) {
+            tc.assert_equal(val, init1.get(key), std::string{ "init1.get('" } + std::string{ key } + "')");
+            tc.assert_equal(val, init2.get(key), std::string{ "init2.get('" } + std::string{ key } + "')");
+        }
+        // try to get the value of a non-existent member
+        for (auto key : not_members) {
+            tc.assert_equal(std::nullopt, init1.get(key), std::string{"init1.get('"} + std::string{key} + "')");
+        }
+    });
+
+    return ddt.result();
+}
+
+// -----------------------------------------------------------------------------
 // Test is_identifier_start and is_identifier_part
 
 int test_unicode_identifiers() {
     DataDrivenTest ddt;
+
+    std::cout << "========== is_identifier_start & is_identifier_part ==========\n";
 
     ddt.test_case("Test is_identifier_start", [&](DataDrivenTest::TestCase& tc) {
         tc.assert_equal(true, upa::pattern::table::is_identifier_start('$'), "'$'");
@@ -749,6 +760,7 @@ int main(int argc, const char* argv[])
     err |= wpt_urlpattern_hasregexpgroups_tests();
     err |= wpt_urlpatterntests("wpt/urlpatterntestdata.json");
     err |= wpt_urlpatterntests("data/my-urlpatterntestdata.json");
+    err |= test_urlpattern_init();
     err |= test_unicode_identifiers();
 
     return err;
