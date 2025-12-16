@@ -5,7 +5,7 @@
 #ifndef UPA_UNICODE_ID_H
 #define UPA_UNICODE_ID_H
 
-#include "upa/config.h"
+#include "config.h"
 
 namespace upa::pattern::table {
 
