@@ -5,7 +5,7 @@
 #ifndef UPA_URLPATTERN_H
 #define UPA_URLPATTERN_H
 
-#include "url.h"
+#include "url.h" // NOLINT(llvm-include-order)
 #include "unicode_id.h"
 
 #include <algorithm>
@@ -356,10 +356,14 @@ inline urlpattern_init process_urlpattern_init(const urlpattern_init& init, urlp
 template <class regex_engine>
 struct component {
     component() = default;
+    component(const component&) = delete;
     component(component&&) noexcept = default;
     // compile a component
     component(std::optional<std::string_view> input, encoding_callback encoding_cb, const options& opt);
+    // destructor
+    ~component() = default;
 
+    component& operator=(const component&) = delete;
     component& operator=(component&&) noexcept = default;
 
     // well formed pattern string
@@ -702,7 +706,7 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(std::s
     std::optional<std::string_view> base_url_str) const
 {
     // Parse input
-    upa::url url = pattern::parse_url_against_base(input, base_url_str);
+    const auto url = pattern::parse_url_against_base(input, base_url_str);
     if (!url.is_valid())
         return std::nullopt;
 
@@ -710,7 +714,7 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(std::s
     std::vector<urlpattern_input> inputs{ input };
     if (base_url_str) {
         // Append baseURLString to inputs
-        inputs.push_back(*base_url_str);
+        inputs.emplace_back(*base_url_str);
     }
 
     return match(std::move(inputs),
@@ -1100,7 +1104,7 @@ inline urlpattern_init parse_constructor_string(std::string_view input) {
         case state::HASH:
             break; // Do nothing
         case state::DONE:
-            assert(true); // This step is never reached
+            assert(false); // This step is never reached
             break;
         }
         parser.token_index_ += parser.token_increment_;
@@ -1136,6 +1140,7 @@ inline void constructor_string_parser::change_state(state new_state, std::size_t
     case state::PATHNAME: result_.pathname = make_component_string(); break;
     case state::SEARCH: result_.search = make_component_string(); break;
     case state::HASH: result_.hash = make_component_string(); break;
+    default: break;
     }
 
     // If parser's state is not "init" and new state is not "done", then:
@@ -1180,7 +1185,7 @@ inline const token& constructor_string_parser::get_safe_token(std::size_t index)
     if (index < token_list_.size())
         return token_list_[index];
 
-    assert(token_list_.size() >= 1);
+    assert(!token_list_.empty());
     const auto last_index = token_list_.size() - 1;
     assert(token_list_[last_index].type_ == token::type::END);
     return token_list_[last_index];
@@ -1242,11 +1247,11 @@ inline bool constructor_string_parser::is_search_prefix() const {
     if (token_index_ < 1)
         return true;
     const token& previous_token = get_safe_token(token_index_ - 1);
-    return !(
-        previous_token.type_ == token::type::NAME ||
-        previous_token.type_ == token::type::REGEXP ||
-        previous_token.type_ == token::type::CLOSE ||
-        previous_token.type_ == token::type::ASTERISK);
+    return
+        previous_token.type_ != token::type::NAME &&
+        previous_token.type_ != token::type::REGEXP &&
+        previous_token.type_ != token::type::CLOSE &&
+        previous_token.type_ != token::type::ASTERISK;
 }
 
 // https://urlpattern.spec.whatwg.org/#is-a-hash-prefix
@@ -1970,6 +1975,8 @@ inline std::string generate_pattern_string(const part_list& pt_list, const optio
                 result.push_back(')');
             }
             break;
+        default:
+            break;
         }
 
         // 17. Append the result of running escape a pattern string given part's suffix
@@ -2019,6 +2026,8 @@ inline void append_convert_modifier_to_string(std::string& result, part::modifie
         break;
     case part::modifier::one_or_more:
         result.push_back('+');
+        break;
+    default:
         break;
     }
 }
@@ -2357,7 +2366,7 @@ inline urlpattern_init process_urlpattern_init(const urlpattern_init& init, urlp
             // as a sequence of code points, or null if there are no instances of the code point.
             const auto slash_index = base_url_path.rfind('/'); // TODO: code point (not necessary)
             // If slash index is not null:
-            if (slash_index != base_url_path.npos) {
+            if (slash_index != decltype(base_url_path)::npos) {
                 new_pathname = base_url_path.substr(0, slash_index + 1);
                 new_pathname.append(result_pathname);
                 result_pathname = new_pathname;
