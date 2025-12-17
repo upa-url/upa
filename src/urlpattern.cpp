@@ -28,7 +28,7 @@ component_map[] = {
     {"baseURL", &urlpattern_init::base_url},
 };
 
-constexpr uint8_t component_hash(std::string_view sv) {
+constexpr std::uint8_t component_hash(std::string_view sv) {
     assert(sv.length() >= 4);
     return (static_cast<unsigned char>(sv[0]) +
         static_cast<unsigned char>(sv[1]) +
@@ -36,11 +36,11 @@ constexpr uint8_t component_hash(std::string_view sv) {
 }
 
 constexpr auto build_index() {
-    std::array<uint8_t, 16> table{};
+    std::array<std::uint8_t, 16> table{};
     for (auto& item : table)
         item = 0xFF;
-    for (uint8_t i = 0; i < sizeof(component_map) / sizeof(component_map[0]); ++i)
-        table[component_hash(component_map[i].first)] = i;
+    for (std::size_t i = 0; i < sizeof(component_map) / sizeof(component_map[0]); ++i)
+        table[component_hash(component_map[i].first)] = static_cast<std::uint8_t>(i);
     return table;
 }
 
@@ -52,8 +52,7 @@ inline constexpr auto component_index = build_index();
 std::optional<std::string> urlpattern_init::* urlpattern_init::get_member(std::string_view name) {
     if (name.length() < 4 || name.length() > 8)
         return nullptr;
-    const auto hash = component_hash(name);
-    const auto ind = component_index[hash];
+    const auto ind = component_index[component_hash(name)];
     if (ind == 0xFF)
         return nullptr;
     const auto& [member_name, member_ptr] = component_map[ind];
