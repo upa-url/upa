@@ -62,6 +62,7 @@ class Amalgamation(object):
 
     def __init__(self, args):
         with open(args.config, 'r') as f:
+            self.do_not_expand = []
             self.ignore_includes = False
             config = json.loads(f.read())
             for key in config:
@@ -93,7 +94,7 @@ class Amalgamation(object):
             # list, all given source paths must be correct.
             # actual_path = self.actual_path(file_path)
             print(" - processing \"{0}\"".format(file_path))
-            t = TranslationUnit(file_path, self, True)
+            t = TranslationUnit(file_path, self, True, True)
             amalgamation += t.content
 
         with io.open(self.target, mode="w", encoding="utf-8") as f:
@@ -235,12 +236,19 @@ class TranslationUnit(object):
         for include in includes:
             include_match, found_included_path = include
             if found_included_path:
-                tmp_content += self.content[prev_end:include_match.start()]
-                tmp_content += "// {0}\n".format(include_match.group(0))
-                if not self.amalgamation.ignore_includes and not found_included_path in self.amalgamation.included_files:
-                    t = TranslationUnit(found_included_path, self.amalgamation, False)
-                    tmp_content += t.content
-                prev_end = include_match.end()
+                process_include = (not self.amalgamation.ignore_includes and
+                    not found_included_path in self.amalgamation.included_files)
+                if self.expand and not found_included_path.replace('\\', '/') in self.amalgamation.do_not_expand:
+                    tmp_content += self.content[prev_end:include_match.start()]
+                    tmp_content += "// {0}".format(include_match.group(0))
+                    if process_include:
+                        t = TranslationUnit(found_included_path, self.amalgamation, False, True)
+                        tmp_content += "\n"
+                        tmp_content += t.content
+                    prev_end = include_match.end()
+                else:
+                    if process_include:
+                        TranslationUnit(found_included_path, self.amalgamation, False, False)
             else:
                 include_path = include_match.group("path")
                 if include_path in self.amalgamation.includes_set:
@@ -261,11 +269,12 @@ class TranslationUnit(object):
             self._process_pragma_once()
         self._process_includes()
 
-    def __init__(self, file_path, amalgamation, is_root):
+    def __init__(self, file_path, amalgamation, is_root: bool, expand: bool):
         self.file_path = file_path
         self.file_dir = os.path.dirname(file_path)
         self.amalgamation = amalgamation
         self.is_root = is_root
+        self.expand = expand
 
         self.amalgamation.included_files.append(self.file_path)
 
