@@ -141,7 +141,7 @@ struct urlpattern_init {
     std::optional<std::string> base_url;
 
     // Get value of member by name
-    std::optional<std::string_view> get(std::string_view name) const {
+    [[nodiscard]] std::optional<std::string_view> get(std::string_view name) const {
         if (auto ptr = get_member(name))
             return this->*ptr;
         return std::nullopt;
@@ -436,26 +436,27 @@ public:
     urlpattern(std::string_view input, urlpattern_options opt = {})
         : urlpattern(input, std::nullopt, opt) {}
 
-    bool test(const urlpattern_init& input) const;
-    bool test(std::string_view input, std::optional<std::string_view> base_url_str = std::nullopt) const;
-    bool test(const upa::url& url) const;
-
-    std::optional<urlpattern_result> exec(const urlpattern_init& input) const;
-    std::optional<urlpattern_result> exec(std::string_view input,
+    [[nodiscard]] bool test(const urlpattern_init& input) const;
+    [[nodiscard]] bool test(std::string_view input,
         std::optional<std::string_view> base_url_str = std::nullopt) const;
-    std::optional<urlpattern_result> exec(const upa::url& url) const;
+    [[nodiscard]] bool test(const upa::url& url) const;
+
+    [[nodiscard]] std::optional<urlpattern_result> exec(const urlpattern_init& input) const;
+    [[nodiscard]] std::optional<urlpattern_result> exec(std::string_view input,
+        std::optional<std::string_view> base_url_str = std::nullopt) const;
+    [[nodiscard]] std::optional<urlpattern_result> exec(const upa::url& url) const;
 
     // returns component's pattern_string_
-    std::string_view get_protocol() const noexcept;
-    std::string_view get_username() const noexcept;
-    std::string_view get_password() const noexcept;
-    std::string_view get_hostname() const noexcept;
-    std::string_view get_port() const noexcept;
-    std::string_view get_pathname() const noexcept;
-    std::string_view get_search() const noexcept;
-    std::string_view get_hash() const noexcept;
+    [[nodiscard]] std::string_view get_protocol() const noexcept;
+    [[nodiscard]] std::string_view get_username() const noexcept;
+    [[nodiscard]] std::string_view get_password() const noexcept;
+    [[nodiscard]] std::string_view get_hostname() const noexcept;
+    [[nodiscard]] std::string_view get_port() const noexcept;
+    [[nodiscard]] std::string_view get_pathname() const noexcept;
+    [[nodiscard]] std::string_view get_search() const noexcept;
+    [[nodiscard]] std::string_view get_hash() const noexcept;
     // Returns whether urlpattern contains one or more groups which uses regular expression matching
-    bool has_regexp_groups() const noexcept;
+    [[nodiscard]] bool has_regexp_groups() const noexcept;
 
 private:
     using regex_exec_result = typename regex_engine::result;
