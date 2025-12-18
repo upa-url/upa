@@ -30,5 +30,21 @@
     "expected_match": {
       "search": { "input": "q=a%27z", "groups": {}}
     }
+  },
+  {
+    "pattern": [ "(?)", "ws://h/" ],
+    "expected_obj": "error"
+  },
+  {
+    "pattern": [ "(\\š)", "ws://h/" ],
+    "expected_obj": "error"
+  },
+  {
+    "pattern": [ "((u))", "ws://h/" ],
+    "expected_obj": "error"
+  },
+  {
+    "pattern": [ "()", "ws://h/" ],
+    "expected_obj": "error"
   }
 ]
