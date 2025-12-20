@@ -148,13 +148,10 @@ struct urlpattern_init {
     }
 
     // Set value of member by name
-    void set(std::string_view name, std::string&& value) {
+    template <typename T, std::enable_if_t<std::is_assignable_v<std::string, T>, int> = 0>
+    void set(std::string_view name, T&& value) {
         if (auto ptr = get_member(name))
-            this->*ptr = std::move(value);
-    }
-    void set(std::string_view name, std::string_view value) {
-        if (auto ptr = get_member(name))
-            this->*ptr = std::string{ value };
+            this->*ptr = std::forward<T>(value);
     }
 
 private:
