@@ -1,0 +1,12 @@
+{
+  "project": "upa/urlpattern.cpp",
+  "target": "single_include/upa/urlpattern.cpp",
+  "sources": [
+    "src/urlpattern.cpp",
+    "src/unicode_id.cpp"
+  ],
+  "include_paths": [
+    "include"
+  ],
+  "ignore_includes": true
+}
