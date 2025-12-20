@@ -124,6 +124,7 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
   if (UPA_AMALGAMATED)
     add_library(${upa_lib_target}
       single_include/upa/url.cpp
+      single_include/upa/urlpattern.cpp
       single_include/upa/public_suffix_list.cpp)
     target_include_directories(${upa_lib_target}
       INTERFACE single_include)
