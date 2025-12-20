@@ -702,24 +702,31 @@ int test_urlpattern_init() {
     std::cout << "========== urlpattern_init ==========\n";
 
     ddt.test_case("Test urlpattern_init set() & get()", [&](DataDrivenTest::TestCase& tc) {
-        upa::urlpattern_init init1, init2;
+        upa::urlpattern_init init;
         // get when no values are set
         for (auto [key, val] : members) {
-            tc.assert_equal(std::nullopt, init1.get(key), std::string{ "init1.get('" } + std::string{ key } + "')");
+            tc.assert_equal(std::nullopt, init.get(key), std::string{ "init.get('" } + std::string{ key } + "')");
         }
+        // set values of various string types
+        init.set("protocol", "p-char-ptr");
+        tc.assert_equal("p-char-ptr", init.get("protocol"), "init.get('protocol')");
+        init.set("protocol", "p-sv"sv);
+        tc.assert_equal("p-sv", init.get("protocol"), "init.get('protocol')");
+        std::string str_lvalue{ "p-lvalue" };
+        init.set("protocol", str_lvalue);
+        tc.assert_equal("p-lvalue", init.get("protocol"), "init.get('protocol')");
+        init.set("protocol", std::string{ "p-rvalue" });
+        tc.assert_equal("p-rvalue", init.get("protocol"), "init.get('protocol')");
         // set values
-        for (auto [key, val] : members) {
-            init1.set(key, std::string{ val });
-            init2.set(key, val);
-        }
+        for (auto [key, val] : members)
+            init.set(key, val);
         // check values
         for (auto [key, val] : members) {
-            tc.assert_equal(val, init1.get(key), std::string{ "init1.get('" } + std::string{ key } + "')");
-            tc.assert_equal(val, init2.get(key), std::string{ "init2.get('" } + std::string{ key } + "')");
+            tc.assert_equal(val, init.get(key), std::string{ "init.get('" } + std::string{ key } + "')");
         }
         // try to get the value of a non-existent member
         for (auto key : not_members) {
-            tc.assert_equal(std::nullopt, init1.get(key), std::string{"init1.get('"} + std::string{key} + "')");
+            tc.assert_equal(std::nullopt, init.get(key), std::string{"init.get('"} + std::string{key} + "')");
         }
     });
 
