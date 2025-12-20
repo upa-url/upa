@@ -36,9 +36,9 @@ using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 #ifdef UPA_TEST_WITH_STD_REGEX
-using urlpattern = typename upa::urlpattern<upa::regex_engine_std>;
+using urlpattern = upa::urlpattern<upa::regex_engine_std>;
 #else
-using urlpattern = typename upa::urlpattern<upa::regex_engine_srell>;
+using urlpattern = upa::urlpattern<upa::regex_engine_srell>;
 #endif
 
 // This is a workaround for Clang versions earlier than 19. These versions of Clang
