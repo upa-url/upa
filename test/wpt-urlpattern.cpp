@@ -615,7 +615,9 @@ urlpattern create_urlpattern(const picojson::array& pattern_arr) {
     }
 
     if (arg_str)
-        return urlpattern(*arg_str, arg_base, arg_opt);
+        return arg_base
+            ? urlpattern(*arg_str, *arg_base, arg_opt)
+            : urlpattern(*arg_str, arg_opt);
     if (arg_base)
         throw upa::urlpattern_error("Unexpected base URL"); // failure
     if (arg_init)
