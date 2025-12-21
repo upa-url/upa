@@ -428,10 +428,11 @@ public:
     urlpattern(const urlpattern_init& init = {}, urlpattern_options opt = {});
 
     // constructor with std::string_view as URLPatternInput
-    urlpattern(std::string_view input, std::optional<std::string_view> base_url, urlpattern_options opt = {});
+    urlpattern(std::string_view input, std::string_view base_url, urlpattern_options opt = {})
+        : urlpattern{ make_urlpattern_init(input, base_url), opt } {}
 
     urlpattern(std::string_view input, urlpattern_options opt = {})
-        : urlpattern(input, std::nullopt, opt) {}
+        : urlpattern{ make_urlpattern_init(input, std::nullopt), opt } {}
 
     [[nodiscard]] bool test(const urlpattern_init& input) const;
     [[nodiscard]] bool test(std::string_view input,
@@ -517,12 +518,6 @@ inline urlpattern_init urlpattern<regex_engine, E>::make_urlpattern_init(std::st
     init.base_url = base_url;
     return init;
 }
-
-template <class regex_engine, typename E>
-inline urlpattern<regex_engine, E>::urlpattern(std::string_view input,
-    std::optional<std::string_view> base_url, urlpattern_options opt)
-    : urlpattern{ make_urlpattern_init(input, base_url), opt }
-{}
 
 template <class regex_engine, typename E>
 inline urlpattern<regex_engine, E>::urlpattern(const urlpattern_init& init, urlpattern_options opt) {
