@@ -31,7 +31,6 @@ TEST_CASE("url constructor & getters") {
 
 TEST_CASE("urlpattern") {
     using urlpattern = upa::urlpattern<upa::regex_engine_std>;
-    using namespace std::string_view_literals;
 
     upa::urlpattern_init init;
     init.set("protocol", "https");
