@@ -563,7 +563,7 @@ int wpt_urlpatterntests(const std::filesystem::path& file_name) {
 upa::urlpattern_init create_urlpattern_init(const picojson::object& obj) {
     upa::urlpattern_init init;
     for (const auto& [key, val] : obj)
-        init.set(key, val.get<std::string>());
+        init.set(key, val.to_str());
     return init;
 }
 
@@ -576,42 +576,37 @@ urlpattern create_urlpattern(const picojson::array& pattern_arr) {
     std::optional<upa::urlpattern_init> arg_init;
     upa::urlpattern_options arg_opt{};
 
-    if (pattern_arr.size() >= 1) {
-        if (pattern_arr[0].is<std::string>()) {
-            arg_str = pattern_arr[0].get<std::string>();
-        } else if (pattern_arr[0].is<picojson::object>()) {
-            const auto obj = pattern_arr[0].get<picojson::object>();
-            if (obj.find("ignoreCase") != obj.end())
-                arg_opt.ignore_case = obj.find("ignoreCase")->second.get<bool>();
-            else
-                arg_init = create_urlpattern_init(obj);
-        } else
-            ;// testo klaida
-    }
+    // 0 - input (string or URLPatternInit)
+    if (pattern_arr[0].is<std::string>()) {
+        arg_str = pattern_arr[0].get<std::string>();
+    } else if (pattern_arr[0].is<picojson::object>()) {
+        const auto obj = pattern_arr[0].get<picojson::object>();
+        arg_init = create_urlpattern_init(obj);
+    } else
+        throw upa::urlpattern_error("The input must be a string or an object"); // failure
+
+    // 1 - baseURL (string) or options (URLPatternOptions)
+    int ind_options = -1;
     if (pattern_arr.size() >= 2) {
-        if (pattern_arr[1].is<std::string>()) {
+        if (pattern_arr[1].is<std::string>())
             arg_base = pattern_arr[1].get<std::string>();
-        } else if (pattern_arr[1].is<picojson::object>()) {
-            const auto obj = pattern_arr[1].get<picojson::object>();
+        else if (pattern_arr.size() == 2)
+            ind_options = 1;
+        else
+            throw upa::urlpattern_error("The baseURL must be a string"); // failure
+    }
+
+    // 2 - options (URLPatternOptions)
+    if (pattern_arr.size() >= 3)
+        ind_options = 2;
+
+    if (ind_options >= 0) {
+        if (pattern_arr[ind_options].is<picojson::object>()) {
+            const auto obj = pattern_arr[ind_options].get<picojson::object>();
             if (obj.find("ignoreCase") != obj.end())
                 arg_opt.ignore_case = obj.find("ignoreCase")->second.get<bool>();
-            else
-                ;// testo klaida
         } else
-            ;// testo klaida
-    }
-    if (pattern_arr.size() >= 3) {
-        if (pattern_arr[2].is<picojson::object>()) {
-            const auto obj = pattern_arr[2].get<picojson::object>();
-            if (obj.find("ignoreCase") != obj.end())
-                arg_opt.ignore_case = obj.find("ignoreCase")->second.get<bool>();
-            else
-                ;// testo klaida
-        } else
-            ;// testo klaida
-    }
-    if (pattern_arr.size() >= 4) {
-        // testo klaida
+            throw upa::urlpattern_error("The options must be an object"); // failure
     }
 
     if (arg_str)
