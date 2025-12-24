@@ -356,7 +356,7 @@ struct component {
     component(const component&) = delete;
     component(component&&) noexcept = default;
     // compile a component
-    component(std::optional<std::string_view> input, encoding_callback encoding_cb, const options& opt);
+    component(std::string_view input, encoding_callback encoding_cb, const options& opt);
     // destructor
     ~component() = default;
 
@@ -546,21 +546,21 @@ inline urlpattern<regex_engine, E>::urlpattern(const urlpattern_init& init, urlp
         processed_init.port = ""sv;
 
     // component constructor performs `compile a component`
-    protocol_component_ = pattern::component<regex_engine>(processed_init.protocol,
+    protocol_component_ = pattern::component<regex_engine>(*processed_init.protocol,
         pattern::canonicalize_protocol, pattern::default_options);
-    username_component_ = pattern::component<regex_engine>(processed_init.username,
+    username_component_ = pattern::component<regex_engine>(*processed_init.username,
         pattern::canonicalize_username, pattern::default_options);
-    password_component_ = pattern::component<regex_engine>(processed_init.password,
+    password_component_ = pattern::component<regex_engine>(*processed_init.password,
         pattern::canonicalize_password, pattern::default_options);
 
     if (pattern::hostname_pattern_is_ipv6_address(*processed_init.hostname))
-        hostname_component_ = pattern::component<regex_engine>(processed_init.hostname,
+        hostname_component_ = pattern::component<regex_engine>(*processed_init.hostname,
             pattern::canonicalize_ipv6_hostname, pattern::hostname_options);
     else
-        hostname_component_ = pattern::component<regex_engine>(processed_init.hostname,
+        hostname_component_ = pattern::component<regex_engine>(*processed_init.hostname,
             pattern::canonicalize_hostname, pattern::hostname_options);
 
-    port_component_ = pattern::component<regex_engine>(processed_init.port,
+    port_component_ = pattern::component<regex_engine>(*processed_init.port,
         pattern::canonicalize_port, pattern::default_options);
 
     // Let compileOptions be a copy of the default options with
@@ -570,15 +570,15 @@ inline urlpattern<regex_engine, E>::urlpattern(const urlpattern_init& init, urlp
         // pathname options
         // https://urlpattern.spec.whatwg.org/#pathname-options
         const pattern::options path_compile_opt{ "/"sv, "/"sv, opt.ignore_case };
-        pathname_component_ = pattern::component<regex_engine>(processed_init.pathname,
+        pathname_component_ = pattern::component<regex_engine>(*processed_init.pathname,
             pattern::canonicalize_pathname, path_compile_opt);
     } else {
-        pathname_component_ = pattern::component<regex_engine>(processed_init.pathname,
+        pathname_component_ = pattern::component<regex_engine>(*processed_init.pathname,
             pattern::canonicalize_opaque_pathname, compile_opt);
     }
-    search_component_ = pattern::component<regex_engine>(processed_init.search,
+    search_component_ = pattern::component<regex_engine>(*processed_init.search,
         pattern::canonicalize_search, compile_opt);
-    hash_component_ = pattern::component<regex_engine>(processed_init.hash,
+    hash_component_ = pattern::component<regex_engine>(*processed_init.hash,
         pattern::canonicalize_hash, compile_opt);
 }
 
@@ -837,10 +837,10 @@ namespace pattern {
 // https://urlpattern.spec.whatwg.org/#compile-a-component
 
 template <class regex_engine>
-inline component<regex_engine>::component(std::optional<std::string_view> input, encoding_callback encoding_cb, const options& opt) {
+inline component<regex_engine>::component(std::string_view input, encoding_callback encoding_cb, const options& opt) {
     // Let part list be the result of running parse a pattern string given
     // input, options, and encoding callback
-    const auto pt_list = parse_pattern_string(*input, opt, encoding_cb);
+    const auto pt_list = parse_pattern_string(input, opt, encoding_cb);
     auto [regular_expression_string, name_list] =
         generate_regular_expression_and_name_list(pt_list, opt);
 
