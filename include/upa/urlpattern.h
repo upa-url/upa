@@ -527,8 +527,8 @@ inline urlpattern<regex_engine, E>::urlpattern(const urlpattern_init& init, urlp
     // null, null, null, null, null, null, null, and null.
     auto processed_init = process_urlpattern_init(init, pattern::urlpattern_init_type::PATTERN, false/*all nulls*/);
 
-    // For each componentName of {"protocol", "username", "password", "hostname", "port", "pathname",
-    // "search", "hash"}:
+    // For each componentName of { "protocol", "username", "password", "hostname", "port", "pathname",
+    // "search", "hash" }:
     // - If processedInit[componentName] does not exist, then set processedInit[componentName] to "*"
     if (!processed_init.protocol) processed_init.protocol = "*"sv;
     if (!processed_init.username) processed_init.username = "*"sv;
@@ -1586,7 +1586,7 @@ inline part_list parse_pattern_string(std::string_view input, const options& opt
 
 // https://urlpattern.spec.whatwg.org/#generate-a-segment-wildcard-regexp
 inline std::string generate_segment_wildcard_regexp(const options& opt) {
-    std::string result{"[^"};
+    std::string result{ "[^" };
     append_escape_regexp_string(result, opt.delimiter_code_point);
     result.append("]+?");
     return result;
@@ -1748,7 +1748,7 @@ inline bool pattern_parser::is_duplicate_name(std::string_view name) const noexc
 inline std::pair<std::string, string_list> generate_regular_expression_and_name_list(
     const part_list& pt_list, const options& opt)
 {
-    std::string result{"^"};
+    std::string result{ "^" };
     string_list name_list{};
 
     // TODO?: use std::format instead of append, push_back
@@ -1779,7 +1779,7 @@ inline std::pair<std::string, string_list> generate_regular_expression_and_name_
         // real risk of introducing unintended bugs. In addition, if we ever end up exposing the
         // generated regular expressions to the web we would like to maintain compability with
         // path-to-regexp which has indicated its unlikely to switch to using named capture groups.
-        std::string_view regexp_value{ pt.value_};
+        std::string_view regexp_value{ pt.value_ };
         std::string regexp_value_buffer;
         if (pt.type_ == part::type::SEGMENT_WILDCARD) {
             regexp_value_buffer = generate_segment_wildcard_regexp(opt);
