@@ -87,10 +87,10 @@ public:
     ///
     /// @param[in] str Host string to parse
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    explicit url_host(StrT&& str) {
+    explicit url_host(const StrT& str) {
         host_out out(*this);
 
-        const auto inp = make_str_arg(std::forward<StrT>(str));
+        const auto inp = make_str_arg(str);
         const auto res = host_parser::parse_host(inp.begin(), inp.end(), false, out);
         if (res != validation_errc::ok)
             throw url_error(res, "Host parse error");
@@ -174,10 +174,10 @@ inline bool contains_forbidden_host_char(const CharT* first, const CharT* last) 
 /// @param[in]  is_input_ascii
 /// @return `true` on success, or `false` on errors
 template <class CharT, class StrT, enable_if_str_arg_t<StrT> = 0>
-inline bool domain_to_unicode(std::basic_string<CharT>& output, StrT&& input,
+inline bool domain_to_unicode(std::basic_string<CharT>& output, const StrT& input,
     bool be_strict = false, bool is_input_ascii = false)
 {
-    const auto inp = make_str_arg(std::forward<StrT>(input));
+    const auto inp = make_str_arg(input);
     if constexpr (std::is_same_v<CharT, char32_t>) {
         return idna::domain_to_unicode(output, inp.begin(), inp.end(), be_strict, is_input_ascii);
     } else {

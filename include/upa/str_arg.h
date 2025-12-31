@@ -7,8 +7,8 @@
 // Usage example:
 
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
-inline void procfn(StrT&& str) {
-    const auto inp = make_str_arg(std::forward<StrT>(str));
+inline void procfn(const StrT& str) {
+    const auto inp = make_str_arg(str);
     const auto* first = inp.begin();
     const auto* last = inp.end();
     // do something with first ... last
@@ -259,8 +259,8 @@ using enable_if_str_arg_t = std::enable_if_t<
 // String arguments helper function
 
 template <class StrT>
-constexpr auto make_str_arg(StrT&& str) -> str_arg<str_arg_char_t<StrT>> {
-    return str_arg_char_s<StrT>::to_str_arg(std::forward<StrT>(str));
+constexpr auto make_str_arg(const StrT& str) -> str_arg<str_arg_char_t<StrT>> {
+    return str_arg_char_s<StrT>::to_str_arg(str);
 }
 
 
@@ -296,14 +296,14 @@ inline std::string&& make_string(std::string&& str) {
 }
 
 template <class StrT, enable_if_str_arg_to_char8_t<StrT> = 0>
-constexpr string_view make_string(StrT&& str) {
-    const auto inp = make_str_arg(std::forward<StrT>(str));
+constexpr string_view make_string(const StrT& str) {
+    const auto inp = make_str_arg(str);
     return { inp.data(), inp.length() };
 }
 
 template <class StrT, enable_if_str_arg_to_charW_t<StrT> = 0>
-inline std::string make_string(StrT&& str) {
-    const auto inp = make_str_arg(std::forward<StrT>(str));
+inline std::string make_string(const StrT& str) {
+    const auto inp = make_str_arg(str);
     return url_utf::to_utf8_string(inp.begin(), inp.end());
 }
 

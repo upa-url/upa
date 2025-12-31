@@ -29,8 +29,8 @@ namespace upa {
 /// @param[in] index zero-based label index starting from the leftmost label
 /// @return label position in the @p str_host string
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
-[[nodiscard]] constexpr std::size_t get_label_pos_by_index(StrT&& str_host, std::size_t index) {
-    const auto inp = make_str_arg(std::forward<StrT>(str_host));
+[[nodiscard]] constexpr std::size_t get_label_pos_by_index(const StrT& str_host, std::size_t index) {
+    const auto inp = make_str_arg(str_host);
     const auto* first = inp.begin();
     const auto* last = inp.end();
     const auto* ptr = first;
@@ -195,11 +195,11 @@ public:
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    [[nodiscard]] std::string get_suffix(StrT&& str_host,
+    [[nodiscard]] std::string get_suffix(const StrT& str_host,
         option opt = option::public_suffix) const {
         try {
             return std::string{ get_suffix_view(
-                upa::url_host{ std::forward<StrT>(str_host) },
+                upa::url_host{ str_host },
                 opt) };
         }
         catch (const upa::url_error&) {
@@ -246,10 +246,10 @@ public:
     /// @param[in] opt options
     /// @return information in the public_suffix_list::result type struct
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    [[nodiscard]] result get_suffix_info(StrT&& str_host,
+    [[nodiscard]] result get_suffix_info(const StrT& str_host,
         option opt = option::public_suffix) const {
         try {
-            auto res = get_suffix_info(upa::url_host{ std::forward<StrT>(str_host) }, opt);
+            auto res = get_suffix_info(upa::url_host{ str_host }, opt);
             res.first_label_pos = get_label_pos_by_index(str_host, res.first_label_ind);
             return res;
         }

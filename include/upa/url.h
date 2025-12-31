@@ -141,8 +141,8 @@ public:
     /// @param[in] str_url URL string to parse
     /// @param[in] pbase   pointer to base URL, may be `nullptr`
     template <class T, enable_if_str_arg_t<T> = 0>
-    explicit url(T&& str_url, const url* pbase = nullptr)
-        : url(std::forward<T>(str_url), pbase, detail::kURLParseError)
+    explicit url(const T& str_url, const url* pbase = nullptr)
+        : url{ str_url, pbase, detail::kURLParseError }
     {}
 
     /// @brief Parsing constructor.
@@ -152,8 +152,8 @@ public:
     /// @param[in] str_url URL string to parse
     /// @param[in] base    base URL
     template <class T, enable_if_str_arg_t<T> = 0>
-    explicit url(T&& str_url, const url& base)
-        : url(std::forward<T>(str_url), &base, detail::kURLParseError)
+    explicit url(const T& str_url, const url& base)
+        : url{ str_url, &base, detail::kURLParseError }
     {}
 
     /// @brief Parsing constructor.
@@ -163,8 +163,8 @@ public:
     /// @param[in] str_url  URL string to parse
     /// @param[in] str_base base URL string
     template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
-    explicit url(T&& str_url, TB&& str_base)
-        : url(std::forward<T>(str_url), url(std::forward<TB>(str_base), nullptr, detail::kBaseURLParseError))
+    explicit url(const T& str_url, const TB& str_base)
+        : url{ str_url, url{ str_base, nullptr, detail::kBaseURLParseError } }
     {}
 
     /// destructor
@@ -190,8 +190,8 @@ public:
     /// @param[in] base    pointer to base URL, may be nullptr
     /// @return error code (@a validation_errc::ok on success)
     template <class T, enable_if_str_arg_t<T> = 0>
-    validation_errc parse(T&& str_url, const url* base = nullptr) {
-        const auto inp = make_str_arg(std::forward<T>(str_url));
+    validation_errc parse(const T& str_url, const url* base = nullptr) {
+        const auto inp = make_str_arg(str_url);
         return do_parse(inp.begin(), inp.end(), base);
     }
 
@@ -201,8 +201,8 @@ public:
     /// @param[in] base    base URL
     /// @return error code (@a validation_errc::ok on success)
     template <class T, enable_if_str_arg_t<T> = 0>
-    validation_errc parse(T&& str_url, const url& base) {
-        return parse(std::forward<T>(str_url), &base);
+    validation_errc parse(const T& str_url, const url& base) {
+        return parse(str_url, &base);
     }
 
     /// @brief Parses given URL string against base URL.
@@ -211,11 +211,11 @@ public:
     /// @param[in] str_base base URL string
     /// @return error code (@a validation_errc::ok on success)
     template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
-    validation_errc parse(T&& str_url, TB&& str_base) {
+    validation_errc parse(const T& str_url, const TB& str_base) {
         upa::url base;
-        const auto res = base.parse(std::forward<TB>(str_base), nullptr);
+        const auto res = base.parse(str_base, nullptr);
         return res == validation_errc::ok
-            ? parse(std::forward<T>(str_url), &base)
+            ? parse(str_url, &base)
             : res;
     }
 
@@ -228,9 +228,9 @@ public:
     /// @param[in] pbase   pointer to base URL, may be `nullptr`
     /// @return true if given @a str_url can be parsed against @a *pbase
     template <class T, enable_if_str_arg_t<T> = 0>
-    [[nodiscard]] static bool can_parse(T&& str_url, const url* pbase = nullptr) {
+    [[nodiscard]] static bool can_parse(const T& str_url, const url* pbase = nullptr) {
         upa::url url;
-        return url.for_can_parse(std::forward<T>(str_url), pbase) == validation_errc::ok;
+        return url.for_can_parse(str_url, pbase) == validation_errc::ok;
     }
 
     /// @brief Checks if a given URL string can be successfully parsed
@@ -242,8 +242,8 @@ public:
     /// @param[in] base    base URL
     /// @return true if given @a str_url can be parsed against base URL
     template <class T, enable_if_str_arg_t<T> = 0>
-    [[nodiscard]] static bool can_parse(T&& str_url, const url& base) {
-        return can_parse(std::forward<T>(str_url), &base);
+    [[nodiscard]] static bool can_parse(const T& str_url, const url& base) {
+        return can_parse(str_url, &base);
     }
 
     /// @brief Checks if a given URL string can be successfully parsed
@@ -256,11 +256,11 @@ public:
     /// @param[in] str_base base URL string
     /// @return true if given @a str_url can be parsed against @a str_base URL string
     template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
-    [[nodiscard]] static bool can_parse(T&& str_url, TB&& str_base) {
+    [[nodiscard]] static bool can_parse(const T& str_url, const TB& str_base) {
         upa::url base;
         return
-            base.for_can_parse(std::forward<TB>(str_base), nullptr) == validation_errc::ok &&
-            can_parse(std::forward<T>(str_url), &base);
+            base.for_can_parse(str_base, nullptr) == validation_errc::ok &&
+            can_parse(str_url, &base);
     }
 
     // Setters
@@ -273,10 +273,10 @@ public:
     /// @param[in] str URL string to parse
     /// @return `true` - on success; `false` - on failure
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool href(StrT&& str);
-    /// Equivalent to @link href(StrT&& str) @endlink
+    bool href(const StrT& str);
+    /// Equivalent to @link href(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_href(StrT&& str) { return href(std::forward<StrT>(str)); }
+    bool set_href(const StrT& str) { return href(str); }
 
     /// @brief The protocol setter
     ///
@@ -286,10 +286,10 @@ public:
     /// @param[in] str string to parse
     /// @return `true` - on success; `false` - on failure (URL protocol unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool protocol(StrT&& str);
-    /// Equivalent to @link protocol(StrT&& str) @endlink
+    bool protocol(const StrT& str);
+    /// Equivalent to @link protocol(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_protocol(StrT&& str) { return protocol(std::forward<StrT>(str)); }
+    bool set_protocol(const StrT& str) { return protocol(str); }
 
     /// @brief The username setter
     ///
@@ -299,10 +299,10 @@ public:
     /// @param[in] str string to parse
     /// @return `true` - on success; `false` - if username can not be set
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool username(StrT&& str);
-    /// Equivalent to @link username(StrT&& str) @endlink
+    bool username(const StrT& str);
+    /// Equivalent to @link username(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_username(StrT&& str) { return username(std::forward<StrT>(str)); }
+    bool set_username(const StrT& str) { return username(str); }
 
     /// @brief The password setter
     ///
@@ -312,10 +312,10 @@ public:
     /// @param[in] str string to parse
     /// @return `true` - on success; `false` - if password can not be set
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool password(StrT&& str);
-    /// Equivalent to @link password(StrT&& str) @endlink
+    bool password(const StrT& str);
+    /// Equivalent to @link password(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_password(StrT&& str) { return password(std::forward<StrT>(str)); }
+    bool set_password(const StrT& str) { return password(str); }
 
     /// @brief The host setter
     ///
@@ -325,10 +325,10 @@ public:
     /// @param[in] str string to parse
     /// @return `true` - on success; `false` - on failure (URL's host and port unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool host(StrT&& str);
-    /// Equivalent to @link host(StrT&& str) @endlink
+    bool host(const StrT& str);
+    /// Equivalent to @link host(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_host(StrT&& str) { return host(std::forward<StrT>(str)); }
+    bool set_host(const StrT& str) { return host(str); }
 
     /// @brief The hostname setter
     ///
@@ -338,10 +338,10 @@ public:
     /// @param[in] str string to parse
     /// @return `true` - on success; `false` - on failure (URL's host unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool hostname(StrT&& str);
-    /// Equivalent to @link hostname(StrT&& str) @endlink
+    bool hostname(const StrT& str);
+    /// Equivalent to @link hostname(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_hostname(StrT&& str) { return hostname(std::forward<StrT>(str)); }
+    bool set_hostname(const StrT& str) { return hostname(str); }
 
     /// @brief The port setter
     ///
@@ -351,10 +351,10 @@ public:
     /// @param[in] str string to parse
     /// @return `true` - on success; `false` - on failure (URL's port unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool port(StrT&& str);
-    /// Equivalent to @link port(StrT&& str) @endlink
+    bool port(const StrT& str);
+    /// Equivalent to @link port(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_port(StrT&& str) { return port(std::forward<StrT>(str)); }
+    bool set_port(const StrT& str) { return port(str); }
 
     /// @brief The pathname setter
     ///
@@ -364,10 +364,10 @@ public:
     /// @param[in] str string to parse
     /// @return `true` - on success; `false` - on failure (URL's path unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool pathname(StrT&& str);
-    /// Equivalent to @link pathname(StrT&& str) @endlink
+    bool pathname(const StrT& str);
+    /// Equivalent to @link pathname(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_pathname(StrT&& str) { return pathname(std::forward<StrT>(str)); }
+    bool set_pathname(const StrT& str) { return pathname(str); }
 
     /// @brief The search setter
     ///
@@ -377,10 +377,10 @@ public:
     /// @param[in] str string to parse
     /// @return `true` - on success; `false` - on failure (URL's query unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool search(StrT&& str);
-    /// Equivalent to @link search(StrT&& str) @endlink
+    bool search(const StrT& str);
+    /// Equivalent to @link search(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_search(StrT&& str) { return search(std::forward<StrT>(str)); }
+    bool set_search(const StrT& str) { return search(str); }
 
     /// @brief The hash setter
     ///
@@ -390,10 +390,10 @@ public:
     /// @param[in] str string to parse
     /// @return `true` - on success; `false` - on failure (URL's fragment unchanged)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool hash(StrT&& str);
-    /// Equivalent to @link hash(StrT&& str) @endlink
+    bool hash(const StrT& str);
+    /// Equivalent to @link hash(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_hash(StrT&& str) { return hash(std::forward<StrT>(str)); }
+    bool set_hash(const StrT& str) { return hash(str); }
 
     // Getters
 
@@ -686,14 +686,14 @@ private:
 
     // parsing constructor
     template <class T, enable_if_str_arg_t<T> = 0>
-    explicit url(T&& str_url, const url* base, const char* what_arg);
+    explicit url(const T& str_url, const url* base, const char* what_arg);
 
     // parser
     template <typename CharT>
     validation_errc do_parse(const CharT* first, const CharT* last, const url* base);
 
     template <class T, enable_if_str_arg_t<T> = 0>
-    validation_errc for_can_parse(T&& str_url, const url* base);
+    validation_errc for_can_parse(const T& str_url, const url* base);
 
     // set scheme
     void set_scheme_str(string_view str);
@@ -1406,8 +1406,8 @@ inline bool url::canHaveUsernamePasswordPort() const {
 // Private parsing constructor
 
 template <class T, enable_if_str_arg_t<T>>
-inline url::url(T&& str_url, const url* base, const char* what_arg) {
-    const auto inp = make_str_arg(std::forward<T>(str_url));
+inline url::url(const T& str_url, const url* base, const char* what_arg) {
+    const auto inp = make_str_arg(str_url);
     const auto res = do_parse(inp.begin(), inp.end(), base);
     if (res != validation_errc::ok)
         throw url_error(res, what_arg);
@@ -1462,8 +1462,8 @@ inline validation_errc url::do_parse(const CharT* first, const CharT* last, cons
 }
 
 template <class T, enable_if_str_arg_t<T>>
-validation_errc url::for_can_parse(T&& str_url, const url* base) {
-    const auto inp = make_str_arg(std::forward<T>(str_url));
+validation_errc url::for_can_parse(const T& str_url, const url* base) {
+    const auto inp = make_str_arg(str_url);
     const auto* first = inp.begin();
     const auto* last = inp.end();
     const validation_errc res = [&]() {
@@ -1490,10 +1490,10 @@ validation_errc url::for_can_parse(T&& str_url, const url* base) {
 // Setters
 
 template <class StrT, enable_if_str_arg_t<StrT>>
-inline bool url::href(StrT&& str) {
+inline bool url::href(const StrT& str) {
     url u; // parsedURL
 
-    const auto inp = make_str_arg(std::forward<StrT>(str));
+    const auto inp = make_str_arg(str);
     if (u.do_parse(inp.begin(), inp.end(), nullptr) == validation_errc::ok) {
         safe_assign(std::move(u));
         return true;
@@ -1502,22 +1502,22 @@ inline bool url::href(StrT&& str) {
 }
 
 template <class StrT, enable_if_str_arg_t<StrT>>
-inline bool url::protocol(StrT&& str) {
+inline bool url::protocol(const StrT& str) {
     if (is_valid()) {
         detail::url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<StrT>(str));
+        const auto inp = make_str_arg(str);
         return detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, detail::url_parser::scheme_start_state) == validation_errc::ok;
     }
     return false;
 }
 
 template <class StrT, enable_if_str_arg_t<StrT>>
-inline bool url::username(StrT&& str) {
+inline bool url::username(const StrT& str) {
     if (canHaveUsernamePasswordPort()) {
         detail::url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<StrT>(str));
+        const auto inp = make_str_arg(str);
 
         std::string& str_username = urls.start_part(url::USERNAME);
         // UTF-8 percent encode it using the userinfo encode set
@@ -1529,11 +1529,11 @@ inline bool url::username(StrT&& str) {
 }
 
 template <class StrT, enable_if_str_arg_t<StrT>>
-inline bool url::password(StrT&& str) {
+inline bool url::password(const StrT& str) {
     if (canHaveUsernamePasswordPort()) {
         detail::url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<StrT>(str));
+        const auto inp = make_str_arg(str);
 
         std::string& str_password = urls.start_part(url::PASSWORD);
         // UTF-8 percent encode it using the userinfo encode set
@@ -1545,33 +1545,33 @@ inline bool url::password(StrT&& str) {
 }
 
 template <class StrT, enable_if_str_arg_t<StrT>>
-inline bool url::host(StrT&& str) {
+inline bool url::host(const StrT& str) {
     if (!has_opaque_path() && is_valid()) {
         detail::url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<StrT>(str));
+        const auto inp = make_str_arg(str);
         return detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, detail::url_parser::host_state) == validation_errc::ok;
     }
     return false;
 }
 
 template <class StrT, enable_if_str_arg_t<StrT>>
-inline bool url::hostname(StrT&& str) {
+inline bool url::hostname(const StrT& str) {
     if (!has_opaque_path() && is_valid()) {
         detail::url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<StrT>(str));
+        const auto inp = make_str_arg(str);
         return detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, detail::url_parser::hostname_state) == validation_errc::ok;
     }
     return false;
 }
 
 template <class StrT, enable_if_str_arg_t<StrT>>
-inline bool url::port(StrT&& str) {
+inline bool url::port(const StrT& str) {
     if (canHaveUsernamePasswordPort()) {
         detail::url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<StrT>(str));
+        const auto inp = make_str_arg(str);
         const auto* first = inp.begin();
         const auto* last = inp.end();
 
@@ -1585,24 +1585,24 @@ inline bool url::port(StrT&& str) {
 }
 
 template <class StrT, enable_if_str_arg_t<StrT>>
-inline bool url::pathname(StrT&& str) {
+inline bool url::pathname(const StrT& str) {
     if (!has_opaque_path() && is_valid()) {
         detail::url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<StrT>(str));
+        const auto inp = make_str_arg(str);
         return detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr, detail::url_parser::path_start_state) == validation_errc::ok;
     }
     return false;
 }
 
 template <class StrT, enable_if_str_arg_t<StrT>>
-inline bool url::search(StrT&& str) {
+inline bool url::search(const StrT& str) {
     bool res = false;
     if (is_valid()) {
         {
             detail::url_setter urls(*this);
 
-            const auto inp = make_str_arg(std::forward<StrT>(str));
+            const auto inp = make_str_arg(str);
             const auto* first = inp.begin();
             const auto* last = inp.end();
 
@@ -1622,11 +1622,11 @@ inline bool url::search(StrT&& str) {
 }
 
 template <class StrT, enable_if_str_arg_t<StrT>>
-inline bool url::hash(StrT&& str) {
+inline bool url::hash(const StrT& str) {
     if (is_valid()) {
         detail::url_setter urls(*this);
 
-        const auto inp = make_str_arg(std::forward<StrT>(str));
+        const auto inp = make_str_arg(str);
         const auto* first = inp.begin();
         const auto* last = inp.end();
 
@@ -3180,9 +3180,9 @@ enum class file_path_format {
 ///   [GetFullPathName](https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-getfullpathnamew),
 ///   [std::filesystem::canonical](https://en.cppreference.com/w/cpp/filesystem/canonical)
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
-[[nodiscard]] inline url url_from_file_path(StrT&& str, file_path_format format = file_path_format::native) {
+[[nodiscard]] inline url url_from_file_path(const StrT& str, file_path_format format = file_path_format::native) {
     using CharT = str_arg_char_t<StrT>;
-    const auto inp = make_str_arg(std::forward<StrT>(str));
+    const auto inp = make_str_arg(str);
     const auto* first = inp.begin();
     const auto* last = inp.end();
 

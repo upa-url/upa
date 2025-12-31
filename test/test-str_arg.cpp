@@ -16,8 +16,8 @@
 // Function to test
 
 template <class StrT, upa::enable_if_str_arg_t<StrT> = 0>
-inline std::size_t procfn(StrT&& str) {
-    const auto inp = upa::make_str_arg(std::forward<StrT>(str));
+inline std::size_t procfn(const StrT& str) {
+    const auto inp = upa::make_str_arg(str);
     return std::distance(inp.begin(), inp.end());
 }
 
