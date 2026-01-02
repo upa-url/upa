@@ -418,14 +418,54 @@ struct urlpattern_options {
     bool ignore_case = false;
 };
 
+class urlpattern_inputs {
+public:
+    using array_type = std::array<urlpattern_input, 2>;
+    using value_type = array_type::value_type;
+    using size_type = array_type::size_type;
+    using difference_type = array_type::difference_type;
+    using reference = array_type::const_reference;
+    using const_reference = array_type::const_reference;
+    using pointer = array_type::const_pointer;
+    using const_pointer = array_type::const_pointer;
+    using iterator = array_type::const_iterator;
+    using const_iterator = array_type::const_iterator;
+
+    constexpr urlpattern_inputs() noexcept = default;
+    // initializes with one or two strings
+    constexpr urlpattern_inputs(std::string_view str0, std::optional<std::string_view> str1 = std::nullopt) noexcept
+        : size_{ str1 ? 2u : 1u }
+        , arr_{ str0, str1 ? *str1 : std::string_view{} }
+    {}
+    // initializes with urlpattern_init
+    constexpr urlpattern_inputs(const urlpattern_init* init) noexcept
+        : size_{ 1u }
+        , arr_{ init }
+    {}
+
+    constexpr const_reference operator[](size_type pos) const {
+        assert(pos < size_);
+        return arr_[pos];
+    }
+
+    const_iterator begin() const noexcept { return arr_.begin(); }
+    const_iterator end() const noexcept { return arr_.begin() + size_; }
+
+    constexpr bool empty() const noexcept { return size_ == 0; }
+    constexpr size_type size() const noexcept { return size_; }
+
+private:
+    size_type size_ = 0;
+    array_type arr_;
+};
+
 struct urlpattern_component_result {
     std::string input;
     std::unordered_map<std::string_view, std::optional<std::string>> groups;
 };
 
 struct urlpattern_result {
-    // TODO: Optimize as max vector size here is 2 
-    std::vector<urlpattern_input> inputs;
+    urlpattern_inputs inputs;
 
     urlpattern_component_result protocol;
     urlpattern_component_result username;
@@ -481,7 +521,7 @@ private:
         std::string_view hostname, std::string_view port, std::string_view pathname,
         std::string_view search, std::string_view hash) const;
 
-    std::optional<urlpattern_result> match(std::vector<urlpattern_input>&& inputs,
+    std::optional<urlpattern_result> match(urlpattern_inputs&& inputs,
         std::string_view protocol, std::string_view username, std::string_view password,
         std::string_view hostname, std::string_view port, std::string_view pathname,
         std::string_view search, std::string_view hash) const;
@@ -703,7 +743,7 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(const 
     }
 
     // Append input to inputs
-    std::vector<urlpattern_input> inputs{ &input };
+    urlpattern_inputs inputs{ &input };
 
     return match(std::move(inputs),
         *apply_result.protocol, *apply_result.username, *apply_result.password,
@@ -721,11 +761,7 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(std::s
         return std::nullopt;
 
     // Append input to inputs
-    std::vector<urlpattern_input> inputs{ input };
-    if (base_url_str) {
-        // Append baseURLString to inputs
-        inputs.emplace_back(*base_url_str);
-    }
+    urlpattern_inputs inputs{ input, base_url_str };
 
     return match(std::move(inputs),
         url.get_part_view(upa::url::SCHEME),
@@ -744,7 +780,7 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(const 
         return std::nullopt;
 
     // If input is a URL, then append the serialization of input to inputs.
-    std::vector<urlpattern_input> inputs{ url.href() };
+    urlpattern_inputs inputs{ url.href() };
 
     return match(std::move(inputs),
         url.get_part_view(upa::url::SCHEME),
@@ -777,7 +813,7 @@ inline urlpattern_component_result urlpattern<regex_engine, E>::create_component
 }
 
 template <class regex_engine, typename E>
-inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::match(std::vector<urlpattern_input>&& inputs,
+inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::match(urlpattern_inputs&& inputs,
     std::string_view protocol, std::string_view username, std::string_view password,
     std::string_view hostname, std::string_view port, std::string_view pathname,
     std::string_view search, std::string_view hash) const
