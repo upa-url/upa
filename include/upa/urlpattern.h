@@ -1,4 +1,4 @@
-// Copyright 2023-2025 Rimas Misevičius
+// Copyright 2023-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -186,15 +186,32 @@ inline urlpattern_init parse_constructor_string(std::string_view input);
 // https://urlpattern.spec.whatwg.org/#token
 struct token {
     enum class type {
+        // The token represents a U+007B ({) code point.
         OPEN,
+        // The token represents a U+007D (}) code point.
         CLOSE,
+        // The token represents a string of the form "(<regular expression>)". The
+        // regular expression is required to consist of only ASCII code points.
         REGEXP,
+        // The token represents a string of the form ":<name>". The name value is
+        // restricted to code points that are consistent with JavaScript identifiers.
         NAME,
+        // The token represents a valid pattern code point without any special
+        // syntactical meaning.
         CHAR,
+        // The token represents a code point escaped using a backslash like "\<char>".
         ESCAPED_CHAR,
+        // The token represents a matching group modifier that is either the U+003F (?)
+        // or U+002B (+) code points.
         OTHER_MODIFIER,
+        // The token represents a U+002A (*) code point that can be either a wildcard
+        // matching group or a matching group modifier.
         ASTERISK,
+        // The token represents the end of the pattern string.
         END,
+        // The token represents a code point that is invalid in the pattern. This could
+        // be because of the code point value itself or due to its location within the
+        // pattern relative to other syntactic elements.
         INVALID_CHAR
     };
 
@@ -225,27 +242,27 @@ inline token_list tokenize(std::string_view input, tokenize_policy policy);
 // https://urlpattern.spec.whatwg.org/#part
 struct part {
     enum class type {
-        /// The part represents a simple fixed text string
+        // The part represents a simple fixed text string.
         FIXED_TEXT,
-        /// The part represents a matching group with a custom regular expression
+        // The part represents a matching group with a custom regular expression.
         REGEXP,
-        /// The part represents a matching group that matches code points up to the next
-        /// separator code point. This is typically used for a named group like ":foo" that
-        /// does not have a custom regular expression.
+        // The part represents a matching group that matches code points up to the next
+        // separator code point. This is typically used for a named group like ":foo" that
+        // does not have a custom regular expression.
         SEGMENT_WILDCARD,
-        /// The part represents a matching group that greedily matches all code points.
-        /// This is typically used for the "*" wildcard matching group.
+        // The part represents a matching group that greedily matches all code points.
+        // This is typically used for the "*" wildcard matching group.
         FULL_WILDCARD
     };
 
     enum class modifier {
-        /// The part does not have a modifier.
+        // The part does not have a modifier.
         none,
-        /// The part has an optional modifier indicated by the U+003F (?) code point.
+        // The part has an optional modifier indicated by the U+003F (?) code point.
         optional,
-        /// The part has a "zero or more" modifier indicated by the U+002A (*) code point.
+        // The part has a "zero or more" modifier indicated by the U+002A (*) code point.
         zero_or_more,
-        /// The part has a "one or more" modifier indicated by the U+002B (+) code point.
+        // The part has a "one or more" modifier indicated by the U+002B (+) code point.
         one_or_more
     };
 
