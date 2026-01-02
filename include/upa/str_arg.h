@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -23,6 +23,7 @@ inline void procfn(const StrT& str) {
 #include "util.h"
 #include <cassert>
 #include <cstddef>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -306,6 +307,37 @@ inline std::string make_string(const StrT& str) {
     const auto inp = make_str_arg(str);
     return url_utf::to_utf8_string(inp.begin(), inp.end());
 }
+
+
+// Support for optional string arguments
+
+namespace detail {
+
+struct str_arg_test {
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    constexpr str_arg_test(const StrT&) {}
+};
+
+template <class>
+inline constexpr bool is_just_optional_v = false;
+
+template <class T>
+inline constexpr bool is_just_optional_v<std::optional<T>> = true;
+
+} // namespace detail
+
+// helpers for optional string arguments
+
+template<class OptStrT>
+using enable_if_optional_str_arg_t = std::enable_if_t<
+    std::is_convertible_v<std::decay_t<OptStrT>, std::optional<detail::str_arg_test>>,
+    int>;
+
+template <class T>
+inline constexpr bool is_nullopt_v = std::is_same_v<std::decay_t<T>, std::nullopt_t>;
+
+template <class T>
+inline constexpr bool is_optional_v = detail::is_just_optional_v<std::decay_t<T>>;
 
 
 } // namespace upa

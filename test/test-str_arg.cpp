@@ -7,12 +7,28 @@
 #include <array>
 #include <vector>
 
-// Function to test
+// Functions to test
 
 template <class StrT, upa::enable_if_str_arg_t<StrT> = 0>
 inline std::size_t procfn(const StrT& str) {
     const auto inp = upa::make_str_arg(str);
     return std::distance(inp.begin(), inp.end());
+}
+
+template <class OptStrT, upa::enable_if_optional_str_arg_t<OptStrT> = 0>
+inline std::size_t optionalfn(const OptStrT& ostr) {
+    if constexpr (upa::is_nullopt_v<OptStrT>) {
+        return 0;
+    } else if constexpr (upa::is_optional_v<OptStrT>) {
+        if (ostr) {
+            const auto inp = upa::make_str_arg(*ostr);
+            return std::distance(inp.begin(), inp.end());
+        }
+        return 0;
+    } else {
+        const auto inp = upa::make_str_arg(ostr);
+        return std::distance(inp.begin(), inp.end());
+    }
 }
 
 // Custom string class convertible to std::basic_string_view
@@ -112,6 +128,24 @@ TEST_CASE_TEMPLATE_DEFINE("test_char", CharT, test_char) {
     // custom strings
     CHECK(procfn(ConvertibleString<CharT>{cptr, N}) == N);
     CHECK(procfn(CustomString<CharT>{cptr, N}) == N);
+
+    // optional string arguments
+    CHECK(optionalfn(std::nullopt) == 0);
+    // with std::optional
+    CHECK(optionalfn(std::optional<std::basic_string_view<CharT>>{}) == 0);
+    CHECK(optionalfn(std::optional{ cptr }) == N);
+    CHECK(optionalfn(std::optional{ upa::str_arg{ cptr, N } }) == N);
+    CHECK(optionalfn(std::optional{ std::basic_string<CharT>{ cptr } }) == N);
+    CHECK(optionalfn(std::optional{ std::basic_string_view<CharT>{ cptr } }) == N);
+    CHECK(optionalfn(std::optional{ ConvertibleString<CharT>{cptr, N} }) == N);
+    CHECK(optionalfn(std::optional{ CustomString<CharT>{cptr, N} }) == N);
+    // without std::optional
+    CHECK(optionalfn(cptr) == N);
+    CHECK(optionalfn(upa::str_arg{ cptr, N }) == N);
+    CHECK(optionalfn(std::basic_string<CharT>{ cptr }) == N);
+    CHECK(optionalfn(std::basic_string_view<CharT>{ cptr }) == N);
+    CHECK(optionalfn(ConvertibleString<CharT>{cptr, N}) == N);
+    CHECK(optionalfn(CustomString<CharT>{cptr, N}) == N);
 }
 
 TEST_CASE_TEMPLATE_INVOKE(test_char, char, wchar_t, char16_t, char32_t);
