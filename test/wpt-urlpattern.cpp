@@ -44,6 +44,8 @@ using urlpattern = upa::urlpattern<upa::regex_engine_std>;
 using urlpattern = upa::urlpattern<upa::regex_engine_srell>;
 #endif
 
+using urlpattern_result = upa::urlpattern_result_and_inputs;
+
 // This is a workaround for Clang versions earlier than 19. These versions of Clang
 // do not deduce the template argument type of the std::initializer_list from a list
 // of objects (using CTAD), so we specify this type explicitly.
@@ -193,7 +195,7 @@ struct exec_args {
 
 urlpattern create_urlpattern(const picojson::array& pattern_arr);
 bool urlpattern_test(const urlpattern& self, const exec_args& input);
-std::optional<upa::urlpattern_result> urlpattern_exec(const urlpattern& self, const exec_args& input);
+std::optional<urlpattern_result> urlpattern_exec(const urlpattern& self, const exec_args& input);
 
 
 auto get_component(const upa::url& url, std::string_view name) -> std::string_view {
@@ -221,7 +223,7 @@ auto get_component(const urlpattern& urlpt, std::string_view name) -> std::strin
     throw std::out_of_range("not urlpattern componnent"); // TODO: message
 };
 
-const upa::urlpattern_component_result& get_component_result(const upa::urlpattern_result& result, std::string_view name) {
+const upa::urlpattern_component_result& get_component_result(const urlpattern_result& result, std::string_view name) {
     if (name == "protocol"sv) return result.protocol;
     if (name == "username"sv) return result.username;
     if (name == "password"sv) return result.password;
@@ -672,14 +674,14 @@ bool urlpattern_test(const urlpattern& self, const exec_args& input) {
     return false;
 }
 
-std::optional<upa::urlpattern_result> urlpattern_exec(const urlpattern& self, const exec_args& input) {
+std::optional<urlpattern_result> urlpattern_exec(const urlpattern& self, const exec_args& input) {
     if (std::holds_alternative<std::string>(input.arg_)) {
-        return self.exec(std::get<std::string>(input.arg_), input.base_);
+        return self.exec<urlpattern_result>(std::get<std::string>(input.arg_), input.base_);
     }
     if (std::holds_alternative<upa::urlpattern_init>(input.arg_)) {
         if (input.base_)
             throw upa::urlpattern_error("Unexpected base URL"); // failure
-        return self.exec(std::get<upa::urlpattern_init>(input.arg_));
+        return self.exec<urlpattern_result>(std::get<upa::urlpattern_init>(input.arg_));
     }
     // TODO: error in test file
     return std::nullopt;
