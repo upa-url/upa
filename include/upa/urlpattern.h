@@ -129,6 +129,7 @@ constexpr bool is_regex_engine_v =
 // https://urlpattern.spec.whatwg.org/#urlpattern-class
 // https://urlpattern.spec.whatwg.org/#dictdef-urlpatterninit
 
+// URLPatternInit
 struct urlpattern_init {
     std::optional<std::string> protocol;
     std::optional<std::string> username;
@@ -412,12 +413,15 @@ constexpr bool hostname_pattern_is_ipv6_address(std::string_view input) noexcept
 // 1.2. The URLPattern class
 // https://urlpattern.spec.whatwg.org/#urlpattern-class
 
+// URLPatternInput
 using urlpattern_input = std::variant<std::string_view, const urlpattern_init*>;
 
+// URLPatternOptions
 struct urlpattern_options {
     bool ignore_case = false;
 };
 
+// sequence<URLPatternInput>
 class urlpattern_inputs {
 public:
     using array_type = std::array<urlpattern_input, 2>;
@@ -438,9 +442,9 @@ public:
         , arr_{ str0, str1 ? *str1 : std::string_view{} }
     {}
     // initializes with urlpattern_init
-    constexpr urlpattern_inputs(const urlpattern_init* init) noexcept
+    constexpr urlpattern_inputs(const urlpattern_init& init) noexcept
         : size_{ 1u }
-        , arr_{ init }
+        , arr_{ std::addressof(init) }
     {}
 
     constexpr const_reference operator[](size_type pos) const {
@@ -459,14 +463,15 @@ private:
     array_type arr_;
 };
 
+// URLPatternComponentResult
 struct urlpattern_component_result {
     std::string input;
     std::unordered_map<std::string_view, std::optional<std::string>> groups;
 };
 
-struct urlpattern_result {
-    urlpattern_inputs inputs;
+// URLPatternResult
 
+struct urlpattern_result {
     urlpattern_component_result protocol;
     urlpattern_component_result username;
     urlpattern_component_result password;
@@ -475,7 +480,21 @@ struct urlpattern_result {
     urlpattern_component_result pathname;
     urlpattern_component_result search;
     urlpattern_component_result hash;
+
+    template <class ...Args>
+    void set_inputs(Args&&... args) {}
 };
+
+struct urlpattern_result_and_inputs : public urlpattern_result {
+    urlpattern_inputs inputs;
+
+    template <class ...Args>
+    void set_inputs(Args&&... args) {
+        inputs = urlpattern_inputs{ std::forward<Args>(args)... };
+    }
+};
+
+// URLPattern
 
 template <class regex_engine,
     typename = std::enable_if_t<is_regex_engine_v<regex_engine>>>
@@ -496,10 +515,18 @@ public:
         std::optional<std::string_view> base_url_str = std::nullopt) const;
     [[nodiscard]] bool test(const upa::url& url) const;
 
-    [[nodiscard]] std::optional<urlpattern_result> exec(const urlpattern_init& input) const;
-    [[nodiscard]] std::optional<urlpattern_result> exec(std::string_view input,
+    template <class ResT = urlpattern_result,
+        std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int> = 0>
+    [[nodiscard]] std::optional<ResT> exec(const urlpattern_init& input) const;
+
+    template <class ResT = urlpattern_result,
+        std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int> = 0>
+    [[nodiscard]] std::optional<ResT> exec(std::string_view input,
         std::optional<std::string_view> base_url_str = std::nullopt) const;
-    [[nodiscard]] std::optional<urlpattern_result> exec(const upa::url& url) const;
+
+    template <class ResT = urlpattern_result,
+        std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int> = 0>
+    [[nodiscard]] std::optional<ResT> exec(const upa::url& url) const;
 
     // returns component's pattern_string_
     [[nodiscard]] std::string_view get_protocol() const noexcept;
@@ -521,7 +548,8 @@ private:
         std::string_view hostname, std::string_view port, std::string_view pathname,
         std::string_view search, std::string_view hash) const;
 
-    std::optional<urlpattern_result> match(urlpattern_inputs&& inputs,
+    template <class ResT>
+    std::optional<ResT> match(
         std::string_view protocol, std::string_view username, std::string_view password,
         std::string_view hostname, std::string_view port, std::string_view pathname,
         std::string_view search, std::string_view hash) const;
@@ -733,7 +761,8 @@ inline bool urlpattern<regex_engine, E>::match_for_test(
 // https://urlpattern.spec.whatwg.org/#url-pattern-match
 
 template <class regex_engine, typename E>
-inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(const urlpattern_init& input) const {
+template <class ResT, std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int>>
+inline std::optional<ResT> urlpattern<regex_engine, E>::exec(const urlpattern_init& input) const {
     urlpattern_init apply_result;
     try {
         apply_result = process_urlpattern_init(input, pattern::urlpattern_init_type::URL, true);
@@ -742,17 +771,19 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(const 
         return std::nullopt;
     }
 
-    // Append input to inputs
-    urlpattern_inputs inputs{ &input };
-
-    return match(std::move(inputs),
+    auto result = match<ResT>(
         *apply_result.protocol, *apply_result.username, *apply_result.password,
         *apply_result.hostname, *apply_result.port, *apply_result.pathname,
         *apply_result.search, *apply_result.hash);
+    // Append input to inputs
+    if (result)
+        result->set_inputs(input);
+    return result;
 }
 
 template <class regex_engine, typename E>
-inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(std::string_view input,
+template <class ResT, std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int>>
+inline std::optional<ResT> urlpattern<regex_engine, E>::exec(std::string_view input,
     std::optional<std::string_view> base_url_str) const
 {
     // Parse input
@@ -760,10 +791,7 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(std::s
     if (!url.is_valid())
         return std::nullopt;
 
-    // Append input to inputs
-    urlpattern_inputs inputs{ input, base_url_str };
-
-    return match(std::move(inputs),
+    auto result = match<ResT>(
         url.get_part_view(upa::url::SCHEME),
         url.get_part_view(upa::url::USERNAME),
         url.get_part_view(upa::url::PASSWORD),
@@ -772,17 +800,19 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(std::s
         url.get_part_view(upa::url::PATH),
         url.get_part_view(upa::url::QUERY),
         url.get_part_view(upa::url::FRAGMENT));
+    // Append input to inputs
+    if (result)
+        result->set_inputs(input, base_url_str);
+    return result;
 }
 
 template <class regex_engine, typename E>
-inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(const upa::url& url) const {
+template <class ResT, std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int>>
+inline std::optional<ResT> urlpattern<regex_engine, E>::exec(const upa::url& url) const {
     if (!url.is_valid())
         return std::nullopt;
 
-    // If input is a URL, then append the serialization of input to inputs.
-    urlpattern_inputs inputs{ url.href() };
-
-    return match(std::move(inputs),
+    auto result = match<ResT>(
         url.get_part_view(upa::url::SCHEME),
         url.get_part_view(upa::url::USERNAME),
         url.get_part_view(upa::url::PASSWORD),
@@ -791,6 +821,10 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::exec(const 
         url.get_part_view(upa::url::PATH),
         url.get_part_view(upa::url::QUERY),
         url.get_part_view(upa::url::FRAGMENT));
+    // If input is a URL, then append the serialization of input to inputs.
+    if (result)
+        result->set_inputs(url.href());
+    return result;
 }
 
 // create a component match result
@@ -813,7 +847,8 @@ inline urlpattern_component_result urlpattern<regex_engine, E>::create_component
 }
 
 template <class regex_engine, typename E>
-inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::match(urlpattern_inputs&& inputs,
+template <class ResT>
+inline std::optional<ResT> urlpattern<regex_engine, E>::match(
     std::string_view protocol, std::string_view username, std::string_view password,
     std::string_view hostname, std::string_view port, std::string_view pathname,
     std::string_view search, std::string_view hash) const
@@ -852,8 +887,7 @@ inline std::optional<urlpattern_result> urlpattern<regex_engine, E>::match(urlpa
         return std::nullopt;
 
     // Let result be a new URLPatternResult.
-    urlpattern_result result;
-    result.inputs = std::move(inputs);
+    ResT result;
     result.protocol = create_component_match_result(protocol_component_, protocol, protocol_exec_result);
     result.username = create_component_match_result(username_component_, username, username_exec_result);
     result.password = create_component_match_result(password_component_, password, password_exec_result);
