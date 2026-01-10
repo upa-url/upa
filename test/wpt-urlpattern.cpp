@@ -749,6 +749,50 @@ TEST_SUITE("urlpattern_init") {
 }
 
 // -----------------------------------------------------------------------------
+// Test urlpattern_result and urlpattern_result_and_inputs
+
+TEST_SUITE("urlpattern::exec(...)") {
+    const urlpattern urlp;
+    const upa::urlpattern_init urlpi;
+    const upa::url url{ "http://user:pass@host:1234/pathname?search#hash" };
+    const upa::url empty_url;
+
+    TEST_CASE("urlpattern_result") {
+        auto r1 = urlp.exec(urlpi);
+        CHECK(r1.has_value());
+
+        auto r2 = urlp.exec(url.href());
+        CHECK(r2.has_value());
+
+        auto r3 = urlp.exec(url);
+        CHECK(r3.has_value());
+
+        auto r4 = urlp.exec(empty_url);
+        CHECK_FALSE(r4.has_value());
+    }
+    TEST_CASE("urlpattern_result_and_inputs") {
+        auto r1 = urlp.exec<upa::urlpattern_result_and_inputs>(urlpi);
+        REQUIRE(r1.has_value());
+        REQUIRE(r1->inputs.size() == 1);
+        CHECK(*std::get<const upa::urlpattern_init*>(r1->inputs[0]) == urlpi);
+
+        auto r2 = urlp.exec<upa::urlpattern_result_and_inputs>(url.href(), "about:blank");
+        REQUIRE(r2.has_value());
+        REQUIRE(r2->inputs.size() == 2);
+        CHECK(std::get<std::string_view>(r2->inputs[0]) == url.href());
+        CHECK(std::get<std::string_view>(r2->inputs[1]) == "about:blank");
+
+        auto r3 = urlp.exec<upa::urlpattern_result_and_inputs>(url);
+        REQUIRE(r3.has_value());
+        REQUIRE(r3->inputs.size() == 1);
+        CHECK(std::get<std::string_view>(r3->inputs[0]) == url.href());
+
+        auto r4 = urlp.exec<upa::urlpattern_result_and_inputs>(empty_url);
+        CHECK_FALSE(r4.has_value());
+    }
+}
+
+// -----------------------------------------------------------------------------
 // Test is_identifier_start and is_identifier_part
 
 TEST_SUITE("is_identifier_start & is_identifier_part") {
