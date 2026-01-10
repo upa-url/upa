@@ -81,6 +81,15 @@ inline char32_t get_code_point(StrT&& input, std::size_t& ind) {
 }
 
 ///////////////////////////////////////////////////////////////////////
+// Check if T has an `inputs` member.
+
+template<class, class = void>
+inline constexpr bool has_inputs_v = false;
+
+template<class T>
+inline constexpr bool has_inputs_v<T, std::void_t<decltype(T::inputs)>> = true;
+
+///////////////////////////////////////////////////////////////////////
 // Requirements for regex_engine
 
 template<class T, class = void>
@@ -491,18 +500,10 @@ struct urlpattern_result {
     urlpattern_component_result pathname;
     urlpattern_component_result search;
     urlpattern_component_result hash;
-
-    template <class ...Args>
-    void set_inputs(Args&&... args) {}
 };
 
 struct urlpattern_result_and_inputs : public urlpattern_result {
     urlpattern_inputs inputs;
-
-    template <class ...Args>
-    void set_inputs(Args&&... args) {
-        inputs = urlpattern_inputs{ std::forward<Args>(args)... };
-    }
 };
 
 // URLPattern
@@ -786,9 +787,11 @@ inline std::optional<ResT> urlpattern<regex_engine, E>::exec(const urlpattern_in
         *apply_result.protocol, *apply_result.username, *apply_result.password,
         *apply_result.hostname, *apply_result.port, *apply_result.pathname,
         *apply_result.search, *apply_result.hash);
-    // Append input to inputs
-    if (result)
-        result->set_inputs(input);
+    if constexpr (pattern::has_inputs_v<ResT>) {
+        // Append input to inputs
+        if (result)
+            result->inputs = decltype(ResT::inputs){ input };
+    }
     return result;
 }
 
@@ -811,9 +814,11 @@ inline std::optional<ResT> urlpattern<regex_engine, E>::exec(std::string_view in
         url.get_part_view(upa::url::PATH),
         url.get_part_view(upa::url::QUERY),
         url.get_part_view(upa::url::FRAGMENT));
-    // Append input to inputs
-    if (result)
-        result->set_inputs(input, base_url_str);
+    if constexpr (pattern::has_inputs_v<ResT>) {
+        // Append input to inputs
+        if (result)
+            result->inputs = decltype(ResT::inputs){ input, base_url_str };
+    }
     return result;
 }
 
@@ -832,9 +837,11 @@ inline std::optional<ResT> urlpattern<regex_engine, E>::exec(const upa::url& url
         url.get_part_view(upa::url::PATH),
         url.get_part_view(upa::url::QUERY),
         url.get_part_view(upa::url::FRAGMENT));
-    // If input is a URL, then append the serialization of input to inputs.
-    if (result)
-        result->set_inputs(url.href());
+    if constexpr (pattern::has_inputs_v<ResT>) {
+        // If input is a URL, then append the serialization of input to inputs.
+        if (result)
+            result->inputs = decltype(ResT::inputs){ url.href() };
+    }
     return result;
 }
 
