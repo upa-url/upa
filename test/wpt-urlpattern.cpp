@@ -1,4 +1,4 @@
-// Copyright 2023-2025 Rimas Misevičius
+// Copyright 2023-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -48,14 +48,47 @@ using urlpattern = upa::urlpattern<upa::regex_engine_srell>;
 using string_view_pairs = std::initializer_list<std::pair<std::string_view, std::string_view>>;
 
 // -----------------------------------------------------------------------------
-// parses urltestdata.json
+// Helper functions
 
-picojson::value json_parse(std::string_view strv) {
+static picojson::value json_parse(std::string_view strv) {
     picojson::value v;
     picojson::parse(v, strv.begin(), strv.end(), nullptr);
     return v;
 }
 
+// String conversions for DataDrivenTest
+
+template <class K, class V>
+inline std::string vout(const std::unordered_map<K, V>& m) {
+    bool first = true;
+    std::string out("{");
+    for (const auto& [key, val] : m) {
+        if (first) first = false; else out += ", ";
+        out += '\"';
+        out += key;
+        out += "\": ";
+        if (val) {
+            out += '\"';
+            out += *val;
+            out += '\"';
+        } else {
+            out += "null";
+        }
+    }
+    out += '}';
+    return out;
+}
+
+template <class T>
+inline std::string vout(const std::optional<T>& o) {
+    return o ? std::string{ *o } : "null";
+}
+
+constexpr std::string_view vout(std::nullopt_t) {
+    return "null"sv;
+}
+
+// -----------------------------------------------------------------------------
 // https://github.com/web-platform-tests/wpt/blob/master/urlpattern/urlpattern-constructor.html
 
 int wpt_urlpattern_constructor() {
@@ -87,6 +120,7 @@ int wpt_urlpattern_constructor() {
     return ddt.result();
 }
 
+// -----------------------------------------------------------------------------
 // https://github.com/web-platform-tests/wpt/blob/master/urlpattern/resources/urlpattern-hasregexpgroups-tests.js
 
 template <class T>
@@ -139,6 +173,7 @@ int wpt_urlpattern_hasregexpgroups_tests() {
     return ddt.result();
 }
 
+// -----------------------------------------------------------------------------
 // https://github.com/web-platform-tests/wpt/blob/master/urlpattern/resources/urlpatterntests.js
 
 struct exec_args {
@@ -188,36 +223,6 @@ const upa::urlpattern_component_result& get_component_result(const upa::urlpatte
     if (name == "search"sv) return result.search;
     if (name == "hash"sv) return result.hash;
     throw std::out_of_range("not urlpattern_result componnent"); // TODO: message
-}
-
-template <class K, class V>
-inline std::string vout(const std::unordered_map<K, V>& m) {
-    bool first = true;
-    std::string out("{");
-    for (const auto& [key, val] : m) {
-        if (first) first = false; else out += ", ";
-        out += '\"';
-        out += key;
-        out += "\": ";
-        if (val) {
-            out += '\"';
-            out += *val;
-            out += '\"';
-        } else {
-            out += "null";
-        }
-    }
-    out += '}';
-    return out;
-}
-
-template <class T>
-inline std::string vout(const std::optional<T>& o) {
-    return o ? std::string{ *o } : "null";
-}
-
-constexpr std::string_view vout(std::nullopt_t) {
-    return "null"sv;
 }
 
 template<class StrT>
