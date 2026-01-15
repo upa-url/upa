@@ -10,6 +10,9 @@
 # include "upa/regex_engine_srell.h"
 #endif
 
+#define DOCTEST_CONFIG_IMPLEMENT
+#include "doctest/doctest.h"
+
 #include <filesystem>
 #include <initializer_list>
 #include <iostream>
@@ -88,36 +91,41 @@ constexpr std::string_view vout(std::nullopt_t) {
     return "null"sv;
 }
 
+// String conversions for doctest
+
+namespace doctest {
+    template<class T> struct StringMaker<std::optional<T>> {
+        static String convert(const std::optional<T>& oval) {
+            if (oval) {
+                std::string sval{ *oval };
+                return { sval.data(), static_cast<String::size_type>(sval.size()) };
+            }
+            return "nullopt";
+        }
+    };
+    template<> struct StringMaker<std::nullopt_t> {
+        static String convert(std::nullopt_t) {
+            return "nullopt";
+        }
+    };
+} // namespace doctest
+
 // -----------------------------------------------------------------------------
 // https://github.com/web-platform-tests/wpt/blob/master/urlpattern/urlpattern-constructor.html
 
-int wpt_urlpattern_constructor() {
-    DataDrivenTest ddt;
-#if TEST_DEBUG
-    ddt.config_debug_break(true);
-#endif
-
-    std::cout << "========== urlpattern constructor ==========\n";
-
-    ddt.test_case("Test unclosed token", [&](DataDrivenTest::TestCase& tc) {
-        tc.assert_throws<upa::urlpattern_error>([&]() {
-            urlpattern{ upa::url("https://example.org/%(").to_string() };
-        }, "new URLPattern(new URL('https://example.org/%('))");
-        tc.assert_throws<upa::urlpattern_error>([&]() {
-            urlpattern{ upa::url("https://example.org/%((").to_string() };
-        }, "new URLPattern(new URL('https://example.org/%(('))");
-        tc.assert_throws<upa::urlpattern_error>([&]() {
-            urlpattern{ "(\\" };
-        }, "new URLPattern('(\\')");
-    });
-
-    // The following JavaScript test is skipped because C++ does not have
+TEST_SUITE("urlpattern_constructor") {
+    TEST_CASE("Test unclosed token") {
+        CHECK_THROWS_AS(urlpattern{ upa::url("https://example.org/%(").to_string() },
+            upa::urlpattern_error);
+        CHECK_THROWS_AS(urlpattern{ upa::url("https://example.org/%((").to_string() },
+            upa::urlpattern_error);
+        CHECK_THROWS_AS(urlpattern{ "(\\" }, upa::urlpattern_error);
+    }
+    // The following JavaScript test case is skipped because C++ does not have
     // an equivalent of the value undefined:
     // test(() => {
     //   new URLPattern(undefined, undefined);
     // }, `Test constructor with undefined`);
-
-    return ddt.result();
 }
 
 // -----------------------------------------------------------------------------
@@ -680,7 +688,7 @@ std::optional<upa::urlpattern_result> urlpattern_exec(const urlpattern& self, co
 // -----------------------------------------------------------------------------
 // Test urlpattern_init
 
-int test_urlpattern_init() {
+TEST_SUITE("urlpattern_init") {
     static constexpr std::pair<std::string_view, std::string_view> members[] = {
         { "protocol"sv, "protocol"sv },
         { "username"sv, "username"sv },
@@ -699,78 +707,74 @@ int test_urlpattern_init() {
         "post"sv
     };
 
-    DataDrivenTest ddt;
-
-    std::cout << "========== urlpattern_init ==========\n";
-
-    ddt.test_case("Test urlpattern_init set() & get()", [&](DataDrivenTest::TestCase& tc) {
+    TEST_CASE("Test urlpattern_init set() & get()") {
         upa::urlpattern_init init;
+
         // get when no values are set
         for (auto [key, val] : members) {
-            tc.assert_equal(std::nullopt, init.get(key), std::string{ "init.get('" } + std::string{ key } + "')");
+            CHECK_MESSAGE(init.get(key) == std::nullopt, "key = \"", key, "\"");
         }
+
         // set values of various string types
         init.set("protocol", "p-char-ptr");
-        tc.assert_equal("p-char-ptr", init.get("protocol"), "init.get('protocol')");
+        CHECK(init.get("protocol") == "p-char-ptr");
         init.set("protocol", "p-sv"sv);
-        tc.assert_equal("p-sv", init.get("protocol"), "init.get('protocol')");
+        CHECK(init.get("protocol") == "p-sv");
         std::string str_lvalue{ "p-lvalue" };
         init.set("protocol", str_lvalue);
-        tc.assert_equal("p-lvalue", init.get("protocol"), "init.get('protocol')");
+        CHECK(init.get("protocol") == "p-lvalue");
         init.set("protocol", std::string{ "p-rvalue" });
-        tc.assert_equal("p-rvalue", init.get("protocol"), "init.get('protocol')");
+        CHECK(init.get("protocol") == "p-rvalue");
+
         // set values
         for (auto [key, val] : members)
             init.set(key, val);
+
         // check values
         for (auto [key, val] : members) {
-            tc.assert_equal(val, init.get(key), std::string{ "init.get('" } + std::string{ key } + "')");
+            CHECK_MESSAGE(init.get(key) == val, "key = \"", key, "\"");
         }
+
         // try to get the value of a non-existent member
         for (auto key : not_members) {
-            tc.assert_equal(std::nullopt, init.get(key), std::string{"init.get('"} + std::string{key} + "')");
+            CHECK_MESSAGE(init.get(key) == std::nullopt, "key = \"", key, "\"");
         }
-    });
-
-    return ddt.result();
+    }
 }
 
 // -----------------------------------------------------------------------------
 // Test is_identifier_start and is_identifier_part
 
-int test_unicode_identifiers() {
-    DataDrivenTest ddt;
-
-    std::cout << "========== is_identifier_start & is_identifier_part ==========\n";
-
-    ddt.test_case("Test is_identifier_start", [&](DataDrivenTest::TestCase& tc) {
-        tc.assert_equal(true, upa::pattern::table::is_identifier_start('$'), "'$'");
-        tc.assert_equal(true, upa::pattern::table::is_identifier_start('_'), "'_'");
-        tc.assert_equal(false, upa::pattern::table::is_identifier_start(0xE0100), "0xE0100");
-        tc.assert_equal(false, upa::pattern::table::is_identifier_start(0x10FFFF), "0x10FFFF");
-    });
-    ddt.test_case("Test is_identifier_part", [&](DataDrivenTest::TestCase& tc) {
-        tc.assert_equal(true, upa::pattern::table::is_identifier_part('$'), "'$'");
-        tc.assert_equal(true, upa::pattern::table::is_identifier_part('_'), "'_'");
-        tc.assert_equal(true, upa::pattern::table::is_identifier_part(0xE0100), "0xE0100");
-        tc.assert_equal(false, upa::pattern::table::is_identifier_part(0x10FFFF), "0x10FFFF");
-    });
-
-    return ddt.result();
+TEST_SUITE("is_identifier_start & is_identifier_part") {
+    TEST_CASE("Test is_identifier_start") {
+        CHECK(upa::pattern::table::is_identifier_start('$'));
+        CHECK(upa::pattern::table::is_identifier_start('_'));
+        CHECK_FALSE(upa::pattern::table::is_identifier_start(0xE0100));
+        CHECK_FALSE(upa::pattern::table::is_identifier_start(0x10FFFF));
+    }
+    TEST_CASE("Test is_identifier_part") {
+        CHECK(upa::pattern::table::is_identifier_part('$'));
+        CHECK(upa::pattern::table::is_identifier_part('_'));
+        CHECK(upa::pattern::table::is_identifier_part(0xE0100));
+        CHECK_FALSE(upa::pattern::table::is_identifier_part(0x10FFFF));
+    }
 }
 
 // -----------------------------------------------------------------------------
 
-int main(int argc, const char* argv[])
+int test_other(int argc, const char** argv) {
+    std::cout << "========== Other tests ==========\n";
+    return doctest::Context(argc, argv).run();
+}
+
+int main(int argc, const char** argv)
 {
     int err = 0;
 
-    err |= wpt_urlpattern_constructor();
     err |= wpt_urlpattern_hasregexpgroups_tests();
     err |= wpt_urlpatterntests("wpt/urlpatterntestdata.json");
     err |= wpt_urlpatterntests("data/my-urlpatterntestdata.json");
-    err |= test_urlpattern_init();
-    err |= test_unicode_identifiers();
+    err |= test_other(argc, argv);
 
     return err;
 }
