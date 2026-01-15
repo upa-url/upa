@@ -711,7 +711,9 @@ TEST_SUITE("urlpattern_init") {
         upa::urlpattern_init init;
 
         // get when no values are set
-        for (auto [key, val] : members) {
+        for (auto [k, val] : members) {
+            // structured bindings cannot be captured by lambda expressions until C++20
+            auto key = k;
             CHECK_MESSAGE(init.get(key) == std::nullopt, "key = \"", key, "\"");
         }
 
@@ -731,7 +733,9 @@ TEST_SUITE("urlpattern_init") {
             init.set(key, val);
 
         // check values
-        for (auto [key, val] : members) {
+        for (auto [k, val] : members) {
+            // structured bindings cannot be captured by lambda expressions until C++20
+            auto key = k;
             CHECK_MESSAGE(init.get(key) == val, "key = \"", key, "\"");
         }
 
