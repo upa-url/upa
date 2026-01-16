@@ -27,7 +27,7 @@
 template <class K, class V>
 inline std::string vout(const std::unordered_map<K, V>& m);
 template <class T>
-inline std::string vout(const std::optional<T>& o);
+inline std::string_view vout(const std::optional<T>& o);
 constexpr std::string_view vout(std::nullopt_t);
 
 #include "ddt/DataDrivenTest.hpp"
@@ -75,7 +75,7 @@ inline std::string vout(const std::unordered_map<K, V>& m) {
             out += *val;
             out += '\"';
         } else {
-            out += "null";
+            out += "nullopt";
         }
     }
     out += '}';
@@ -83,12 +83,12 @@ inline std::string vout(const std::unordered_map<K, V>& m) {
 }
 
 template <class T>
-inline std::string vout(const std::optional<T>& o) {
-    return o ? std::string{ *o } : "null";
+inline std::string_view vout(const std::optional<T>& oval) {
+    return oval ? std::string_view{ *oval } : "nullopt"sv;
 }
 
 constexpr std::string_view vout(std::nullopt_t) {
-    return "null"sv;
+    return "nullopt"sv;
 }
 
 // String conversions for doctest
@@ -97,8 +97,8 @@ namespace doctest {
     template<class T> struct StringMaker<std::optional<T>> {
         static String convert(const std::optional<T>& oval) {
             if (oval) {
-                std::string sval{ *oval };
-                return { sval.data(), static_cast<String::size_type>(sval.size()) };
+                std::string_view sv{ *oval };
+                return { sv.data(), static_cast<String::size_type>(sv.size()) };
             }
             return "nullopt";
         }
