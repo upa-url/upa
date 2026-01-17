@@ -141,6 +141,17 @@ struct urlpattern_init {
     std::optional<std::string> hash;
     std::optional<std::string> base_url;
 
+#ifdef UPA_CPP_20
+    bool operator==(const urlpattern_init&) const = default;
+#else
+    bool operator==(const urlpattern_init& other) const {
+        return protocol == other.protocol && username == other.username &&
+            password == other.password && hostname == other.hostname && port == other.port
+            && pathname == other.pathname  && search == other.search && hash == other.hash
+            && base_url == other.base_url;
+    }
+#endif
+
     // Get value of member by name
     [[nodiscard]] std::optional<std::string_view> get(std::string_view name) const {
         if (auto ptr = get_member(name))
