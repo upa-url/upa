@@ -1,17 +1,11 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-
-//
-// NOTE: To pass test this file must just compile without errors.
-//
-
 #include "upa/str_arg.h"
-//#include "doctest-main.h"
+#include "doctest-main.h"
 #include <array>
 #include <vector>
-
 
 // Function to test
 
@@ -66,8 +60,7 @@ struct str_arg_char<CustomString<CharT>> {
 
 // Test char type
 
-template <class CharT>
-inline void test_char() {
+TEST_CASE_TEMPLATE_DEFINE("test_char", CharT, test_char) {
     const std::size_t N = 3;
     CharT arr[] = { '1', '2', '3', 0 };
     const CharT carr[] = { '1', '2', '3', 0 };
@@ -75,60 +68,53 @@ inline void test_char() {
     const CharT* cptr = arr;
     const CharT* volatile vptr = arr;
 
-    procfn(arr);
-    procfn(carr);
-    procfn(ptr);
-    procfn(cptr);
-    procfn(vptr);
+    CHECK(procfn(arr) == N);
+    CHECK(procfn(carr) == N);
+    CHECK(procfn(ptr) == N);
+    CHECK(procfn(cptr) == N);
+    CHECK(procfn(vptr) == N);
 
     // upa::str_arg
     upa::str_arg<CharT> arg{ arr, N };
-    procfn(arg);
+    CHECK(procfn(arg) == N);
     const upa::str_arg carg{ arr, N };
-    procfn(carg);
+    CHECK(procfn(carg) == N);
 
-    procfn(upa::str_arg{ arr, N });
-    procfn(upa::str_arg{ carr, N });
-    procfn(upa::str_arg{ ptr, N });
-    procfn(upa::str_arg{ cptr, N });
-    procfn(upa::str_arg{ vptr, N });
+    CHECK(procfn(upa::str_arg{ arr, N }) == N);
+    CHECK(procfn(upa::str_arg{ carr, N }) == N);
+    CHECK(procfn(upa::str_arg{ ptr, N }) == N);
+    CHECK(procfn(upa::str_arg{ cptr, N }) == N);
+    CHECK(procfn(upa::str_arg{ vptr, N }) == N);
     // int size
-    procfn(upa::str_arg{ arr, static_cast<int>(N) });
-    procfn(upa::str_arg{ cptr, static_cast<int>(N) });
+    CHECK(procfn(upa::str_arg{ arr, static_cast<int>(N) }) == N);
+    CHECK(procfn(upa::str_arg{ cptr, static_cast<int>(N) }) == N);
 
-    procfn(upa::str_arg{ arr, arr + N });
-    procfn(upa::str_arg{ carr, carr + N });
-    procfn(upa::str_arg{ ptr, ptr + N });
-    procfn(upa::str_arg{ cptr, cptr + N });
-    procfn(upa::str_arg{ vptr, vptr + N });
+    CHECK(procfn(upa::str_arg{ arr, arr + N }) == N);
+    CHECK(procfn(upa::str_arg{ carr, carr + N }) == N);
+    CHECK(procfn(upa::str_arg{ ptr, ptr + N }) == N);
+    CHECK(procfn(upa::str_arg{ cptr, cptr + N }) == N);
+    CHECK(procfn(upa::str_arg{ vptr, vptr + N }) == N);
 
     // has data() and size() members
-    procfn(std::array<CharT, N>{ '1', '2', '3'});
-    procfn(std::vector<CharT>{ '1', '2', '3'});
+    CHECK(procfn(std::array<CharT, N>{ '1', '2', '3'}) == N);
+    CHECK(procfn(std::vector<CharT>{ '1', '2', '3'}) == N);
 
     // std::basic_string
     const std::basic_string<CharT> str{ arr };
-    procfn(str);
-    procfn(std::basic_string<CharT>{ arr });
+    CHECK(procfn(str) == N);
+    CHECK(procfn(std::basic_string<CharT>{ arr }) == N);
 
     // std::basic_string_view
     const std::basic_string_view<CharT> strv{ arr };
-    procfn(strv);
-    procfn(std::basic_string_view<CharT>{ arr });
+    CHECK(procfn(strv) == N);
+    CHECK(procfn(std::basic_string_view<CharT>{ arr }) == N);
 
     // custom strings
-    procfn(ConvertibleString<CharT>{cptr, N});
-    procfn(CustomString<CharT>{cptr, N});
+    CHECK(procfn(ConvertibleString<CharT>{cptr, N}) == N);
+    CHECK(procfn(CustomString<CharT>{cptr, N}) == N);
 }
 
-int main() {
-    test_char<char>();
-    test_char<wchar_t>();
-    test_char<char16_t>();
-    test_char<char32_t>();
+TEST_CASE_TEMPLATE_INVOKE(test_char, char, wchar_t, char16_t, char32_t);
 #ifdef __cpp_char8_t
-    test_char<char8_t>();
+TEST_CASE_TEMPLATE_INVOKE(test_char, char8_t);
 #endif
-
-    return 0;
-}
