@@ -749,6 +749,54 @@ TEST_SUITE("urlpattern_init") {
 }
 
 // -----------------------------------------------------------------------------
+// Test the `urlpattern` with various string and char types
+
+TEST_CASE_TEMPLATE_DEFINE("test_urlpattern", CharT, test_urlpattern) {
+    const urlpattern urlp{ "*://host.*" };
+
+    // ws://host.lt/path?search#hash
+    const CharT inp_arr[] = {
+        'w','s',':','/','/','h','o','s','t','.','l','t','/','p','a','t','h',
+        '?','s','e','a','r','c','h','#','h','a','s','h','\0'
+    };
+    // about:blank
+    const CharT base_arr[] = {
+        'a','b','o','u','t',':','b','l','a','n','k','\0'
+    };
+    const CharT* inp_strz = inp_arr;
+    const std::basic_string<CharT> inp_str{ inp_arr };
+    const std::basic_string_view<CharT> inp_sv{ inp_arr };
+    const std::basic_string_view<CharT> base_sv{ base_arr };
+    const std::optional<std::basic_string_view<CharT>> base_osv{ base_arr };
+
+    CHECK(urlp.test(inp_strz, base_sv));
+    CHECK(urlp.test(inp_str, base_osv));
+    CHECK(urlp.test(inp_sv));
+
+    auto r1 = urlp.exec<urlpattern_result>(inp_strz, base_sv);
+    REQUIRE(r1.has_value());
+    REQUIRE(r1->inputs.size() == 2);
+    CHECK(std::get<std::basic_string_view<CharT>>(r1->inputs[0]) == inp_sv);
+    CHECK(std::get<std::basic_string_view<CharT>>(r1->inputs[1]) == base_sv);
+
+    auto r2 = urlp.exec<urlpattern_result>(inp_str, base_osv);
+    REQUIRE(r2.has_value());
+    REQUIRE(r2->inputs.size() == 2);
+    CHECK(std::get<std::basic_string_view<CharT>>(r2->inputs[0]) == inp_sv);
+    CHECK(std::get<std::basic_string_view<CharT>>(r2->inputs[1]) == base_sv);
+
+    auto r3 = urlp.exec<urlpattern_result>(inp_sv);
+    REQUIRE(r3.has_value());
+    REQUIRE(r3->inputs.size() == 1);
+    CHECK(std::get<std::basic_string_view<CharT>>(r3->inputs[0]) == inp_sv);
+}
+
+TEST_CASE_TEMPLATE_INVOKE(test_urlpattern, char, wchar_t, char16_t, char32_t);
+#ifdef __cpp_char8_t
+TEST_CASE_TEMPLATE_INVOKE(test_urlpattern, char8_t);
+#endif
+
+// -----------------------------------------------------------------------------
 // Test urlpattern_result and urlpattern_result_and_inputs
 
 TEST_SUITE("urlpattern::exec(...)") {
