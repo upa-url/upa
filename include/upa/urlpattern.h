@@ -53,12 +53,22 @@ inline bool is_special_scheme_default_port(std::string_view scheme, std::string_
 
 // Parse URL against base URL
 
-inline upa::url parse_url_against_base(std::string_view input, std::optional<std::string_view> base_url_str) {
+template <class T, class TB,
+    upa::enable_if_str_arg_t<T> = 0,
+    upa::enable_if_optional_str_arg_t<TB> = 0>
+inline upa::url parse_url_against_base(const T& input, const TB& base_url_str) {
     upa::url url;
-    if (base_url_str)
-        url.parse(input, *base_url_str);
-    else
+
+    if constexpr (upa::is_nullopt_v<TB>) {
         url.parse(input);
+    } else if constexpr (upa::is_optional_v<TB>) {
+        if (base_url_str)
+            url.parse(input, *base_url_str);
+        else
+            url.parse(input);
+    } else {
+        url.parse(input, base_url_str);
+    }
     return url;
 }
 
@@ -434,7 +444,16 @@ constexpr bool hostname_pattern_is_ipv6_address(std::string_view input) noexcept
 // https://urlpattern.spec.whatwg.org/#urlpattern-class
 
 // URLPatternInput
-using urlpattern_input = std::variant<std::string_view, const urlpattern_init*>;
+using urlpattern_input = std::variant<
+    std::monostate,
+    std::string_view,
+#ifdef __cpp_char8_t
+    std::u8string_view,
+#endif
+    std::u16string_view,
+    std::u32string_view,
+    std::wstring_view,
+    const urlpattern_init*>;
 
 // URLPatternOptions
 struct urlpattern_options {
@@ -457,9 +476,11 @@ public:
 
     constexpr urlpattern_inputs() noexcept = default;
     // initializes with one or two strings
-    constexpr urlpattern_inputs(std::string_view str0, std::optional<std::string_view> str1 = std::nullopt) noexcept
-        : size_{ str1 ? 2u : 1u }
-        , arr_{ str0, str1 ? *str1 : std::string_view{} }
+    template <class T, class TB = std::nullopt_t, upa::enable_if_str_arg_t<T> = 0,
+        upa::enable_if_optional_str_arg_t<TB> = 0>
+    constexpr urlpattern_inputs(const T& str0, const TB& str1 = std::nullopt) noexcept
+        : size_{ 1u + get_optional_count(str1) }
+        , arr_{ make_string_view(str0), get_optional_item(str1) }
     {}
     // initializes with urlpattern_init
     constexpr urlpattern_inputs(const urlpattern_init& init) noexcept
@@ -479,6 +500,30 @@ public:
     constexpr size_type size() const noexcept { return size_; }
 
 private:
+    template <class StrT, enable_if_str_arg_t<StrT> = 0>
+    static constexpr auto make_string_view(const StrT& str) {
+        const auto inp = make_str_arg(str);
+        return util::to_string_view<str_arg_char_t<StrT>>(inp.data(), inp.length());
+    }
+    template <class T>
+    static constexpr size_type get_optional_count(const T& ostr) {
+        if constexpr (upa::is_nullopt_v<T>)
+            return 0u;
+        else if constexpr (upa::is_optional_v<T>)
+            return ostr ? 1u : 0u;
+        else
+            return 1u;
+    }
+    template <class T>
+    static constexpr value_type get_optional_item(const T& ostr) {
+        if constexpr (upa::is_nullopt_v<T>)
+            return value_type{};
+        else if constexpr (upa::is_optional_v<T>)
+            return ostr ? value_type{ make_string_view(*ostr) } : value_type{};
+        else
+            return make_string_view(ostr);
+    }
+
     size_type size_ = 0;
     array_type arr_;
 };
@@ -523,18 +568,22 @@ public:
         : urlpattern{ make_urlpattern_init(input, std::nullopt), opt } {}
 
     [[nodiscard]] bool test(const urlpattern_init& input) const;
-    [[nodiscard]] bool test(std::string_view input,
-        std::optional<std::string_view> base_url_str = std::nullopt) const;
+
+    template <class T, class TB = std::nullopt_t, upa::enable_if_str_arg_t<T> = 0,
+        upa::enable_if_optional_str_arg_t<TB> = 0>
+    [[nodiscard]] bool test(const T& input, const TB& base_url_str = std::nullopt) const;
+
     [[nodiscard]] bool test(const upa::url& url) const;
 
     template <class ResT = urlpattern_result,
         std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int> = 0>
     [[nodiscard]] std::optional<ResT> exec(const urlpattern_init& input) const;
 
-    template <class ResT = urlpattern_result,
-        std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int> = 0>
-    [[nodiscard]] std::optional<ResT> exec(std::string_view input,
-        std::optional<std::string_view> base_url_str = std::nullopt) const;
+    template <class ResT = urlpattern_result, class T, class TB = std::nullopt_t,
+        std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int> = 0,
+        upa::enable_if_str_arg_t<T> = 0, upa::enable_if_optional_str_arg_t<TB> = 0>
+    [[nodiscard]] std::optional<ResT> exec(const T& input,
+        const TB& base_url_str = std::nullopt) const;
 
     template <class ResT = urlpattern_result,
         std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int> = 0>
@@ -732,7 +781,8 @@ inline bool urlpattern<regex_engine, E>::test(const urlpattern_init& input) cons
 }
 
 template <class regex_engine, typename E>
-inline bool urlpattern<regex_engine, E>::test(std::string_view input, std::optional<std::string_view> base_url_str) const {
+template <class T, class TB, upa::enable_if_str_arg_t<T>, upa::enable_if_optional_str_arg_t<TB>>
+inline bool urlpattern<regex_engine, E>::test(const T& input, const TB& base_url_str) const {
     return test(pattern::parse_url_against_base(input, base_url_str));
 }
 
@@ -796,9 +846,11 @@ inline std::optional<ResT> urlpattern<regex_engine, E>::exec(const urlpattern_in
 }
 
 template <class regex_engine, typename E>
-template <class ResT, std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int>>
-inline std::optional<ResT> urlpattern<regex_engine, E>::exec(std::string_view input,
-    std::optional<std::string_view> base_url_str) const
+template <class ResT, class T, class TB,
+    std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int>,
+    upa::enable_if_str_arg_t<T>, upa::enable_if_optional_str_arg_t<TB>>
+inline std::optional<ResT> urlpattern<regex_engine, E>::exec(const T& input,
+    const TB& base_url_str) const
 {
     // Parse input
     const auto url = pattern::parse_url_against_base(input, base_url_str);
