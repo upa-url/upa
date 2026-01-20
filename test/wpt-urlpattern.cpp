@@ -752,7 +752,11 @@ TEST_SUITE("urlpattern_init") {
 // Test the `urlpattern` with various string and char types
 
 TEST_CASE_TEMPLATE_DEFINE("test_urlpattern", CharT, test_urlpattern) {
-    const urlpattern urlp{ "*://host.*" };
+    // *://host.*
+    const CharT ctor_inp_arr[] = {
+        '*',':','/','/','h','o','s','t','.','*', '\0'
+    };
+    const std::basic_string_view<CharT> ctor_inp_sv{ ctor_inp_arr };
 
     // ws://host.lt/path?search#hash
     const CharT inp_arr[] = {
@@ -769,10 +773,14 @@ TEST_CASE_TEMPLATE_DEFINE("test_urlpattern", CharT, test_urlpattern) {
     const std::basic_string_view<CharT> base_sv{ base_arr };
     const std::optional<std::basic_string_view<CharT>> base_osv{ base_arr };
 
+    const urlpattern urlp{ ctor_inp_sv, base_osv };
+
+    // urlpattern::test(...)
     CHECK(urlp.test(inp_strz, base_sv));
     CHECK(urlp.test(inp_str, base_osv));
     CHECK(urlp.test(inp_sv));
 
+    // urlpattern::exec(...)
     auto r1 = urlp.exec<urlpattern_result>(inp_strz, base_sv);
     REQUIRE(r1.has_value());
     REQUIRE(r1->inputs.size() == 2);
@@ -789,6 +797,18 @@ TEST_CASE_TEMPLATE_DEFINE("test_urlpattern", CharT, test_urlpattern) {
     REQUIRE(r3.has_value());
     REQUIRE(r3->inputs.size() == 1);
     CHECK(std::get<std::basic_string_view<CharT>>(r3->inputs[0]) == inp_sv);
+
+    // urlpattern constructor tests
+    const urlpattern urlp1{ ctor_inp_sv };
+    CHECK(urlp1.get_protocol() == "*");
+
+    urlpattern urlp2{ ctor_inp_sv, std::basic_string<CharT>{base_arr} };
+    CHECK(urlp2.get_hostname() == "host.*");
+
+    urlpattern urlp3{ ctor_inp_sv, std::optional<std::basic_string<CharT>>{base_arr} };
+    CHECK(urlp3.get_hostname() == "host.*");
+
+    CHECK_THROWS(urlpattern{ "/path", std::optional<std::basic_string<CharT>>{} });
 }
 
 TEST_CASE_TEMPLATE_INVOKE(test_urlpattern, char, wchar_t, char16_t, char32_t);

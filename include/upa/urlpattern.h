@@ -18,7 +18,7 @@
 #include <string_view>
 #include <type_traits>
 #include <unordered_map>
-#include <utility> // pair
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -560,11 +560,14 @@ public:
     // constructor with urlpattern_init as URLPatternInput
     urlpattern(const urlpattern_init& init = {}, urlpattern_options opt = {});
 
-    // constructor with std::string_view as URLPatternInput
-    urlpattern(std::string_view input, std::string_view base_url, urlpattern_options opt = {})
-        : urlpattern{ make_urlpattern_init(input, base_url), opt } {}
+    // constructor with string as URLPatternInput
+    template <class T, class TB, upa::enable_if_str_arg_t<T> = 0,
+        upa::enable_if_optional_str_arg_t<TB> = 0>
+    urlpattern(const T& input, TB&& base_url, urlpattern_options opt = {})
+        : urlpattern{ make_urlpattern_init(input, std::forward<TB>(base_url)), opt } {}
 
-    urlpattern(std::string_view input, urlpattern_options opt = {})
+    template <class T, upa::enable_if_str_arg_t<T> = 0>
+    urlpattern(const T& input, urlpattern_options opt = {})
         : urlpattern{ make_urlpattern_init(input, std::nullopt), opt } {}
 
     [[nodiscard]] bool test(const urlpattern_init& input) const;
@@ -615,9 +618,13 @@ private:
         std::string_view hostname, std::string_view port, std::string_view pathname,
         std::string_view search, std::string_view hash) const;
 
-    static urlpattern_init make_urlpattern_init(std::string_view input, std::optional<std::string_view> base_url);
-    static urlpattern_component_result create_component_match_result(const pattern::component<regex_engine>& comp,
-        std::string_view input, const regex_exec_result& exec_result);
+    template <class T, class TB, upa::enable_if_str_arg_t<T> = 0,
+        upa::enable_if_optional_str_arg_t<TB> = 0>
+    static urlpattern_init make_urlpattern_init(const T& input, TB&& base_url);
+
+    static urlpattern_component_result create_component_match_result(
+        const pattern::component<regex_engine>& comp, std::string_view input,
+        const regex_exec_result& exec_result);
 
     // 1.3. The URL pattern struct
     // https://urlpattern.spec.whatwg.org/#url-pattern
@@ -655,13 +662,21 @@ public:
 // https://urlpattern.spec.whatwg.org/#url-pattern-create
 
 template <class regex_engine, typename E>
-inline urlpattern_init urlpattern<regex_engine, E>::make_urlpattern_init(std::string_view input,
-    std::optional<std::string_view> base_url)
+template <class T, class TB, upa::enable_if_str_arg_t<T>, upa::enable_if_optional_str_arg_t<TB>>
+inline urlpattern_init urlpattern<regex_engine, E>::make_urlpattern_init(const T& input, TB&& base_url)
 {
-    urlpattern_init init{ pattern::parse_constructor_string<regex_engine>(input) };
-    if (!base_url && !init.protocol)
-        throw urlpattern_error("No base URL");
-    init.base_url = base_url;
+    urlpattern_init init{ pattern::parse_constructor_string<regex_engine>(upa::make_string(input)) };
+    if constexpr (upa::is_nullopt_v<TB>) {
+        if (!init.protocol)
+            throw urlpattern_error("No base URL");
+    } else if constexpr (upa::is_optional_v<TB>) {
+        if (base_url)
+            init.base_url = upa::make_string(*std::forward<TB>(base_url));
+        else if (!init.protocol)
+            throw urlpattern_error("No base URL");
+    } else {
+        init.base_url = upa::make_string(std::forward<TB>(base_url));
+    }
     return init;
 }
 
