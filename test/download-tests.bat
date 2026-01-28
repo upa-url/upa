@@ -13,6 +13,14 @@ for %%f in (setters_tests.json toascii.json urltestdata.json urltestdata-javascr
   curl -fsS -o %p%\wpt\%%f https://raw.githubusercontent.com/web-platform-tests/wpt/%HASH%/url/resources/%%f
 )
 
+REM Commit hash of URL Pattern web-platform-tests
+REM https://github.com/web-platform-tests/wpt/tree/master/urlpattern
+set URLP_HASH=a2e15ad40518c30c4e7f649584dbda699a40d531
+
+for %%f in (urlpatterntestdata.json) do (
+  curl -fsS -o %p%\wpt\%%f https://raw.githubusercontent.com/web-platform-tests/wpt/%URLP_HASH%/urlpattern/resources/%%f
+)
+
 REM Commit hash of the Public Suffix List (PSL)
 REM https://github.com/publicsuffix/list
 set PSL_HASH=4a97adbc7f153c31b7d0f62a32bf856f0f1ee6c2
