@@ -29,7 +29,7 @@ jobs:
       # Install and run doxygen
       - name: Download theme
         run: doc/download-theme.sh
-      - uses: ssciwr/doxygen-install@v1
+      - uses: ssciwr/doxygen-install@v2
         with:
           version: "1.15.0"
       - name: Run doxygen
