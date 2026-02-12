@@ -1011,6 +1011,7 @@ INPUT                  = include/upa/url.h \
                          include/upa/url_search_params.h \
                          include/upa/url_percent_encode.h \
                          include/upa/url_version.h \
+                         include/upa/urlpattern.h \
                          include/upa/public_suffix_list.h \
                          README.md \
                          doc/string_input.md
@@ -1143,7 +1144,8 @@ EXCLUDE_PATTERNS       =
 
 EXCLUDE_SYMBOLS        = upa::detail \
                          upa::host_output \
-                         upa::host_parser
+                         upa::host_parser \
+                         upa::pattern
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or directories
 # that contain example code fragments that are included (see the \include

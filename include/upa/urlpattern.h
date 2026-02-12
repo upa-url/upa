@@ -148,7 +148,10 @@ constexpr bool is_regex_engine_v =
 // https://urlpattern.spec.whatwg.org/#urlpattern-class
 // https://urlpattern.spec.whatwg.org/#dictdef-urlpatterninit
 
-// URLPatternInit
+/// @brief URLPatternInit struct
+///
+/// This struct represents the URLPatternInit dictionary as specified in
+/// URL Pattern specification.
 struct urlpattern_init {
     std::optional<std::string> protocol;
     std::optional<std::string> username;
@@ -171,14 +174,18 @@ struct urlpattern_init {
     }
 #endif
 
-    // Get value of member by name
+    /// @brief Get value of member by name
+    /// @param name Name of the member to get
+    /// @return Value of the member if found, `std::nullopt` otherwise
     [[nodiscard]] std::optional<std::string_view> get(std::string_view name) const {
         if (auto ptr = get_member(name))
             return this->*ptr;
         return std::nullopt;
     }
 
-    // Set value of member by name
+    /// @brief Set value of member by name
+    /// @param name Name of the member to set
+    /// @param value Value to set, must be assignable to std::string
     template <typename T, std::enable_if_t<std::is_assignable_v<std::string, T>, int> = 0>
     void set(std::string_view name, T&& value) {
         if (auto ptr = get_member(name))
@@ -528,14 +535,22 @@ private:
     array_type arr_;
 };
 
-// URLPatternComponentResult
+/// @brief URLPatternComponentResult struct
+///
+/// This struct represents the match result for a single URL pattern component.
+/// It is used in the `upa::urlpattern_result` struct.
 struct urlpattern_component_result {
     std::string input;
     std::unordered_map<std::string_view, std::optional<std::string>> groups;
 };
 
-// URLPatternResult
-
+/// @brief The result of executing the URL pattern when there is a match.
+///
+/// Matched group values are contained in per-component group objects within the result object;
+/// e.g. `res->pathname.groups["id"]`. This struct does not has an `inputs` member. If you need
+/// it, then use `upa::urlpattern_result_and_inputs` struct.
+///
+/// This struct is used as the default return type of the upa::urlpattern's `exec` function.
 struct urlpattern_result {
     urlpattern_component_result protocol;
     urlpattern_component_result username;
@@ -547,61 +562,229 @@ struct urlpattern_result {
     urlpattern_component_result hash;
 };
 
+/// @brief The result of executing the URL pattern when there is a match.
+///
+/// This struct extends the `upa::urlpattern_result` by adding an `inputs` member. It can be
+/// specified as a template argument for the upa::urlpattern's `exec` function, when the `inputs`
+/// member is required.
 struct urlpattern_result_and_inputs : public urlpattern_result {
     urlpattern_inputs inputs;
 };
 
-// URLPattern
-
+/// @brief URL pattern class template
+///
+/// It implemebts URLPattern class as specified in WHATWG URL Pattern specification:
+/// https://urlpattern.spec.whatwg.org/#urlpattern-class
+///
+/// To use it you need provide regex engine type which meets requirements
+/// specified in the `is_regex_engine_v` trait. The library itself provides
+/// two regex engines:
+/// * `upa::regex_engine_std` - based on std::regex and defined in `regex_engine_std.h`
+/// * `upa::regex_engine_srell` - depends on SRELL (std::regex-like library) and
+///   defined in `regex_engine_srell.h`
+///
+/// We recommend using `upa::regex_engine_srell` as it is compliant with latest ECMAScript
+/// standard, and using it lets pass all URLPattern tests. It depends on SRELL library
+/// that can be obtained from https://www.akenotsuki.com/misc/srell/en/. The SRELL 4.066
+/// or later version is required.
+///
+/// In simple cases, `upa::regex_engine_std` can be used. However, std::regex conforms to
+/// the modified ECMAScript regular expression grammar based on the old (year 2011)
+/// ECMAScript standard. Therefore, some URLPattern tests will fail if it is used.
+///
+/// Example:
+/// @code
+/// #include <upa/regex_engine_srell.h>
+/// #include <upa/urlpattern.h>
+/// #include <iostream>
+///
+/// using urlpattern = upa::urlpattern<upa::regex_engine_srell>;
+///
+/// int main() {
+///     urlpattern urlp("https://*.example.com/:path");
+///     std::cout << urlp.test("https://sub.example.com/index.html") << '\n';
+/// }
+/// @endcode
+///
+/// @tparam regex_engine Regular expression engine type
 template <class regex_engine,
     typename = std::enable_if_t<is_regex_engine_v<regex_engine>>>
 class urlpattern {
 public:
-    // constructor with urlpattern_init as URLPatternInput
+    /// @brief Constructs urlpattern object from `upa::urlpattern_init` object
+    ///
+    /// The @a init is an object containing separate patterns for each URL component; e.g.
+    /// hostname, pathname, etc. Missing components will default to a wildcard pattern. In
+    /// addition, @a init can contain a `base_url` property that provides static text patterns
+    /// for any missing components.
+    ///
+    /// The optional @a opt parameter has the `ignore_case` property which can be set to `true`
+    /// to enable case-insensitive matching. Note that by default, that is in the absence of the
+    /// @a opt argument, matching is always case-sensitive.
+    ///
+    /// This constructor throws an `upa::urlpattern_error` exception if the @a init contains an
+    /// invalid data.
+    ///
+    /// @param[in] init `upa::urlpattern_init` object
+    /// @param[in] opt optional `upa::urlpattern_options` struct
     urlpattern(const urlpattern_init& init = {}, urlpattern_options opt = {});
 
-    // constructor with string as URLPatternInput
+    /// @brief Constructs urlpattern object from URL pattern string and optional base URL string
+    ///
+    /// The @a input is a URL string containing pattern syntax for one or more components. If
+    /// @a base_url is provided, then @a input can be relative. This constructor will always set
+    /// at least an empty string value and does not default any components to wildcard patterns.
+    ///
+    /// The optional @a opt parameter has the `ignore_case` property which can be set to `true`
+    /// to enable case-insensitive matching. Note that by default, that is in the absence of the
+    /// @a opt argument, matching is always case-sensitive.
+    ///
+    /// This constructor throws an `upa::urlpattern_error` exception if the @a input or @a base_url
+    /// are invalid.
+    ///
+    /// @param[in] input URL pattern string
+    /// @param[in] base_url optional base URL string
+    /// @param[in] opt optional `upa::urlpattern_options` struct
     template <class T, class TB, upa::enable_if_str_arg_t<T> = 0,
         upa::enable_if_optional_str_arg_t<TB> = 0>
     urlpattern(const T& input, TB&& base_url, urlpattern_options opt = {})
         : urlpattern{ make_urlpattern_init(input, std::forward<TB>(base_url)), opt } {}
 
+    /// @brief Constructs urlpattern object from URL pattern string
+    ///
+    /// The @a input is a URL string containing pattern syntax for one or more components.
+    ///
+    /// The optional @a opt parameter has the `ignore_case` property which can be set to `true`
+    /// to enable case-insensitive matching. Note that by default, that is in the absence of the
+    /// @a opt argument, matching is always case-sensitive.
+    ///
+    /// This constructor throws an `upa::urlpattern_error` exception if the @a input is invalid.
+    ///
+    /// @param[in] input URL pattern string
+    /// @param[in] opt optional `upa::urlpattern_options` struct
     template <class T, upa::enable_if_str_arg_t<T> = 0>
     urlpattern(const T& input, urlpattern_options opt = {})
         : urlpattern{ make_urlpattern_init(input, std::nullopt), opt } {}
 
+    /// @brief Test whether URL pattern matches the input
+    ///
+    /// The @a input is an object containing strings representing each URL component; e.g.
+    /// hostname, pathname, etc. Missing components are treated as empty strings. In addition,
+    /// @a input can contain a `base_url` property that provides values for any missing components.
+    ///
+    /// @param[in] input `upa::urlpattern_init` object
+    /// @return `true` if URL pattern matches the @a input on a component-by-component basis,
+    ///   `false` otherwise
     [[nodiscard]] bool test(const urlpattern_init& input) const;
 
+    /// @brief Test whether URL pattern matches the input URL string
+    ///
+    /// If @a base_url_str is provided, then @a input URL string can be relative.
+    ///
+    /// @param[in] input URL string to test
+    /// @param[in] base_url_str optional base URL string
+    /// @return `true` if URL pattern matches the @a input on a component-by-component basis,
+    ///   `false` otherwise
     template <class T, class TB = std::nullopt_t, upa::enable_if_str_arg_t<T> = 0,
         upa::enable_if_optional_str_arg_t<TB> = 0>
     [[nodiscard]] bool test(const T& input, const TB& base_url_str = std::nullopt) const;
 
+    /// @brief Test whether URL pattern matches the URL.
+    /// @param[in] url URL to test
+    /// @return `true` if URL pattern matches the @a url on a component-by-component basis,
+    ///   `false` otherwise
     [[nodiscard]] bool test(const upa::url& url) const;
 
+    /// @brief Executes the URL pattern against the input
+    ///
+    /// The @a input is an object containing strings representing each URL component; e.g.
+    /// hostname, pathname, etc. Missing components are treated as empty strings. In addition,
+    /// @a input can contain a `base_url` property that provides values for any missing components.
+    ///
+    /// If URL pattern matches the @a input on a component-by-component basis then an object of
+    /// type `ResT` is returned containing the results. Matched group values are contained in
+    /// per-component group objects within the result object; e.g. `res->pathname.groups["id"]`.
+    ///
+    /// By default, the result type is `upa::urlpattern_result`. It does not contain `inputs`
+    /// field. If you need to have `inputs` field in the result, you can use
+    /// `upa::urlpattern_result_and_inputs` as the result type. For example:
+    /// @code
+    /// const urlpattern urlp("*://*.example.com/:id");
+    /// upa::urlpattern_init input;
+    /// input.protocol = "wss";
+    /// input.hostname = "www.example.com";
+    /// input.pathname = "/123";
+    /// auto res = urlp.exec<upa::urlpattern_result_and_inputs>(input);
+    /// @endcode
+    ///
+    /// @tparam ResT Result type, must be derived from `upa::urlpattern_result`
+    /// @param[in] input `upa::urlpattern_init` object
+    /// @return match results; `std::nullopt` if no match
     template <class ResT = urlpattern_result,
         std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int> = 0>
     [[nodiscard]] std::optional<ResT> exec(const urlpattern_init& input) const;
 
+    /// @brief Executes the URL pattern against the input URL string
+    ///
+    /// If @a base_url_str is provided, then @a input URL string can be relative.
+    ///
+    /// If URL pattern matches the @a input on a component-by-component basis then an object of
+    /// type `ResT` is returned containing the results. Matched group values are contained in
+    /// per-component group objects within the result object; e.g. `res->pathname.groups["id"]`.
+    ///
+    /// By default, the `ResT` result type is `upa::urlpattern_result`.
+    ///
+    /// @tparam ResT Result type, must be derived from `upa::urlpattern_result`
+    /// @param[in] input URL string to match against URL pattern
+    /// @param[in] base_url_str optional base URL string
+    /// @return match results; `std::nullopt` if no match
     template <class ResT = urlpattern_result, class T, class TB = std::nullopt_t,
         std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int> = 0,
         upa::enable_if_str_arg_t<T> = 0, upa::enable_if_optional_str_arg_t<TB> = 0>
     [[nodiscard]] std::optional<ResT> exec(const T& input,
         const TB& base_url_str = std::nullopt) const;
 
+    /// @brief Executes the URL pattern against the URL
+    ///
+    /// If URL pattern matches the @a url on a component-by-component basis then an object of
+    /// type `ResT` is returned containing the results. Matched group values are contained in
+    /// per-component group objects within the result object; e.g. `res->pathname.groups["id"]`.
+    ///
+    /// By default, the `ResT` result type is `upa::urlpattern_result`.
+    ///
+    /// @tparam ResT Result type, must be derived from `upa::urlpattern_result`
+    /// @param[in] url URL to test
+    /// @return Optional match result; `std::nullopt` if no match
     template <class ResT = urlpattern_result,
         std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int> = 0>
     [[nodiscard]] std::optional<ResT> exec(const upa::url& url) const;
 
-    // returns component's pattern_string_
+    /// @return URL pattern's normalized protocol pattern string
     [[nodiscard]] std::string_view get_protocol() const noexcept;
+
+    /// @return URL pattern's normalized username pattern string
     [[nodiscard]] std::string_view get_username() const noexcept;
+
+    /// @return URL pattern's normalized password pattern string
     [[nodiscard]] std::string_view get_password() const noexcept;
+
+    /// @return URL pattern's normalized hostname pattern string
     [[nodiscard]] std::string_view get_hostname() const noexcept;
+
+    /// @return URL pattern's normalized port pattern string
     [[nodiscard]] std::string_view get_port() const noexcept;
+
+    /// @return URL pattern's normalized pathname pattern string
     [[nodiscard]] std::string_view get_pathname() const noexcept;
+
+    /// @return URL pattern's normalized search pattern string
     [[nodiscard]] std::string_view get_search() const noexcept;
+
+    /// @return URL pattern's normalized hash pattern string
     [[nodiscard]] std::string_view get_hash() const noexcept;
-    // Returns whether urlpattern contains one or more groups which uses regular expression matching
+
+    /// @return whether URL pattern contains one or more groups which uses
+    ///   regular expression matching
     [[nodiscard]] bool has_regexp_groups() const noexcept;
 
 private:
@@ -626,7 +809,7 @@ private:
         const pattern::component<regex_engine>& comp, std::string_view input,
         const regex_exec_result& exec_result);
 
-    // 1.3. The URL pattern struct
+    // The URL pattern struct
     // https://urlpattern.spec.whatwg.org/#url-pattern
     pattern::component<regex_engine> protocol_component_;
     pattern::component<regex_engine> username_component_;
@@ -639,8 +822,10 @@ private:
 };
 
 ///////////////////////////////////////////////////////////////////////
-/// @brief urlpattern exception class
 
+/// @brief urlpattern exception class
+///
+/// This exception can be thrown by the `upa::urlpattern` constructor in the case of an error.
 class urlpattern_error : public std::runtime_error {
 public:
     /// constructs a new urlpattern_error object with the given error message
@@ -938,7 +1123,8 @@ inline std::optional<ResT> urlpattern<regex_engine, E>::match(
     std::string_view hostname, std::string_view port, std::string_view pathname,
     std::string_view search, std::string_view hash) const
 {
-    // Let protocolExecResult be RegExpBuiltinExec(urlpattern's protocol component's regular expression, protocol).
+    // Let protocolExecResult be RegExpBuiltinExec(urlpattern's protocol component's
+    // regular expression, protocol).
     regex_exec_result protocol_exec_result;
     if (!protocol_component_.regular_expression_.exec(protocol, protocol_exec_result))
         return std::nullopt;
@@ -1021,7 +1207,7 @@ inline component<regex_engine>::component(std::string_view input, encoding_callb
     // Implementations are free to perform matching directly against the part list when possible;
     // e.g. when there are no custom regexp matching groups. If there are custom regular
     // expressions, however, its important that they be immediately evaluated in the compile
-    // a component algorithm so an error can be thrown if they are invalid. 
+    // a component algorithm so an error can be thrown if they are invalid.
     if (!regular_expression_.init(regular_expression_string, opt.ignore_case))
         throw urlpattern_error("regular expression is not valid");
 
@@ -1131,7 +1317,7 @@ inline urlpattern_init parse_constructor_string(std::string_view input) {
         // Note
         // On every iteration of the parse loop the parser's token index will be incremented by its
         // token increment value. Typically this means incrementing by 1, but at certain times it is
-        // set to zero. The token increment is then always reset back to 1 at the top of the loop. 
+        // set to zero. The token increment is then always reset back to 1 at the top of the loop.
 
         if (parser.token_list_[parser.token_index_].type_ == token::type::END) {
             if (parser.state_ == state::INIT) {
@@ -2284,7 +2470,7 @@ inline std::string canonicalize_port(std::string_view port_value, std::optional<
     // * Let dummyURL be the result of creating a dummy URL.
     // * If protocolValue was given, then set dummyURL’s scheme to protocolValue.
     // * Let parseResult be the result of running basic URL parser given portValue
-    //   with dummyURL as url and port state as state override. 
+    //   with dummyURL as url and port state as state override.
     upa::url dummy_url{};
     {
         upa::detail::url_serializer urls(dummy_url);
