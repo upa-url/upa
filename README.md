@@ -149,6 +149,7 @@ int main() {
             std::cout << " URL parse error\n";
         }
     }
+    return 0;
 }
 ```
 
@@ -213,6 +214,7 @@ int main() {
     upa::public_suffix_list psl;
     if (psl.load("public_suffix_list.dat"))
         std::cout << psl.get_suffix("upa-url.github.io.") << '\n'; // github.io.
+    return 0;
 }
 ```
 
