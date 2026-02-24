@@ -1013,6 +1013,8 @@ INPUT                  = include/upa/url.h \
                          include/upa/url_version.h \
                          include/upa/urlpattern.h \
                          include/upa/public_suffix_list.h \
+                         include/upa/regex_engine_srell.h \
+                         include/upa/regex_engine_std.h \
                          README.md \
                          doc/string_input.md
 
