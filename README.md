@@ -1,6 +1,6 @@
 # Upa URL
 
-Upa URL is [WHATWG URL Standard](https://url.spec.whatwg.org/) compliant <b>U</b>RL <b>pa</b>rser library written in C++.
+Upa URL is [WHATWG URL Standard](https://url.spec.whatwg.org/) and [URL Pattern Standard](https://urlpattern.spec.whatwg.org/) compliant <b>U</b>RL <b>pa</b>rser library written in C++.
 
 The library is self-contained with no dependencies and requires a compiler that supports C++17 or later (for previous major version that requires C++11 or later, see [the v1.x branch](https://github.com/upa-url/upa/tree/v1.x)).
 It is known to compile with Clang 7, GCC 8, Microsoft Visual Studio 2017 or later. Can also be compiled to WebAssembly, see demo: https://upa-url.github.io/demo/
@@ -8,7 +8,11 @@ It is known to compile with Clang 7, GCC 8, Microsoft Visual Studio 2017 or late
 ## Features and standard conformance
 
 This library is up to date with the URL Standard published on
-[30 October 2025 (commit 5252665)](https://url.spec.whatwg.org/commit-snapshots/52526653e848c5a56598c84aa4bc8ac9025fb66b/) and supports internationalized domain names as specified in the [UTS46 Unicode IDNA Compatibility Processing version 17.0.0](https://www.unicode.org/reports/tr46/tr46-35.html).
+[30 October 2025](https://url.spec.whatwg.org/commit-snapshots/52526653e848c5a56598c84aa4bc8ac9025fb66b/),
+the URL Pattern Standard published on
+[3 December 2025](https://urlpattern.spec.whatwg.org/commit-snapshots/3d91559f3f4660902c0c10c6d79e1bf8a0394fd5/)
+and supports internationalized domain names as specified in the
+[UTS46 Unicode IDNA Compatibility Processing version 17.0.0](https://www.unicode.org/reports/tr46/tr46-35.html).
 
 It implements:
 1. [URL class](https://url.spec.whatwg.org/#url-class): `upa::url`
@@ -17,6 +21,7 @@ It implements:
 4. [URL equivalence](https://url.spec.whatwg.org/#url-equivalence): `upa::equals` function
 5. [Percent decoding and encoding](https://url.spec.whatwg.org/#percent-encoded-bytes) functions: `upa::percent_decode`, `upa::percent_encode` and `upa::encode_url_component`
 6. [Public Suffix List](https://publicsuffix.org/) class `upa::public_suffix_list` to get [public suffix](https://url.spec.whatwg.org/#host-public-suffix) and [registrable domain](https://url.spec.whatwg.org/#host-registrable-domain) of a host.
+7. [URL Pattern class](https://urlpattern.spec.whatwg.org/#urlpattern-class) as `upa::urlpattern` class template.
 
 It has some differences from the standard:
 1. Setters of the `upa::url` class are implemented as functions, which return `true` if value is accepted.
@@ -214,6 +219,33 @@ int main() {
     upa::public_suffix_list psl;
     if (psl.load("public_suffix_list.dat"))
         std::cout << psl.get_suffix("upa-url.github.io.") << '\n'; // github.io.
+    return 0;
+}
+```
+
+Parse the URL pattern string input, execute it against the provided URL, and output the result.
+
+The `upa::urlpattern` class template requires a regular expression engine to be specified as a template argument. For simple cases, the `upa::regex_engine_std` (implemented using the `std::regex`) can be used, as shown in the example below. However, for production use, we recommend using the `upa::regex_engine_srell`, which depends on the [SRELL library](https://www.akenotsuki.com/misc/srell/en/).
+```cpp
+#include "upa/regex_engine_std.h"
+#include "upa/urlpattern.h"
+#include <iostream>
+
+using urlpattern = upa::urlpattern<upa::regex_engine_std>;
+
+int main() {
+    try {
+        urlpattern urlp{ "http{s}?://*/*/:id([0-9]+)" };
+        auto res = urlp.exec("http://example.com/key/123#descr");
+        if (res) {
+            std::cout << "protocol: " << res->protocol.input << '\n'; // http
+            std::cout << "hostname: " << res->hostname.input << '\n'; // example.com
+            std::cout << "id: " << res->pathname.groups["id"].value() << '\n'; // 123
+        }
+    }
+    catch (const std::exception& ex) {
+        std::cerr << "Error: " << ex.what() << '\n';
+    }
     return 0;
 }
 ```
