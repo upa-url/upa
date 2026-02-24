@@ -13,6 +13,14 @@
 
 namespace upa {
 
+/// @brief Regex engine class based on `std::regex`
+///
+/// This class implements the regex engine interface required by `upa::urlpattern` using
+/// `std::regex`. It can be used as template argument for `upa::urlpattern`.
+///
+/// However, it can only be used for simple use cases, as some URL Pattern Web Platform
+/// tests are not passed by `upa::urlpattern` when it is used. We recommend using
+/// `upa::regex_engine_srell` instead.
 class regex_engine_std {
 public:
     class result {
@@ -34,7 +42,7 @@ public:
     bool init(std::string_view regex_str, bool ignore_case) {
         // 4. If options's ignore case is true then set flags to "vi".
         // 5. Otherwise set flags to "v"
-        // TODO: "v" flag
+        // Note that the std::regex does not have the "v" flag.
         const std::regex::flag_type flag = ignore_case
             ? (std::regex::ECMAScript | std::regex::icase)
             : std::regex::ECMAScript;

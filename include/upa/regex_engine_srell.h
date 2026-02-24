@@ -13,6 +13,17 @@
 
 namespace upa {
 
+/// @brief Regex engine class based on SRELL library
+///
+/// This class implements the regex engine interface required by `upa::urlpattern` using the
+/// SRELL library from https://www.akenotsuki.com/misc/srell/en/. It can be used as template
+/// argument for `upa::urlpattern`. For example:
+/// ```cpp
+/// using urlpattern = upa::urlpattern<upa::regex_engine_srell>;
+/// ```
+/// We recommend using this class because SRELL complies with the latest ECMAScript standard,
+/// so `upa::urlpattern` passes all URL Pattern Web Platform tests when using it. The SRELL
+/// version 4.066 or later is required.
 class regex_engine_srell {
 public:
     class result {
