@@ -567,6 +567,9 @@ struct urlpattern_result {
 /// This struct extends the `upa::urlpattern_result` by adding an `inputs` member. It can be
 /// specified as a template argument for the upa::urlpattern's `exec` function, when the `inputs`
 /// member is required.
+///
+/// The `inputs` member stores references to the `exec` function arguments. Therefore, it can
+/// only be accessed while these arguments aren't modified or destroyed.
 struct urlpattern_result_and_inputs : public urlpattern_result {
     urlpattern_inputs inputs;
 };
