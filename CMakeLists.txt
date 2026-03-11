@@ -124,6 +124,7 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
   if (UPA_AMALGAMATED)
     add_library(${upa_lib_target}
       single_include/upa/url.cpp
+      single_include/upa/urlpattern.cpp
       single_include/upa/public_suffix_list.cpp)
     target_include_directories(${upa_lib_target}
       INTERFACE single_include)
@@ -131,10 +132,12 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
     add_library(${upa_lib_target}
       src/idna.cpp
       src/public_suffix_list.cpp
+      src/unicode_id.cpp
       src/url.cpp
       src/url_ip.cpp
       src/url_search_params.cpp
-      src/url_utf.cpp)
+      src/url_utf.cpp
+      src/urlpattern.cpp)
     target_include_directories(${upa_lib_target} PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
       $<INSTALL_INTERFACE:include>)
@@ -186,6 +189,7 @@ if (UPA_BUILD_TESTS)
       test/wpt-url-setters-stripping.cpp
       test/wpt-url_search_params.cpp
       test/wpt-urlencoded-parser.cpp
+      test/wpt-urlpattern.cpp
     )
   endif()
   foreach(file ${test_files})

@@ -1,0 +1,13 @@
+{
+  "project": "upa/urlpattern.h",
+  "target": "single_include/upa/urlpattern.h",
+  "sources": [
+    "include/upa/urlpattern.h"
+  ],
+  "include_paths": [
+    "include/upa"
+  ],
+  "do_not_expand": [
+    "include/upa/url.h"
+  ]
+}
