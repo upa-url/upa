@@ -720,6 +720,10 @@ public:
     /// auto res = urlp.exec<upa::urlpattern_result_and_inputs>(input);
     /// @endcode
     ///
+    /// @warning The returned value may contain references to the data of the `urlpattern`
+    /// object. Therefore, it can only be accessed as long as the `urlpattern` object itself
+    /// is not destroyed.
+    ///
     /// @tparam ResT Result type, must be derived from `upa::urlpattern_result`
     /// @param[in] input `upa::urlpattern_init` object
     /// @return match results; `std::nullopt` if no match
@@ -736,6 +740,10 @@ public:
     /// per-component group objects within the result object; e.g. `res->pathname.groups["id"]`.
     ///
     /// By default, the `ResT` result type is `upa::urlpattern_result`.
+    ///
+    /// @warning The returned value may contain references to the data of the `urlpattern`
+    /// object. Therefore, it can only be accessed as long as the `urlpattern` object itself
+    /// is not destroyed.
     ///
     /// @tparam ResT Result type, must be derived from `upa::urlpattern_result`
     /// @param[in] input URL string to match against URL pattern
@@ -755,6 +763,10 @@ public:
     ///
     /// By default, the `ResT` result type is `upa::urlpattern_result`.
     ///
+    /// @warning The returned value may contain references to the data of the `urlpattern`
+    /// object. Therefore, it can only be accessed as long as the `urlpattern` object itself
+    /// is not destroyed.
+    /// 
     /// @tparam ResT Result type, must be derived from `upa::urlpattern_result`
     /// @param[in] url URL to test
     /// @return Optional match result; `std::nullopt` if no match
