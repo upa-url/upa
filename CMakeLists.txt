@@ -48,7 +48,7 @@ endif()
 # Options
 option(UPA_BUILD_TESTS "Build the Upa URL tests." ${UPA_MAIN_PROJECT})
 option(UPA_BUILD_BENCH "Build the Upa URL benchmarks." OFF)
-option(UPA_BUILD_FUZZER "Build the Upa URL fuzzer." OFF)
+option(UPA_BUILD_FUZZER "Build the Upa URL fuzzers." OFF)
 option(UPA_BUILD_EXAMPLES "Build the Upa URL examples." OFF)
 option(UPA_BUILD_EXTRACTED "Build Upa URL examples extracted from the docs." OFF)
 option(UPA_INSTALL "Generate the install target." ON)
@@ -232,9 +232,8 @@ endif()
 # Fuzzer targets
 
 if (UPA_BUILD_FUZZER)
-  set(fuzz_files
-    test/fuzz-url.cpp
-  )
+  file(GLOB fuzz_files test/fuzz-*.cpp)
+
   foreach(file ${fuzz_files})
     get_filename_component(fuzz_name ${file} NAME_WE)
 
