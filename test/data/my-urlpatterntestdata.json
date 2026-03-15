@@ -32,6 +32,19 @@
     }
   },
   {
+    "pattern": [ "a:\n(c)" ],
+    "inputs": [ "a:c" ],
+    "exactly_empty_components": [ "hostname", "port" ],
+    "expected_obj": {
+      "protocol": "a",
+      "pathname": "(c)"
+    },
+    "expected_match": {
+      "protocol": { "input": "a", "groups": {}},
+      "pathname": { "input": "c", "groups": { "0": "c" }}
+    }
+  },
+  {
     "pattern": [ "(?)", "ws://h/" ],
     "expected_obj": "error"
   },

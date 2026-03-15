@@ -2294,7 +2294,9 @@ inline std::string generate_pattern_string(const part_list& pt_list, const optio
         if (!needs_grouping && pt.prefix_.empty() &&
             pprevious_pt != nullptr && pprevious_pt->type_ == part::type::FIXED_TEXT &&
             // previous part's value's last code point is options's prefix code point
-            pprevious_pt->value_.substr(pprevious_pt->value_.length() - 1)/*TODO: code point (not necessary)*/ == opt.prefix_code_point)
+            !opt.prefix_code_point.empty() && !pprevious_pt->value_.empty() &&
+            // TODO: code point (not necessary)
+            pprevious_pt->value_.back() == opt.prefix_code_point[0])
             needs_grouping = true;
 
         assert(/*TODO???: pt.name_ != nullptr && */ !pt.name_.empty());
