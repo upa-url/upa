@@ -2564,8 +2564,13 @@ inline std::string canonicalize_pathname(std::string_view value) {
     auto result = dummy_url.get_part_view(upa::url::PATH);
     // If leading slash is false, then set result to the code point
     // substring from 2 to the end of the string within result.
-    if (!leading_slash) result.remove_prefix(2);
-
+    if (!leading_slash) {
+        // The result length may be less than 2. For example, if the value is "path/..",
+        // then the modified_value is "/-path/..", and the result is "/".
+        if (result.length() <= 2)
+            return {};
+        result.remove_prefix(2);
+    }
     return std::string{ result };
 }
 

@@ -22,6 +22,14 @@
     }
   },
   {
+    "pattern": [{ "pathname": "path/.." }],
+    "inputs": [{ "pathname": "" }],
+    "exactly_empty_components": [ "pathname" ],
+    "expected_match": {
+      "pathname": { "input": "", "groups": {}}
+    }
+  },
+  {
     "pattern": [{ "search": "q=a'z" }],
     "inputs": [{ "search": "q=a'z" }],
     "expected_obj": {
