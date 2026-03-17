@@ -39,11 +39,12 @@ using namespace std::string_literals;
 using namespace std::string_view_literals;
 
 #ifdef UPA_TEST_WITH_STD_REGEX
-using urlpattern = upa::urlpattern<upa::regex_engine_std>;
+using regex_engine = upa::regex_engine_std;
 #else
-using urlpattern = upa::urlpattern<upa::regex_engine_srell>;
+using regex_engine = upa::regex_engine_srell;
 #endif
 
+using urlpattern = upa::urlpattern<regex_engine>;
 using urlpattern_result = upa::urlpattern_result_and_inputs;
 
 // This is a workaround for Clang versions earlier than 19. These versions of Clang
@@ -875,6 +876,48 @@ TEST_SUITE("is_identifier_start & is_identifier_part") {
         CHECK(upa::pattern::table::is_identifier_part('_'));
         CHECK(upa::pattern::table::is_identifier_part(0xE0100));
         CHECK_FALSE(upa::pattern::table::is_identifier_part(0x10FFFF));
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Test regex engine
+
+TEST_SUITE("regex engine") {
+    constexpr auto test_regex =
+        [](std::string_view regex_str, bool ignore_case, bool is_valid, std::string_view input,
+            std::vector<std::optional<std::string_view>> expected) {
+
+            regex_engine re;
+
+            REQUIRE(re.init(regex_str, ignore_case) == is_valid);
+            if (is_valid) {
+                const bool expexted_match = !expected.empty();
+
+                regex_engine::result res;
+
+                CHECK(re.test(input) == expexted_match);
+                REQUIRE(re.exec(input, res) == expexted_match);
+                if (expexted_match) {
+                    REQUIRE(res.size() == expected.size());
+                    for (std::size_t ind = 0; ind < res.size(); ++ind)
+                        CHECK_MESSAGE(res.get(ind, input) == expected[ind], "ind = ", ind);
+                }
+            }
+        };
+
+    // Fixed in SRELL 2026.00
+    TEST_CASE("/^((?:|)y)$/.exec('y')") {
+        test_regex("^((?:|)y)$", false, true, "y", { "y", "y" });
+    }
+    TEST_CASE("/^((?:|y)y)$/.exec('yy')") {
+        test_regex("^((?:|y)y)$", false, true, "yy", { "yy", "yy" });
+    }
+    TEST_CASE("/^((?:y|)y)$/.exec('yy')") {
+        test_regex("^((?:y|)y)$", false, true, "yy", { "yy", "yy" });
+    }
+    // Fixed in SRELL 2026.01
+    TEST_CASE("/^(\\1*)(\\/\\\\)$/.exec('/\\\\')") {
+        test_regex("^(\\1*)(/\\\\)$", false, true, "/\\", { "/\\", "", "/\\" });
     }
 }
 
