@@ -1123,7 +1123,13 @@ inline urlpattern_component_result urlpattern<regex_engine, E>::create_component
     urlpattern_component_result result;
     result.input = input;
 
-    const auto count = exec_result.size();
+    // If the regular expression contains named capture groups, such as (?<x>...), then
+    // exec_result.size() will be greater than comp.group_name_list.size() + 1. Therefore,
+    // it is safer to use the smaller of the two values for the count.
+    // For more info see:
+    // * https://github.com/web-platform-tests/wpt/pull/58594
+    // * https://hg-edge.mozilla.org/mozilla-central/rev/08bf6b5ee560
+    const auto count = std::min(exec_result.size(), comp.group_name_list_.size() + 1);
     for (std::size_t index = 1; index < count; ++index) {
         std::string_view name = comp.group_name_list_[index - 1];
         result.groups.emplace(name, exec_result.get(index, input));
