@@ -1127,6 +1127,7 @@ inline urlpattern_component_result urlpattern<regex_engine, E>::create_component
     // exec_result.size() will be greater than comp.group_name_list.size() + 1. Therefore,
     // it is safer to use the smaller of the two values for the count.
     // For more info see:
+    // * https://github.com/whatwg/urlpattern/pull/283
     // * https://github.com/web-platform-tests/wpt/pull/58594
     // * https://hg-edge.mozilla.org/mozilla-central/rev/08bf6b5ee560
     const auto count = std::min(exec_result.size(), comp.group_name_list_.size() + 1);
