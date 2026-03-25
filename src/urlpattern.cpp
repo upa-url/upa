@@ -17,6 +17,7 @@ namespace {
 
 inline constexpr std::pair<std::string_view, std::optional<std::string> urlpattern_init::*>
 component_map[] = {
+    {"", nullptr},
     {"protocol", &urlpattern_init::protocol},
     {"username", &urlpattern_init::username},
     {"password", &urlpattern_init::password},
@@ -37,9 +38,7 @@ constexpr std::uint8_t component_hash(std::string_view sv) {
 
 constexpr auto build_index() {
     std::array<std::uint8_t, 16> table{};
-    for (auto& item : table)
-        item = 0xFF;
-    for (std::size_t i = 0; i < sizeof(component_map) / sizeof(component_map[0]); ++i)
+    for (std::size_t i = 1; i < sizeof(component_map) / sizeof(component_map[0]); ++i)
         table[component_hash(component_map[i].first)] = static_cast<std::uint8_t>(i);
     return table;
 }
@@ -53,8 +52,6 @@ std::optional<std::string> urlpattern_init::* urlpattern_init::get_member(std::s
     if (name.length() < 4 || name.length() > 8)
         return nullptr;
     const auto ind = component_index[component_hash(name)];
-    if (ind == 0xFF)
-        return nullptr;
     const auto& [member_name, member_ptr] = component_map[ind];
     if (member_name != name)
         return nullptr;
