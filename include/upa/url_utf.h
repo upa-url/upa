@@ -11,10 +11,12 @@
 
 #include "config.h" // IWYU pragma: export
 #include "url_result.h"
-#include <cstdint> // uint8_t, uint32_t
-#include <string>
-#include <string_view>
 
+#ifndef UPA_MODULE
+# include <cstdint> // uint8_t, uint32_t
+# include <string>
+# include <string_view>
+#endif // UPA_MODULE
 
 namespace upa {
 

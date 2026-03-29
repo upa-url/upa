@@ -2606,6 +2606,7 @@ PREDEFINED             =
 # This tag requires that the tag ENABLE_PREPROCESSING is set to YES.
 
 EXPAND_AS_DEFINED      = UPA_CONSTEXPR_20 UPA_CONSTEXPR_23 \
+                         UPA_EXPORT UPA_EXPORT_BEGIN UPA_EXPORT_END \
                          UPA_LIFETIMEBOUND
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES then Doxygen's preprocessor will

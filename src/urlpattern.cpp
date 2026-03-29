@@ -1,16 +1,17 @@
-// Copyright 2025 Rimas Misevičius
+// Copyright 2025-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-#include "upa/urlpattern.h"
-
-#include <array>
-#include <cassert>
-#include <cstdint>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <utility>
+#ifndef UPA_MODULE
+# include "upa/urlpattern.h"
+# include <array>
+# include <cassert>
+# include <cstdint>
+# include <optional>
+# include <string>
+# include <string_view>
+# include <utility>
+#endif // UPA_MODULE
 
 namespace upa {
 namespace {

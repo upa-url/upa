@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -6,9 +6,15 @@
 #ifndef UPA_URL_RESULT_H
 #define UPA_URL_RESULT_H
 
-#include <stdexcept>
+#include "config.h"
+
+#ifndef UPA_MODULE
+# include <stdexcept>
+#endif // UPA_MODULE
 
 namespace upa {
+
+UPA_EXPORT_BEGIN
 
 /// @brief URL validation and other error codes
 ///
@@ -113,6 +119,8 @@ public:
 private:
     validation_errc res_;
 };
+
+UPA_EXPORT_END
 
 namespace detail {
 

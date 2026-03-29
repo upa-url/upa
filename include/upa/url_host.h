@@ -15,19 +15,22 @@
 #include "url_result.h"
 #include "url_utf.h"
 #include "util.h"
-#include <algorithm> // any_of
-#include <cassert>
-#include <cstdint> // uint16_t, uint32_t
-#include <string>
-#include <string_view>
-#include <type_traits>
+
+#ifndef UPA_MODULE
+# include <algorithm> // any_of
+# include <cassert>
+# include <cstdint> // uint16_t, uint32_t
+# include <string>
+# include <string_view>
+# include <type_traits>
+#endif // UPA_MODULE
 
 namespace upa {
 
 /// @brief Host representation
 ///
 /// See: https://url.spec.whatwg.org/#host-representation
-enum class HostType {
+UPA_EXPORT enum class HostType {
     Empty = 0, ///< **empty host** is the empty string
     Opaque,    ///< **opaque host** is a non-empty ASCII string used in a not special URL
     Domain,    ///< **domain** is a non-empty ASCII string that identifies a realm within a network
@@ -74,7 +77,7 @@ public:
 // https://github.com/whatwg/url/pull/288
 // https://whatpr.org/url/288.html#urlhost-class
 
-class url_host {
+UPA_EXPORT class url_host {
 public:
     url_host() = delete;
     url_host(const url_host&) = default;
@@ -174,7 +177,7 @@ UPA_CONSTEXPR_20 bool contains_forbidden_host_char(const CharT* first, const Cha
 /// @param[in]  be_strict
 /// @param[in]  is_input_ascii
 /// @return `true` on success, or `false` on errors
-template <class CharT, class StrT, enable_if_str_arg_t<StrT> = 0>
+UPA_EXPORT template <class CharT, class StrT, enable_if_str_arg_t<StrT> = 0>
 inline bool domain_to_unicode(std::basic_string<CharT>& output, const StrT& input,
     bool be_strict = false, bool is_input_ascii = false)
 {

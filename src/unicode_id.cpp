@@ -1,10 +1,12 @@
-// Copyright 2023-2025 Rimas Misevičius
+// Copyright 2023-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-#include "upa/unicode_id.h"
-#include <cstddef>
-#include <cstdint>
+#ifndef UPA_MODULE
+# include "upa/unicode_id.h"
+# include <cstddef>
+# include <cstdint>
+#endif // UPA_MODULE
 
 namespace upa::pattern::table {
 namespace {

@@ -1,4 +1,4 @@
-// Copyright 2024-2025 Rimas Misevičius
+// Copyright 2024-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -6,19 +6,24 @@
 #define UPA_PUBLIC_SUFFIX_LIST_H
 
 #include "url.h"
-#include <cstddef>
-#include <cstdint>
-#include <filesystem>
-#include <fstream>
-#include <ios>
-#include <istream>
-#include <memory>
-#include <string>
-#include <string_view>
-#include <unordered_map>
-#include <utility>
+
+#ifndef UPA_MODULE
+# include <cstddef>
+# include <cstdint>
+# include <filesystem>
+# include <fstream>
+# include <ios>
+# include <istream>
+# include <memory>
+# include <string>
+# include <string_view>
+# include <unordered_map>
+# include <utility>
+#endif // UPA_MODULE
 
 namespace upa {
+
+UPA_EXPORT_BEGIN
 
 /// @brief Get label position in hostname by it's index
 ///
@@ -395,6 +400,9 @@ struct enable_bitmask_operators<upa::public_suffix_list::option>
     : public std::true_type {};
 
 } // namespace idna
+
+UPA_EXPORT_END
+
 } // namespace upa
 
 #endif // UPA_PUBLIC_SUFFIX_LIST_H

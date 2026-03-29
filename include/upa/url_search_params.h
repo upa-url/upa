@@ -10,14 +10,17 @@
 #include "str_arg.h"
 #include "url_percent_encode.h"
 #include "url_utf.h"
-#include <cassert>
-#include <list>
-#include <memory>
-#include <ostream>
-#include <string>
-#include <string_view>
-#include <type_traits>
-#include <utility>
+
+#ifndef UPA_MODULE
+# include <cassert>
+# include <list>
+# include <memory>
+# include <ostream>
+# include <string>
+# include <string_view>
+# include <type_traits>
+# include <utility>
+#endif // UPA_MODULE
 
 namespace upa {
 
@@ -45,18 +48,20 @@ constexpr bool is_iterable_pairs_v<T, std::void_t<decltype(
 // enable if `Base` is not the base class of `T`
 template<class Base, class T>
 using enable_if_not_base_of_t = std::enable_if_t<
-    !std::is_base_of_v<Base, std::decay_t<T>>, int
->;
+    !std::is_base_of_v<Base, std::decay_t<T>>, int>;
 
 } // namespace detail
 
 
 // forward declarations
 
-class url;
 namespace detail {
     class url_search_params_ptr;
 } // namespace detail
+
+UPA_EXPORT_BEGIN
+
+class url;
 
 /// @brief URLSearchParams class
 ///
@@ -376,6 +381,7 @@ private:
     url* url_ptr_ = nullptr;
 };
 
+UPA_EXPORT_END
 
 namespace detail {
 
@@ -750,6 +756,8 @@ inline std::string url_search_params::to_string() const {
     return query;
 }
 
+UPA_EXPORT_BEGIN
+
 // Non-member functions
 
 /// @brief Performs stream output on URL search parameters
@@ -777,6 +785,7 @@ inline void swap(url_search_params& lhs, url_search_params& rhs) noexcept {
     lhs.swap(rhs);
 }
 
+UPA_EXPORT_END
 
 } // namespace upa
 

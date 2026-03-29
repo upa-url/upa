@@ -21,13 +21,16 @@ inline void procfn(const StrT& str) {
 #include "config.h"
 #include "url_utf.h"
 #include "util.h"
-#include <cassert>
-#include <cstddef>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <type_traits>
-#include <utility>
+
+#ifndef UPA_MODULE
+# include <cassert>
+# include <cstddef>
+# include <optional>
+# include <string>
+# include <string_view>
+# include <type_traits>
+# include <utility>
+#endif // UPA_MODULE
 
 namespace upa {
 

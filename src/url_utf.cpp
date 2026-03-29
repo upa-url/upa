@@ -2,9 +2,10 @@
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-
-#include "upa/url_utf.h"
-#include <cassert>
+#ifndef UPA_MODULE
+# include "upa/url_utf.h"
+# include <cassert>
+#endif // UPA_MODULE
 
 namespace upa {
 

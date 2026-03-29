@@ -14,16 +14,20 @@
 #include "str_arg.h"
 #include "url_utf.h"
 #include "util.h"
-#include <array>
-#include <cstdint> // uint8_t
-#include <initializer_list>
-#include <string>
-#include <type_traits>
-#include <utility>
+
+#ifndef UPA_MODULE
+# include <array>
+# include <cstdint> // uint8_t
+# include <initializer_list>
+# include <string>
+# include <type_traits>
+# include <utility>
+#endif // UPA_MODULE
 
 
 namespace upa {
 
+UPA_EXPORT_BEGIN
 
 /// @brief Represents code point set
 ///
@@ -163,6 +167,7 @@ inline constexpr code_point_set component_no_encode_set{ [](code_point_set& self
     self.exclude({ 0x24, 0x25, 0x26, 0x2B, 0x2C });
     } };
 
+UPA_EXPORT_END
 
 namespace detail {
 
@@ -506,6 +511,7 @@ inline void append_percent_decoded(StrT&& str, std::string& output) {
 
 } // namespace detail
 
+UPA_EXPORT_BEGIN
 
 /// @brief Percent decode input string.
 ///
@@ -558,6 +564,7 @@ template <class StrT, enable_if_str_arg_t<StrT> = 0>
     return percent_encode(std::forward<StrT>(str), component_no_encode_set);
 }
 
+UPA_EXPORT_END
 
 } // namespace upa
 

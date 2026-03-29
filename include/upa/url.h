@@ -26,20 +26,23 @@
 #include "url_search_params.h"  // IWYU pragma: export
 #include "url_version.h"        // IWYU pragma: export
 #include "util.h"
-#include <algorithm>
-#include <array>
-#include <cassert>
-#include <cstddef>
-#include <cstdint> // uint8_t
-#include <filesystem>
-#include <functional> // std::hash
-#include <iterator>
-#include <ostream>
-#include <string>
-#include <string_view>
-#include <type_traits>
-#include <utility>
-#include <vector>
+
+#ifndef UPA_MODULE
+# include <algorithm>
+# include <array>
+# include <cassert>
+# include <cstddef>
+# include <cstdint> // uint8_t
+# include <filesystem>
+# include <functional> // std::hash
+# include <iterator>
+# include <ostream>
+# include <string>
+# include <string_view>
+# include <type_traits>
+# include <utility>
+# include <vector>
+#endif // UPA_MODULE
 
 // not yet
 // #define UPA_URL_USE_ENCODING
@@ -70,6 +73,8 @@ inline constexpr const char* kURLParseError = "URL parse error";
 inline constexpr const char* kBaseURLParseError = "Base URL parse error";
 
 } // namespace detail
+
+UPA_EXPORT_BEGIN
 
 /// @brief URL class
 ///
@@ -745,6 +750,7 @@ private:
     friend class url_search_params;
 };
 
+UPA_EXPORT_END
 
 namespace detail {
 
@@ -3111,6 +3117,7 @@ constexpr bool has_dot_dot_segment(const CharT* first, const CharT* last, IsSlas
 
 } // namespace detail
 
+UPA_EXPORT_BEGIN
 
 // URL utilities (non-member functions)
 
@@ -3398,6 +3405,8 @@ inline bool check_version() {
     return (version_num() & sover_mask) ==
         (static_cast<std::uint32_t>(UPA_URL_VERSION_NUM) & sover_mask);
 }
+
+UPA_EXPORT_END
 
 } // namespace upa
 
