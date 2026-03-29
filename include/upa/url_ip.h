@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -56,13 +56,13 @@ inline bool hostname_ends_in_a_number(const CharT* first, const CharT* last) {
 // TODO-WARN: validationError
 //
 template <typename CharT>
-inline validation_errc ipv4_parse_number(const CharT* first, const CharT* last, uint32_t& number) {
+inline validation_errc ipv4_parse_number(const CharT* first, const CharT* last, std::uint32_t& number) {
     // If input is the empty string, then return failure
     if (first == last)
         return validation_errc::ipv4_non_numeric_part;
 
     // Figure out the base
-    uint32_t radix = 10;
+    std::uint32_t radix = 10;
     if (first[0] == '0') {
         const std::size_t len = last - first;
         if (len == 1) {
@@ -98,7 +98,7 @@ inline validation_errc ipv4_parse_number(const CharT* first, const CharT* last, 
     // Check chars are valid digits and convert its sequence to number.
     // Use the 64-bit to get a big number (no hex, decimal, or octal
     // number can overflow a 64-bit number in <= 16 characters).
-    uint64_t num = 0;
+    std::uint64_t num = 0;
     if (radix <= 10) {
         const auto chmax = static_cast<CharT>('0' - 1 + radix);
         for (auto it = first; it != last; ++it) {
@@ -119,10 +119,10 @@ inline validation_errc ipv4_parse_number(const CharT* first, const CharT* last, 
     }
 
     // Check for 32-bit overflow.
-    if (num > std::numeric_limits<uint32_t>::max())
+    if (num > std::numeric_limits<std::uint32_t>::max())
         return validation_errc::ipv4_out_of_range_part; // int overflow
 
-    number = static_cast<uint32_t>(num);
+    number = static_cast<std::uint32_t>(num);
     return validation_errc::ok;
 }
 
@@ -133,7 +133,7 @@ inline validation_errc ipv4_parse_number(const CharT* first, const CharT* last, 
 // - on failure returns validation error code
 //
 template <typename CharT>
-inline validation_errc ipv4_parse(const CharT* first, const CharT* last, uint32_t& ipv4) {
+inline validation_errc ipv4_parse(const CharT* first, const CharT* last, std::uint32_t& ipv4) {
     using UCharT = std::make_unsigned_t<CharT>;
 
     // 2. If the last item in parts is the empty string, then
@@ -182,7 +182,7 @@ inline validation_errc ipv4_parse(const CharT* first, const CharT* last, uint32_
         return validation_errc::ipv4_too_many_parts;
 
     // IPv4 numbers
-    uint32_t number[4];
+    std::uint32_t number[4];
     for (int ind = 0; ind < part_count; ++ind) {
         const auto res = ipv4_parse_number(part[ind], part[ind + 1] - 1, number[ind]);
         // 5.2. If result is failure, IPv4-non-numeric-part validation error, return failure.
@@ -199,7 +199,7 @@ inline validation_errc ipv4_parse(const CharT* first, const CharT* last, uint32_
     // 8. If the last item in numbers is greater than or equal to 256(5 − numbers’s size),
     // then return failure.
     ipv4 = number[part_count - 1];
-    if (ipv4 > (std::numeric_limits<uint32_t>::max() >> (8 * (part_count - 1))))
+    if (ipv4 > (std::numeric_limits<std::uint32_t>::max() >> (8 * (part_count - 1))))
         return validation_errc::ipv4_out_of_range_part;
 
     // 14.1. Increment ipv4 by n * 256**(3 - counter).
@@ -213,7 +213,7 @@ inline validation_errc ipv4_parse(const CharT* first, const CharT* last, uint32_
 // IPv4 serializer
 // https://url.spec.whatwg.org/#concept-ipv4-serializer
 
-UPA_API void ipv4_serialize(uint32_t ipv4, std::string& output);
+UPA_API void ipv4_serialize(std::uint32_t ipv4, std::string& output);
 
 
 // IPv6
@@ -240,8 +240,8 @@ inline IntT get_hex_number(const CharT*& pointer, const CharT* last) {
 // - on failure returns false
 //
 template <typename CharT>
-inline validation_errc ipv6_parse(const CharT* first, const CharT* last, uint16_t(&address)[8]) {
-    std::fill(std::begin(address), std::end(address), static_cast<uint16_t>(0));
+inline validation_errc ipv6_parse(const CharT* first, const CharT* last, std::uint16_t(&address)[8]) {
+    std::fill(std::begin(address), std::end(address), static_cast<std::uint16_t>(0));
     int piece_index = 0;    // zero
     int compress = 0;       // null
     bool is_ipv4 = false;
@@ -294,7 +294,7 @@ inline validation_errc ipv6_parse(const CharT* first, const CharT* last, uint16_
 
         // HEX
         auto pointer0 = pointer;
-        const auto value = detail::get_hex_number<uint16_t>(pointer, (last - pointer <= 4 ? last : pointer + 4));
+        const auto value = detail::get_hex_number<std::uint16_t>(pointer, (last - pointer <= 4 ? last : pointer + 4));
         if (pointer != last) {
             const CharT ch = *pointer;
             if (ch == '.') {
@@ -358,7 +358,7 @@ inline validation_errc ipv6_parse(const CharT* first, const CharT* last, uint16_
                     return validation_errc::ipv4_in_ipv6_out_of_range_part;
                 ++pointer;
             }
-            address[piece_index] = static_cast<uint16_t>(address[piece_index] * 0x100 + ipv4Piece);
+            address[piece_index] = static_cast<std::uint16_t>(address[piece_index] * 0x100 + ipv4Piece);
             ++numbers_seen;
             if (!(numbers_seen & 1)) // 2 or 4
                 ++piece_index;
@@ -388,7 +388,7 @@ inline validation_errc ipv6_parse(const CharT* first, const CharT* last, uint16_
 // IPv6 serializer
 // https://url.spec.whatwg.org/#concept-ipv6-serializer
 
-UPA_API void ipv6_serialize(const uint16_t(&address)[8], std::string& output);
+UPA_API void ipv6_serialize(const std::uint16_t(&address)[8], std::string& output);
 
 
 } // namespace upa

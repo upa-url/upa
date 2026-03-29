@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -28,7 +28,7 @@ void url_utf::check_fix_utf8(std::string& str) {
     const char* first = str.data();
     const char* last = str.data() + str.length();
 
-    uint32_t code_point; // NOLINT(cppcoreguidelines-init-variables)
+    std::uint32_t code_point; // NOLINT(cppcoreguidelines-init-variables)
     const char* ptr = first;
     const char* it = first;
     while (it != last && read_code_point(it, last, code_point))
@@ -72,13 +72,13 @@ int url_utf::compare_by_code_units(const char* first1, const char* last1, const 
         }
 
         // read code points
-        const uint32_t cp1 = read_utf_char(it1, last1).value;
-        const uint32_t cp2 = read_utf_char(it2, last2).value;
+        const std::uint32_t cp1 = read_utf_char(it1, last1).value;
+        const std::uint32_t cp2 = read_utf_char(it2, last2).value;
         if (cp1 == cp2) continue;
 
         // code points not equal - compare code units
-        uint32_t cu1 = cp1 <= 0xffff ? cp1 : ((cp1 >> 10) + 0xd7c0);
-        uint32_t cu2 = cp2 <= 0xffff ? cp2 : ((cp2 >> 10) + 0xd7c0);
+        std::uint32_t cu1 = cp1 <= 0xffff ? cp1 : ((cp1 >> 10) + 0xd7c0);
+        std::uint32_t cu2 = cp2 <= 0xffff ? cp2 : ((cp2 >> 10) + 0xd7c0);
         // cu1 can be equal to cu2 if they both are lead surrogates
         if (cu1 == cu2) {
             assert(detail::u16_is_lead(cu1));

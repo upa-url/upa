@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -390,7 +390,7 @@ inline validation_errc host_parser::parse_opaque_host(const CharT* first, const 
 
 template <typename CharT>
 inline validation_errc host_parser::parse_ipv4(const CharT* first, const CharT* last, host_output& dest) {
-    uint32_t ipv4;  // NOLINT(cppcoreguidelines-init-variables)
+    std::uint32_t ipv4;  // NOLINT(cppcoreguidelines-init-variables)
 
     const auto res = ipv4_parse(first, last, ipv4);
     if (res == validation_errc::ok && dest.need_save()) {
@@ -403,7 +403,7 @@ inline validation_errc host_parser::parse_ipv4(const CharT* first, const CharT* 
 
 template <typename CharT>
 inline validation_errc host_parser::parse_ipv6(const CharT* first, const CharT* last, host_output& dest) {
-    uint16_t ipv6addr[8];
+    std::uint16_t ipv6addr[8];
 
     const auto res = ipv6_parse(first, last, ipv6addr);
     if (res == validation_errc::ok && dest.need_save()) {

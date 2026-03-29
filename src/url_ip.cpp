@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -11,12 +11,12 @@ namespace upa {
 // IPv4 serializer
 // https://url.spec.whatwg.org/#concept-ipv4-serializer
 
-void ipv4_serialize(uint32_t ipv4, std::string& output) {
+void ipv4_serialize(std::uint32_t ipv4, std::string& output) {
     for (unsigned shift = 24; shift != 0; shift -= 8) {
-        util::unsigned_to_str<uint32_t>((ipv4 >> shift) & 0xFF, output, 10);
+        util::unsigned_to_str<std::uint32_t>((ipv4 >> shift) & 0xFF, output, 10);
         output.push_back('.');
     }
-    util::unsigned_to_str<uint32_t>(ipv4 & 0xFF, output, 10);
+    util::unsigned_to_str<std::uint32_t>(ipv4 & 0xFF, output, 10);
 }
 
 // IPv6 serializer
@@ -25,8 +25,8 @@ void ipv4_serialize(uint32_t ipv4, std::string& output) {
 namespace {
 
 inline std::size_t longest_zero_sequence(
-    const uint16_t* first, const uint16_t* last,
-    const uint16_t*& compress)
+    const std::uint16_t* first, const std::uint16_t* last,
+    const std::uint16_t*& compress)
 {
     // The sequence to compress should be longer than 1 zero
     std::size_t last_count = 1;
@@ -48,11 +48,11 @@ inline std::size_t longest_zero_sequence(
 
 } // namespace
 
-void ipv6_serialize(const uint16_t(&address)[8], std::string& output) {
-    const uint16_t *first = std::begin(address);
-    const uint16_t *last = std::end(address);
+void ipv6_serialize(const std::uint16_t(&address)[8], std::string& output) {
+    const std::uint16_t *first = std::begin(address);
+    const std::uint16_t *last = std::end(address);
 
-    const uint16_t *compress = nullptr;
+    const std::uint16_t *compress = nullptr;
     const auto compress_length = longest_zero_sequence(first, last, compress);
 
     // "it" pointer corresponds to pieceIndex in the URL standard
@@ -62,7 +62,7 @@ void ipv6_serialize(const uint16_t(&address)[8], std::string& output) {
             it += compress_length;
             if (it == last) break;
         }
-        util::unsigned_to_str<uint32_t>(*it, output, 16);
+        util::unsigned_to_str<std::uint32_t>(*it, output, 16);
         if (++it == last) break;
         output.push_back(':');
     }

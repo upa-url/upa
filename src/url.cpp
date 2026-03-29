@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -26,7 +26,7 @@ const scheme_info kSchemes[] = {
 const std::size_t max_scheme_length = 5; // "https"
 
 // scheme length to url::kSchemes index
-const uint8_t kLengthToSchemesInd[] = {
+const std::uint8_t kLengthToSchemesInd[] = {
     0,  // 0
     0,  // 1
     0,  // 2

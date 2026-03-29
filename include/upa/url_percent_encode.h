@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -50,33 +50,33 @@ public:
 
     /// @brief exclude @a c code point from set
     /// @param[in] c code point to exclude
-    constexpr void exclude(uint8_t c) {
+    constexpr void exclude(std::uint8_t c) {
         arr_[c >> 3] &= ~(1u << (c & 0x07));
     }
 
     /// @brief include @a c code point to set
     /// @param[in] c code point to include
-    constexpr void include(uint8_t c) {
+    constexpr void include(std::uint8_t c) {
         arr_[c >> 3] |= (1u << (c & 0x07));
     }
 
     /// @brief exclude list of code points from set
     /// @param[in] clist list of code points to exclude
-    constexpr void exclude(std::initializer_list<uint8_t> clist) {
+    constexpr void exclude(std::initializer_list<std::uint8_t> clist) {
         for (auto c : clist)
             exclude(c);
     }
 
     /// @brief include code points from list
     /// @param[in] clist list of code points to include
-    constexpr void include(std::initializer_list<uint8_t> clist) {
+    constexpr void include(std::initializer_list<std::uint8_t> clist) {
         for (auto c : clist)
             include(c);
     }
 
     /// @brief include range of code points to set
     /// @param[in] from,to range of code points to include
-    constexpr void include(uint8_t from, uint8_t to) {
+    constexpr void include(std::uint8_t from, std::uint8_t to) {
         for (auto c = from; c <= to; ++c)
             include(c);
     }
@@ -101,7 +101,7 @@ private:
     }
 
     // Data
-    std::array<uint8_t, 32> arr_{};
+    std::array<std::uint8_t, 32> arr_{};
 };
 
 
@@ -236,14 +236,14 @@ private:
     /// @brief include @a c code point to @a cpsbits sets
     /// @param[in] cpsbits code points sets
     /// @param[in] c code point to include
-    constexpr void include(CP_SET cpsbits, uint8_t c) {
+    constexpr void include(CP_SET cpsbits, std::uint8_t c) {
         arr_[c] |= cpsbits;
     }
 
     /// @brief include code points from list
     /// @param[in] cpsbits code points sets
     /// @param[in] clist list of code points to include
-    constexpr void include(CP_SET cpsbits, std::initializer_list<uint8_t> clist) {
+    constexpr void include(CP_SET cpsbits, std::initializer_list<std::uint8_t> clist) {
         for (auto c : clist)
             include(cpsbits, c);
     }
@@ -251,7 +251,7 @@ private:
     /// @brief include range of code points to set
     /// @param[in] cpsbits code points sets
     /// @param[in] from,to range of code points to include
-    constexpr void include(CP_SET cpsbits, uint8_t from, uint8_t to) {
+    constexpr void include(CP_SET cpsbits, std::uint8_t from, std::uint8_t to) {
         for (auto c = from; c <= to; ++c)
             include(cpsbits, c);
     }
@@ -259,14 +259,14 @@ private:
     /// @brief exclude @a c code point from set
     /// @param[in] cpsbits code points sets
     /// @param[in] c code point to exclude
-    constexpr void exclude(CP_SET cpsbits, uint8_t c) {
+    constexpr void exclude(CP_SET cpsbits, std::uint8_t c) {
         arr_[c] &= ~cpsbits;
     }
 
     /// @brief exclude list of code points from set
     /// @param[in] cpsbits code points sets
     /// @param[in] clist list of code points to exclude
-    constexpr void exclude(CP_SET cpsbits, std::initializer_list<uint8_t> clist) {
+    constexpr void exclude(CP_SET cpsbits, std::initializer_list<std::uint8_t> clist) {
         for (auto c : clist)
             exclude(cpsbits, c);
     }
@@ -282,7 +282,7 @@ private:
     }
 
     // Data
-    std::array<uint8_t, 256> arr_{};
+    std::array<std::uint8_t, 256> arr_{};
 };
 
 inline constexpr code_points_multiset code_points;
