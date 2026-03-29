@@ -6,9 +6,15 @@
 #ifndef UPA_URL_RESULT_H
 #define UPA_URL_RESULT_H
 
-#include <stdexcept>
+#include "config.h"
+
+#ifndef UPA_MODULE
+# include <stdexcept>
+#endif // UPA_MODULE
 
 namespace upa {
+
+UPA_EXPORT_BEGIN
 
 /// @brief URL validation and other error codes
 ///
@@ -113,6 +119,8 @@ public:
 private:
     validation_errc res_;
 };
+
+UPA_EXPORT_END
 
 namespace detail {
 

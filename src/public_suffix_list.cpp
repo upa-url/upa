@@ -1,11 +1,13 @@
-// Copyright 2024-2025 Rimas Misevičius
+// Copyright 2024-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
 // Formal algorithm:
 // https://github.com/publicsuffix/list/wiki/Format#formal-algorithm
 //
-#include "upa/public_suffix_list.h"
+#ifndef UPA_MODULE
+# include "upa/public_suffix_list.h"
+#endif // UPA_MODULE
 
 namespace upa {
 namespace {

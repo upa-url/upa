@@ -2,8 +2,9 @@
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-
-#include "upa/url.h"
+#ifndef UPA_MODULE
+# include "upa/url.h"
+#endif // UPA_MODULE
 
 namespace upa {
 namespace detail {

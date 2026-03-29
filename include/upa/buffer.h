@@ -12,11 +12,13 @@
 
 #include "config.h"
 
-#include <array>
-#include <cstddef>
-#include <memory>
-#include <stdexcept>
-#include <string>
+#ifndef UPA_MODULE
+# include <array>
+# include <cstddef>
+# include <memory>
+# include <stdexcept>
+# include <string>
+#endif // UPA_MODULE
 
 namespace upa {
 

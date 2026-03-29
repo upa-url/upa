@@ -2,9 +2,10 @@
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
-
-#include "upa/url_ip.h"
-#include "upa/util.h"
+#ifndef UPA_MODULE
+# include "upa/url_ip.h"
+# include "upa/util.h"
+#endif // UPA_MODULE
 
 namespace upa {
 

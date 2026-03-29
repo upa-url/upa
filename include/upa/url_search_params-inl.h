@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -10,7 +10,9 @@
 #ifndef UPA_URL_SEARCH_PARAMS_INL_H
 #define UPA_URL_SEARCH_PARAMS_INL_H
 
-#include <memory> // std::addressof
+#ifndef UPA_MODULE
+# include <memory> // std::addressof
+#endif // UPA_MODULE
 
 
 namespace upa {

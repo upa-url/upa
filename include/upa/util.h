@@ -7,17 +7,20 @@
 #define UPA_UTIL_H
 
 #include "config.h"
-#include <algorithm>
-#include <cassert>
-#include <cstddef>
-#include <limits>
-#ifdef __cpp_lib_start_lifetime_as
-# include <memory>
-#endif
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <type_traits>
+
+#ifndef UPA_MODULE
+# include <algorithm>
+# include <cassert>
+# include <cstddef>
+# include <limits>
+# ifdef __cpp_lib_start_lifetime_as
+#  include <memory>
+# endif
+# include <stdexcept>
+# include <string>
+# include <string_view>
+# include <type_traits>
+#endif // UPA_MODULE
 
 namespace upa::util {
 

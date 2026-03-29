@@ -8,19 +8,21 @@
 #include "url.h" // NOLINT(llvm-include-order)
 #include "unicode_id.h"
 
-#include <algorithm>
-#include <cassert>
-#include <charconv>
-#include <cstdint>
-#include <optional>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <type_traits>
-#include <unordered_map>
-#include <utility>
-#include <variant>
-#include <vector>
+#ifndef UPA_MODULE
+# include <algorithm>
+# include <cassert>
+# include <charconv>
+# include <cstdint>
+# include <optional>
+# include <stdexcept>
+# include <string>
+# include <string_view>
+# include <type_traits>
+# include <unordered_map>
+# include <utility>
+# include <variant>
+# include <vector>
+#endif // UPA_MODULE
 
 namespace upa {
 namespace pattern {
@@ -132,6 +134,8 @@ struct has_regex_engine_members<T, std::void_t<
 
 } // namespace pattern
 
+UPA_EXPORT_BEGIN
+
 template<class T>
 constexpr bool is_regex_engine_v =
     std::is_default_constructible_v<T>
@@ -197,6 +201,8 @@ private:
     [[nodiscard]] UPA_API static std::optional<std::string> urlpattern_init::*
         get_member(std::string_view name);
 };
+
+UPA_EXPORT_END
 
 namespace pattern {
 
@@ -446,6 +452,8 @@ inline bool protocol_component_matches_special_scheme(const component<regex_engi
 constexpr bool hostname_pattern_is_ipv6_address(std::string_view input) noexcept;
 
 } // namespace pattern
+
+UPA_EXPORT_BEGIN
 
 ///////////////////////////////////////////////////////////////////////
 // 1.2. The URLPattern class
@@ -851,6 +859,8 @@ public:
         : std::runtime_error(what_arg)
     {}
 };
+
+UPA_EXPORT_END
 
 ///////////////////////////////////////////////////////////////////////
 // 1.2. The URLPattern class

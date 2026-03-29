@@ -6,9 +6,11 @@
 #ifndef UPA_CONFIG_H
 #define UPA_CONFIG_H
 
-#if __has_include(<version>)
-# include <version> // IWYU pragma: export
-#endif
+#ifndef UPA_MODULE
+# if __has_include(<version>)
+#  include <version> // IWYU pragma: export
+# endif
+#endif // UPA_MODULE
 
 // Macros for compilers that support the C++20 or later standard
 // https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
@@ -41,6 +43,14 @@
 #endif
 #ifndef UPA_API
 # define UPA_API
+#endif
+
+// The following macros have values when the library is compiled as a module
+
+#ifndef UPA_EXPORT
+# define UPA_EXPORT
+# define UPA_EXPORT_BEGIN
+# define UPA_EXPORT_END
 #endif
 
 // Attributes
