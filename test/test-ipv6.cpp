@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -10,24 +10,24 @@
 #include <initializer_list>
 
 
-static bool ipv6_parse(const char* szInput, uint16_t(&address)[8]) {
+static bool ipv6_parse(const char* szInput, std::uint16_t(&address)[8]) {
     using str = std::char_traits<char>;
     return upa::ipv6_parse(szInput, szInput + str::length(szInput), address) == upa::validation_errc::ok;
 };
 
-static std::string ipv6_serialize(uint16_t(&address)[8]) {
+static std::string ipv6_serialize(std::uint16_t(&address)[8]) {
     std::string strout;
     upa::ipv6_serialize(address, strout);
     return strout;
 }
 
-static bool is_equal(uint16_t(&a)[8], std::initializer_list<uint16_t> b) {
+static bool is_equal(std::uint16_t(&a)[8], std::initializer_list<std::uint16_t> b) {
     assert(b.size() == 8);
     return std::equal(std::begin(a), std::end(a), std::begin(b));
 }
 
 TEST_CASE("IPv6 parser test with empty input") {
-    uint16_t ipv6addr[8];
+    std::uint16_t ipv6addr[8];
 
     // https://url.spec.whatwg.org/#concept-ipv6-parser
     // 8. Otherwise, if compress is null and pieceIndex is not 8, validation error, return failure.
@@ -35,7 +35,7 @@ TEST_CASE("IPv6 parser test with empty input") {
 }
 
 TEST_CASE("IPv6 parser test with valid addresses") {
-    uint16_t ipv6addr[8];
+    std::uint16_t ipv6addr[8];
 
     CHECK(ipv6_parse("1:2:3:4:5:6:7:8", ipv6addr));
     CHECK(is_equal(ipv6addr, { 1, 2, 3, 4, 5, 6, 7, 8 }));
@@ -76,7 +76,7 @@ TEST_CASE("IPv6 parser test with valid addresses") {
 }
 
 TEST_CASE("IPv4 in IPv6 test") {
-    uint16_t ipv6addr[8];
+    std::uint16_t ipv6addr[8];
 
     CHECK(ipv6_parse("::1.2.3.4", ipv6addr));
     CHECK(is_equal(ipv6addr, { 0, 0, 0, 0, 0, 0, 0x0102, 0x0304 }));

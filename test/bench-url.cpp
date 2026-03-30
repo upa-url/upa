@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Rimas Misevičius
+// Copyright 2023-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -19,7 +19,7 @@
 // -----------------------------------------------------------------------------
 // Read samples from text file (URL in each line) and benchmark
 
-int benchmark_txt(const std::filesystem::path& file_name, uint64_t min_iters) {
+int benchmark_txt(const std::filesystem::path& file_name, std::uint64_t min_iters) {
     std::vector<std::string> url_strings;
 
     // Load URL samples
@@ -60,7 +60,7 @@ int benchmark_txt(const std::filesystem::path& file_name, uint64_t min_iters) {
 // -----------------------------------------------------------------------------
 // Read samples from urltestdata.json and benchmark
 
-int benchmark_wpt(const std::filesystem::path& file_name, uint64_t min_iters) {
+int benchmark_wpt(const std::filesystem::path& file_name, std::uint64_t min_iters) {
     std::vector<std::pair<std::string, std::string>> url_samples;
 
     // Load URL samples
@@ -121,9 +121,9 @@ int benchmark_wpt(const std::filesystem::path& file_name, uint64_t min_iters) {
 
 // -----------------------------------------------------------------------------
 
-uint64_t get_positive_or_default(const char* str, uint64_t def)
+std::uint64_t get_positive_or_default(const char* str, std::uint64_t def)
 {
-    const uint64_t res = std::strtoull(str, nullptr, 10);
+    const std::uint64_t res = std::strtoull(str, nullptr, 10);
     if (res > 0)
         return res;
     return def;
@@ -131,7 +131,7 @@ uint64_t get_positive_or_default(const char* str, uint64_t def)
 
 int main(int argc, const char* argv[])
 {
-    constexpr uint64_t min_iters_def = 3;
+    constexpr std::uint64_t min_iters_def = 3;
 
     if (argc < 2) {
         std::cerr << "Usage: bench-url <file containing URLs> [<min iterations>]\n";
@@ -139,7 +139,7 @@ int main(int argc, const char* argv[])
     }
 
     const std::filesystem::path file_name = argv[1];
-    const uint64_t min_iters = argc > 2
+    const std::uint64_t min_iters = argc > 2
         ? get_positive_or_default(argv[2], min_iters_def)
         : min_iters_def;
 

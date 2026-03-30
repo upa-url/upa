@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -7,7 +7,7 @@
 #include "doctest-main.h"
 
 
-static upa::validation_errc ipv4_parse(const char* szInput, uint32_t& ipv4) {
+static upa::validation_errc ipv4_parse(const char* szInput, std::uint32_t& ipv4) {
     using str = std::char_traits<char>;
     return upa::ipv4_parse(szInput, szInput + str::length(szInput), ipv4);
 };
@@ -17,7 +17,7 @@ TEST_CASE("IPv4 parser test with empty input") {
 
     // https://url.spec.whatwg.org/#ipv4-number-parser
     // 1. If input is the empty string, then return failure.
-    uint32_t ipv4 = 1;
+    std::uint32_t ipv4 = 1;
     CHECK(upa::ipv4_parse_number(szEmpty, szEmpty, ipv4) != upa::validation_errc::ok);
 
     // https://url.spec.whatwg.org/#concept-ipv4-parser
@@ -27,7 +27,7 @@ TEST_CASE("IPv4 parser test with empty input") {
 }
 
 TEST_CASE("IPv4 parser test with 127.0.0.1") {
-    uint32_t ipv4;
+    std::uint32_t ipv4;
 
     ipv4 = 0;
     CHECK(ipv4_parse("0x7f000001", ipv4) == upa::validation_errc::ok);

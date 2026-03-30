@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -9,7 +9,7 @@
 
 
 template <typename T>
-static uint32_t first_codepoint(T&& strUtf) {
+static std::uint32_t first_codepoint(T&& strUtf) {
     const auto inp = upa::make_str_arg(strUtf);
     const auto* first = inp.begin();
     const auto* last = inp.end();

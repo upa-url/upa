@@ -22,7 +22,7 @@ using urlpattern = upa::urlpattern<upa::regex_engine_srell>;
 // Use libFuzzer interface
 // https://llvm.org/docs/LibFuzzer.html
 
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, std::size_t size) {
+extern "C" int LLVMFuzzerTestOneInput(const std::uint8_t* data, std::size_t size) {
     FuzzedDataProvider fdp(data, size);
 
     auto urlp_input = fdp.ConsumeRandomLengthString();

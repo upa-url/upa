@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -60,8 +60,8 @@ static void do_assert_equal(DataDrivenTest::TestCase& tc,
     const upa::url_search_params::name_value_list& expected,
     const upa::url_search_params& sparams)
 {
-    const size_t n_sparams = sparams.size();
-    const size_t n_expected = expected.size();
+    const auto n_sparams = sparams.size();
+    const auto n_expected = expected.size();
     tc.assert_equal(n_expected, n_sparams, "parameters count");
 
     if (n_sparams == n_expected) {

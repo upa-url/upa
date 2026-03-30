@@ -1,4 +1,4 @@
-// Copyright 2024-2025 Rimas Misevičius
+// Copyright 2024-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -15,7 +15,7 @@
 #include <vector>
 
 int bench_psl_list(const std::filesystem::path& path, const std::filesystem::path& filename) {
-    constexpr uint64_t min_iters = 128;
+    constexpr std::uint64_t min_iters = 128;
     std::vector<std::string> domain_list;
 
     std::cout << "Load domains from: " << filename << '\n';

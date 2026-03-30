@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -33,15 +33,15 @@ TEST_CASE("upa::util::checked_diff") {
     }
 
     SUBCASE("int -> unsigned") {
-        CHECK_EQ(upa::util::checked_diff<unsigned>(max_int, min_int), uint64_t(int64_t(max_int) - int64_t(min_int)));
+        CHECK_EQ(upa::util::checked_diff<unsigned>(max_int, min_int), std::uint64_t(std::int64_t(max_int) - std::int64_t(min_int)));
         // negative result
         CHECK_THROWS(upa::util::checked_diff<unsigned>(min_int, max_int));
         CHECK_THROWS(upa::util::checked_diff<unsigned>(0, 1));
     }
 
-    SUBCASE("int64_t -> int") {
-        const int64_t max_int64 = std::numeric_limits<int64_t>::max();
-        const int64_t min_int64 = std::numeric_limits<int64_t>::min();
+    SUBCASE("std::int64_t -> int") {
+        const auto max_int64 = std::numeric_limits<std::int64_t>::max();
+        const auto min_int64 = std::numeric_limits<std::int64_t>::min();
 
         CHECK_EQ(upa::util::checked_diff<int>(max_int64, max_int64 - max_int), max_int);
         CHECK_THROWS(upa::util::checked_diff<int>(max_int64, max_int64 - max_int - 1)); // > max_int
