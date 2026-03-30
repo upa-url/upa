@@ -1,4 +1,4 @@
-// Copyright 2023-2025 Rimas Misevičius
+// Copyright 2023-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -13,7 +13,7 @@ constexpr std::size_t align_size(std::size_t alignment, std::size_t size) noexce
 
 
 void make_unicode_id_table(const std::filesystem::path& data_path) {
-    using item_type = uint8_t;
+    using item_type = std::uint8_t;
     using item_num_type = item_type;
 
     const int index_levels = 1; // 1 arba 2
@@ -57,7 +57,7 @@ void make_unicode_id_table(const std::filesystem::path& data_path) {
     const std::size_t count = code_point_count >> 2; // divide by 4
     std::vector<item_type> all_data(count);
 
-    constexpr auto add_code_point = [](std::vector<item_type>& arr, uint8_t bit, uint32_t cp) {
+    constexpr auto add_code_point = [](std::vector<item_type>& arr, std::uint8_t bit, std::uint32_t cp) {
         arr[cp >> 2] |= (bit << (cp & 3));
     };
     for (std::uint32_t cp = 0; cp < code_point_count; ++cp) {
@@ -69,7 +69,7 @@ void make_unicode_id_table(const std::filesystem::path& data_path) {
 
     // Find block size
     const auto binf = find_block_size(all_data, count, sizeof(item_num_type), index_levels);
-    const size_t block_size = binf.block_size;
+    const std::size_t block_size = binf.block_size;
 
     // memory used
     std::cout << "block_size=" << block_size << "; mem=" << binf.total_mem() << "\n";
@@ -125,8 +125,8 @@ void make_unicode_id_table(const std::filesystem::path& data_path) {
         typedef std::map<array_view<item_type>, int> BlokcsMap;
         BlokcsMap blocks;
         int index = 0;
-        for (size_t ind = 0; ind < count; ind += block_size) {
-            size_t chunk_size = std::min(block_size, all_data.size() - ind);
+        for (std::size_t ind = 0; ind < count; ind += block_size) {
+            std::size_t chunk_size = std::min(block_size, all_data.size() - ind);
             array_view<item_type> block(all_data.data() + ind, chunk_size);
 
             auto res = blocks.insert(BlokcsMap::value_type(block, index));
@@ -165,7 +165,7 @@ void make_unicode_id_table(const std::filesystem::path& data_path) {
         fout_head << "extern " << sztype << " indexToBlock[];\n";
         fout << sztype << " indexToBlock[] = {";
         {
-            size_t count = all_index.size();
+            std::size_t count = all_index.size();
             std::cout << "=== Index BLOCK ===\n";
             block_info bi = find_block_size(all_index, count, getUIntSize(all_index));
 
@@ -174,8 +174,8 @@ void make_unicode_id_table(const std::filesystem::path& data_path) {
             typedef std::map<array_view<int>, int> BlokcsMap;
             BlokcsMap blocks;
             int index = 0;
-            for (size_t ind = 0; ind < count; ind += bi.block_size) {
-                size_t chunk_size = std::min(bi.block_size, count - ind);
+            for (std::size_t ind = 0; ind < count; ind += bi.block_size) {
+                std::size_t chunk_size = std::min(bi.block_size, count - ind);
                 array_view<int> block(all_index.data() + ind, chunk_size);
 
                 auto res = blocks.insert(BlokcsMap::value_type(block, index));

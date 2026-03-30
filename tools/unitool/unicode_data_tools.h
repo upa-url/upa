@@ -1,4 +1,4 @@
-// Copyright 2017-2025 Rimas Misevičius
+// Copyright 2017-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -120,7 +120,7 @@ inline static int hexstr_to_int(const char* first, const char* last) {
 // Char type name
 
 template <class T = char>
-inline const char* getCharType(size_t item_size = sizeof(T)) {
+inline const char* getCharType(std::size_t item_size = sizeof(T)) {
     switch (item_size)
     {
     case 1: return "char";
@@ -133,10 +133,10 @@ inline const char* getCharType(size_t item_size = sizeof(T)) {
 // Integer type name
 
 template <class T>
-inline std::size_t getUIntSize(const std::vector<T>& arr, size_t item_size = sizeof(T)) {
-    size_t max_size = 0;
+inline std::size_t getUIntSize(const std::vector<T>& arr, std::size_t item_size = sizeof(T)) {
+    std::size_t max_size = 0;
     for (const T& v : arr) {
-        const size_t size = (v <= 0xFF ? 1 : (v <= 0xFFFF ? 2 : (v <= 0xFFFFFFFF ? 4 : 8)));
+        const std::size_t size = (v <= 0xFF ? 1 : (v <= 0xFFFF ? 2 : (v <= 0xFFFFFFFF ? 4 : 8)));
         if (max_size < size) max_size = size;
         if (size == item_size) break;
     }
@@ -144,7 +144,7 @@ inline std::size_t getUIntSize(const std::vector<T>& arr, size_t item_size = siz
 }
 
 template <class T = std::uint32_t>
-inline const char* getUIntType(size_t item_size = sizeof(T)) {
+inline const char* getUIntType(std::size_t item_size = sizeof(T)) {
     switch (item_size)
     {
     case 1: return "std::uint8_t";
@@ -156,7 +156,7 @@ inline const char* getUIntType(size_t item_size = sizeof(T)) {
 }
 
 template <class T>
-inline const char* getUIntType(const std::vector<T>& arr, size_t item_size = sizeof(T)) {
+inline const char* getUIntType(const std::vector<T>& arr, std::size_t item_size = sizeof(T)) {
     return getUIntType(getUIntSize(arr, item_size));
 }
 
@@ -202,7 +202,7 @@ inline void parse_UnicodeData(const std::filesystem::path& file_name, OutputFun 
 
                 // code points range
                 int cp0, cp1;
-                const size_t ind = cpstr.find("..");
+                const std::size_t ind = cpstr.find("..");
                 if (ind == cpstr.npos) {
                     cp0 = hexstr_to_int(cpstr.data(), cpstr.data() + cpstr.length());
                     cp1 = cp0;
@@ -228,14 +228,14 @@ public:
         : begin_(src.begin_)
         , end_(src.end_)
     {}
-    array_view(const T* begin, size_t count)
+    array_view(const T* begin, std::size_t count)
         : begin_(begin)
         , end_(begin_ + count)
     {}
 
     const T* begin() const { return begin_; }
     const T* end() const { return end_; }
-    size_t size() const { return end_ - begin_; }
+    std::size_t size() const { return end_ - begin_; }
 
     friend inline bool operator<(const array_view& lhs, const array_view& rhs) {
         return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), Compare());
@@ -247,38 +247,38 @@ protected:
 
 struct block_info {
     template <class T, class Compare = std::less<T>>
-    size_t calc_mem_size(const std::vector<T>& arrValues, size_t count, size_t value_size, int shift);
+    std::size_t calc_mem_size(const std::vector<T>& arrValues, std::size_t count, std::size_t value_size, int shift);
 
     template <class T, class Compare = std::less<T>>
-    size_t calc_mem_size2(const std::vector<T>& arrValues, size_t count, size_t value_size, int shift);
+    std::size_t calc_mem_size2(const std::vector<T>& arrValues, std::size_t count, std::size_t value_size, int shift);
 
-    inline size_t total_mem() const {
+    inline std::size_t total_mem() const {
         return blocks_mem + index_mem;
     }
 
-    inline uint32_t code_point_mask() const {
+    inline std::uint32_t code_point_mask() const {
         return 0xffffffff >> (32 - size_shift);
     }
 
     // input
     int size_shift;
-    size_t block_size;
+    std::size_t block_size;
     // result
-    size_t blocks_count;
-    size_t blocks_mem;
-    size_t index_count;
-    size_t index_mem;
-    size_t values_count;
+    std::size_t blocks_count;
+    std::size_t blocks_mem;
+    std::size_t index_count;
+    std::size_t index_mem;
+    std::size_t values_count;
 };
 
 template <class T, class Compare = std::less<T>>
-inline block_info find_block_size(const std::vector<T>& arrValues, size_t count, size_t value_size = sizeof(T), int levels = 1) {
-    size_t min_mem_size = static_cast<size_t>(-1);
+inline block_info find_block_size(const std::vector<T>& arrValues, std::size_t count, std::size_t value_size = sizeof(T), int levels = 1) {
+    std::size_t min_mem_size = static_cast<std::size_t>(-1);
     block_info min_bi;
 
     for (int size_shift = 1; size_shift < 16; size_shift++) {
         block_info bi;
-        size_t mem_size =
+        std::size_t mem_size =
             levels <= 1
             ? bi.calc_mem_size<T, Compare>(arrValues, count, value_size, size_shift)
             : bi.calc_mem_size2<T, Compare>(arrValues, count, value_size, size_shift);
@@ -297,17 +297,17 @@ inline block_info find_block_size(const std::vector<T>& arrValues, size_t count,
 }
 
 template <class T, class Compare>
-inline size_t block_info::calc_mem_size(const std::vector<T>& arrValues, size_t count, size_t value_size, int shift) {
+inline std::size_t block_info::calc_mem_size(const std::vector<T>& arrValues, std::size_t count, std::size_t value_size, int shift) {
     typedef array_view<T, Compare> array_view_T;
 
     size_shift = shift;
-    block_size = static_cast<size_t>(1) << size_shift;
+    block_size = static_cast<std::size_t>(1) << size_shift;
 
     // count blocks
     std::set<array_view_T> blocks;
 
-    for (size_t ind = 0; ind < count; ind += block_size) {
-        size_t chunk_size = std::min(block_size, arrValues.size() - ind);
+    for (std::size_t ind = 0; ind < count; ind += block_size) {
+        std::size_t chunk_size = std::min(block_size, arrValues.size() - ind);
         array_view_T block(arrValues.data() + ind, chunk_size);
         blocks.insert(block);
     }
@@ -333,20 +333,20 @@ inline size_t block_info::calc_mem_size(const std::vector<T>& arrValues, size_t 
 }
 
 template <class T, class Compare>
-inline size_t block_info::calc_mem_size2(const std::vector<T>& arrValues, size_t count, size_t value_size, int shift) {
+inline std::size_t block_info::calc_mem_size2(const std::vector<T>& arrValues, std::size_t count, std::size_t value_size, int shift) {
     typedef array_view<T, Compare> array_view_T;
     typedef std::map<array_view_T, int> BlokcsMap;
 
     size_shift = shift;
-    block_size = static_cast<size_t>(1) << size_shift;
+    block_size = static_cast<std::size_t>(1) << size_shift;
 
     // count blocks
     BlokcsMap blocks;
     std::vector<int> blockIndex;
 
     int index = 0;
-    for (size_t ind = 0; ind < count; ind += block_size) {
-        size_t chunk_size = std::min(block_size, arrValues.size() - ind);
+    for (std::size_t ind = 0; ind < count; ind += block_size) {
+        std::size_t chunk_size = std::min(block_size, arrValues.size() - ind);
         array_view_T block(arrValues.data() + ind, chunk_size);
 
         auto res = blocks.insert(BlokcsMap::value_type(block, index));
@@ -366,7 +366,7 @@ inline size_t block_info::calc_mem_size2(const std::vector<T>& arrValues, size_t
 
     // index count & mem size
     index_count = blockIndex.size();
-    size_t index_item_size;
+    std::size_t index_item_size;
     if (blocks_count <= 0xFF) {
         index_item_size = 1;
     } else if (blocks_count <= 0xFFFF) {
@@ -439,7 +439,7 @@ class OutputFmt {
 public:
     enum class Style { NONE = 0, CPP, JS };
 
-    OutputFmt(std::ostream& fout, size_t max_line_len, Style style = Style::NONE);
+    OutputFmt(std::ostream& fout, std::size_t max_line_len, Style style = Style::NONE);
     ~OutputFmt();
 
     void output(const std::string& item);
@@ -448,14 +448,14 @@ public:
 protected:
     std::ostream& m_fout;
     bool m_first;
-    size_t m_line_len;
+    std::size_t m_line_len;
     // options
     Style m_style;
-    const size_t m_max_line_len;
-    static const size_t m_indent = 2;
+    const std::size_t m_max_line_len;
+    static const std::size_t m_indent = 2;
 };
 
-inline OutputFmt::OutputFmt(std::ostream& fout, size_t max_line_len, Style style)
+inline OutputFmt::OutputFmt(std::ostream& fout, std::size_t max_line_len, Style style)
     : m_fout(fout)
     , m_first(true)
     , m_line_len(0)
