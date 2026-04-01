@@ -114,7 +114,7 @@ namespace doctest {
 } // namespace doctest
 
 // -----------------------------------------------------------------------------
-// https://github.com/web-platform-tests/wpt/blob/master/urlpattern/urlpattern-constructor.html
+// https://github.com/web-platform-tests/wpt/blob/master/urlpattern/urlpattern-constructor.any.js
 
 TEST_SUITE("urlpattern_constructor") {
     TEST_CASE("Test unclosed token") {
