@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -330,7 +330,7 @@ void test_host_parser(DataDrivenTest& ddt, const parsed_obj& obj)
 }
 
 //
-// https://github.com/web-platform-tests/wpt/blob/master/url/IdnaTestV2.window.js
+// https://github.com/web-platform-tests/wpt/blob/master/url/IdnaTestV2.any.js
 //
 void test_idna_v2(DataDrivenTest& ddt, const parsed_obj& obj)
 {
