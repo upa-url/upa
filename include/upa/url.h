@@ -2523,7 +2523,7 @@ inline string_view url::get_path_first_string(std::size_t len) const UPA_LIFETIM
     if (pathv.length() == len || (pathv.length() > len && pathv[len] == '/')) {
         return { pathv.data(), len };
     }
-    return { pathv.data(), 0 };
+    return {};
 }
 
 // path shortening
