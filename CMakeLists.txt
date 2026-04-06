@@ -1,8 +1,6 @@
 # add_link_options() requires 3.13
 cmake_minimum_required(VERSION 3.13)
 
-set(CMAKE_SUPPRESS_REGENERATION true)
-
 # https://cmake.org/cmake/help/latest/policy/CMP0074.html
 if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
