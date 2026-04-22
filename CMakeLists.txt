@@ -18,7 +18,8 @@ string(REGEX MATCH "^[0-9]+\.[0-9]+" UPA_URL_SOVERSION ${UPA_URL_VERSION})
 message(STATUS "Upa URL SOVERSION: ${UPA_URL_SOVERSION}")
 
 # Project settings
-project(upa_url VERSION ${UPA_URL_VERSION} LANGUAGES CXX)
+project(upa_url VERSION ${UPA_URL_VERSION} LANGUAGES CXX
+  DESCRIPTION "An implementation of the WHATWG URL Standard in C++")
 # The ${upa_lib_name} is used to create the config file name:
 # ${upa_lib_name}-config.cmake
 # It also must be used as the package name argument to find_package
@@ -260,6 +261,7 @@ endif()
 if (UPA_INSTALL AND NOT UPA_AMALGAMATED)
   include(GNUInstallDirs)
   include(CMakePackageConfigHelpers)
+  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/JoinPaths.cmake)
 
   install(
     DIRECTORY include/
@@ -307,6 +309,16 @@ if (UPA_INSTALL AND NOT UPA_AMALGAMATED)
     EXPORT ${upa_lib_target}-targets
     FILE ${CMAKE_CURRENT_BINARY_DIR}/${upa_lib_name}-targets.cmake
     NAMESPACE upa::
+  )
+
+  # pkg-config
+  set(pkgconfig_file ${PROJECT_BINARY_DIR}/upa_url.pc)
+  join_paths(includedir_for_pc_file "\${prefix}" "${CMAKE_INSTALL_INCLUDEDIR}")
+  join_paths(libdir_for_pc_file "\${exec_prefix}" "${CMAKE_INSTALL_LIBDIR}")
+  configure_file("${PROJECT_SOURCE_DIR}/cmake/upa_url.pc.in" "${pkgconfig_file}" @ONLY)
+  install(
+    FILES "${pkgconfig_file}"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
   )
 
   # Packaging
