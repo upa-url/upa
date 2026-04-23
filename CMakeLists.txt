@@ -261,7 +261,6 @@ endif()
 if (UPA_INSTALL AND NOT UPA_AMALGAMATED)
   include(GNUInstallDirs)
   include(CMakePackageConfigHelpers)
-  include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/JoinPaths.cmake)
 
   install(
     DIRECTORY include/
@@ -313,8 +312,14 @@ if (UPA_INSTALL AND NOT UPA_AMALGAMATED)
 
   # pkg-config
   set(pkgconfig_file ${PROJECT_BINARY_DIR}/upa_url.pc)
-  join_paths(includedir_for_pc_file "\${prefix}" "${CMAKE_INSTALL_INCLUDEDIR}")
-  join_paths(libdir_for_pc_file "\${exec_prefix}" "${CMAKE_INSTALL_LIBDIR}")
+  if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.20")
+    cmake_path(APPEND includedir_for_pc_file "\${prefix}" "${CMAKE_INSTALL_INCLUDEDIR}")
+    cmake_path(APPEND libdir_for_pc_file "\${exec_prefix}" "${CMAKE_INSTALL_LIBDIR}")
+  else()
+    include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/JoinPaths.cmake)
+    join_paths(includedir_for_pc_file "\${prefix}" "${CMAKE_INSTALL_INCLUDEDIR}")
+    join_paths(libdir_for_pc_file "\${exec_prefix}" "${CMAKE_INSTALL_LIBDIR}")
+  endif()
   configure_file("${PROJECT_SOURCE_DIR}/cmake/upa_url.pc.in" "${pkgconfig_file}" @ONLY)
   install(
     FILES "${pkgconfig_file}"
