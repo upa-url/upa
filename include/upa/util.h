@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -134,12 +134,20 @@ constexpr std::size_t add_sizes(std::size_t size1, std::size_t size2, std::size_
     return size1 + size2;
 }
 
+// This function does not reduce the capacity of the string if it is greater
+// than new_cap, to avoid unnecessary memory reallocations in some cases.
+template <class CharT>
+UPA_CONSTEXPR_20 void reserve(std::basic_string<CharT>& str, std::size_t new_cap) {
+    if (str.capacity() < new_cap)
+        str.reserve(new_cap);
+}
+
 template <class CharT, class StrT>
 inline void append(std::basic_string<CharT>& dest, const StrT& src) {
 #ifdef _MSC_VER
     if constexpr (!std::is_same_v<typename StrT::value_type, CharT>) {
         // the value_type of dest and src are different
-        dest.reserve(add_sizes(dest.size(), src.size(), dest.max_size()));
+        reserve(dest, add_sizes(dest.size(), src.size(), dest.max_size()));
         for (const auto c : src)
             dest.push_back(static_cast<CharT>(c));
     } else

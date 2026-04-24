@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -762,7 +762,7 @@ public:
         if (!url_.empty())
             url_.clear();
     }
-    virtual void reserve(std::size_t new_cap) { url_.norm_url_.reserve(new_cap); }
+    virtual void reserve(std::size_t new_cap) { util::reserve(url_.norm_url_, new_cap); }
 
     // set data
     void set_scheme(const url& src) { url_.set_scheme(src); }
@@ -2840,7 +2840,7 @@ inline void url_serializer::replace_part(const url::PartType last_pt, const char
 
 //???
 inline void url_setter::reserve(std::size_t new_cap) {
-    strp_.reserve(new_cap);
+    util::reserve(strp_, new_cap);
 }
 
 // set scheme
