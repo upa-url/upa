@@ -37,8 +37,9 @@ public:
     using const_iterator = const value_type*;
 
     // default
-    UPA_CONSTEXPR_20 simple_buffer() = default; // NOLINT(cppcoreguidelines-pro-type-member-init,hicpp-member-init)
-    UPA_CONSTEXPR_20 explicit simple_buffer(const Allocator& alloc)
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,hicpp-member-init)
+    UPA_CONSTEXPR_20 simple_buffer() noexcept(noexcept(Allocator())) = default;
+    UPA_CONSTEXPR_20 explicit simple_buffer(const Allocator& alloc) noexcept
         : allocator_(alloc)
     {}
 
