@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -9,6 +9,8 @@
 
 #ifndef UPA_BUFFER_H
 #define UPA_BUFFER_H
+
+#include "config.h"
 
 #include <array>
 #include <cstddef>
@@ -35,13 +37,13 @@ public:
     using const_iterator = const value_type*;
 
     // default
-    simple_buffer() = default; // NOLINT(cppcoreguidelines-pro-type-member-init,hicpp-member-init)
-    explicit simple_buffer(const Allocator& alloc)
+    UPA_CONSTEXPR_20 simple_buffer() = default; // NOLINT(cppcoreguidelines-pro-type-member-init,hicpp-member-init)
+    UPA_CONSTEXPR_20 explicit simple_buffer(const Allocator& alloc)
         : allocator_(alloc)
     {}
 
     // with initial capacity
-    explicit simple_buffer(size_type new_cap, const Allocator& alloc = Allocator())
+    UPA_CONSTEXPR_20 explicit simple_buffer(size_type new_cap, const Allocator& alloc = Allocator())
         : allocator_(alloc)
     {
         if (new_cap > fixed_capacity)
@@ -54,54 +56,54 @@ public:
     simple_buffer& operator=(const simple_buffer&) = delete;
     simple_buffer& operator=(simple_buffer&&) = delete;
 
-    ~simple_buffer() {
+    UPA_CONSTEXPR_20 ~simple_buffer() {
         if (data_ != fixed_buffer())
             allocator_traits::deallocate(allocator_, data_, capacity_);
     }
 
-    allocator_type get_allocator() const noexcept {
+    UPA_CONSTEXPR_20 allocator_type get_allocator() const noexcept {
         return allocator_;
     }
 
-    value_type* data() noexcept {
+    UPA_CONSTEXPR_20 value_type* data() noexcept {
         return data_;
     }
-    const value_type* data() const noexcept {
+    UPA_CONSTEXPR_20 const value_type* data() const noexcept {
         return data_;
     }
 
-    const_iterator begin() const noexcept {
+    UPA_CONSTEXPR_20 const_iterator begin() const noexcept {
         return data_;
     }
-    const_iterator end() const noexcept {
+    UPA_CONSTEXPR_20 const_iterator end() const noexcept {
         return data_ + size_;
     }
 
     // Capacity
-    bool empty() const noexcept {
+    UPA_CONSTEXPR_20 bool empty() const noexcept {
         return size_ == 0;
     }
-    size_type size() const noexcept {
+    UPA_CONSTEXPR_20 size_type size() const noexcept {
         return size_;
     }
-    size_type max_size() const noexcept {
+    UPA_CONSTEXPR_20 size_type max_size() const noexcept {
         return allocator_traits::max_size(allocator_);
     }
-    size_type capacity() const noexcept {
+    UPA_CONSTEXPR_20 size_type capacity() const noexcept {
         return capacity_;
     }
 
-    void reserve(size_type new_cap) {
+    UPA_CONSTEXPR_20 void reserve(size_type new_cap) {
         if (new_cap > capacity_)
             grow_capacity(new_cap);
     }
 
     // Modifiers
-    void clear() noexcept {
+    UPA_CONSTEXPR_20 void clear() noexcept {
         size_ = 0;
     }
 
-    void append(const value_type* first, const value_type* last) {
+    UPA_CONSTEXPR_20 void append(const value_type* first, const value_type* last) {
         const auto ncopy = std::distance(first, last);
         const size_type new_size = add_sizes(size_, ncopy);
         if (new_size > capacity_)
@@ -112,7 +114,7 @@ public:
         size_ = new_size;
     }
 
-    void push_back(const value_type& value) {
+    UPA_CONSTEXPR_20 void push_back(const value_type& value) {
         if (size_ < capacity_) {
             data_[size_] = value;
             ++size_;
@@ -123,16 +125,16 @@ public:
         data_[size_] = value;
         ++size_;
     }
-    void pop_back() {
+    UPA_CONSTEXPR_20 void pop_back() {
         --size_;
     }
-    void resize(size_type count) {
+    UPA_CONSTEXPR_20 void resize(size_type count) {
         reserve(count);
         size_ = count;
     }
 
 #ifdef DOCTEST_LIBRARY_INCLUDED
-    void internal_test() {
+    inline void internal_test() {
         // https://en.cppreference.com/w/cpp/memory/allocator
         // default allocator is stateless, i.e. instances compare equal:
         CHECK(get_allocator() == allocator_);
@@ -142,11 +144,11 @@ public:
 #endif
 
 protected:
-    void init_capacity(size_type new_cap) {
+    UPA_CONSTEXPR_20 void init_capacity(size_type new_cap) {
         data_ = allocator_traits::allocate(allocator_, new_cap);
         capacity_ = new_cap;
     }
-    void grow_capacity(size_type new_cap) {
+    UPA_CONSTEXPR_20 void grow_capacity(size_type new_cap) {
         value_type* new_data = allocator_traits::allocate(allocator_, new_cap);
         // copy data
         traits_type::copy(new_data, data(), size());
@@ -160,8 +162,8 @@ protected:
     // https://cs.chromium.org/chromium/src/url/url_canon.h
     // Grows the given buffer so that it can fit at least |min_cap|
     // characters. Throws std::length_error() if min_cap is too big.
-    void grow(size_type min_cap) {
-        static const size_type kMinBufferLen = 16;
+    UPA_CONSTEXPR_20 void grow(size_type min_cap) {
+        constexpr size_type kMinBufferLen = 16;
         size_type new_cap = (capacity_ == 0) ? kMinBufferLen : capacity_;
         do {
             if (new_cap > (max_size() >> 1))  // Prevent overflow below.
@@ -172,14 +174,14 @@ protected:
     }
 
     // add without overflow
-    size_type add_sizes(size_type n1, size_type n2) const {
+    UPA_CONSTEXPR_20 size_type add_sizes(size_type n1, size_type n2) const {
         if (max_size() - n1 >= n2)
             return n1 + n2;
         throw std::length_error("too big size");
     }
 
 private:
-    value_type* fixed_buffer() noexcept {
+    UPA_CONSTEXPR_20 value_type* fixed_buffer() noexcept {
         return fixed_buffer_.data();
     }
 
