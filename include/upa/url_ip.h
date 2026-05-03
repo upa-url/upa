@@ -23,7 +23,7 @@ namespace upa {
 // Optimized version
 //
 template <typename CharT>
-inline bool hostname_ends_in_a_number(const CharT* first, const CharT* last) {
+UPA_CONSTEXPR_20 bool hostname_ends_in_a_number(const CharT* first, const CharT* last) {
     if (first != last) {
         // if the last label is empty string, then skip it
         if (*(last - 1) == '.')
@@ -56,7 +56,7 @@ inline bool hostname_ends_in_a_number(const CharT* first, const CharT* last) {
 // TODO-WARN: validationError
 //
 template <typename CharT>
-inline validation_errc ipv4_parse_number(const CharT* first, const CharT* last, std::uint32_t& number) {
+constexpr validation_errc ipv4_parse_number(const CharT* first, const CharT* last, std::uint32_t& number) {
     // If input is the empty string, then return failure
     if (first == last)
         return validation_errc::ipv4_non_numeric_part;
@@ -133,7 +133,7 @@ inline validation_errc ipv4_parse_number(const CharT* first, const CharT* last, 
 // - on failure returns validation error code
 //
 template <typename CharT>
-inline validation_errc ipv4_parse(const CharT* first, const CharT* last, std::uint32_t& ipv4) {
+constexpr validation_errc ipv4_parse(const CharT* first, const CharT* last, std::uint32_t& ipv4) {
     using UCharT = std::make_unsigned_t<CharT>;
 
     // 2. If the last item in parts is the empty string, then
@@ -145,11 +145,10 @@ inline validation_errc ipv4_parse(const CharT* first, const CharT* last, std::ui
         return validation_errc::ipv4_non_numeric_part;
 
     // <1>.<2>.<3>.<4>.<->
-    const CharT* part[6];
+    const CharT* part[6] = { first };
     int dot_count = 0;
 
     // split on "."
-    part[0] = first;
     for (auto it = first; it != last; ++it) {
         const auto uc = static_cast<UCharT>(*it);
         if (uc == '.') {
@@ -182,7 +181,7 @@ inline validation_errc ipv4_parse(const CharT* first, const CharT* last, std::ui
         return validation_errc::ipv4_too_many_parts;
 
     // IPv4 numbers
-    std::uint32_t number[4];
+    std::uint32_t number[4] = {};
     for (int ind = 0; ind < part_count; ++ind) {
         const auto res = ipv4_parse_number(part[ind], part[ind + 1] - 1, number[ind]);
         // 5.2. If result is failure, IPv4-non-numeric-part validation error, return failure.
@@ -221,7 +220,7 @@ UPA_API void ipv4_serialize(std::uint32_t ipv4, std::string& output);
 namespace detail {
 
 template <typename IntT, typename CharT>
-inline IntT get_hex_number(const CharT*& pointer, const CharT* last) {
+constexpr IntT get_hex_number(const CharT*& pointer, const CharT* last) {
     IntT value = 0;
     while (pointer != last && detail::is_hex_char(*pointer)) {
         const auto uc = static_cast<unsigned char>(*pointer);
@@ -240,7 +239,7 @@ inline IntT get_hex_number(const CharT*& pointer, const CharT* last) {
 // - on failure returns false
 //
 template <typename CharT>
-inline validation_errc ipv6_parse(const CharT* first, const CharT* last, std::uint16_t(&address)[8]) {
+UPA_CONSTEXPR_20 validation_errc ipv6_parse(const CharT* first, const CharT* last, std::uint16_t(&address)[8]) {
     std::fill(std::begin(address), std::end(address), static_cast<std::uint16_t>(0));
     int piece_index = 0;    // zero
     int compress = 0;       // null
