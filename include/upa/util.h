@@ -84,10 +84,10 @@ constexpr auto to_unsigned(T n) noexcept -> UT {
 
 // Append unsigned integer to string
 
-template <typename UIntT>
-inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
-    static const char digit[] = "0123456789abcdef";
+inline constexpr char kHexDigit[] = "0123456789abcdef";
 
+template <typename UIntT>
+UPA_CONSTEXPR_20 void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
     // count digits
     std::size_t count = output.length() + 1;
     // one division is needed to prevent the multiplication overflow
@@ -98,7 +98,7 @@ inline void unsigned_to_str(UIntT num, std::string& output, UIntT base) {
 
     // convert
     do {
-        output[--count] = digit[num % base];
+        output[--count] = kHexDigit[num % base];
         num /= base;
     } while (num);
 }
@@ -143,7 +143,7 @@ UPA_CONSTEXPR_20 void reserve(std::basic_string<CharT>& str, std::size_t new_cap
 }
 
 template <class CharT, class StrT>
-inline void append(std::basic_string<CharT>& dest, const StrT& src) {
+UPA_CONSTEXPR_20 void append(std::basic_string<CharT>& dest, const StrT& src) {
 #ifdef _MSC_VER
     if constexpr (!std::is_same_v<typename StrT::value_type, CharT>) {
         // the value_type of dest and src are different
@@ -156,7 +156,7 @@ inline void append(std::basic_string<CharT>& dest, const StrT& src) {
 }
 
 template <class CharT, class UnaryOperation>
-inline void append_tr(std::string& dest, const CharT* first, const CharT* last, UnaryOperation unary_op) {
+UPA_CONSTEXPR_20 void append_tr(std::string& dest, const CharT* first, const CharT* last, UnaryOperation unary_op) {
     const std::size_t old_size = dest.size();
     const std::size_t src_size = last - first;
     const std::size_t new_size = add_sizes(old_size, src_size, dest.max_size());
@@ -178,14 +178,14 @@ constexpr char ascii_to_lower_char(CharT c) noexcept {
 }
 
 template <class CharT>
-inline void append_ascii_lowercase(std::string& dest, const CharT* first, const CharT* last) {
+UPA_CONSTEXPR_20 void append_ascii_lowercase(std::string& dest, const CharT* first, const CharT* last) {
     util::append_tr(dest, first, last, ascii_to_lower_char<CharT>);
 }
 
 // Finders
 
 template <class InputIt>
-inline bool contains_null(InputIt first, InputIt last) {
+UPA_CONSTEXPR_20 bool contains_null(InputIt first, InputIt last) {
     return std::find(first, last, '\0') != last;
 }
 
