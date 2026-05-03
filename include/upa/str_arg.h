@@ -292,7 +292,7 @@ using enable_if_str_arg_to_charW_t = std::enable_if_t<
     int>;
 
 
-inline std::string&& make_string(std::string&& str) {
+UPA_CONSTEXPR_20 std::string&& make_string(std::string&& str) {
     return std::move(str);
 }
 
