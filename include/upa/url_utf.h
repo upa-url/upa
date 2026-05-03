@@ -24,14 +24,14 @@ public:
     static constexpr detail::result_value<std::uint32_t> read_utf_char(const CharT*& first, const CharT* last) noexcept;
 
     template <typename CharT>
-    static void read_char_append_utf8(const CharT*& it, const CharT* last, std::string& output);
-    static void read_char_append_utf8(const char*& it, const char* last, std::string& output);
+    static UPA_CONSTEXPR_20 void read_char_append_utf8(const CharT*& it, const CharT* last, std::string& output);
+    static UPA_CONSTEXPR_20 void read_char_append_utf8(const char*& it, const char* last, std::string& output);
 
     template <class Output, void appendByte(unsigned char, Output&)>
-    static void append_utf8(std::uint32_t code_point, Output& output);
+    static UPA_CONSTEXPR_20 void append_utf8(std::uint32_t code_point, Output& output);
 
     template <class Output>
-    static void append_utf16(std::uint32_t code_point, Output& output);
+    static UPA_CONSTEXPR_20 void append_utf16(std::uint32_t code_point, Output& output);
 
     // Convert to utf-8 string
     static UPA_API std::string to_utf8_string(const char16_t* first, const char16_t* last);
@@ -99,18 +99,18 @@ constexpr detail::result_value<std::uint32_t> url_utf::read_utf_char(const CharT
 
 namespace detail {
     template <typename CharT>
-    inline void append_to_string(std::uint8_t c, std::basic_string<CharT>& str) {
+    UPA_CONSTEXPR_20 void append_to_string(std::uint8_t c, std::basic_string<CharT>& str) {
         str.push_back(static_cast<CharT>(c));
     };
 } // namespace detail
 
 template <typename CharT>
-inline void url_utf::read_char_append_utf8(const CharT*& it, const CharT* last, std::string& output) {
+UPA_CONSTEXPR_20 void url_utf::read_char_append_utf8(const CharT*& it, const CharT* last, std::string& output) {
     const std::uint32_t code_point = read_utf_char(it, last).value;
     append_utf8<std::string, detail::append_to_string>(code_point, output);
 }
 
-inline void url_utf::read_char_append_utf8(const char*& it, const char* last, std::string& output) {
+UPA_CONSTEXPR_20 void url_utf::read_char_append_utf8(const char*& it, const char* last, std::string& output) {
     std::uint32_t code_point; // NOLINT(cppcoreguidelines-init-variables)
     const char* start = it;
     if (read_code_point(it, last, code_point))
@@ -238,7 +238,7 @@ constexpr bool url_utf::read_code_point(const char32_t*& first, const char32_t*,
 // It assumes a valid code point (https://infra.spec.whatwg.org/#scalar-value).
 
 template <class Output, void appendByte(std::uint8_t, Output&)>
-inline void url_utf::append_utf8(std::uint32_t code_point, Output& output) {
+UPA_CONSTEXPR_20 void url_utf::append_utf8(std::uint32_t code_point, Output& output) {
     if (code_point <= 0x7f) {
         appendByte(static_cast<std::uint8_t>(code_point), output);
     } else {
@@ -263,7 +263,7 @@ inline void url_utf::append_utf8(std::uint32_t code_point, Output& output) {
 // It assumes a valid code point (https://infra.spec.whatwg.org/#scalar-value).
 
 template <class Output>
-inline void url_utf::append_utf16(std::uint32_t code_point, Output& output) {
+UPA_CONSTEXPR_20 void url_utf::append_utf16(std::uint32_t code_point, Output& output) {
     if (code_point <= 0xffff) {
         output.push_back(static_cast<char16_t>(code_point));
     } else {

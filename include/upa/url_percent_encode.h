@@ -367,7 +367,7 @@ inline constexpr char kCharToHexLookup[8] = {
 };
 
 // Assumes the input is a valid hex digit! Call is_hex_char before using this.
-inline unsigned char hex_char_to_num(unsigned char c) noexcept {
+constexpr unsigned char hex_char_to_num(unsigned char c) noexcept {
     return c - kCharToHexLookup[c / 0x20];
 }
 
@@ -383,7 +383,7 @@ inline unsigned char hex_char_to_num(unsigned char c) noexcept {
 // sequence. On failure, |*first| will be unchanged.
 
 template <typename CharT>
-inline bool decode_hex_to_byte(const CharT*& first, const CharT* last, unsigned char& unescaped_value) {
+constexpr bool decode_hex_to_byte(const CharT*& first, const CharT* last, unsigned char& unescaped_value) {
     if (last - first < 2 ||
         !is_hex_char(first[0]) || !is_hex_char(first[1])) {
         // not enough or invalid hex digits
@@ -404,7 +404,7 @@ inline bool decode_hex_to_byte(const CharT*& first, const CharT* last, unsigned 
 // Percent-encodes byte and appends to string
 // See: https://url.spec.whatwg.org/#percent-encode
 
-inline void append_percent_encoded_byte(unsigned char uc, std::string& output) {
+UPA_CONSTEXPR_20 void append_percent_encoded_byte(unsigned char uc, std::string& output) {
     output.push_back('%');
     output.push_back(kHexCharLookup[uc >> 4]);
     output.push_back(kHexCharLookup[uc & 0xf]);
@@ -415,7 +415,7 @@ inline void append_percent_encoded_byte(unsigned char uc, std::string& output) {
 // sequences in input with Unicode replacement characters (U+FFFD) if present.
 
 template <typename CharT>
-inline bool append_utf8_percent_encoded_char(const CharT*& first, const CharT* last, std::string& output) {
+UPA_CONSTEXPR_20 bool append_utf8_percent_encoded_char(const CharT*& first, const CharT* last, std::string& output) {
     // url_util::read_utf_char(..) will handle invalid characters for us and give
     // us the kUnicodeReplacementCharacter, so we don't have to do special
     // checking after failure, just pass through the failure to the caller.
@@ -430,7 +430,7 @@ inline bool append_utf8_percent_encoded_char(const CharT*& first, const CharT* l
 // sequences in input with Unicode replacement characters (U+FFFD) if present.
 
 template<typename CharT>
-inline void append_utf8_percent_encoded(const CharT* first, const CharT* last, const code_point_set& cpset, std::string& output) {
+UPA_CONSTEXPR_20 void append_utf8_percent_encoded(const CharT* first, const CharT* last, const code_point_set& cpset, std::string& output) {
     using UCharT = std::make_unsigned_t<CharT>;
 
     for (auto it = first; it < last; ) {
@@ -535,7 +535,7 @@ template <class StrT, enable_if_str_arg_t<StrT> = 0>
 ///            must not be percent encoded
 /// @return percent encoded string
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
-[[nodiscard]] inline std::string percent_encode(StrT&& str, const code_point_set& no_encode_set) {
+[[nodiscard]] UPA_CONSTEXPR_20 std::string percent_encode(StrT&& str, const code_point_set& no_encode_set) {
     const auto inp = make_str_arg(std::forward<StrT>(str));
 
     std::string out;
@@ -554,7 +554,7 @@ template <class StrT, enable_if_str_arg_t<StrT> = 0>
 /// @param[in] str string input
 /// @return percent encoded string
 template <class StrT, enable_if_str_arg_t<StrT> = 0>
-[[nodiscard]] inline std::string encode_url_component(StrT&& str) {
+[[nodiscard]] UPA_CONSTEXPR_20 std::string encode_url_component(StrT&& str) {
     return percent_encode(std::forward<StrT>(str), component_no_encode_set);
 }
 
