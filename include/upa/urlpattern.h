@@ -348,7 +348,7 @@ using encoding_callback = std::string (*)(std::string_view input);
 inline part_list parse_pattern_string(std::string_view input, const options& opt, encoding_callback encoding_cb);
 
 // https://urlpattern.spec.whatwg.org/#full-wildcard-regexp-value
-constexpr std::string_view full_wildcard_regexp_value = ".*"sv;
+inline constexpr std::string_view full_wildcard_regexp_value{ ".*"sv };
 
 // https://urlpattern.spec.whatwg.org/#generate-a-segment-wildcard-regexp
 UPA_CONSTEXPR_20 std::string generate_segment_wildcard_regexp(const options& opt);
@@ -2012,7 +2012,7 @@ UPA_CONSTEXPR_20 const token& pattern_parser::consume_required_token(token::type
 
 // https://urlpattern.spec.whatwg.org/#consume-text
 UPA_CONSTEXPR_20 std::string pattern_parser::consume_text() {
-    std::string result{};
+    std::string result;
     while (true) {
         const auto* ptoken = try_consume_token(token::type::CHAR);
         if (ptoken == nullptr) {
@@ -2265,7 +2265,7 @@ UPA_CONSTEXPR_20 void append_escape_regexp_string(std::string& result, std::stri
 
 // https://urlpattern.spec.whatwg.org/#generate-a-pattern-string
 inline std::string generate_pattern_string(const part_list& pt_list, const options& opt) {
-    std::string result{};
+    std::string result;
 
     for (std::size_t index = 0; index < pt_list.size(); ++index) {
         const auto& pt = pt_list[index];
@@ -2376,7 +2376,7 @@ inline constexpr upa::code_point_set escape_pattern_set{ [](upa::code_point_set&
 } };
 
 UPA_CONSTEXPR_20 std::string escape_pattern_string(std::string_view input) {
-    std::string result{};
+    std::string result;
     append_escape_pattern_string(result, input);
     return result;
 }
