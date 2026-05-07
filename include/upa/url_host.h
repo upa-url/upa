@@ -147,12 +147,12 @@ private:
 namespace detail {
 
 template <typename CharT>
-inline bool contains_forbidden_domain_char(const CharT* first, const CharT* last) {
+UPA_CONSTEXPR_20 bool contains_forbidden_domain_char(const CharT* first, const CharT* last) {
     return std::any_of(first, last, detail::is_forbidden_domain_char<CharT>);
 }
 
 template <typename CharT>
-inline bool contains_forbidden_host_char(const CharT* first, const CharT* last) {
+UPA_CONSTEXPR_20 bool contains_forbidden_host_char(const CharT* first, const CharT* last) {
     return std::any_of(first, last, detail::is_forbidden_host_char<CharT>);
 }
 
