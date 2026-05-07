@@ -75,14 +75,14 @@ inline upa::url parse_url_against_base(const T& input, const TB& base_url_str) {
 // Get code point from a string
 
 template <class StrT, upa::enable_if_str_arg_t<StrT> = 0>
-inline char32_t get_code_point(StrT&& input) {
+constexpr char32_t get_code_point(StrT&& input) {
     const auto inp = upa::make_str_arg(std::forward<StrT>(input));
     const auto* ptr = inp.begin();
     return upa::url_utf::read_utf_char(ptr, inp.end()).value;
 }
 
 template <class StrT, upa::enable_if_str_arg_t<StrT> = 0>
-inline char32_t get_code_point(StrT&& input, std::size_t& ind) {
+constexpr char32_t get_code_point(StrT&& input, std::size_t& ind) {
     const auto inp = upa::make_str_arg(std::forward<StrT>(input));
     const auto* ptr = inp.begin() + ind;
     const char32_t cp = upa::url_utf::read_utf_char(ptr, inp.end()).value;
@@ -164,9 +164,9 @@ struct urlpattern_init {
     std::optional<std::string> base_url;
 
 #ifdef UPA_CPP_20
-    bool operator==(const urlpattern_init&) const = default;
+    constexpr bool operator==(const urlpattern_init&) const = default;
 #else
-    bool operator==(const urlpattern_init& other) const {
+    constexpr bool operator==(const urlpattern_init& other) const {
         return protocol == other.protocol && username == other.username &&
             password == other.password && hostname == other.hostname && port == other.port
             && pathname == other.pathname  && search == other.search && hash == other.hash
@@ -304,7 +304,7 @@ struct part {
         one_or_more
     };
 
-    part(type t, std::string&& value, modifier m)
+    UPA_CONSTEXPR_20 part(type t, std::string&& value, modifier m)
         : type_{ t }
         , value_{ std::move(value) }
         , modifier_{ m }
@@ -351,7 +351,7 @@ inline part_list parse_pattern_string(std::string_view input, const options& opt
 constexpr std::string_view full_wildcard_regexp_value = ".*"sv;
 
 // https://urlpattern.spec.whatwg.org/#generate-a-segment-wildcard-regexp
-inline std::string generate_segment_wildcard_regexp(const options& opt);
+UPA_CONSTEXPR_20 std::string generate_segment_wildcard_regexp(const options& opt);
 
 // 2.2. Converting part lists to regular expressions
 // https://urlpattern.spec.whatwg.org/#converting-part-lists-to-regular-expressions
@@ -359,18 +359,19 @@ inline std::string generate_segment_wildcard_regexp(const options& opt);
 using string_list = std::vector<std::string>;
 
 // https://urlpattern.spec.whatwg.org/#generate-a-regular-expression-and-name-list
-inline std::pair<std::string, string_list> generate_regular_expression_and_name_list(const part_list& pt_list, const options& opt);
+UPA_CONSTEXPR_20 std::pair<std::string, string_list> generate_regular_expression_and_name_list(
+    const part_list& pt_list, const options& opt);
 
-inline void append_escape_regexp_string(std::string& result, std::string_view input);
+UPA_CONSTEXPR_20 void append_escape_regexp_string(std::string& result, std::string_view input);
 
 // 2.3. Converting part lists to pattern strings
 // https://urlpattern.spec.whatwg.org/#converting-part-lists-to-pattern-strings
 
 inline std::string generate_pattern_string(const part_list& pt_list, const options& opt);
 
-inline std::string escape_pattern_string(std::string_view input);
-inline void append_escape_pattern_string(std::string& result, std::string_view input);
-inline void append_convert_modifier_to_string(std::string& result, part::modifier modifier);
+UPA_CONSTEXPR_20 std::string escape_pattern_string(std::string_view input);
+UPA_CONSTEXPR_20 void append_escape_pattern_string(std::string& result, std::string_view input);
+UPA_CONSTEXPR_20 void append_convert_modifier_to_string(std::string& result, part::modifier modifier);
 
 // 3. Canonicalization
 // https://urlpattern.spec.whatwg.org/#canon
@@ -500,8 +501,8 @@ public:
         return arr_[pos];
     }
 
-    const_iterator begin() const noexcept { return arr_.begin(); }
-    const_iterator end() const noexcept { return arr_.begin() + size_; }
+    constexpr const_iterator begin() const noexcept { return arr_.begin(); }
+    constexpr const_iterator end() const noexcept { return arr_.begin() + size_; }
 
     constexpr bool empty() const noexcept { return size_ == 0; }
     constexpr size_type size() const noexcept { return size_; }
@@ -1678,37 +1679,37 @@ inline void constructor_string_parser::compute_protocol_matches_special_scheme_f
 
 // https://urlpattern.spec.whatwg.org/#tokenizer
 struct tokenizer {
-    tokenizer() = default;
-    tokenizer(std::string_view input, tokenize_policy policy)
+    UPA_CONSTEXPR_20 tokenizer() = default;
+    UPA_CONSTEXPR_20 tokenizer(std::string_view input, tokenize_policy policy)
         : input_{ input }, policy_{ policy } {}
 
     // https://urlpattern.spec.whatwg.org/#get-the-next-code-point
-    void get_the_next_code_point() {
+    UPA_CONSTEXPR_20 void get_the_next_code_point() {
         code_point_ = get_code_point(input_, next_index_);
     }
 
     // https://urlpattern.spec.whatwg.org/#seek-and-get-the-next-code-point
-    void seek_and_get_the_next_code_point(std::size_t index) {
+    UPA_CONSTEXPR_20 void seek_and_get_the_next_code_point(std::size_t index) {
         next_index_ = index;
         get_the_next_code_point();
     }
 
     // https://urlpattern.spec.whatwg.org/#add-a-token
-    void add_token(token::type type, std::size_t next_pos, std::size_t value_pos, std::size_t value_len) {
+    UPA_CONSTEXPR_20 void add_token(token::type type, std::size_t next_pos, std::size_t value_pos, std::size_t value_len) {
         token_list_.push_back({ type, index_, input_.substr(value_pos, value_len) });
         index_ = next_pos;
     }
     // https://urlpattern.spec.whatwg.org/#add-a-token-with-default-length
-    void add_token_with_default_length(token::type type, std::size_t next_pos, std::size_t value_pos) {
+    UPA_CONSTEXPR_20 void add_token_with_default_length(token::type type, std::size_t next_pos, std::size_t value_pos) {
         add_token(type, next_pos, value_pos, next_pos - value_pos);
     }
     // https://urlpattern.spec.whatwg.org/#add-a-token-with-default-position-and-length
-    void add_token_with_default_position_and_length(token::type type) {
+    UPA_CONSTEXPR_20 void add_token_with_default_position_and_length(token::type type) {
         add_token_with_default_length(type, next_index_, index_);
     }
 
     // https://urlpattern.spec.whatwg.org/#process-a-tokenizing-error
-    void process_tokenizing_error(std::size_t next_pos, std::size_t value_pos) {
+    UPA_CONSTEXPR_20 void process_tokenizing_error(std::size_t next_pos, std::size_t value_pos) {
         if (policy_ == tokenize_policy::strict) {
             throw urlpattern_error("tokenizing error");
         }
@@ -1872,20 +1873,20 @@ inline token_list tokenize(std::string_view input, tokenize_policy policy) {
 
 // https://urlpattern.spec.whatwg.org/#pattern-parser
 struct pattern_parser {
-    pattern_parser(encoding_callback encoding_cb, std::string_view segment_wildcard_regexp)
+    UPA_CONSTEXPR_20 pattern_parser(encoding_callback encoding_cb, std::string_view segment_wildcard_regexp)
         : encoding_cb_(encoding_cb)
         , segment_wildcard_regexp_(segment_wildcard_regexp)
     {}
 
-    const token* try_consume_token(token::type type);
-    const token* try_consume_modifier_token();
-    const token* try_consume_regexp_or_wildcard_token(const token* pname_token);
-    const token& consume_required_token(token::type type);
-    std::string consume_text();
+    UPA_CONSTEXPR_20 const token* try_consume_token(token::type type);
+    UPA_CONSTEXPR_20 const token* try_consume_modifier_token();
+    UPA_CONSTEXPR_20 const token* try_consume_regexp_or_wildcard_token(const token* pname_token);
+    UPA_CONSTEXPR_20 const token& consume_required_token(token::type type);
+    UPA_CONSTEXPR_20 std::string consume_text();
     void maybe_add_part_from_pending_fixed_value();
     void add_part(std::string_view prefix, const token* pname_token, const token* pregexp_or_wildcard_token,
         std::string_view suffix, const token* pmodifier_token);
-    bool is_duplicate_name(std::string_view name) const noexcept;
+    UPA_CONSTEXPR_20 bool is_duplicate_name(std::string_view name) const noexcept;
 
     // members
 
@@ -1965,7 +1966,7 @@ inline part_list parse_pattern_string(std::string_view input, const options& opt
 }
 
 // https://urlpattern.spec.whatwg.org/#generate-a-segment-wildcard-regexp
-inline std::string generate_segment_wildcard_regexp(const options& opt) {
+UPA_CONSTEXPR_20 std::string generate_segment_wildcard_regexp(const options& opt) {
     std::string result{ "[^" };
     append_escape_regexp_string(result, opt.delimiter_code_point);
     result.append("]+?");
@@ -1973,7 +1974,7 @@ inline std::string generate_segment_wildcard_regexp(const options& opt) {
 }
 
 // https://urlpattern.spec.whatwg.org/#try-to-consume-a-token
-inline const token* pattern_parser::try_consume_token(token::type type) {
+UPA_CONSTEXPR_20 const token* pattern_parser::try_consume_token(token::type type) {
     // Assert: parser's index is less than parser's token list size.
     assert(index_ < token_list_.size());
 
@@ -1985,7 +1986,7 @@ inline const token* pattern_parser::try_consume_token(token::type type) {
 }
 
 // https://urlpattern.spec.whatwg.org/#try-to-consume-a-modifier-token
-inline const token* pattern_parser::try_consume_modifier_token() {
+UPA_CONSTEXPR_20 const token* pattern_parser::try_consume_modifier_token() {
     const auto* ptoken = try_consume_token(token::type::OTHER_MODIFIER);
     if (ptoken)
         return ptoken;
@@ -1993,7 +1994,7 @@ inline const token* pattern_parser::try_consume_modifier_token() {
 }
 
 // https://urlpattern.spec.whatwg.org/#try-to-consume-a-regexp-or-wildcard-token
-inline const token* pattern_parser::try_consume_regexp_or_wildcard_token(const token* pname_token) {
+UPA_CONSTEXPR_20 const token* pattern_parser::try_consume_regexp_or_wildcard_token(const token* pname_token) {
     const auto* ptoken = try_consume_token(token::type::REGEXP);
     if (pname_token == nullptr && ptoken == nullptr)
         return try_consume_token(token::type::ASTERISK);
@@ -2001,7 +2002,7 @@ inline const token* pattern_parser::try_consume_regexp_or_wildcard_token(const t
 }
 
 // https://urlpattern.spec.whatwg.org/#consume-a-required-token
-inline const token& pattern_parser::consume_required_token(token::type type) {
+UPA_CONSTEXPR_20 const token& pattern_parser::consume_required_token(token::type type) {
     const auto* ptoken = try_consume_token(type);
     if (ptoken == nullptr) {
         throw urlpattern_error("missing required token");
@@ -2010,7 +2011,7 @@ inline const token& pattern_parser::consume_required_token(token::type type) {
 }
 
 // https://urlpattern.spec.whatwg.org/#consume-text
-inline std::string pattern_parser::consume_text() {
+UPA_CONSTEXPR_20 std::string pattern_parser::consume_text() {
     std::string result{};
     while (true) {
         const auto* ptoken = try_consume_token(token::type::CHAR);
@@ -2115,7 +2116,7 @@ inline void pattern_parser::add_part(std::string_view prefix, const token* pname
 }
 
 // https://urlpattern.spec.whatwg.org/#is-a-duplicate-name
-inline bool pattern_parser::is_duplicate_name(std::string_view name) const noexcept {
+UPA_CONSTEXPR_20 bool pattern_parser::is_duplicate_name(std::string_view name) const noexcept {
     return std::any_of(part_list_.begin(), part_list_.end(), [&name](const part& pt) {
         return pt.name_ == name;
     });
@@ -2125,7 +2126,7 @@ inline bool pattern_parser::is_duplicate_name(std::string_view name) const noexc
 // https://urlpattern.spec.whatwg.org/#converting-part-lists-to-regular-expressions
 
 // https://urlpattern.spec.whatwg.org/#generate-a-regular-expression-and-name-list
-inline std::pair<std::string, string_list> generate_regular_expression_and_name_list(
+UPA_CONSTEXPR_20 std::pair<std::string, string_list> generate_regular_expression_and_name_list(
     const part_list& pt_list, const options& opt)
 {
     std::string result{ "^" };
@@ -2248,7 +2249,7 @@ inline constexpr upa::code_point_set escape_regexp_set{ [](upa::code_point_set& 
         0x28, 0x29, 0x5B, 0x5D, 0x7C, 0x2F, 0x5C });
 } };
 
-inline void append_escape_regexp_string(std::string& result, std::string_view input) {
+UPA_CONSTEXPR_20 void append_escape_regexp_string(std::string& result, std::string_view input) {
     //TODO: assert(is_ascii_string(input));
     //TODO: optimize
     for (const auto c : input) {
@@ -2374,13 +2375,13 @@ inline constexpr upa::code_point_set escape_pattern_set{ [](upa::code_point_set&
         0x2B, 0x2A, 0x3F, 0x3A, 0x7B, 0x7D, 0x28, 0x29, 0x5C });
 } };
 
-inline std::string escape_pattern_string(std::string_view input) {
+UPA_CONSTEXPR_20 std::string escape_pattern_string(std::string_view input) {
     std::string result{};
     append_escape_pattern_string(result, input);
     return result;
 }
 
-inline void append_escape_pattern_string(std::string& result, std::string_view input) {
+UPA_CONSTEXPR_20 void append_escape_pattern_string(std::string& result, std::string_view input) {
     //TODO: assert(is_ascii_string(input));
     //TODO: optimize
     for (const auto c : input) {
@@ -2391,7 +2392,7 @@ inline void append_escape_pattern_string(std::string& result, std::string_view i
 }
 
 // https://urlpattern.spec.whatwg.org/#convert-a-modifier-to-a-string
-inline void append_convert_modifier_to_string(std::string& result, part::modifier modifier) {
+UPA_CONSTEXPR_20 void append_convert_modifier_to_string(std::string& result, part::modifier modifier) {
     switch (modifier) {
     case part::modifier::zero_or_more:
         result.push_back('*');
@@ -2656,9 +2657,9 @@ inline std::string canonicalize_hash(std::string_view value) {
 // 3.2. URLPatternInit processing
 // https://urlpattern.spec.whatwg.org/#canon-processing-for-init
 
-inline std::string process_base_url_string(std::string_view input, urlpattern_init_type type);
+UPA_CONSTEXPR_20 std::string process_base_url_string(std::string_view input, urlpattern_init_type type);
 // input - pattern string to check
-inline bool is_absolute_pathname(std::string_view input, urlpattern_init_type type) noexcept;
+constexpr bool is_absolute_pathname(std::string_view input, urlpattern_init_type type) noexcept;
 inline std::string process_protocol_for_init(std::string_view value, urlpattern_init_type type);
 inline std::string process_username_for_init(std::string_view value, urlpattern_init_type type);
 inline std::string process_password_for_init(std::string_view value, urlpattern_init_type type);
@@ -2763,7 +2764,7 @@ inline urlpattern_init process_urlpattern_init(const urlpattern_init& init, urlp
 }
 
 // https://urlpattern.spec.whatwg.org/#process-a-base-url-string
-inline std::string process_base_url_string(std::string_view input, urlpattern_init_type type) {
+UPA_CONSTEXPR_20 std::string process_base_url_string(std::string_view input, urlpattern_init_type type) {
     if (input.empty()) return {}; // MANO: optimization
     if (type != urlpattern_init_type::PATTERN)
         return std::string(input);
@@ -2771,7 +2772,7 @@ inline std::string process_base_url_string(std::string_view input, urlpattern_in
 }
 
 // https://urlpattern.spec.whatwg.org/#is-an-absolute-pathname
-inline bool is_absolute_pathname(std::string_view input, urlpattern_init_type type) noexcept {
+constexpr bool is_absolute_pathname(std::string_view input, urlpattern_init_type type) noexcept {
     if (input.empty()) return false;
 
     if (input[0] == '/')
