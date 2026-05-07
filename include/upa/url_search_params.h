@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -381,18 +381,18 @@ namespace detail {
 class url_search_params_ptr
 {
 public:
-    url_search_params_ptr() noexcept = default;
+    constexpr url_search_params_ptr() noexcept = default;
 
     // copy constructor initializes to nullptr
-    url_search_params_ptr(const url_search_params_ptr&) noexcept {}
+    constexpr url_search_params_ptr(const url_search_params_ptr&) noexcept {}
     url_search_params_ptr& operator=(const url_search_params_ptr& other);
 
     // move constructor/assignment
-    url_search_params_ptr(url_search_params_ptr&& other) noexcept = default;
-    url_search_params_ptr& operator=(url_search_params_ptr&& other) noexcept = default;
+    UPA_CONSTEXPR_23 url_search_params_ptr(url_search_params_ptr&& other) noexcept = default;
+    UPA_CONSTEXPR_23 url_search_params_ptr& operator=(url_search_params_ptr&& other) noexcept = default;
 
     // destructor
-    ~url_search_params_ptr() = default;
+    UPA_CONSTEXPR_23 ~url_search_params_ptr() = default;
 
     void init(url* url_ptr) {
         ptr_.reset(new url_search_params(url_ptr)); // NOLINT(cppcoreguidelines-owning-memory)
@@ -412,13 +412,13 @@ public:
         ptr_->parse_params(query);
     }
 
-    explicit operator bool() const noexcept {
+    UPA_CONSTEXPR_23 explicit operator bool() const noexcept {
         return static_cast<bool>(ptr_);
     }
-    url_search_params& operator*() const {
+    UPA_CONSTEXPR_23 url_search_params& operator*() const {
         return *ptr_;
     }
-    url_search_params* operator->() const noexcept {
+    UPA_CONSTEXPR_23 url_search_params* operator->() const noexcept {
         return ptr_.get();
     }
 private:

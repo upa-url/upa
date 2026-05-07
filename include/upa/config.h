@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -17,6 +17,13 @@
 # define UPA_CONSTEXPR_20 constexpr
 #else
 # define UPA_CONSTEXPR_20 inline
+#endif
+
+// C++23
+#if defined(_MSVC_LANG) ? (_MSVC_LANG >= 202302) : (__cplusplus >= 202302)
+# define UPA_CONSTEXPR_23 constexpr
+#else
+# define UPA_CONSTEXPR_23 inline
 #endif
 
 // Define UPA_API macro to mark symbols for export/import
