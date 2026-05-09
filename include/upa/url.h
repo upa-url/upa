@@ -147,7 +147,7 @@ public:
     /// @param[in] str_url URL string to parse
     /// @param[in] pbase   pointer to base URL, may be `nullptr`
     template <class T, enable_if_str_arg_t<T> = 0>
-    explicit url(const T& str_url, const url* pbase = nullptr)
+    inline explicit url(const T& str_url, const url* pbase = nullptr)
         : url{ str_url, pbase, detail::kURLParseError }
     {}
 
@@ -158,7 +158,7 @@ public:
     /// @param[in] str_url URL string to parse
     /// @param[in] base    base URL
     template <class T, enable_if_str_arg_t<T> = 0>
-    explicit url(const T& str_url, const url& base)
+    inline explicit url(const T& str_url, const url& base)
         : url{ str_url, &base, detail::kURLParseError }
     {}
 
@@ -169,7 +169,7 @@ public:
     /// @param[in] str_url  URL string to parse
     /// @param[in] str_base base URL string
     template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
-    explicit url(const T& str_url, const TB& str_base)
+    inline explicit url(const T& str_url, const TB& str_base)
         : url{ str_url, url{ str_base, nullptr, detail::kBaseURLParseError } }
     {}
 
@@ -196,7 +196,7 @@ public:
     /// @param[in] base    pointer to base URL, may be nullptr
     /// @return error code (@a validation_errc::ok on success)
     template <class T, enable_if_str_arg_t<T> = 0>
-    validation_errc parse(const T& str_url, const url* base = nullptr) {
+    inline validation_errc parse(const T& str_url, const url* base = nullptr) {
         const auto inp = make_str_arg(str_url);
         return do_parse(inp.begin(), inp.end(), base);
     }
@@ -207,7 +207,7 @@ public:
     /// @param[in] base    base URL
     /// @return error code (@a validation_errc::ok on success)
     template <class T, enable_if_str_arg_t<T> = 0>
-    validation_errc parse(const T& str_url, const url& base) {
+    inline validation_errc parse(const T& str_url, const url& base) {
         return parse(str_url, &base);
     }
 
@@ -217,7 +217,7 @@ public:
     /// @param[in] str_base base URL string
     /// @return error code (@a validation_errc::ok on success)
     template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
-    validation_errc parse(const T& str_url, const TB& str_base) {
+    inline validation_errc parse(const T& str_url, const TB& str_base) {
         upa::url base;
         const auto res = base.parse(str_base, nullptr);
         return res == validation_errc::ok
@@ -234,7 +234,7 @@ public:
     /// @param[in] pbase   pointer to base URL, may be `nullptr`
     /// @return true if given @a str_url can be parsed against @a *pbase
     template <class T, enable_if_str_arg_t<T> = 0>
-    [[nodiscard]] static bool can_parse(const T& str_url, const url* pbase = nullptr) {
+    [[nodiscard]] static inline bool can_parse(const T& str_url, const url* pbase = nullptr) {
         upa::url url;
         return url.for_can_parse(str_url, pbase) == validation_errc::ok;
     }
@@ -248,7 +248,7 @@ public:
     /// @param[in] base    base URL
     /// @return true if given @a str_url can be parsed against base URL
     template <class T, enable_if_str_arg_t<T> = 0>
-    [[nodiscard]] static bool can_parse(const T& str_url, const url& base) {
+    [[nodiscard]] static inline bool can_parse(const T& str_url, const url& base) {
         return can_parse(str_url, &base);
     }
 
@@ -262,7 +262,7 @@ public:
     /// @param[in] str_base base URL string
     /// @return true if given @a str_url can be parsed against @a str_base URL string
     template <class T, class TB, enable_if_str_arg_t<T> = 0, enable_if_str_arg_t<TB> = 0>
-    [[nodiscard]] static bool can_parse(const T& str_url, const TB& str_base) {
+    [[nodiscard]] static inline bool can_parse(const T& str_url, const TB& str_base) {
         upa::url base;
         return
             base.for_can_parse(str_base, nullptr) == validation_errc::ok &&
@@ -282,7 +282,7 @@ public:
     bool href(const StrT& str);
     /// Equivalent to @link href(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_href(const StrT& str) { return href(str); }
+    inline bool set_href(const StrT& str) { return href(str); }
 
     /// @brief The protocol setter
     ///
@@ -295,7 +295,7 @@ public:
     bool protocol(const StrT& str);
     /// Equivalent to @link protocol(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_protocol(const StrT& str) { return protocol(str); }
+    inline bool set_protocol(const StrT& str) { return protocol(str); }
 
     /// @brief The username setter
     ///
@@ -308,7 +308,7 @@ public:
     bool username(const StrT& str);
     /// Equivalent to @link username(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_username(const StrT& str) { return username(str); }
+    inline bool set_username(const StrT& str) { return username(str); }
 
     /// @brief The password setter
     ///
@@ -321,7 +321,7 @@ public:
     bool password(const StrT& str);
     /// Equivalent to @link password(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_password(const StrT& str) { return password(str); }
+    inline bool set_password(const StrT& str) { return password(str); }
 
     /// @brief The host setter
     ///
@@ -334,7 +334,7 @@ public:
     bool host(const StrT& str);
     /// Equivalent to @link host(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_host(const StrT& str) { return host(str); }
+    inline bool set_host(const StrT& str) { return host(str); }
 
     /// @brief The hostname setter
     ///
@@ -347,7 +347,7 @@ public:
     bool hostname(const StrT& str);
     /// Equivalent to @link hostname(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_hostname(const StrT& str) { return hostname(str); }
+    inline bool set_hostname(const StrT& str) { return hostname(str); }
 
     /// @brief The port setter
     ///
@@ -360,7 +360,7 @@ public:
     bool port(const StrT& str);
     /// Equivalent to @link port(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_port(const StrT& str) { return port(str); }
+    inline bool set_port(const StrT& str) { return port(str); }
 
     /// @brief The pathname setter
     ///
@@ -373,7 +373,7 @@ public:
     bool pathname(const StrT& str);
     /// Equivalent to @link pathname(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_pathname(const StrT& str) { return pathname(str); }
+    inline bool set_pathname(const StrT& str) { return pathname(str); }
 
     /// @brief The search setter
     ///
@@ -386,7 +386,7 @@ public:
     bool search(const StrT& str);
     /// Equivalent to @link search(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_search(const StrT& str) { return search(str); }
+    inline bool set_search(const StrT& str) { return search(str); }
 
     /// @brief The hash setter
     ///
@@ -399,7 +399,7 @@ public:
     bool hash(const StrT& str);
     /// Equivalent to @link hash(const StrT& str) @endlink
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    bool set_hash(const StrT& str) { return hash(str); }
+    inline bool set_hash(const StrT& str) { return hash(str); }
 
     // Getters
 
@@ -410,7 +410,7 @@ public:
     /// @return serialized URL
     [[nodiscard]] std::string_view href() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link href() const @endlink
-    [[nodiscard]] std::string_view get_href() const UPA_LIFETIMEBOUND { return href(); }
+    [[nodiscard]] inline std::string_view get_href() const UPA_LIFETIMEBOUND { return href(); }
 
     /// @brief The origin getter
     ///
@@ -429,7 +429,7 @@ public:
     /// @return URL's scheme, followed by U+003A (:)
     [[nodiscard]] std::string_view protocol() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link protocol() const @endlink
-    [[nodiscard]] std::string_view get_protocol() const UPA_LIFETIMEBOUND { return protocol(); }
+    [[nodiscard]] inline std::string_view get_protocol() const UPA_LIFETIMEBOUND { return protocol(); }
 
     /// @brief The username getter
     ///
@@ -438,7 +438,7 @@ public:
     /// @return URL’s username
     [[nodiscard]] std::string_view username() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link username() const @endlink
-    [[nodiscard]] std::string_view get_username() const UPA_LIFETIMEBOUND { return username(); }
+    [[nodiscard]] inline std::string_view get_username() const UPA_LIFETIMEBOUND { return username(); }
 
     /// @brief The password getter
     ///
@@ -447,7 +447,7 @@ public:
     /// @return URL’s password
     [[nodiscard]] std::string_view password() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link password() const @endlink
-    [[nodiscard]] std::string_view get_password() const UPA_LIFETIMEBOUND { return password(); }
+    [[nodiscard]] inline std::string_view get_password() const UPA_LIFETIMEBOUND { return password(); }
 
     /// @brief The host getter
     ///
@@ -456,7 +456,7 @@ public:
     /// @return URL’s host, serialized, followed by U+003A (:) and URL’s port, serialized
     [[nodiscard]] std::string_view host() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link host() const @endlink
-    [[nodiscard]] std::string_view get_host() const UPA_LIFETIMEBOUND { return host(); }
+    [[nodiscard]] inline std::string_view get_host() const UPA_LIFETIMEBOUND { return host(); }
 
     /// @brief The hostname getter
     ///
@@ -465,7 +465,7 @@ public:
     /// @return URL’s host, serialized
     [[nodiscard]] std::string_view hostname() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link hostname() const @endlink
-    [[nodiscard]] std::string_view get_hostname() const UPA_LIFETIMEBOUND { return hostname(); }
+    [[nodiscard]] inline std::string_view get_hostname() const UPA_LIFETIMEBOUND { return hostname(); }
 
     /// @brief The host_type getter
     ///
@@ -479,7 +479,7 @@ public:
     /// @return URL’s port, serialized, if URL’s port is not null, otherwise empty string
     [[nodiscard]] std::string_view port() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link port() const @endlink
-    [[nodiscard]] std::string_view get_port() const UPA_LIFETIMEBOUND { return port(); }
+    [[nodiscard]] inline std::string_view get_port() const UPA_LIFETIMEBOUND { return port(); }
 
     /// @return URL’s port, converted to `int` value, if URL’s port is not null,
     ///   otherwise `-1`
@@ -495,7 +495,7 @@ public:
     /// @return URL's path, serialized, followed by U+003F (?) and URL’s query
     [[nodiscard]] std::string_view path() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link path() const @endlink
-    [[nodiscard]] std::string_view get_path() const UPA_LIFETIMEBOUND { return path(); }
+    [[nodiscard]] inline std::string_view get_path() const UPA_LIFETIMEBOUND { return path(); }
 
     /// @brief The pathname getter
     ///
@@ -504,7 +504,7 @@ public:
     /// @return URL’s path, serialized
     [[nodiscard]] std::string_view pathname() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link pathname() const @endlink
-    [[nodiscard]] std::string_view get_pathname() const UPA_LIFETIMEBOUND { return pathname(); }
+    [[nodiscard]] inline std::string_view get_pathname() const UPA_LIFETIMEBOUND { return pathname(); }
 
     /// @brief The search getter
     ///
@@ -513,7 +513,7 @@ public:
     /// @return empty string or U+003F (?), followed by URL’s query
     [[nodiscard]] std::string_view search() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link search() const @endlink
-    [[nodiscard]] std::string_view get_search() const UPA_LIFETIMEBOUND { return search(); }
+    [[nodiscard]] inline std::string_view get_search() const UPA_LIFETIMEBOUND { return search(); }
 
     /// @brief The hash getter
     ///
@@ -522,7 +522,7 @@ public:
     /// @return empty string or U+0023 (#), followed by URL’s fragment
     [[nodiscard]] std::string_view hash() const UPA_LIFETIMEBOUND;
     /// Equivalent to @link hash() const @endlink
-    [[nodiscard]] std::string_view get_hash() const UPA_LIFETIMEBOUND { return hash(); }
+    [[nodiscard]] inline std::string_view get_hash() const UPA_LIFETIMEBOUND { return hash(); }
 
     /// @brief The searchParams getter
     ///
@@ -760,7 +760,7 @@ public:
     url_serializer(const url_serializer&) = delete;
     url_serializer& operator=(const url_serializer&) = delete;
 
-    explicit url_serializer(url& dest_url, bool need_save = true)
+    inline explicit url_serializer(url& dest_url, bool need_save = true)
         : host_output(need_save)
         , url_(dest_url)
         , last_pt_(url::SCHEME)
@@ -768,16 +768,18 @@ public:
 
     ~url_serializer() override = default;
 
-    void new_url() {
+    inline void new_url() {
         if (!url_.empty())
             url_.clear();
     }
-    virtual void reserve(std::size_t new_cap) { util::reserve(url_.norm_url_, new_cap); }
+    inline virtual void reserve(std::size_t new_cap) {
+        util::reserve(url_.norm_url_, new_cap);
+    }
 
     // set data
-    void set_scheme(const url& src) { url_.set_scheme(src); }
-    void set_scheme(std::string_view str) { url_.set_scheme(str); }
-    void set_scheme(std::size_t scheme_length) { url_.set_scheme(scheme_length); }
+    inline void set_scheme(const url& src) { url_.set_scheme(src); }
+    inline void set_scheme(std::string_view str) { url_.set_scheme(str); }
+    inline void set_scheme(std::size_t scheme_length) { url_.set_scheme(scheme_length); }
 
     // set scheme
     virtual std::string& start_scheme();
@@ -788,7 +790,7 @@ public:
     virtual std::string& start_part(url::PartType new_pt);
     virtual void save_part();
 
-    virtual void clear_part(url::PartType /*pt*/) {}
+    inline virtual void clear_part(url::PartType /*pt*/) {}
 
     // set empty host
     void set_empty_host();
@@ -820,29 +822,29 @@ public:
     void append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn = nullptr);
 
     // flags
-    void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
-    void set_host_type(const HostType ht) { url_.set_host_type(ht); }
+    inline void set_flag(const url::UrlFlag flag) { url_.set_flag(flag); }
+    inline void set_host_type(const HostType ht) { url_.set_host_type(ht); }
     // IMPORTANT: has-an-opaque-path flag must be set before or just after
     // SCHEME set; because other part's serialization depends on this flag
-    void set_has_opaque_path() {
+    inline void set_has_opaque_path() {
         assert(last_pt_ == url::SCHEME);
         url_.set_has_opaque_path();
     }
 
     // get info
-    std::string_view get_part_view(url::PartType t) const { return url_.get_part_view(t); }
-    bool is_empty(const url::PartType t) const { return url_.is_empty(t); }
-    virtual bool is_empty_path() const {
+    inline std::string_view get_part_view(url::PartType t) const { return url_.get_part_view(t); }
+    inline bool is_empty(const url::PartType t) const { return url_.is_empty(t); }
+    inline virtual bool is_empty_path() const {
         assert(!url_.has_opaque_path());
         // path_segment_count_ has meaning only if path is a list (path isn't opaque)
         return url_.path_segment_count_ == 0;
     }
-    bool is_null(const url::PartType t) const noexcept { return url_.is_null(t); }
-    bool is_special_scheme() const noexcept { return url_.is_special_scheme(); }
-    bool is_file_scheme() const noexcept { return url_.is_file_scheme(); }
-    bool has_credentials() const { return url_.has_credentials(); }
-    const detail::scheme_info* scheme_inf() const noexcept { return url_.scheme_inf_; }
-    int port_int() const { return url_.port_int(); }
+    inline bool is_null(const url::PartType t) const noexcept { return url_.is_null(t); }
+    inline bool is_special_scheme() const noexcept { return url_.is_special_scheme(); }
+    inline bool is_file_scheme() const noexcept { return url_.is_file_scheme(); }
+    inline bool has_credentials() const { return url_.has_credentials(); }
+    inline const detail::scheme_info* scheme_inf() const noexcept { return url_.scheme_inf_; }
+    inline int port_int() const { return url_.port_int(); }
 
 protected:
     void adjust_path_prefix();
@@ -866,7 +868,7 @@ public:
     url_setter(const url_setter&) = delete;
     url_setter& operator=(const url_setter&) = delete;
 
-    explicit url_setter(url& dest_url)
+    inline explicit url_setter(url& dest_url)
         : url_serializer(dest_url)
         , use_strp_(true)
         , curr_pt_(url::SCHEME)
@@ -3416,7 +3418,7 @@ namespace std {
 /// @brief std::hash specialization for upa::url class
 template<>
 struct hash<upa::url> {
-    [[nodiscard]] std::size_t operator()(const upa::url& url) const noexcept {
+    [[nodiscard]] inline std::size_t operator()(const upa::url& url) const noexcept {
         return std::hash<std::string>{}(url.norm_url_);
     }
 };

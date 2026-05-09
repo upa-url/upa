@@ -107,13 +107,13 @@ public:
     ///
     /// @param[in] res validation error code
     /// @param[in] what_arg error message
-    explicit url_error(validation_errc res, const char* what_arg)
+    inline explicit url_error(validation_errc res, const char* what_arg)
         : std::runtime_error(what_arg)
         , res_(res)
     {}
 
     /// @return validation error code
-    [[nodiscard]] validation_errc result() const noexcept {
+    [[nodiscard]] inline validation_errc result() const noexcept {
         return res_;
     }
 private:
