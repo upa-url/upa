@@ -2733,6 +2733,8 @@ inline void url_serializer::hostDone(HostType ht) {
 // append parts from other url
 
 inline void url_serializer::append_parts(const url& src, url::PartType t1, url::PartType t2, PathOpFn pathOpFn) {
+    if (!need_save()) return;
+
     // See URL serializing
     // https://url.spec.whatwg.org/#concept-url-serializer
     const url::PartType ifirst = [&]() {
@@ -2748,8 +2750,6 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
         // t1 == PATH
         return t1;
     }();
-
-    if (!need_save()) return;
 
     // copy flags; they can be used when copying / serializing url parts below
     unsigned mask = 0;
