@@ -43,7 +43,7 @@ UPA_EXPORT enum class HostType {
 class host_output {
 protected:
     host_output() = default;
-    host_output(bool need_save)
+    inline host_output(bool need_save)
         : need_save_{ need_save } {}
 public:
     host_output(const host_output&) = delete;
@@ -52,7 +52,7 @@ public:
 
     virtual std::string& hostStart() = 0;
     virtual void hostDone(HostType /*ht*/) = 0;
-    bool need_save() const noexcept { return need_save_; }
+    inline bool need_save() const noexcept { return need_save_; }
 private:
     bool need_save_ = true;
 };
@@ -91,7 +91,7 @@ public:
     ///
     /// @param[in] str Host string to parse
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    explicit url_host(const StrT& str) {
+    inline explicit url_host(const StrT& str) {
         host_out out(*this);
 
         const auto inp = make_str_arg(str);
@@ -106,34 +106,34 @@ public:
     /// Host type getter
     ///
     /// @return host type, the one of: Domain, IPv4, IPv6
-    [[nodiscard]] HostType type() const {
+    [[nodiscard]] inline HostType type() const {
         return type_;
     }
 
     /// Hostname view
     ///
     /// @return serialized host as std::string_view
-    [[nodiscard]] std::string_view name() const UPA_LIFETIMEBOUND {
+    [[nodiscard]] inline std::string_view name() const UPA_LIFETIMEBOUND {
         return host_str_;
     }
 
     /// Hostname stringifier
     ///
     /// @return host serialized to string
-    [[nodiscard]] std::string to_string() const {
+    [[nodiscard]] inline std::string to_string() const {
         return host_str_;
     }
 
 private:
     class host_out : public host_output {
     public:
-        explicit host_out(url_host& host)
+        inline explicit host_out(url_host& host)
             : host_(host)
         {}
-        std::string& hostStart() override {
+        inline std::string& hostStart() override {
             return host_.host_str_;
         }
-        void hostDone(HostType ht) override {
+        inline void hostDone(HostType ht) override {
             host_.type_ = ht;
         }
     private:

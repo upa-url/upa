@@ -181,7 +181,7 @@ struct urlpattern_init {
     /// @brief Get value of member by name
     /// @param name Name of the member to get
     /// @return Value of the member if found, `std::nullopt` otherwise
-    [[nodiscard]] std::optional<std::string_view> get(std::string_view name) const {
+    [[nodiscard]] inline std::optional<std::string_view> get(std::string_view name) const {
         if (auto ptr = get_member(name))
             return this->*ptr;
         return std::nullopt;
@@ -191,7 +191,7 @@ struct urlpattern_init {
     /// @param name Name of the member to set
     /// @param value Value to set, must be assignable to std::string
     template <typename T, std::enable_if_t<std::is_assignable_v<std::string, T>, int> = 0>
-    void set(std::string_view name, T&& value) {
+    inline void set(std::string_view name, T&& value) {
         if (auto ptr = get_member(name))
             this->*ptr = std::forward<T>(value);
     }
@@ -262,7 +262,6 @@ struct token {
     type type_;
     std::size_t index_;
     std::string_view value_;
-
 };
 
 // https://urlpattern.spec.whatwg.org/#token-list
@@ -659,7 +658,7 @@ public:
     /// @param[in] opt optional `upa::urlpattern_options` struct
     template <class T, class TB, upa::enable_if_str_arg_t<T> = 0,
         upa::enable_if_optional_str_arg_t<TB> = 0>
-    urlpattern(const T& input, TB&& base_url, urlpattern_options opt = {})
+    inline urlpattern(const T& input, TB&& base_url, urlpattern_options opt = {})
         : urlpattern{ make_urlpattern_init(input, std::forward<TB>(base_url)), opt } {}
 
     /// @brief Constructs urlpattern object from URL pattern string
@@ -675,7 +674,7 @@ public:
     /// @param[in] input URL pattern string
     /// @param[in] opt optional `upa::urlpattern_options` struct
     template <class T, upa::enable_if_str_arg_t<T> = 0>
-    urlpattern(const T& input, urlpattern_options opt = {})
+    inline urlpattern(const T& input, urlpattern_options opt = {})
         : urlpattern{ make_urlpattern_init(input, std::nullopt), opt } {}
 
     /// @brief Test whether URL pattern matches the input
@@ -855,7 +854,7 @@ public:
     /// constructs a new urlpattern_error object with the given error message
     ///
     /// @param[in] what_arg error message
-    explicit urlpattern_error(const char* what_arg)
+    inline explicit urlpattern_error(const char* what_arg)
         : std::runtime_error(what_arg)
     {}
 };

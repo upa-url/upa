@@ -1,4 +1,4 @@
-// Copyright 2024-2025 Rimas Misevičius
+// Copyright 2024-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 
@@ -36,7 +36,7 @@ struct str_arg_char_for_qt {
         "StrT::value_type and CharT must be the same size");
     using type = CharT;
 
-    static str_arg<type> to_str_arg(const StrT& str) {
+    static inline str_arg<type> to_str_arg(const StrT& str) {
         return { str.data(), str.size() };
     }
 };

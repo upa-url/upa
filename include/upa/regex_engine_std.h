@@ -1,4 +1,4 @@
-// Copyright 2025 Rimas Misevičius
+// Copyright 2025-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -25,10 +25,10 @@ class regex_engine_std {
 public:
     class result {
     public:
-        std::size_t size() const {
+        inline std::size_t size() const {
             return arr_.size();
         }
-        std::optional<std::string> get(std::size_t ind, std::string_view) const {
+        inline std::optional<std::string> get(std::size_t ind, std::string_view) const {
             const auto& res = arr_[ind];
             if (res.matched)
                 return std::string{ res.first, res.second };
@@ -39,7 +39,7 @@ public:
         friend class regex_engine_std;
     };
 
-    bool init(std::string_view regex_str, bool ignore_case) {
+    inline bool init(std::string_view regex_str, bool ignore_case) {
         // 4. If options's ignore case is true then set flags to "vi".
         // 5. Otherwise set flags to "v"
         // Note that the std::regex does not have the "v" flag.
@@ -55,10 +55,10 @@ public:
         }
     }
 
-    bool exec(std::string_view input, result& res) const {
+    inline bool exec(std::string_view input, result& res) const {
         return std::regex_match(input.begin(), input.end(), res.arr_, re_);
     }
-    bool test(std::string_view input) const {
+    inline bool test(std::string_view input) const {
         return std::regex_match(input.begin(), input.end(), re_);
     }
 

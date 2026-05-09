@@ -108,7 +108,7 @@ public:
     ///
     /// @param[in] query string to parse
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    explicit url_search_params(StrT&& query)
+    inline explicit url_search_params(StrT&& query)
         : params_(do_parse(true, std::forward<StrT>(query)))
     {}
 
@@ -120,7 +120,7 @@ public:
         detail::enable_if_not_base_of_t<url_search_params, ConT> = 0,
         std::enable_if_t<detail::is_iterable_pairs_v<ConT>, int> = 0
     >
-    explicit url_search_params(ConT&& cont) {
+    inline explicit url_search_params(ConT&& cont) {
         for (const auto& p : cont) {
             params_.emplace_back(make_string(p.first), make_string(p.second));
         }
@@ -308,38 +308,38 @@ public:
     // Iterators
 
     /// @return an iterator to the beginning of name-value list
-    [[nodiscard]] const_iterator begin() const noexcept { return params_.begin(); }
+    [[nodiscard]] inline const_iterator begin() const noexcept { return params_.begin(); }
 
     /// @return an iterator to the beginning of name-value list
-    [[nodiscard]] const_iterator cbegin() const noexcept { return params_.cbegin(); }
+    [[nodiscard]] inline const_iterator cbegin() const noexcept { return params_.cbegin(); }
 
     /// @return an iterator to the end of name-value list
-    [[nodiscard]] const_iterator end() const noexcept { return params_.end(); }
+    [[nodiscard]] inline const_iterator end() const noexcept { return params_.end(); }
 
     /// @return an iterator to the end of name-value list
-    [[nodiscard]] const_iterator cend() const noexcept { return params_.cend(); }
+    [[nodiscard]] inline const_iterator cend() const noexcept { return params_.cend(); }
 
     /// @return a reverse iterator to the beginning of name-value list
-    [[nodiscard]] const_reverse_iterator rbegin() const noexcept { return params_.rbegin(); }
+    [[nodiscard]] inline const_reverse_iterator rbegin() const noexcept { return params_.rbegin(); }
 
     /// @return a reverse iterator to the beginning of name-value list
-    [[nodiscard]] const_reverse_iterator crbegin() const noexcept { return params_.crbegin(); }
+    [[nodiscard]] inline const_reverse_iterator crbegin() const noexcept { return params_.crbegin(); }
 
     /// @return a reverse iterator to the end of name-value list
-    [[nodiscard]] const_reverse_iterator rend() const noexcept { return params_.rend(); }
+    [[nodiscard]] inline const_reverse_iterator rend() const noexcept { return params_.rend(); }
 
     /// @return a reverse iterator to the end of name-value list
-    [[nodiscard]] const_reverse_iterator crend() const noexcept { return params_.crend(); }
+    [[nodiscard]] inline const_reverse_iterator crend() const noexcept { return params_.crend(); }
 
     // Capacity
 
     /// Checks whether the name-value list is empty
     ///
     /// @return `true` if the container is empty, `false` otherwise
-    [[nodiscard]] bool empty() const noexcept { return params_.empty(); }
+    [[nodiscard]] inline bool empty() const noexcept { return params_.empty(); }
 
     /// @return the number of elements in the name-value list
-    [[nodiscard]] size_type size() const noexcept { return params_.size(); }
+    [[nodiscard]] inline size_type size() const noexcept { return params_.size(); }
 
     // Utils
 
@@ -401,20 +401,20 @@ public:
     // destructor
     UPA_CONSTEXPR_23 ~url_search_params_ptr() = default;
 
-    void init(url* url_ptr) {
+    inline void init(url* url_ptr) {
         ptr_.reset(new url_search_params(url_ptr)); // NOLINT(cppcoreguidelines-owning-memory)
     }
 
-    void set_url_ptr(url* url_ptr) noexcept {
+    inline void set_url_ptr(url* url_ptr) noexcept {
         if (ptr_)
             ptr_->url_ptr_ = url_ptr;
     }
 
-    void clear_params() noexcept {
+    inline void clear_params() noexcept {
         assert(ptr_);
         ptr_->clear_params();
     }
-    void parse_params(std::string_view query) {
+    inline void parse_params(std::string_view query) {
         assert(ptr_);
         ptr_->parse_params(query);
     }

@@ -1,4 +1,4 @@
-// Copyright 2024 Rimas Misevičius
+// Copyright 2024-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 
@@ -23,7 +23,7 @@ template<class StrT>
 struct str_arg_char_for_atl {
     using type = typename StrT::XCHAR;
 
-    static str_arg<type> to_str_arg(const StrT& str) {
+    static inline str_arg<type> to_str_arg(const StrT& str) {
         return { str.GetString(), str.GetLength() };
     }
 };
