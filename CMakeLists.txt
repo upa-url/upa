@@ -173,9 +173,11 @@ if (UPA_MODULE)
   set(CMAKE_CXX_EXTENSIONS OFF)
 
   add_library(upa_url_module)
-  target_sources(upa_url_module PUBLIC
-    FILE_SET CXX_MODULES FILES
-    src/upa.url.cppm)
+  target_sources(upa_url_module
+    PRIVATE
+      src/upa.url.cpp
+    PUBLIC FILE_SET CXX_MODULES FILES
+      src/upa.url.cppm)
   target_compile_definitions(upa_url_module
     PRIVATE UPA_IMPORT_STD=0)
   target_compile_features(upa_url_module
