@@ -928,7 +928,7 @@ inline urlpattern<regex_engine, E>::urlpattern(const urlpattern_init& init, urlp
     // Let compileOptions be a copy of the default options with
     // the ignore case property set to options["ignoreCase"].
     const pattern::options compile_opt{ ""sv, ""sv, opt.ignore_case };
-    if (protocol_component_matches_special_scheme(protocol_component_)) {
+    if (pattern::protocol_component_matches_special_scheme(protocol_component_)) {
         // pathname options
         // https://urlpattern.spec.whatwg.org/#pathname-options
         const pattern::options path_compile_opt{ "/"sv, "/"sv, opt.ignore_case };
