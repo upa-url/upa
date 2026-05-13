@@ -754,7 +754,7 @@ UPA_EXPORT_END
 
 namespace detail {
 
-class url_serializer : public host_output {
+class UPA_SO_VISIBLE url_serializer : public host_output {
 public:
     url_serializer() = delete;
     url_serializer(const url_serializer&) = delete;
@@ -862,7 +862,7 @@ protected:
 };
 
 
-class url_setter : public url_serializer {
+class UPA_SO_VISIBLE url_setter : public url_serializer {
 public:
     url_setter() = delete;
     url_setter(const url_setter&) = delete;

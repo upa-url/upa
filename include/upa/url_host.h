@@ -40,7 +40,7 @@ UPA_EXPORT enum class HostType {
 };
 
 
-class host_output {
+class UPA_SO_VISIBLE host_output {
 protected:
     host_output() = default;
     inline host_output(bool need_save)
@@ -125,7 +125,7 @@ public:
     }
 
 private:
-    class host_out : public host_output {
+    class UPA_SO_VISIBLE host_out : public host_output {
     public:
         inline explicit host_out(url_host& host)
             : host_(host)

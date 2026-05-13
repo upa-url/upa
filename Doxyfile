@@ -2607,7 +2607,8 @@ PREDEFINED             =
 
 EXPAND_AS_DEFINED      = UPA_CONSTEXPR_20 UPA_CONSTEXPR_23 \
                          UPA_EXPORT UPA_EXPORT_BEGIN UPA_EXPORT_END \
-                         UPA_LIFETIMEBOUND
+                         UPA_LIFETIMEBOUND \
+                         UPA_SO_VISIBLE
 
 # If the SKIP_FUNCTION_MACROS tag is set to YES then Doxygen's preprocessor will
 # remove all references to function-like macros that are alone on a line, have
