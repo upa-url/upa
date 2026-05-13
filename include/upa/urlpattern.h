@@ -849,7 +849,7 @@ private:
 /// @brief urlpattern exception class
 ///
 /// This exception can be thrown by the `upa::urlpattern` constructor in the case of an error.
-class urlpattern_error : public std::runtime_error {
+class UPA_SO_VISIBLE urlpattern_error : public std::runtime_error {
 public:
     /// constructs a new urlpattern_error object with the given error message
     ///

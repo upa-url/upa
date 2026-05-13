@@ -40,9 +40,15 @@
 # elif defined(__clang__) || defined(__GNUC__)
 #  define UPA_API __attribute__((visibility ("default")))
 # endif
+# if defined(__clang__) || defined(__GNUC__)
+#  define UPA_SO_VISIBLE __attribute__((visibility ("default")))
+# endif
 #endif
 #ifndef UPA_API
 # define UPA_API
+#endif
+#ifndef UPA_SO_VISIBLE
+# define UPA_SO_VISIBLE
 #endif
 
 // The following macros have values when the library is compiled as a module

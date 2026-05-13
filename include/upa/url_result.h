@@ -100,8 +100,7 @@ enum class validation_errc {
 }
 
 /// @brief URL exception class
-
-class url_error : public std::runtime_error {
+class UPA_SO_VISIBLE url_error : public std::runtime_error {
 public:
     /// constructs a new url_error object with the given result code and error message
     ///
