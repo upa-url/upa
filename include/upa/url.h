@@ -929,7 +929,7 @@ public:
     };
 
     template <typename CharT>
-    static validation_errc url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override = not_set_state);
+    static validation_errc url_parse(url_serializer& urls, const CharT* first, const CharT* last, const url* base, State state_override);
 
     template <typename CharT>
     static validation_errc parse_host(url_serializer& urls, const CharT* first, const CharT* last);
@@ -1453,7 +1453,7 @@ inline validation_errc url::do_parse(const CharT* first, const CharT* last, cons
         detail::do_trim(first, last);
         //TODO-WARN: validation error if trimmed
 
-        return detail::url_parser::url_parse(urls, first, last, base);
+        return detail::url_parser::url_parse(urls, first, last, base, detail::url_parser::not_set_state);
     }();
     if (res == validation_errc::ok) {
         set_flag(VALID_FLAG);
@@ -1481,7 +1481,7 @@ validation_errc url::for_can_parse(const T& str_url, const url* base) {
         detail::do_trim(first, last);
         //TODO-WARN: validation error if trimmed
 
-        return detail::url_parser::url_parse(urls, first, last, base);
+        return detail::url_parser::url_parse(urls, first, last, base, detail::url_parser::not_set_state);
     }();
     if (res == validation_errc::ok)
         set_flag(VALID_FLAG);
