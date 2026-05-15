@@ -675,21 +675,6 @@ private:
         INITIAL_FLAGS = SCHEME_FLAG | USERNAME_FLAG | PASSWORD_FLAG | PATH_FLAG,
     };
 
-    // part flag masks
-    static constexpr unsigned kPartFlagMask[url::PART_COUNT] = {
-        SCHEME_FLAG,
-        0,  // SCHEME_SEP
-        USERNAME_FLAG,
-        PASSWORD_FLAG,
-        0,  // HOST_START
-        HOST_FLAG | HOST_TYPE_MASK,
-        PORT_FLAG,
-        0,  // PATH_PREFIX
-        PATH_FLAG | OPAQUE_PATH_FLAG,
-        QUERY_FLAG,
-        FRAGMENT_FLAG
-    };
-
     // parsing constructor
     template <class T, enable_if_str_arg_t<T> = 0>
     explicit url(const T& str_url, const url* base, const char* what_arg);
@@ -2767,10 +2752,25 @@ inline void url_serializer::append_parts(const url& src, url::PartType t1, url::
         return t1;
     }();
 
+    // part flag masks
+    static constexpr unsigned kPartFlagMask[url::PART_COUNT] = {
+        url::SCHEME_FLAG,
+        0,  // SCHEME_SEP
+        url::USERNAME_FLAG,
+        url::PASSWORD_FLAG,
+        0,  // HOST_START
+        url::HOST_FLAG | url::HOST_TYPE_MASK,
+        url::PORT_FLAG,
+        0,  // PATH_PREFIX
+        url::PATH_FLAG | url::OPAQUE_PATH_FLAG,
+        url::QUERY_FLAG,
+        url::FRAGMENT_FLAG
+    };
+
     // copy flags; they can be used when copying / serializing url parts below
     unsigned mask = 0;
     for (int ind = t1; ind <= t2; ++ind) {
-        mask |= url::kPartFlagMask[ind];
+        mask |= kPartFlagMask[ind];
     }
     url_.flags_ = (url_.flags_ & ~mask) | (src.flags_ & mask);
 
