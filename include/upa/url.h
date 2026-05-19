@@ -701,6 +701,9 @@ private:
     void set_scheme(string_view str);
     void set_scheme(std::size_t scheme_length);
 
+    // Get origin of special URL excluding file URL
+    std::string origin_of_special_url() const;
+
     // path util
     string_view get_path_first_string(std::size_t len) const UPA_LIFETIMEBOUND;
     // path shortening
@@ -1184,11 +1187,7 @@ inline std::string url::origin() const {
     if (is_special_scheme()) {
         if (is_file_scheme())
             return "null"; // opaque origin
-        // "scheme://"
-        std::string str_origin(norm_url_, 0, part_end_[SCHEME_SEP]);
-        // "host:port"
-        str_origin.append(norm_url_.data() + part_end_[HOST_START], norm_url_.data() + part_end_[PORT]);
-        return str_origin;
+        return origin_of_special_url();
     }
     if (get_part_view(SCHEME) == string_view{ "blob", 4 }) {
         // Note: this library does not support blob URL store, so it allways assumes
@@ -1196,9 +1195,17 @@ inline std::string url::origin() const {
         url path_url;
         if (path_url.parse(get_part_view(PATH)) == validation_errc::ok &&
             path_url.is_http_scheme())
-            return path_url.origin();
+            return path_url.origin_of_special_url();
     }
     return "null"; // opaque origin
+}
+
+inline std::string url::origin_of_special_url() const {
+    // "scheme://"
+    std::string str_origin(norm_url_, 0, part_end_[SCHEME_SEP]);
+    // "host:port"
+    str_origin.append(norm_url_.data() + part_end_[HOST_START], norm_url_.data() + part_end_[PORT]);
+    return str_origin;
 }
 
 inline string_view url::protocol() const UPA_LIFETIMEBOUND {
