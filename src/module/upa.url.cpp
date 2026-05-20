@@ -19,11 +19,11 @@ module upa.url;
 import std;
 #endif
 
-#include "idna.cpp"
-#include "url.cpp"
-#include "url_ip.cpp"
-#include "url_search_params.cpp"
-#include "url_utf.cpp"
-#include "urlpattern.cpp"
-#include "unicode_id.cpp"
-#include "public_suffix_list.cpp"
+#include "../idna.cpp"
+#include "../url.cpp"
+#include "../url_ip.cpp"
+#include "../url_search_params.cpp"
+#include "../url_utf.cpp"
+#include "../urlpattern.cpp"
+#include "../unicode_id.cpp"
+#include "../public_suffix_list.cpp"
