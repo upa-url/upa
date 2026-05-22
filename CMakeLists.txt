@@ -1,5 +1,5 @@
 # add_link_options() requires 3.13
-cmake_minimum_required(VERSION 3.13...3.28)
+cmake_minimum_required(VERSION 3.13...3.28.2)
 
 # https://cmake.org/cmake/help/latest/policy/CMP0074.html
 if(POLICY CMP0074)
@@ -176,8 +176,11 @@ if (UPA_MODULE)
   target_sources(upa_url_module
     PRIVATE
       src/module/upa.url.cpp
-    PUBLIC FILE_SET CXX_MODULES FILES
-      src/module/upa.url.cppm)
+    PUBLIC FILE_SET CXX_MODULES
+      BASE_DIRS
+        src/module
+      FILES
+        src/module/upa.url.cppm)
   target_compile_definitions(upa_url_module
     PRIVATE UPA_IMPORT_STD=0)
   target_compile_features(upa_url_module
@@ -311,11 +314,25 @@ if (UPA_INSTALL AND NOT UPA_AMALGAMATED)
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
 
+  set(upa_install_targets ${upa_lib_target})
+  if (UPA_MODULE)
+    list(APPEND upa_install_targets upa_url_module)
+    set(upa_install_file_set
+      FILE_SET CXX_MODULES
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${upa_lib_name}/src)
+    set(upa_install_modules_dir
+      CXX_MODULES_DIRECTORY .)
+    install(
+      FILES src/module/upa.url.h
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${upa_lib_name}/src)
+  endif()
+
   install(
-    TARGETS ${upa_lib_target}
+    TARGETS ${upa_install_targets}
     EXPORT ${upa_lib_target}-targets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    ${upa_install_file_set}
   )
 
   install(
@@ -323,6 +340,7 @@ if (UPA_INSTALL AND NOT UPA_AMALGAMATED)
     FILE ${upa_lib_name}-targets.cmake
     NAMESPACE upa::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${upa_lib_name}
+    ${upa_install_modules_dir}
   )
 
   # generate the config file that includes the exports
