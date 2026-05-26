@@ -56,6 +56,12 @@ jobs:
             cxx_standard: 20
             cmake_options: "-T ClangCL"
 
+          - name: VS 2026 C++20 module
+            os: windows-2025-vs2026
+            generator: "Visual Studio 18 2026"
+            cxx_standard: 20
+            cmake_options: "-DUPA_MODULE=ON"
+
     steps:
     - uses: actions/checkout@v7
     - name: get dependencies
