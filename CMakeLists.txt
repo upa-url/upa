@@ -181,8 +181,6 @@ if (UPA_MODULE)
         src/module
       FILES
         src/module/upa.url.cppm)
-  target_compile_definitions(upa_url_module
-    PRIVATE UPA_IMPORT_STD=0)
   target_compile_features(upa_url_module
     PUBLIC cxx_std_20)
   configure_library_target(upa_url_module ${upa_export_name}-module)
