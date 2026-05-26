@@ -11,11 +11,7 @@
 #include <version>
 
 #ifndef UPA_IMPORT_STD
-# ifdef __cpp_lib_modules
-#  define UPA_IMPORT_STD 1
-# else
-#  define UPA_IMPORT_STD 0
-# endif
+# define UPA_IMPORT_STD 0
 #endif
 
 #if !(UPA_IMPORT_STD)
