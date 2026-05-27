@@ -6,7 +6,7 @@
 #define UPA_IDNA_H
 
 // #include "idna/idna.h"
-// Copyright 2017-2025 Rimas Misevičius
+// Copyright 2017-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -49,7 +49,56 @@
 // CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include<type_traits>
+// #include "config.h"
+// Copyright 2025-2026 Rimas Misevičius
+// Distributed under the BSD-style license that can be
+// found in the LICENSE file.
+//
+#ifndef UPA_IDNA_CONFIG_H
+#define UPA_IDNA_CONFIG_H
+
+// Macros for compilers that support the C++20 or later standard
+// https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
+#if defined(_MSVC_LANG) ? (_MSVC_LANG >= 202002) : (__cplusplus >= 202002)
+# define UPA_IDNA_CPP_20
+# define UPA_IDNA_CONSTEXPR_20 constexpr
+#else
+# define UPA_IDNA_CONSTEXPR_20 inline
+#endif
+
+// Define UPA_IDNA_API macro to mark symbols for export/import
+// when compiling as shared library
+#if defined (UPA_LIB_EXPORT) || defined (UPA_LIB_IMPORT)
+# ifdef _MSC_VER
+#  ifdef UPA_LIB_EXPORT
+#   define UPA_IDNA_API __declspec(dllexport)
+#  else
+#   define UPA_IDNA_API __declspec(dllimport)
+#  endif
+# elif defined(__clang__) || defined(__GNUC__)
+#  define UPA_IDNA_API __attribute__((visibility ("default")))
+# endif
+#endif
+#ifndef UPA_IDNA_API
+# define UPA_IDNA_API
+#endif
+
+// The following macros have values when the library is compiled as a module
+
+#ifndef UPA_EXPORT
+# define UPA_EXPORT
+# define UPA_EXPORT_BEGIN
+# define UPA_EXPORT_END
+#endif
+
+#endif // UPA_IDNA_CONFIG_H
+
+
+#ifndef UPA_MODULE
+# include<type_traits>
+#endif // UPA_MODULE
+
+UPA_EXPORT_BEGIN
 
 namespace upa::idna {
 
@@ -120,37 +169,14 @@ operator^=(E& lhs, E rhs) noexcept {
     return lhs;
 }
 
+UPA_EXPORT_END
+
 #endif // UPA_IDNA_BITMASK_OPERATORS_HPP
 
 // #include "config.h"
-// Copyright 2025 Rimas Misevičius
-// Distributed under the BSD-style license that can be
-// found in the LICENSE file.
-//
-#ifndef UPA_IDNA_CONFIG_H
-#define UPA_IDNA_CONFIG_H
-
-// Define UPA_IDNA_API macro to mark symbols for export/import
-// when compiling as shared library
-#if defined (UPA_LIB_EXPORT) || defined (UPA_LIB_IMPORT)
-# ifdef _MSC_VER
-#  ifdef UPA_LIB_EXPORT
-#   define UPA_IDNA_API __declspec(dllexport)
-#  else
-#   define UPA_IDNA_API __declspec(dllimport)
-#  endif
-# elif defined(__clang__) || defined(__GNUC__)
-#  define UPA_IDNA_API __attribute__((visibility ("default")))
-# endif
-#endif
-#ifndef UPA_IDNA_API
-# define UPA_IDNA_API
-#endif
-
-#endif // UPA_IDNA_CONFIG_H
  // IWYU pragma: export
 // #include "idna_version.h"
-// Copyright 2025 Rimas Misevičius
+// Copyright 2025-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -160,18 +186,23 @@ operator^=(E& lhs, E rhs) noexcept {
 // NOLINTBEGIN(*-macro-*)
 
 #define UPA_IDNA_VERSION_MAJOR 2
-#define UPA_IDNA_VERSION_MINOR 4
+#define UPA_IDNA_VERSION_MINOR 5
 #define UPA_IDNA_VERSION_PATCH 0
 
-#define UPA_IDNA_VERSION "2.4.0"
+#define UPA_IDNA_VERSION "2.5.0"
 
 // NOLINTEND(*-macro-*)
 
 #endif // UPA_IDNA_IDNA_VERSION_H
  // IWYU pragma: export
-#include <string>
+
+#ifndef UPA_MODULE
+# include <string>
+#endif // UPA_MODULE
 
 namespace upa::idna {
+
+UPA_EXPORT_BEGIN
 
 enum class Option {
     Default           = 0,
@@ -188,6 +219,7 @@ enum class Option {
 template<>
 struct enable_bitmask_operators<Option> : public std::true_type {};
 
+UPA_EXPORT_END
 
 namespace detail {
 
@@ -225,6 +257,7 @@ UPA_IDNA_API bool to_unicode_mapped(std::u32string& domain, const std::u32string
 
 } // namespace detail
 
+UPA_EXPORT_BEGIN
 
 /// @brief Implements the Unicode IDNA ToASCII
 ///
@@ -327,13 +360,14 @@ inline bool domain_to_unicode(std::u32string& domain, const CharT* input, const 
     return make_unicode_version(17);
 }
 
+UPA_EXPORT_END
 
 } // namespace upa::idna
 
 #endif // UPA_IDNA_IDNA_H
  // IWYU pragma: export
 // #include "idna/nfc.h"
-// Copyright 2024-2025 Rimas Misevičius
+// Copyright 2024-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -342,7 +376,10 @@ inline bool domain_to_unicode(std::u32string& domain, const CharT* input, const 
 
 // #include "config.h"
  // IWYU pragma: export
-// #include <string>
+
+#ifndef UPA_MODULE
+// # include <string>
+#endif // UPA_MODULE
 
 namespace upa::idna {
 
@@ -359,7 +396,7 @@ UPA_IDNA_API void normalize_nfc(std::u32string& str);
 #endif // UPA_IDNA_NFC_H
 
 // #include "idna/punycode.h"
-// Copyright 2017-2025 Rimas Misevičius
+// Copyright 2017-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -368,7 +405,10 @@ UPA_IDNA_API void normalize_nfc(std::u32string& str);
 
 // #include "config.h"
  // IWYU pragma: export
-// #include <string>
+
+#ifndef UPA_MODULE
+// # include <string>
+#endif
 
 namespace upa::idna::punycode {
 
