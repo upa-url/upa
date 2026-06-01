@@ -1,0 +1,32 @@
+name: FreeBSD
+
+on:
+  push:
+    branches: [ main, 'v[0-9]+.x' ]
+    paths-ignore: [ 'doc/**', '**.md' ]
+  pull_request:
+    paths-ignore: [ 'doc/**', '**.md' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: cpa.sh {0}
+    steps:
+      - uses: actions/checkout@v6
+      - name: Start VM
+        uses: cross-platform-actions/action@v1.2.0
+        with:
+          operating_system: freebsd
+          version: '15.0'
+      - name: install
+        run: sudo pkg install -y cmake git
+      - name: get dependencies
+        run: ./init.sh
+      - name: cmake
+        run: cmake -S . -B build -DCMAKE_CXX_STANDARD=17
+      - name: build
+        run: cmake --build build
+      - name: test
+        run: ctest --output-on-failure --test-dir build
