@@ -107,30 +107,42 @@ jobs:
     strategy:
       matrix:
         include:
+          - name: Alpine
+            container: alpine:latest
+            cxx_standard: 17
+            cmake_options: ""
+            install_script: |
+              apk update
+              apk add build-base cmake curl g++ git
+
           - name: clang++-7 C++17
             container: ubuntu:20.04
             cxx_standard: 17
             cmake_options: "-G Ninja -DCMAKE_CXX_COMPILER=clang++-7 -DCMAKE_CXX_FLAGS=-stdlib=libc++"
-            install: "curl git unzip clang-7 libc++-7-dev libc++abi-7-dev"
+            install_script: |
+              apt-get update
+              apt-get install -y curl git unzip clang-7 libc++-7-dev libc++abi-7-dev
+            install_cmake: true
 
           - name: g++-8 C++17
             container: gcc:8
             cxx_standard: 17
             cmake_options: ""
+            install_cmake: true
 
           - name: g++-9 C++17 shared-lib
             container: gcc:9
             cxx_standard: 17
             cmake_options: "-DUPA_BUILD_EXAMPLES=ON -DBUILD_SHARED_LIBS=ON"
+            install_cmake: true
 
     steps:
-    - name: apt-get install
-      if: ${{ matrix.install }}
-      run: |
-        apt-get update
-        apt-get install -y ${{ matrix.install }}
+    - name: install
+      if: ${{ matrix.install_script }}
+      run: ${{ matrix.install_script }}
     - uses: actions/checkout@v6
     - uses: lukka/get-cmake@v4.3.3
+      if: ${{ matrix.install_cmake }}
     - name: get dependencies
       run: |
         git config --global --add safe.directory $(pwd)
