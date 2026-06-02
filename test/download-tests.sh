@@ -4,7 +4,7 @@
 # https://stackoverflow.com/q/59895
 p="$(dirname "$0")"
 
-# Commit hash of web-platform-tests (wpt)
+# Commit hash of URL web-platform-tests (wpt)
 #
 # Run tools/update-wpt.py to update to the latest commit hash from
 # https://github.com/web-platform-tests/wpt/tree/master/url
@@ -16,6 +16,8 @@ do
 done
 
 # Commit hash of URL Pattern web-platform-tests
+#
+# Run tools/update-wpt.py to update to the latest commit hash from
 # https://github.com/web-platform-tests/wpt/tree/master/urlpattern
 URLP_HASH=763c8548adb13904e51cf34b343a47dc309bde79
 

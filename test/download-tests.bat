@@ -3,7 +3,7 @@
 REM the directory path of this file
 set p=%~dp0
 
-REM Commit hash of web-platform-tests (wpt)
+REM Commit hash of URL web-platform-tests (wpt)
 REM
 REM Run tools\update-wpt.py to update to the latest commit hash from
 REM https://github.com/web-platform-tests/wpt/tree/master/url
@@ -14,6 +14,8 @@ for %%f in (setters_tests.json toascii.json urltestdata.json urltestdata-javascr
 )
 
 REM Commit hash of URL Pattern web-platform-tests
+REM
+REM Run tools\update-wpt.py to update to the latest commit hash from
 REM https://github.com/web-platform-tests/wpt/tree/master/urlpattern
 set URLP_HASH=763c8548adb13904e51cf34b343a47dc309bde79
 
