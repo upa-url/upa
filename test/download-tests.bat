@@ -17,7 +17,7 @@ REM Commit hash of URL Pattern web-platform-tests
 REM
 REM Run tools\update-wpt.py to update to the latest commit hash from
 REM https://github.com/web-platform-tests/wpt/tree/master/urlpattern
-set URLP_HASH=763c8548adb13904e51cf34b343a47dc309bde79
+set URLP_HASH=2f28df545cb4f16c99249b3db05c75495afeaaee
 
 for %%f in (urlpatterntestdata.json) do (
   curl -fsS -o %p%\wpt\%%f https://raw.githubusercontent.com/web-platform-tests/wpt/%URLP_HASH%/urlpattern/resources/%%f
