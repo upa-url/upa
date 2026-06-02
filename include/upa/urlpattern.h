@@ -698,7 +698,7 @@ public:
     ///   `false` otherwise
     template <class T, class TB = std::nullopt_t, upa::enable_if_str_arg_t<T> = 0,
         upa::enable_if_optional_str_arg_t<TB> = 0>
-    [[nodiscard]] bool test(const T& input, const TB& base_url_str = std::nullopt) const;
+    [[nodiscard]] bool test(const T& input, const TB& base_url_str = upa::nullopt) const;
 
     /// @brief Test whether URL pattern matches the URL.
     /// @param[in] url URL to test
@@ -761,7 +761,7 @@ public:
         std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int> = 0,
         upa::enable_if_str_arg_t<T> = 0, upa::enable_if_optional_str_arg_t<TB> = 0>
     [[nodiscard]] std::optional<ResT> exec(const T& input,
-        const TB& base_url_str = std::nullopt) const;
+        const TB& base_url_str = upa::nullopt) const;
 
     /// @brief Executes the URL pattern against the URL
     ///

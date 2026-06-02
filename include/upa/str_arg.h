@@ -329,7 +329,11 @@ inline constexpr bool is_just_optional_v<std::optional<T>> = true;
 
 } // namespace detail
 
-// helpers for optional string arguments
+// Helpers for optional string arguments
+
+// The upa::nullopt can be used instead of std::nullopt to provide a workaround for the MSVC bug
+// https://developercommunity.visualstudio.com/t/The-C2039:-nullopt:-is-not-a-member-o/11099621
+UPA_EXPORT inline constexpr auto nullopt = std::nullopt;
 
 template<class OptStrT>
 using enable_if_optional_str_arg_t = std::enable_if_t<
