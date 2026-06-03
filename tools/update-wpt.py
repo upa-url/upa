@@ -48,7 +48,7 @@ def main():
         print("Choose which WPT commit hash to update:")
         for i, key in enumerate(names):
             print(f" {i + 1}) /{key}")
-        answer = input("(1, 2): ")
+        answer = input(f"(1...{len(names)}): ")
         try:
             ind = int(answer) - 1
         except ValueError:
