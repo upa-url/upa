@@ -10,6 +10,33 @@
 
 import upa.url;
 
+// Custom string class and it's specialization
+
+template <typename CharT>
+class CustomString {
+public:
+    CustomString(const CharT* data, std::size_t length)
+        : data_(data), length_(length) {}
+    const CharT* GetData() const { return data_; }
+    std::size_t GetLength() const { return length_; }
+private:
+    const CharT* data_ = nullptr;
+    std::size_t length_ = 0;
+};
+
+namespace upa {
+
+template<typename CharT>
+struct str_arg_char<CustomString<CharT>> {
+    using type = CharT;
+
+    static str_arg<CharT> to_str_arg(const CustomString<CharT>& str) {
+        return { str.GetData(), str.GetLength() };
+    }
+};
+
+} // namespace upa
+
 TEST_CASE("upa::url") {
     upa::url url("https://user:psw@example.com:1234/p/a?q=Q#f");
 
@@ -30,6 +57,10 @@ TEST_CASE("upa::url") {
     CHECK(url2.href() == url.href());
 
     CHECK(upa::url::can_parse("about:blank"));
+
+    // Custom string
+    CHECK(upa::success(url.parse(CustomString<char>("about:blank", 11))));
+    CHECK(url.href() == "about:blank");
 }
 
 TEST_CASE("std::unordered_set<upa::url>") {
@@ -93,4 +124,19 @@ TEST_CASE("upa::urlpattern") {
 
     CHECK(urlp.test("https://www.example.com/path"));
     CHECK_FALSE(urlp.test("https://example.com/#1"));
+}
+
+TEST_CASE("upa::urlpattern_init") {
+    upa::urlpattern_init urlp_init;
+
+    urlp_init.protocol = upa::make_string(std::string("http:"));
+    urlp_init.hostname = upa::make_string("*.lt");
+    urlp_init.port = upa::make_string(L"80");
+    urlp_init.pathname = upa::make_string(u"/*");
+    urlp_init.set("search", upa::make_string(U"q=*"));
+    urlp_init.set("hash", "h");
+
+    upa::urlpattern<upa::regex_engine_srell> urlp{ urlp_init };
+    CHECK(urlp.test("http://www.example.lt/path?q=1#h"));
+    CHECK_FALSE(urlp.test("http://www.example.lt/path"));
 }

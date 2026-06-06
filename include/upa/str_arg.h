@@ -38,6 +38,8 @@ namespace upa {
 
 using string_view [[deprecated("Use std::string_view instead.")]] = std::string_view;
 
+UPA_EXPORT_BEGIN
+
 // Supported char and size types
 
 template<class CharT>
@@ -137,6 +139,8 @@ using remove_cvptr_t = std::remove_cv_t<std::remove_pointer_t<T>>;
 template<class T>
 using remove_cvref_t = std::remove_cv_t<std::remove_reference_t<T>>;
 
+UPA_EXPORT_END
+
 namespace detail {
 
 // Check that StrT has data() and size() members of supported types
@@ -220,6 +224,7 @@ struct str_arg_char_default<StrT, std::enable_if_t<
 
 } // namespace detail
 
+UPA_EXPORT_BEGIN
 
 // Requirements for string arguments
 
@@ -244,6 +249,7 @@ struct str_arg_char<str_arg<CharT>> {
     }
 };
 
+UPA_EXPORT_END
 
 // String arguments helper types
 
@@ -294,6 +300,7 @@ using enable_if_str_arg_to_charW_t = std::enable_if_t<
     is_charW_type_v<str_arg_char_t<StrT>>,
     int>;
 
+UPA_EXPORT_BEGIN
 
 UPA_CONSTEXPR_20 std::string&& make_string(std::string&& str) {
     return std::move(str);
@@ -311,6 +318,7 @@ inline std::string make_string(const StrT& str) {
     return url_utf::to_utf8_string(inp.begin(), inp.end());
 }
 
+UPA_EXPORT_END
 
 // Support for optional string arguments
 
