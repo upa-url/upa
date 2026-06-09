@@ -56,12 +56,13 @@ jobs:
             os: ubuntu-22.04
             cxx_compiler: g++
             cxx_standard: 17
-            cmake_options: "-DUPA_TEST_COVERAGE=ON"
+            cmake_options: "-G Ninja -DUPA_TEST_COVERAGE=ON"
             install: "lcov"
             after_test: |
               # See: https://github.com/codecov/example-cpp11-cmake
-              lcov --capture --directory . --output-file coverage.info
-              lcov --remove coverage.info '/usr/*' '*/deps/*' '*/test/*' --output-file coverage.info
+              lcov --capture --directory build --output-file coverage.info \
+                --include "*/include/upa/*" \
+                --include "*/src/*"
               lcov --list coverage.info
             codecov: true
 
