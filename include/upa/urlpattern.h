@@ -2502,7 +2502,7 @@ inline std::string canonicalize_port(std::string_view port_value, std::optional<
         if (protocol_value)
             urls.set_scheme(*protocol_value);
         else
-            urls.set_scheme("https");
+            urls.set_scheme("");
         // Note, we set the URL record's scheme in order for the basic URL parser
         // to recognize and normalize default port values.
 

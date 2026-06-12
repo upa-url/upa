@@ -19,7 +19,7 @@ done
 #
 # Run tools/update-wpt.py to update to the latest commit hash from
 # https://github.com/web-platform-tests/wpt/tree/master/urlpattern
-URLP_HASH=2f28df545cb4f16c99249b3db05c75495afeaaee
+URLP_HASH=23aac9278460a73394585ff5a15b6a04dfcd5ec8
 
 for f in urlpatterntestdata.json
 do

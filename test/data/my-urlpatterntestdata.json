@@ -10,16 +10,20 @@
   {
     "pattern": [{ "port": "443" }],
     "inputs": [{ "port": "443" }],
-    "exactly_empty_components": [ "port" ],
-    "expected_match": null
+    "expected_obj": {
+      "port": "443"
+    },
+    "expected_match": {
+      "port": { "input": "443", "groups": {}}
+    }
   },
   {
     "pattern": [{ "port": "443" }],
     "inputs": [{ "port": "" }],
-    "exactly_empty_components": [ "port" ],
-    "expected_match": {
-      "port": { "input": "", "groups": {}}
-    }
+    "expected_obj": {
+      "port": "443"
+    },
+    "expected_match": null
   },
   {
     "pattern": [{ "pathname": "path/.." }],

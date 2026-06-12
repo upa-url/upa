@@ -10,7 +10,7 @@ It is known to compile with Clang 7, GCC 8, Microsoft Visual Studio 2017 or late
 This library is up to date with the URL Standard published on
 [30 October 2025](https://url.spec.whatwg.org/commit-snapshots/52526653e848c5a56598c84aa4bc8ac9025fb66b/),
 the URL Pattern Standard published on
-[20 March 2026](https://urlpattern.spec.whatwg.org/commit-snapshots/203d435c32272a10bdccc2c6dfa8a51ee5c6b92c/)
+[15 June 2026](https://urlpattern.spec.whatwg.org/commit-snapshots/aeb2019cf3aa1fb31af134a682c0255302a41297/)
 and supports internationalized domain names as specified in the
 [UTS46 Unicode IDNA Compatibility Processing version 17.0.0](https://www.unicode.org/reports/tr46/tr46-35.html).
 
