@@ -15,6 +15,7 @@
 #include <memory>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
@@ -359,11 +360,11 @@ private:
     void clear_params() noexcept;
     void copy_params(const url_search_params& other);
     void move_params(url_search_params&& other) noexcept;
-    void parse_params(string_view query);
+    void parse_params(std::string_view query);
 
     void update();
 
-    static UPA_API void urlencode_sv(std::string& encoded, string_view value);
+    static UPA_API void urlencode_sv(std::string& encoded, std::string_view value);
 
     friend class url;
     friend class detail::url_search_params_ptr;
@@ -407,7 +408,7 @@ public:
         assert(ptr_);
         ptr_->clear_params();
     }
-    void parse_params(string_view query) {
+    void parse_params(std::string_view query) {
         assert(ptr_);
         ptr_->parse_params(query);
     }
@@ -499,7 +500,7 @@ inline void url_search_params::move_params(url_search_params&& other) noexcept {
     is_sorted_ = other.is_sorted_;
 }
 
-inline void url_search_params::parse_params(string_view query) {
+inline void url_search_params::parse_params(std::string_view query) {
     params_ = do_parse(false, query);
     is_sorted_ = false;
 }

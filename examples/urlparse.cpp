@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -10,8 +10,6 @@
 #include "json_writer/json_writer.h"
 // https://github.com/kazuho/picojson
 # include "picojson/picojson.h"
-
-using string_view = upa::string_view;
 
 
 // Parse URL and output result to console
@@ -81,7 +79,7 @@ void cout_url_eol(const upa::url& url) {
     std::cout << std::endl;
 }
 
-void url_testas(string_view str_url, upa::url* base = nullptr)
+void url_testas(std::string_view str_url, upa::url* base = nullptr)
 {
     // source data
     std::cout << str_url << "\n";
@@ -104,13 +102,13 @@ class SamplesOutput {
 public:
     virtual bool open() { return true; };
     virtual void close() {};
-    virtual void comment(string_view sv) {
+    virtual void comment(std::string_view sv) {
         std::cout << sv << std::endl;
         for (auto len = sv.length(); len; --len)
             std::cout << '~';
         std::cout << std::endl;
     }
-    virtual void output(string_view str_url, upa::url* base) {
+    virtual void output(std::string_view str_url, upa::url* base) {
         url_testas(str_url, base);
     }
 };
@@ -118,7 +116,7 @@ public:
 
 // Parse URL and output result to JSON file
 
-void url_parse_to_json(json_writer& json, string_view str_url, upa::url* base = nullptr)
+void url_parse_to_json(json_writer& json, std::string_view str_url, upa::url* base = nullptr)
 {
     json.object_start();
 
@@ -172,10 +170,10 @@ public:
         json_.array_end();
     }
 
-    void comment(string_view sv) override {
+    void comment(std::string_view sv) override {
         json_.value(sv.data(), sv.data() + sv.length());
     }
-    void output(string_view str_url, upa::url* base) override {
+    void output(std::string_view str_url, upa::url* base) override {
         url_parse_to_json(json_, str_url, base);
     }
 private:
@@ -233,7 +231,7 @@ void read_samples(const char* file_name, SamplesOutput& out)
             bool ok = true;
             auto icolon = line.find(':');
             if (icolon != line.npos) {
-                string_view val{line.data() + icolon + 1, line.length() - (icolon + 1) };
+                std::string_view val{line.data() + icolon + 1, line.length() - (icolon + 1) };
                 if (line.compare(0, icolon, "BASE") == 0) {
                     const auto res = url_base.parse(val);
                     ok = upa::success(res);
@@ -300,7 +298,7 @@ bool read_setter(std::ifstream& file, const char* name, const char* name_end) {
         if (line.length() == 0) break;
         auto icolon = line.find(':');
         if (icolon != line.npos) {
-            string_view val{ line.data() + icolon + 1, line.length() - (icolon + 1) };
+            std::string_view val{ line.data() + icolon + 1, line.length() - (icolon + 1) };
             if (line.compare(0, icolon, "url") == 0) {
                 std::cout << "URL=" << val << std::endl;
                 ok = upa::success(url.parse(val));

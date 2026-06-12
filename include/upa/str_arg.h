@@ -33,7 +33,7 @@ namespace upa {
 
 // String view type
 
-using string_view = std::string_view;
+using string_view [[deprecated("Use std::string_view instead.")]] = std::string_view;
 
 // Supported char and size types
 
@@ -297,7 +297,7 @@ UPA_CONSTEXPR_20 std::string&& make_string(std::string&& str) {
 }
 
 template <class StrT, enable_if_str_arg_to_char8_t<StrT> = 0>
-constexpr string_view make_string(const StrT& str) {
+constexpr std::string_view make_string(const StrT& str) {
     const auto inp = make_str_arg(str);
     return { inp.data(), inp.length() };
 }

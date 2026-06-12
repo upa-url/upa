@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -38,7 +38,7 @@ const char kEncByte[0x100] = {
 
 } // namespace
 
-void url_search_params::urlencode_sv(std::string& encoded, string_view value)
+void url_search_params::urlencode_sv(std::string& encoded, std::string_view value)
 {
     for (const char c : value) {
         const auto uc = static_cast<unsigned char>(c);

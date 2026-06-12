@@ -19,6 +19,7 @@
 #include <cassert>
 #include <cstdint> // uint16_t, uint32_t
 #include <string>
+#include <string_view>
 #include <type_traits>
 
 namespace upa {
@@ -108,8 +109,8 @@ public:
 
     /// Hostname view
     ///
-    /// @return serialized host as string_view
-    [[nodiscard]] string_view name() const UPA_LIFETIMEBOUND {
+    /// @return serialized host as std::string_view
+    [[nodiscard]] std::string_view name() const UPA_LIFETIMEBOUND {
         return host_str_;
     }
 

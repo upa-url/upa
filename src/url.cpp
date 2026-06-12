@@ -38,13 +38,13 @@ const std::uint8_t kLengthToSchemesInd[] = {
 
 } // namespace
 
-const scheme_info* get_scheme_info(string_view src) {
+const scheme_info* get_scheme_info(std::string_view src) {
     const std::size_t len = src.length();
     if (len <= max_scheme_length) {
         const int end = kLengthToSchemesInd[len + 1];
         for (int ind = kLengthToSchemesInd[len]; ind < end; ++ind) {
             // The src and kSchemes[ind].scheme lengths are the same, so compare data only
-            if (string_view::traits_type::compare(src.data(), kSchemes[ind].scheme.data(), len) == 0)
+            if (std::string_view::traits_type::compare(src.data(), kSchemes[ind].scheme.data(), len) == 0)
                 return &kSchemes[ind];
         }
     }

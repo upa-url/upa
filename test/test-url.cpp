@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -703,7 +703,7 @@ TEST_CASE("UTF-32 URL input") {
 // URL utilities
 
 TEST_CASE("detail::has_dot_dot_segment") {
-    const auto has_dot_dot_segment = [](upa::string_view path) {
+    const auto has_dot_dot_segment = [](std::string_view path) {
         return upa::detail::has_dot_dot_segment(path.data(), path.data() + path.length(),
             [](char c) { return c == '/'; });
     };
