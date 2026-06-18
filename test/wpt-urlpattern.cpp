@@ -116,7 +116,7 @@ namespace doctest {
 // -----------------------------------------------------------------------------
 // https://github.com/web-platform-tests/wpt/blob/master/urlpattern/urlpattern-constructor.any.js
 
-TEST_SUITE("urlpattern_constructor") {
+TEST_SUITE("urlpattern-constructor") {
     TEST_CASE("Test unclosed token") {
         CHECK_THROWS_AS(urlpattern{ upa::url("https://example.org/%(").to_string() },
             upa::urlpattern_error);
@@ -129,6 +129,22 @@ TEST_SUITE("urlpattern_constructor") {
     // test(() => {
     //   new URLPattern(undefined, undefined);
     // }, `Test constructor with undefined`);
+}
+
+// -----------------------------------------------------------------------------
+// https://github.com/web-platform-tests/wpt/blob/master/urlpattern/urlpattern-empty-regexp-group.html
+
+TEST_SUITE("urlpattern-empty-regexp-group") {
+    TEST_CASE("URLPattern rejects an empty regexp group '()' with a TypeError") {
+        upa::urlpattern_init init;
+        init.pathname = "()";
+        CHECK_THROWS_AS(urlpattern{ init }, upa::urlpattern_error);
+    }
+    TEST_CASE("URLPattern accepts a non-empty regexp group '(a)'") {
+        upa::urlpattern_init init;
+        init.pathname = "(a)";
+        CHECK_NOTHROW(urlpattern{ init });
+    }
 }
 
 // -----------------------------------------------------------------------------
