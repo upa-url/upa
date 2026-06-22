@@ -74,12 +74,12 @@ jobs:
             before_cmake: tools/amalgamate.sh
 
     steps:
-    - uses: actions/checkout@v7
     - name: apt-get install
       if: ${{ matrix.install }}
       run: |
         sudo apt-get update
         sudo apt-get install -y ${{ matrix.install }}
+    - uses: actions/checkout@v7
     - name: get dependencies
       run: ./init.sh
     - name: before cmake
@@ -141,9 +141,9 @@ jobs:
     - name: install
       if: ${{ matrix.install_script }}
       run: ${{ matrix.install_script }}
-    - uses: actions/checkout@v7
     - uses: lukka/get-cmake@v4.3.4
       if: ${{ matrix.install_cmake }}
+    - uses: actions/checkout@v7
     - name: get dependencies
       run: |
         git config --global --add safe.directory $(pwd)
