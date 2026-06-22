@@ -9,12 +9,15 @@
 #include "config.h" // IWYU pragma: export
 #include "url_percent_encode.h"
 #include "url_result.h"
-#include <algorithm>
-#include <cstddef>
-#include <cstdint> // uint16_t, uint32_t, uint64_t
-#include <limits>
-#include <string>
-#include <type_traits>
+
+#ifndef UPA_MODULE
+# include <algorithm>
+# include <cstddef>
+# include <cstdint> // uint16_t, uint32_t, uint64_t
+# include <limits>
+# include <string>
+# include <type_traits>
+#endif // UPA_MODULE
 
 namespace upa {
 

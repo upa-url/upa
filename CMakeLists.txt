@@ -1,5 +1,5 @@
 # add_link_options() requires 3.13
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.13...3.28.2)
 
 # https://cmake.org/cmake/help/latest/policy/CMP0074.html
 if(POLICY CMP0074)
@@ -31,11 +31,6 @@ set(upa_export_name url)
 # to create the library filename
 set(upa_lib_target upa_url)
 
-if (NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 17)
-  set(CMAKE_CXX_STANDARD_REQUIRED ON)
-endif()
-
 # Is the Upa URL a top-level project?
 if (NOT DEFINED UPA_MAIN_PROJECT)
   set(UPA_MAIN_PROJECT OFF)
@@ -53,12 +48,20 @@ option(UPA_BUILD_EXTRACTED "Build Upa URL examples extracted from the docs." OFF
 option(UPA_INSTALL "Generate the install target." ON)
 # library options
 option(UPA_AMALGAMATED "Use amalgamated URL library source." OFF)
+option(UPA_MODULE "Build a C++ module library." OFF)
 # tests build options
+option(UPA_MODULE_TESTS "Build C++ module tests." ${UPA_BUILD_TESTS})
 option(UPA_TEST_URL_FOR_QT "Build tests with Qt strings" OFF)
 option(UPA_TEST_COVERAGE "Build tests with code coverage reporting" OFF)
 option(UPA_TEST_COVERAGE_CLANG "Build tests with Clang source-based code coverage" OFF)
 option(UPA_TEST_SANITIZER "Build tests with Clang sanitizer" OFF)
 option(UPA_TEST_VALGRIND "Run tests with Valgrind" OFF)
+
+# C++ standard
+if (NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
 
 # AFL, Honggfuzz, or Clang libFuzzer
 if (UPA_BUILD_FUZZER)
@@ -117,6 +120,28 @@ endif()
 
 include_directories(deps)
 
+# The common setup for library targets
+function (configure_library_target lib_target export_name)
+  target_include_directories(${lib_target} PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
+
+  if (BUILD_SHARED_LIBS)
+    target_compile_definitions(${lib_target} PRIVATE UPA_LIB_EXPORT
+      INTERFACE UPA_LIB_IMPORT)
+    set_target_properties(${lib_target} PROPERTIES
+      VERSION ${UPA_URL_VERSION}
+      SOVERSION ${UPA_URL_SOVERSION}
+      CXX_VISIBILITY_PRESET hidden
+      VISIBILITY_INLINES_HIDDEN ON)
+  endif()
+
+  # Alias target for the library
+  add_library(upa::${export_name} ALIAS ${lib_target})
+  set_target_properties(${lib_target} PROPERTIES
+    EXPORT_NAME ${export_name})
+endfunction()
+
 # Is the Upa URL library needed?
 if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES OR
     UPA_BUILD_EXTRACTED OR UPA_INSTALL)
@@ -137,26 +162,28 @@ if (UPA_BUILD_TESTS OR UPA_BUILD_BENCH OR UPA_BUILD_FUZZER OR UPA_BUILD_EXAMPLES
       src/url_search_params.cpp
       src/url_utf.cpp
       src/urlpattern.cpp)
-    target_include_directories(${upa_lib_target} PUBLIC
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-      $<INSTALL_INTERFACE:include>)
+    configure_library_target(${upa_lib_target} ${upa_export_name})
   endif()
-  if (BUILD_SHARED_LIBS)
-    target_compile_definitions(${upa_lib_target} PRIVATE UPA_LIB_EXPORT
-      INTERFACE UPA_LIB_IMPORT)
-    set_target_properties(${upa_lib_target} PROPERTIES
-      VERSION ${UPA_URL_VERSION}
-      SOVERSION ${UPA_URL_SOVERSION}
-      CXX_VISIBILITY_PRESET hidden
-      VISIBILITY_INLINES_HIDDEN ON)
-  endif ()
-  # Alias target for the library
-  add_library(upa::${upa_export_name} ALIAS ${upa_lib_target})
-  set_target_properties(${upa_lib_target} PROPERTIES
-    EXPORT_NAME ${upa_export_name})
   # GCC 8 requires linking with stdc++fs to use std::filesystem
   target_link_libraries(${upa_lib_target} PRIVATE
     $<$<AND:$<CXX_COMPILER_ID:GNU>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,9.0>>:stdc++fs>)
+endif()
+
+if (UPA_MODULE)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+
+  add_library(upa_url_module)
+  target_sources(upa_url_module
+    PRIVATE
+      src/module/upa.url.cpp
+    PUBLIC FILE_SET CXX_MODULES
+      BASE_DIRS
+        src/module
+      FILES
+        src/module/upa.url.cppm)
+  target_compile_features(upa_url_module
+    PUBLIC cxx_std_20)
+  configure_library_target(upa_url_module ${upa_export_name}-module)
 endif()
 
 # Test targets
@@ -216,6 +243,24 @@ if (UPA_BUILD_TESTS)
   endforeach()
 endif()
 
+if (UPA_MODULE AND UPA_MODULE_TESTS)
+  enable_testing()
+
+  set(test_files
+    test/test-module.cpp
+  )
+  foreach(file ${test_files})
+    get_filename_component(test_name ${file} NAME_WE)
+
+    add_executable(${test_name} ${file})
+    target_link_libraries(${test_name} upa_url_module)
+
+    add_test(NAME ${test_name}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
+      COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
+  endforeach()
+endif()
+
 # Benchmark targets
 
 if (UPA_BUILD_BENCH)
@@ -267,11 +312,25 @@ if (UPA_INSTALL AND NOT UPA_AMALGAMATED)
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
   )
 
+  set(upa_install_targets ${upa_lib_target})
+  if (UPA_MODULE)
+    list(APPEND upa_install_targets upa_url_module)
+    set(upa_install_file_set
+      FILE_SET CXX_MODULES
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${upa_lib_name}/src)
+    set(upa_install_modules_dir
+      CXX_MODULES_DIRECTORY .)
+    install(
+      FILES src/module/upa.url.h
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${upa_lib_name}/src)
+  endif()
+
   install(
-    TARGETS ${upa_lib_target}
+    TARGETS ${upa_install_targets}
     EXPORT ${upa_lib_target}-targets
     DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    ${upa_install_file_set}
   )
 
   install(
@@ -279,6 +338,7 @@ if (UPA_INSTALL AND NOT UPA_AMALGAMATED)
     FILE ${upa_lib_name}-targets.cmake
     NAMESPACE upa::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${upa_lib_name}
+    ${upa_install_modules_dir}
   )
 
   # generate the config file that includes the exports

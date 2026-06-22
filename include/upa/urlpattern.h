@@ -8,19 +8,21 @@
 #include "url.h" // NOLINT(llvm-include-order)
 #include "unicode_id.h"
 
-#include <algorithm>
-#include <cassert>
-#include <charconv>
-#include <cstdint>
-#include <optional>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <type_traits>
-#include <unordered_map>
-#include <utility>
-#include <variant>
-#include <vector>
+#ifndef UPA_MODULE
+# include <algorithm>
+# include <cassert>
+# include <charconv>
+# include <cstdint>
+# include <optional>
+# include <stdexcept>
+# include <string>
+# include <string_view>
+# include <type_traits>
+# include <unordered_map>
+# include <utility>
+# include <variant>
+# include <vector>
+#endif // UPA_MODULE
 
 namespace upa {
 namespace pattern {
@@ -132,6 +134,8 @@ struct has_regex_engine_members<T, std::void_t<
 
 } // namespace pattern
 
+UPA_EXPORT_BEGIN
+
 template<class T>
 constexpr bool is_regex_engine_v =
     std::is_default_constructible_v<T>
@@ -177,7 +181,7 @@ struct urlpattern_init {
     /// @brief Get value of member by name
     /// @param name Name of the member to get
     /// @return Value of the member if found, `std::nullopt` otherwise
-    [[nodiscard]] std::optional<std::string_view> get(std::string_view name) const {
+    [[nodiscard]] inline std::optional<std::string_view> get(std::string_view name) const {
         if (auto ptr = get_member(name))
             return this->*ptr;
         return std::nullopt;
@@ -187,7 +191,7 @@ struct urlpattern_init {
     /// @param name Name of the member to set
     /// @param value Value to set, must be assignable to std::string
     template <typename T, std::enable_if_t<std::is_assignable_v<std::string, T>, int> = 0>
-    void set(std::string_view name, T&& value) {
+    inline void set(std::string_view name, T&& value) {
         if (auto ptr = get_member(name))
             this->*ptr = std::forward<T>(value);
     }
@@ -197,6 +201,8 @@ private:
     [[nodiscard]] UPA_API static std::optional<std::string> urlpattern_init::*
         get_member(std::string_view name);
 };
+
+UPA_EXPORT_END
 
 namespace pattern {
 
@@ -256,7 +262,6 @@ struct token {
     type type_;
     std::size_t index_;
     std::string_view value_;
-
 };
 
 // https://urlpattern.spec.whatwg.org/#token-list
@@ -446,6 +451,8 @@ inline bool protocol_component_matches_special_scheme(const component<regex_engi
 constexpr bool hostname_pattern_is_ipv6_address(std::string_view input) noexcept;
 
 } // namespace pattern
+
+UPA_EXPORT_BEGIN
 
 ///////////////////////////////////////////////////////////////////////
 // 1.2. The URLPattern class
@@ -651,7 +658,7 @@ public:
     /// @param[in] opt optional `upa::urlpattern_options` struct
     template <class T, class TB, upa::enable_if_str_arg_t<T> = 0,
         upa::enable_if_optional_str_arg_t<TB> = 0>
-    urlpattern(const T& input, TB&& base_url, urlpattern_options opt = {})
+    inline urlpattern(const T& input, TB&& base_url, urlpattern_options opt = {})
         : urlpattern{ make_urlpattern_init(input, std::forward<TB>(base_url)), opt } {}
 
     /// @brief Constructs urlpattern object from URL pattern string
@@ -667,7 +674,7 @@ public:
     /// @param[in] input URL pattern string
     /// @param[in] opt optional `upa::urlpattern_options` struct
     template <class T, upa::enable_if_str_arg_t<T> = 0>
-    urlpattern(const T& input, urlpattern_options opt = {})
+    inline urlpattern(const T& input, urlpattern_options opt = {})
         : urlpattern{ make_urlpattern_init(input, std::nullopt), opt } {}
 
     /// @brief Test whether URL pattern matches the input
@@ -691,7 +698,7 @@ public:
     ///   `false` otherwise
     template <class T, class TB = std::nullopt_t, upa::enable_if_str_arg_t<T> = 0,
         upa::enable_if_optional_str_arg_t<TB> = 0>
-    [[nodiscard]] bool test(const T& input, const TB& base_url_str = std::nullopt) const;
+    [[nodiscard]] bool test(const T& input, const TB& base_url_str = upa::nullopt) const;
 
     /// @brief Test whether URL pattern matches the URL.
     /// @param[in] url URL to test
@@ -754,7 +761,7 @@ public:
         std::enable_if_t<std::is_base_of_v<urlpattern_result, ResT>, int> = 0,
         upa::enable_if_str_arg_t<T> = 0, upa::enable_if_optional_str_arg_t<TB> = 0>
     [[nodiscard]] std::optional<ResT> exec(const T& input,
-        const TB& base_url_str = std::nullopt) const;
+        const TB& base_url_str = upa::nullopt) const;
 
     /// @brief Executes the URL pattern against the URL
     ///
@@ -842,15 +849,17 @@ private:
 /// @brief urlpattern exception class
 ///
 /// This exception can be thrown by the `upa::urlpattern` constructor in the case of an error.
-class urlpattern_error : public std::runtime_error {
+class UPA_SO_VISIBLE urlpattern_error : public std::runtime_error {
 public:
     /// constructs a new urlpattern_error object with the given error message
     ///
     /// @param[in] what_arg error message
-    explicit urlpattern_error(const char* what_arg)
+    inline explicit urlpattern_error(const char* what_arg)
         : std::runtime_error(what_arg)
     {}
 };
+
+UPA_EXPORT_END
 
 ///////////////////////////////////////////////////////////////////////
 // 1.2. The URLPattern class

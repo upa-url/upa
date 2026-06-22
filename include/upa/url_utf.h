@@ -11,10 +11,12 @@
 
 #include "config.h" // IWYU pragma: export
 #include "url_result.h"
-#include <cstdint> // uint8_t, uint32_t
-#include <string>
-#include <string_view>
 
+#ifndef UPA_MODULE
+# include <cstdint> // uint8_t, uint32_t
+# include <string>
+# include <string_view>
+#endif // UPA_MODULE
 
 namespace upa {
 
@@ -49,7 +51,9 @@ protected:
 private:
     // Replacement character (U+FFFD)
     static constexpr std::string_view kReplacementCharUtf8{ "\xEF\xBF\xBD" };
+};
 
+namespace detail {
     // Following two arrays have values from corresponding macros in ICU 74.1 library's
     // include\unicode\utf8.h file.
 
@@ -57,17 +61,23 @@ private:
     // Each bit indicates whether one lead byte + first trail byte pair starts a valid sequence.
     // Lead byte E0..EF bits 3..0 are used as byte index,
     // first trail byte bits 7..5 are used as bit index into that byte.
-    static constexpr std::uint8_t k_U8_LEAD3_T1_BITS[16] = {
+    inline constexpr std::uint8_t k_U8_LEAD3_T1_BITS[16] = {
         0x20, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x30, 0x10, 0x30, 0x30
     };
     // Internal bit vector for 4-byte UTF-8 validity check, for use in U8_IS_VALID_LEAD4_AND_T1.
     // Each bit indicates whether one lead byte + first trail byte pair starts a valid sequence.
     // First trail byte bits 7..4 are used as byte index,
     // lead byte F0..F4 bits 2..0 are used as bit index into that byte.
-    static constexpr std::uint8_t k_U8_LEAD4_T1_BITS[16] = {
+    inline constexpr std::uint8_t k_U8_LEAD4_T1_BITS[16] = {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1E, 0x0F, 0x0F, 0x0F, 0x00, 0x00, 0x00, 0x00
     };
-};
+
+    // For use with append_utf8 function. It appends a byte to output string.
+    template <typename CharT>
+    UPA_CONSTEXPR_20 void append_to_string(std::uint8_t c, std::basic_string<CharT>& str) {
+        str.push_back(static_cast<CharT>(c));
+    };
+} // namespace detail
 
 
 // The URL class (https://url.spec.whatwg.org/#url-class) in URL Standard uses
@@ -96,13 +106,6 @@ constexpr detail::result_value<std::uint32_t> url_utf::read_utf_char(const CharT
         return { true, code_point };
     return { false, 0xFFFD }; // REPLACEMENT CHARACTER
 }
-
-namespace detail {
-    template <typename CharT>
-    UPA_CONSTEXPR_20 void append_to_string(std::uint8_t c, std::basic_string<CharT>& str) {
-        str.push_back(static_cast<CharT>(c));
-    };
-} // namespace detail
 
 template <typename CharT>
 UPA_CONSTEXPR_20 void url_utf::read_char_append_utf8(const CharT*& it, const CharT* last, std::string& output) {
@@ -140,11 +143,11 @@ constexpr bool url_utf::read_code_point(const char*& first, const char* last, st
             // fetch/validate/assemble all but last trail byte
             (c >= 0xE0 ?
                 (c < 0xF0 ? // U+0800..U+FFFF except surrogates
-                    k_U8_LEAD3_T1_BITS[c &= 0xF] & (1 << ((tmp = static_cast<std::uint8_t>(*first)) >> 5)) &&
+                    detail::k_U8_LEAD3_T1_BITS[c &= 0xF] & (1 << ((tmp = static_cast<std::uint8_t>(*first)) >> 5)) &&
                     (tmp &= 0x3F, 1)
                     : // U+10000..U+10FFFF
                     (c -= 0xF0) <= 4 &&
-                    k_U8_LEAD4_T1_BITS[(tmp = static_cast<std::uint8_t>(*first)) >> 4] & (1 << c) &&
+                    detail::k_U8_LEAD4_T1_BITS[(tmp = static_cast<std::uint8_t>(*first)) >> 4] & (1 << c) &&
                     (c = (c << 6) | (tmp & 0x3F), ++first != last) &&
                     (tmp = static_cast<std::uint8_t>(static_cast<std::uint8_t>(*first) - 0x80)) <= 0x3F) &&
                 // valid second-to-last trail byte

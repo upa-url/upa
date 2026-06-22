@@ -15,19 +15,22 @@
 #include "url_result.h"
 #include "url_utf.h"
 #include "util.h"
-#include <algorithm> // any_of
-#include <cassert>
-#include <cstdint> // uint16_t, uint32_t
-#include <string>
-#include <string_view>
-#include <type_traits>
+
+#ifndef UPA_MODULE
+# include <algorithm> // any_of
+# include <cassert>
+# include <cstdint> // uint16_t, uint32_t
+# include <string>
+# include <string_view>
+# include <type_traits>
+#endif // UPA_MODULE
 
 namespace upa {
 
 /// @brief Host representation
 ///
 /// See: https://url.spec.whatwg.org/#host-representation
-enum class HostType {
+UPA_EXPORT enum class HostType {
     Empty = 0, ///< **empty host** is the empty string
     Opaque,    ///< **opaque host** is a non-empty ASCII string used in a not special URL
     Domain,    ///< **domain** is a non-empty ASCII string that identifies a realm within a network
@@ -37,10 +40,10 @@ enum class HostType {
 };
 
 
-class host_output {
+class UPA_SO_VISIBLE host_output {
 protected:
     host_output() = default;
-    host_output(bool need_save)
+    inline host_output(bool need_save)
         : need_save_{ need_save } {}
 public:
     host_output(const host_output&) = delete;
@@ -49,7 +52,7 @@ public:
 
     virtual std::string& hostStart() = 0;
     virtual void hostDone(HostType /*ht*/) = 0;
-    bool need_save() const noexcept { return need_save_; }
+    inline bool need_save() const noexcept { return need_save_; }
 private:
     bool need_save_ = true;
 };
@@ -74,7 +77,7 @@ public:
 // https://github.com/whatwg/url/pull/288
 // https://whatpr.org/url/288.html#urlhost-class
 
-class url_host {
+UPA_EXPORT class url_host {
 public:
     url_host() = delete;
     url_host(const url_host&) = default;
@@ -88,7 +91,7 @@ public:
     ///
     /// @param[in] str Host string to parse
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    explicit url_host(const StrT& str) {
+    inline explicit url_host(const StrT& str) {
         host_out out(*this);
 
         const auto inp = make_str_arg(str);
@@ -103,34 +106,34 @@ public:
     /// Host type getter
     ///
     /// @return host type, the one of: Domain, IPv4, IPv6
-    [[nodiscard]] HostType type() const {
+    [[nodiscard]] inline HostType type() const {
         return type_;
     }
 
     /// Hostname view
     ///
     /// @return serialized host as std::string_view
-    [[nodiscard]] std::string_view name() const UPA_LIFETIMEBOUND {
+    [[nodiscard]] inline std::string_view name() const UPA_LIFETIMEBOUND {
         return host_str_;
     }
 
     /// Hostname stringifier
     ///
     /// @return host serialized to string
-    [[nodiscard]] std::string to_string() const {
+    [[nodiscard]] inline std::string to_string() const {
         return host_str_;
     }
 
 private:
-    class host_out : public host_output {
+    class UPA_SO_VISIBLE host_out : public host_output {
     public:
-        explicit host_out(url_host& host)
+        inline explicit host_out(url_host& host)
             : host_(host)
         {}
-        std::string& hostStart() override {
+        inline std::string& hostStart() override {
             return host_.host_str_;
         }
-        void hostDone(HostType ht) override {
+        inline void hostDone(HostType ht) override {
             host_.type_ = ht;
         }
     private:
@@ -174,7 +177,7 @@ UPA_CONSTEXPR_20 bool contains_forbidden_host_char(const CharT* first, const Cha
 /// @param[in]  be_strict
 /// @param[in]  is_input_ascii
 /// @return `true` on success, or `false` on errors
-template <class CharT, class StrT, enable_if_str_arg_t<StrT> = 0>
+UPA_EXPORT template <class CharT, class StrT, enable_if_str_arg_t<StrT> = 0>
 inline bool domain_to_unicode(std::basic_string<CharT>& output, const StrT& input,
     bool be_strict = false, bool is_input_ascii = false)
 {

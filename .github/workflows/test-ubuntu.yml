@@ -14,6 +14,13 @@ jobs:
     strategy:
       matrix:
         include:
+          - name: clang++-16 C++20 module
+            os: ubuntu-24.04
+            cxx_compiler: clang++-16
+            cxx_standard: 20
+            cmake_options: "-G Ninja -DUPA_MODULE=ON -DCMAKE_CXX_FLAGS=-stdlib=libc++"
+            install: "libc++-16-dev libc++abi-16-dev"
+
           - name: clang++ C++20 shared-lib
             os: ubuntu-latest
             cxx_compiler: clang++
@@ -135,6 +142,12 @@ jobs:
             container: gcc:9
             cxx_standard: 17
             cmake_options: "-DUPA_BUILD_EXAMPLES=ON -DBUILD_SHARED_LIBS=ON"
+            install_cmake: true
+
+          - name: g++-15 C++20 module
+            container: gcc:15
+            cxx_standard: 20
+            cmake_options: "-G Ninja -DUPA_MODULE=ON"
             install_cmake: true
 
     steps:

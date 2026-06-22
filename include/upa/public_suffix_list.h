@@ -1,4 +1,4 @@
-// Copyright 2024-2025 Rimas Misevičius
+// Copyright 2024-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -6,19 +6,24 @@
 #define UPA_PUBLIC_SUFFIX_LIST_H
 
 #include "url.h"
-#include <cstddef>
-#include <cstdint>
-#include <filesystem>
-#include <fstream>
-#include <ios>
-#include <istream>
-#include <memory>
-#include <string>
-#include <string_view>
-#include <unordered_map>
-#include <utility>
+
+#ifndef UPA_MODULE
+# include <cstddef>
+# include <cstdint>
+# include <filesystem>
+# include <fstream>
+# include <ios>
+# include <istream>
+# include <memory>
+# include <string>
+# include <string_view>
+# include <unordered_map>
+# include <utility>
+#endif // UPA_MODULE
 
 namespace upa {
+
+UPA_EXPORT_BEGIN
 
 /// @brief Get label position in hostname by it's index
 ///
@@ -135,7 +140,7 @@ public:
     ///
     /// @param[in] filename the path to the Public Suffix List file
     /// @return true if the Public Suffix List was loaded successfully
-    bool load(const std::filesystem::path& filename) {
+    inline bool load(const std::filesystem::path& filename) {
         std::ifstream finp(filename, std::ios::in | std::ios::binary);
         return finp && load(finp);
     }
@@ -195,7 +200,7 @@ public:
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    [[nodiscard]] std::string get_suffix(const StrT& str_host,
+    [[nodiscard]] inline std::string get_suffix(const StrT& str_host,
         option opt = option::public_suffix) const {
         try {
             return std::string{ get_suffix_view(
@@ -215,7 +220,7 @@ public:
     /// @param[in] url the @ref url object
     /// @param[in] opt options
     /// @return information in the public_suffix_list::result type struct
-    [[nodiscard]] result get_suffix_info(const url& url,
+    [[nodiscard]] inline result get_suffix_info(const url& url,
         option opt = option::public_suffix) const {
         if (url.host_type() == HostType::Domain)
             return get_host_suffix_info(url.hostname(), opt);
@@ -230,7 +235,7 @@ public:
     /// @param[in] host the url_host object
     /// @param[in] opt options
     /// @return information in the public_suffix_list::result type struct
-    [[nodiscard]] result get_suffix_info(const url_host& host,
+    [[nodiscard]] inline result get_suffix_info(const url_host& host,
         option opt = option::public_suffix) const {
         if (host.type() == HostType::Domain)
             return get_host_suffix_info(host.name(), opt);
@@ -246,7 +251,7 @@ public:
     /// @param[in] opt options
     /// @return information in the public_suffix_list::result type struct
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    [[nodiscard]] result get_suffix_info(const StrT& str_host,
+    [[nodiscard]] inline result get_suffix_info(const StrT& str_host,
         option opt = option::public_suffix) const {
         try {
             auto res = get_suffix_info(upa::url_host{ str_host }, opt);
@@ -273,7 +278,7 @@ public:
     /// @param[in] url the @ref url object
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
-    [[nodiscard]] std::string_view get_suffix_view(const url& url UPA_LIFETIMEBOUND,
+    [[nodiscard]] inline std::string_view get_suffix_view(const url& url UPA_LIFETIMEBOUND,
         option opt = option::public_suffix) const {
         if (url.host_type() == HostType::Domain)
             return get_host_suffix_view(url.hostname(), opt);
@@ -295,7 +300,7 @@ public:
     /// @param[in] host the url_host object
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
-    [[nodiscard]] std::string_view get_suffix_view(const url_host& host UPA_LIFETIMEBOUND,
+    [[nodiscard]] inline std::string_view get_suffix_view(const url_host& host UPA_LIFETIMEBOUND,
         option opt = option::public_suffix) const {
         if (host.type() == HostType::Domain)
             return get_host_suffix_view(host.name(), opt);
@@ -318,7 +323,7 @@ public:
     /// @param[in] opt options
     /// @return public suffix or registrable domain (depends on @p opt value)
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    [[nodiscard]] auto get_suffix_view(const StrT& str_host, option opt = option::public_suffix) const
+    [[nodiscard]] inline auto get_suffix_view(const StrT& str_host, option opt = option::public_suffix) const
         -> std::basic_string_view<typename str_arg<str_arg_char_t<StrT>>::value_type> {
         try {
             const auto arg = make_str_arg(str_host);
@@ -351,7 +356,7 @@ public:
 private:
     UPA_API result get_host_suffix_info(std::string_view hostname, option opt) const;
 
-    std::string_view get_host_suffix_view(std::string_view hostname, option opt) const {
+    inline std::string_view get_host_suffix_view(std::string_view hostname, option opt) const {
         const auto res = get_host_suffix_info(hostname, opt);
         if (res)
             return hostname.substr(res.first_label_pos);
@@ -366,9 +371,9 @@ private:
             using hash_type = std::hash<std::string_view>;
             using is_transparent = void;
 
-            std::size_t operator()(const char* str) const { return hash_type{}(str); }
-            std::size_t operator()(std::string_view str) const { return hash_type{}(str); }
-            std::size_t operator()(std::string const& str) const { return hash_type{}(str); }
+            inline std::size_t operator()(const char* str) const { return hash_type{}(str); }
+            inline std::size_t operator()(std::string_view str) const { return hash_type{}(str); }
+            inline std::size_t operator()(std::string const& str) const { return hash_type{}(str); }
         };
         using map_type = std::unordered_map<std::string, label_item, string_hash, std::equal_to<>>;
 #else
@@ -378,7 +383,7 @@ private:
         std::uint8_t code = 0;
         std::unique_ptr<map_type> children;
 
-        bool operator==(const label_item& b) const {
+        inline bool operator==(const label_item& b) const {
             return code == b.code && (
                 (!children && !b.children) ||
                 (children && b.children && *children == *b.children));
@@ -395,6 +400,9 @@ struct enable_bitmask_operators<upa::public_suffix_list::option>
     : public std::true_type {};
 
 } // namespace idna
+
+UPA_EXPORT_END
+
 } // namespace upa
 
 #endif // UPA_PUBLIC_SUFFIX_LIST_H

@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -6,9 +6,15 @@
 #ifndef UPA_URL_RESULT_H
 #define UPA_URL_RESULT_H
 
-#include <stdexcept>
+#include "config.h"
+
+#ifndef UPA_MODULE
+# include <stdexcept>
+#endif // UPA_MODULE
 
 namespace upa {
+
+UPA_EXPORT_BEGIN
 
 /// @brief URL validation and other error codes
 ///
@@ -94,25 +100,26 @@ enum class validation_errc {
 }
 
 /// @brief URL exception class
-
-class url_error : public std::runtime_error {
+class UPA_SO_VISIBLE url_error : public std::runtime_error {
 public:
     /// constructs a new url_error object with the given result code and error message
     ///
     /// @param[in] res validation error code
     /// @param[in] what_arg error message
-    explicit url_error(validation_errc res, const char* what_arg)
+    inline explicit url_error(validation_errc res, const char* what_arg)
         : std::runtime_error(what_arg)
         , res_(res)
     {}
 
     /// @return validation error code
-    [[nodiscard]] validation_errc result() const noexcept {
+    [[nodiscard]] inline validation_errc result() const noexcept {
         return res_;
     }
 private:
     validation_errc res_;
 };
+
+UPA_EXPORT_END
 
 namespace detail {
 

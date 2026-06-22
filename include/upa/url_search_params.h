@@ -10,14 +10,17 @@
 #include "str_arg.h"
 #include "url_percent_encode.h"
 #include "url_utf.h"
-#include <cassert>
-#include <list>
-#include <memory>
-#include <ostream>
-#include <string>
-#include <string_view>
-#include <type_traits>
-#include <utility>
+
+#ifndef UPA_MODULE
+# include <cassert>
+# include <list>
+# include <memory>
+# include <ostream>
+# include <string>
+# include <string_view>
+# include <type_traits>
+# include <utility>
+#endif // UPA_MODULE
 
 namespace upa {
 
@@ -45,18 +48,20 @@ constexpr bool is_iterable_pairs_v<T, std::void_t<decltype(
 // enable if `Base` is not the base class of `T`
 template<class Base, class T>
 using enable_if_not_base_of_t = std::enable_if_t<
-    !std::is_base_of_v<Base, std::decay_t<T>>, int
->;
+    !std::is_base_of_v<Base, std::decay_t<T>>, int>;
 
 } // namespace detail
 
 
 // forward declarations
 
-class url;
 namespace detail {
     class url_search_params_ptr;
 } // namespace detail
+
+UPA_EXPORT_BEGIN
+
+class url;
 
 /// @brief URLSearchParams class
 ///
@@ -103,7 +108,7 @@ public:
     ///
     /// @param[in] query string to parse
     template <class StrT, enable_if_str_arg_t<StrT> = 0>
-    explicit url_search_params(StrT&& query)
+    inline explicit url_search_params(StrT&& query)
         : params_(do_parse(true, std::forward<StrT>(query)))
     {}
 
@@ -115,7 +120,7 @@ public:
         detail::enable_if_not_base_of_t<url_search_params, ConT> = 0,
         std::enable_if_t<detail::is_iterable_pairs_v<ConT>, int> = 0
     >
-    explicit url_search_params(ConT&& cont) {
+    inline explicit url_search_params(ConT&& cont) {
         for (const auto& p : cont) {
             params_.emplace_back(make_string(p.first), make_string(p.second));
         }
@@ -303,38 +308,38 @@ public:
     // Iterators
 
     /// @return an iterator to the beginning of name-value list
-    [[nodiscard]] const_iterator begin() const noexcept { return params_.begin(); }
+    [[nodiscard]] inline const_iterator begin() const noexcept { return params_.begin(); }
 
     /// @return an iterator to the beginning of name-value list
-    [[nodiscard]] const_iterator cbegin() const noexcept { return params_.cbegin(); }
+    [[nodiscard]] inline const_iterator cbegin() const noexcept { return params_.cbegin(); }
 
     /// @return an iterator to the end of name-value list
-    [[nodiscard]] const_iterator end() const noexcept { return params_.end(); }
+    [[nodiscard]] inline const_iterator end() const noexcept { return params_.end(); }
 
     /// @return an iterator to the end of name-value list
-    [[nodiscard]] const_iterator cend() const noexcept { return params_.cend(); }
+    [[nodiscard]] inline const_iterator cend() const noexcept { return params_.cend(); }
 
     /// @return a reverse iterator to the beginning of name-value list
-    [[nodiscard]] const_reverse_iterator rbegin() const noexcept { return params_.rbegin(); }
+    [[nodiscard]] inline const_reverse_iterator rbegin() const noexcept { return params_.rbegin(); }
 
     /// @return a reverse iterator to the beginning of name-value list
-    [[nodiscard]] const_reverse_iterator crbegin() const noexcept { return params_.crbegin(); }
+    [[nodiscard]] inline const_reverse_iterator crbegin() const noexcept { return params_.crbegin(); }
 
     /// @return a reverse iterator to the end of name-value list
-    [[nodiscard]] const_reverse_iterator rend() const noexcept { return params_.rend(); }
+    [[nodiscard]] inline const_reverse_iterator rend() const noexcept { return params_.rend(); }
 
     /// @return a reverse iterator to the end of name-value list
-    [[nodiscard]] const_reverse_iterator crend() const noexcept { return params_.crend(); }
+    [[nodiscard]] inline const_reverse_iterator crend() const noexcept { return params_.crend(); }
 
     // Capacity
 
     /// Checks whether the name-value list is empty
     ///
     /// @return `true` if the container is empty, `false` otherwise
-    [[nodiscard]] bool empty() const noexcept { return params_.empty(); }
+    [[nodiscard]] inline bool empty() const noexcept { return params_.empty(); }
 
     /// @return the number of elements in the name-value list
-    [[nodiscard]] size_type size() const noexcept { return params_.size(); }
+    [[nodiscard]] inline size_type size() const noexcept { return params_.size(); }
 
     // Utils
 
@@ -376,6 +381,7 @@ private:
     url* url_ptr_ = nullptr;
 };
 
+UPA_EXPORT_END
 
 namespace detail {
 
@@ -395,20 +401,20 @@ public:
     // destructor
     UPA_CONSTEXPR_23 ~url_search_params_ptr() = default;
 
-    void init(url* url_ptr) {
+    inline void init(url* url_ptr) {
         ptr_.reset(new url_search_params(url_ptr)); // NOLINT(cppcoreguidelines-owning-memory)
     }
 
-    void set_url_ptr(url* url_ptr) noexcept {
+    inline void set_url_ptr(url* url_ptr) noexcept {
         if (ptr_)
             ptr_->url_ptr_ = url_ptr;
     }
 
-    void clear_params() noexcept {
+    inline void clear_params() noexcept {
         assert(ptr_);
         ptr_->clear_params();
     }
-    void parse_params(std::string_view query) {
+    inline void parse_params(std::string_view query) {
         assert(ptr_);
         ptr_->parse_params(query);
     }
@@ -750,6 +756,8 @@ inline std::string url_search_params::to_string() const {
     return query;
 }
 
+UPA_EXPORT_BEGIN
+
 // Non-member functions
 
 /// @brief Performs stream output on URL search parameters
@@ -777,6 +785,7 @@ inline void swap(url_search_params& lhs, url_search_params& rhs) noexcept {
     lhs.swap(rhs);
 }
 
+UPA_EXPORT_END
 
 } // namespace upa
 
