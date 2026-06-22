@@ -16,10 +16,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Start VM
-        uses: cross-platform-actions/action@v1.2.0
+        uses: cross-platform-actions/action@v1.3.0
         with:
           operating_system: freebsd
-          version: '15.0'
+          version: '15.1'
       - name: install
         run: sudo pkg install -y cmake git
       - name: get dependencies
