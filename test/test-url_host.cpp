@@ -280,8 +280,21 @@ TEST_CASE_TEMPLATE_DEFINE("domain_to_unicode", CharT, test_domain_to_unicode) {
 
     SUBCASE("Invalid input") {
         std::basic_string<CharT> output;
-        CHECK_FALSE(upa::domain_to_unicode(output, "xn--a.op"));
-    }
+		std::basic_string<CharT> expected{ 'X', 'N', '-', '-', 'A', '.', 'O', 'P' };
+			
+		output.clear();
+		CHECK_FALSE(upa::domain_to_unicode(output, "XN--A.OP"));
+		CHECK(output == expected);
+		output.clear();
+		CHECK_FALSE(upa::domain_to_unicode(output, u8"XN--A.OP"));
+		CHECK(output == expected);
+		output.clear();
+		CHECK_FALSE(upa::domain_to_unicode(output, u"XN--A.OP"));
+		CHECK(output == expected);
+		output.clear();
+		CHECK_FALSE(upa::domain_to_unicode(output, U"XN--A.OP"));
+		CHECK(output == expected);
+	}
 }
 
 TEST_CASE_TEMPLATE_INVOKE(test_domain_to_unicode, char, wchar_t, char16_t, char32_t);

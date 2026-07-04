@@ -210,9 +210,11 @@ inline validation_errc domain_parser(std::string& output, const StrT& input, boo
 
 /// @brief Implements the domain to Unicode algorithm
 ///
+/// It runs the Unicode ToUnicode algorithm on the @a input string. The result is appended to
+/// the @a output, and the function returns `true` if ToUnicode records no errors. Otherwise,
+/// the @a input is appended to the @a output, and the function returns `false`.
+/// 
 /// See: https://url.spec.whatwg.org/#concept-domain-to-unicode
-/// The domain to Unicode result is appended to the @a output, even if the
-/// function returns `false`.
 ///
 /// @param[out] output string to store result
 /// @param[in]  input source domain string
@@ -224,27 +226,58 @@ inline bool domain_to_unicode(std::basic_string<CharT>& output, const StrT& inpu
     bool be_strict = false, bool is_input_ascii = false)
 {
     const auto inp = make_str_arg(input);
+
     if constexpr (std::is_same_v<CharT, char32_t>) {
-        return idna::domain_to_unicode(output, inp.begin(), inp.end(), be_strict, is_input_ascii);
+        const auto len = output.length();
+        if (idna::domain_to_unicode(output, inp.begin(), inp.end(), be_strict, is_input_ascii))
+            return true;
+        output.resize(len);
     } else {
         std::u32string domain;
-        const bool res = idna::domain_to_unicode(domain, inp.begin(), inp.end(), be_strict, is_input_ascii);
-        if constexpr (sizeof(CharT) == sizeof(char)) {
-            // CharT is char8_t, or char
-            for (auto cp : domain)
-                url_utf::append_utf8<std::basic_string<CharT>, detail::append_to_string>(cp, output);
-        } else if constexpr (sizeof(CharT) == sizeof(char16_t)) {
-            // CharT is char16_t, or wchar_t (Windows)
-            for (auto cp : domain)
-                url_utf::append_utf16(cp, output);
-        } else if constexpr (sizeof(CharT) == sizeof(char32_t)) {
-            // CharT is wchar_t (non Windows)
-            util::append(output, domain);
-        } else {
-            static_assert(util::false_v<CharT>, "unsupported output character type");
+        if (idna::domain_to_unicode(domain, inp.begin(), inp.end(), be_strict, is_input_ascii)) {
+            if constexpr (sizeof(CharT) == sizeof(char)) {
+                // CharT is char8_t, or char
+                for (auto cp : domain)
+                    url_utf::append_utf8<std::basic_string<CharT>, detail::append_to_string>(cp, output);
+            } else if constexpr (sizeof(CharT) == sizeof(char16_t)) {
+                // CharT is char16_t, or wchar_t (Windows)
+                for (auto cp : domain)
+                    url_utf::append_utf16(cp, output);
+            } else if constexpr (sizeof(CharT) == sizeof(char32_t)) {
+                // CharT is wchar_t (non Windows)
+                util::append(output, domain);
+            } else {
+                static_assert(util::false_v<CharT>, "unsupported output character type");
+            }
+            return true;
         }
-        return res;
     }
+
+    // If an error was recorded, then return input
+    using InpCharT = typename decltype(inp)::value_type;
+    if constexpr (sizeof(CharT) == sizeof(InpCharT)) {
+        // The character encodings are the same. Append the input to the output.
+        util::append(output, inp);
+    } else {
+        // The character encodings differ, so convert and append the input to the output.
+        const auto* last = inp.end();
+        for (const auto* ptr = inp.begin(); ptr != last;) {
+            const auto cp = url_utf::read_utf_char(ptr, last).value;
+            if constexpr (sizeof(CharT) == sizeof(char)) {
+                // CharT is char8_t, or char
+                url_utf::append_utf8<std::basic_string<CharT>, detail::append_to_string>(cp, output);
+            } else if constexpr (sizeof(CharT) == sizeof(char16_t)) {
+                // CharT is char16_t, or wchar_t (Windows)
+                url_utf::append_utf16(cp, output);
+            } else if constexpr (sizeof(CharT) == sizeof(char32_t)) {
+                // CharT is wchar_t (non Windows)
+                output.push_back(static_cast<CharT>(cp));
+            } else {
+                static_assert(util::false_v<CharT>, "unsupported output character type");
+            }
+        }
+    }
+    return false;
 }
 
 // The host parser
