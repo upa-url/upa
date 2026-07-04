@@ -219,40 +219,26 @@ void test_parser(DataDrivenTest& ddt, const parsed_obj_with_failure& obj)
     });
 }
 
-// Test upa::idna::domain_to_ascii
+// Test upa::domain_parser with be_strict = false
 // This function is used in test_host_parser and test_idna_v2
-void test_domain_to_ascii(DataDrivenTest& ddt, const parsed_obj& obj)
+void test_domain_parser(DataDrivenTest& ddt, const parsed_obj& obj)
 {
     // "input" and "output" are mandatory
     const auto& input = obj.at("input");
     const auto& output = obj.at("output");
 
-    const bool is_input_ascii = std::all_of(input->begin(), input->end(),
-        [](char c) { return static_cast<unsigned char>(c) < 0x80; });
-
-    std::string str_case("domain_to_ascii(\"" + *input + "\")");
+    std::string str_case("domain_parser(\"" + *input + "\")");
     if (obj.has("comment"))
         str_case += " " + *obj.at("comment");
 
     ddt.test_case(str_case, [&](DataDrivenTest::TestCase& tc) {
         std::string domain;
-        bool parse_success = upa::idna::domain_to_ascii(domain, input->data(), input->data() + input->size());
+        const auto errc = upa::domain_parser(domain, *input, false);
 
         // check if parse must succeed
-        tc.assert_equal(output.has_value(), parse_success, "domain_to_ascii success");
-        if (parse_success && output) {
-            tc.assert_equal(*output, domain, "domain_to_ascii output");
-        }
-
-        if (is_input_ascii) {
-            domain.clear();
-            parse_success = upa::idna::domain_to_ascii(domain, input->data(), input->data() + input->size(), false, is_input_ascii);
-
-            // check if parse must succeed
-            tc.assert_equal(output.has_value(), parse_success, "ASCII domain_to_ascii success");
-            if (parse_success && output) {
-                tc.assert_equal(*output, domain, "ASCII domain_to_ascii output");
-            }
+        tc.assert_equal(output.has_value(), upa::success(errc), "domain_parser success");
+        if (upa::success(errc) && output) {
+            tc.assert_equal(*output, domain, "domain_parser output");
         }
     });
 }
@@ -323,10 +309,10 @@ void test_host_parser(DataDrivenTest& ddt, const parsed_obj& obj)
         }
     });
 
-    // Test upa::idna::domain_to_ascii
+    // Test upa::domain_parser
 
     if (!urlStandardOnly)
-        test_domain_to_ascii(ddt, obj);
+        test_domain_parser(ddt, obj);
 }
 
 //
@@ -377,9 +363,9 @@ void test_idna_v2(DataDrivenTest& ddt, const parsed_obj& obj)
         }
     });
 
-    // Test upa::idna::domain_to_ascii
+    // Test upa::domain_parser
 
-    test_domain_to_ascii(ddt, obj);
+    test_domain_parser(ddt, obj);
 }
 
 // URL setter test

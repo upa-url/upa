@@ -1,4 +1,4 @@
-// Copyright 2016-2023 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -45,7 +45,7 @@ enum class validation_errc {
     // IDNA
     domain_to_ascii,                ///< Unicode ToASCII records an error or returns the empty string
     // Host parsing
-    domain_invalid_code_point,      ///< The input’s host contains a forbidden domain code point
+    domain_invalid_code_point [[deprecated]], ///< Unused, use domain_to_ascii instead
     host_invalid_code_point,        ///< An opaque host contains a forbidden host code point
     ipv4_too_many_parts,            ///< An IPv4 address does not consist of exactly 4 parts
     ipv4_non_numeric_part,          ///< An IPv4 address part is not numeric

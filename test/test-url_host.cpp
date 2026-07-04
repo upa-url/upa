@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -144,14 +144,16 @@ upa::validation_errc construct_url_host(Args&&... args) {
 }
 
 TEST_SUITE("url_host") {
+    TEST_CASE("Valid host") {
+        // IDNA
+        CHECK(construct_url_host("xn--a") == upa::validation_errc::ok); // MY
+    }
     TEST_CASE("Invalid host") {
         // IDNA
         // https://url.spec.whatwg.org/#validation-error-domain-to-ascii
-        CHECK(construct_url_host("xn--a") == upa::validation_errc::domain_to_ascii); // MY
+        CHECK(construct_url_host("exa#mple.org") == upa::validation_errc::domain_to_ascii);
 
         // Host parsing (only special hosts)
-        // https://url.spec.whatwg.org/#domain-invalid-code-point
-        CHECK(construct_url_host("exa#mple.org") == upa::validation_errc::domain_invalid_code_point);
         // https://url.spec.whatwg.org/#ipv4-too-many-parts
         CHECK(construct_url_host("1.2.3.4.5") == upa::validation_errc::ipv4_too_many_parts);
         // https://url.spec.whatwg.org/#ipv4-non-numeric-part
@@ -244,6 +246,25 @@ TEST_SUITE("url_host") {
         hm = upa::url_host{ "1.2.3.4" };
         CHECK(hm.to_string() == "1.2.3.4");
         CHECK(hm.type() == upa::HostType::IPv4);
+    }
+}
+
+// Test upa::domain_parser function
+
+TEST_CASE("domain_parser with be_strict == true") {
+    SUBCASE("Valid input") {
+        std::string output;
+        CHECK(upa::domain_parser(output, "XN--UOLAS-2WA16F.LT", true) == upa::validation_errc::ok);
+        CHECK(output == "xn--uolas-2wa16f.lt");
+
+        CHECK(upa::domain_parser(output, u"\u0105\u017Euolas.LT", true) == upa::validation_errc::ok);
+        CHECK(output == "xn--uolas-2wa16f.lt");
+    }
+    SUBCASE("Invalid input") {
+        std::string output;
+        CHECK(upa::domain_parser(output, "a..lt", true) == upa::validation_errc::domain_to_ascii);
+        CHECK(upa::domain_parser(output, "xn--0.lt", true) == upa::validation_errc::domain_to_ascii);
+        CHECK(upa::domain_parser(output, "a=b.lt", true) == upa::validation_errc::domain_to_ascii);
     }
 }
 

@@ -190,19 +190,9 @@ UPA_CONSTEXPR_20 bool contains_null(InputIt first, InputIt last) {
 }
 
 template <class CharT>
-constexpr bool has_xn_label(const CharT* first, const CharT* last) {
-    if (last - first >= 4) {
-        // search for labels starting with "xn--"
-        const auto end = last - 4;
-        for (auto p = first; ; ++p) { // skip '.'
-            // "XN--", "xn--", ...
-            if ((p[0] | 0x20) == 'x' && (p[1] | 0x20) == 'n' && p[2] == '-' && p[3] == '-')
-                return true;
-            p = std::char_traits<CharT>::find(p, end - p, '.');
-            if (p == nullptr) break;
-        }
-    }
-    return false;
+UPA_CONSTEXPR_20 bool is_ascii(const CharT* first, const CharT* last) {
+    using UCharT = std::make_unsigned_t<CharT>;
+    return std::all_of(first, last, [](CharT c) { return static_cast<UCharT>(c) < 0x80; });
 }
 
 

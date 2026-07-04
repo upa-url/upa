@@ -105,6 +105,9 @@ public:
     constexpr const value_type* data() const noexcept {
         return first_;
     }
+    constexpr bool empty() const noexcept {
+        return first_ == last_;
+    }
     constexpr std::size_t length() const noexcept {
         return last_ - first_;
     }

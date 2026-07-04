@@ -56,18 +56,17 @@ void check_url_contructor(upa::validation_errc expected_res, Args&&... args)
 TEST_CASE("url constructor") {
     // Valid URL
     check_url_contructor(upa::validation_errc::ok, "http://example.org/p");
+    check_url_contructor(upa::validation_errc::ok, "http://xn--a/p"); // MY
 
     // Invalid URLs (failure)
 
     // IDNA
     // https://url.spec.whatwg.org/#validation-error-domain-to-ascii
     check_url_contructor(upa::validation_errc::domain_to_ascii, "http://%C2%AD/p"); // MY: U+00AD - IDNA ignored code point
-    check_url_contructor(upa::validation_errc::domain_to_ascii, "http://xn--a/p"); // MY
+    check_url_contructor(upa::validation_errc::domain_to_ascii, "https://exa%23mple.org");
+    check_url_contructor(upa::validation_errc::domain_to_ascii, "http://h[]/p"); // MY
 
     // Host parsing
-    // https://url.spec.whatwg.org/#domain-invalid-code-point
-    check_url_contructor(upa::validation_errc::domain_invalid_code_point, "https://exa%23mple.org");
-    check_url_contructor(upa::validation_errc::domain_invalid_code_point, "http://h[]/p"); // MY
     // https://url.spec.whatwg.org/#host-invalid-code-point
     check_url_contructor(upa::validation_errc::host_invalid_code_point, "foo://exa[mple.org");
     // https://url.spec.whatwg.org/#ipv4-too-many-parts

@@ -157,11 +157,56 @@ UPA_CONSTEXPR_20 bool contains_forbidden_host_char(const CharT* first, const Cha
     return std::any_of(first, last, detail::is_forbidden_host_char<CharT>);
 }
 
+// https://url.spec.whatwg.org/#domain-parser-toascii
+template <typename CharT>
+inline bool domain_parser_to_ascii(std::string& domain, const CharT* input, const CharT* input_end,
+    bool be_strict, bool is_input_ascii = false)
+{
+    return idna::to_ascii(domain, input, input_end,
+        idna::detail::domain_options(be_strict, is_input_ascii));
+}
+
 } // namespace detail
 
 
 // IDNA
 // https://url.spec.whatwg.org/#idna
+
+/// @brief Implements the domain parser algorithm
+///
+/// See: https://url.spec.whatwg.org/#concept-domain-to-ascii
+/// The @a output is valid only if the function returns `upa::validation_errc::ok`.
+///
+/// @param[out] output string to store result
+/// @param[in]  input source domain string
+/// @param[in]  be_strict whether to enforce strict parsing rules
+/// @return upa::validation_errc::ok on success, or upa::validation_errc::domain_to_ascii
+///   on failure
+template <class StrT, enable_if_str_arg_t<StrT> = 0>
+inline validation_errc domain_parser(std::string& output, const StrT& input, bool be_strict)
+{
+    const auto inp = make_str_arg(input);
+
+    const bool is_ascii = util::is_ascii(inp.begin(), inp.end());
+    if (be_strict) {
+        return detail::domain_parser_to_ascii(output, inp.begin(), inp.end(), true, is_ascii)
+            ? validation_errc::ok : validation_errc::domain_to_ascii;
+    }
+    if (is_ascii) {
+        if (inp.empty() || detail::contains_forbidden_domain_char(inp.begin(), inp.end()))
+            return validation_errc::domain_to_ascii;
+        output.clear();
+        util::append_ascii_lowercase(output, inp.begin(), inp.end());
+        return validation_errc::ok;
+    }
+
+    // be_strict == false & non-ASCII input
+    if (detail::domain_parser_to_ascii(output, inp.begin(), inp.end(), false, false) &&
+        !output.empty() &&
+        !detail::contains_forbidden_domain_char(output.data(), output.data() + output.size()))
+        return validation_errc::ok;
+    return validation_errc::domain_to_ascii;
+}
 
 /// @brief Implements the domain to Unicode algorithm
 ///
@@ -171,8 +216,8 @@ UPA_CONSTEXPR_20 bool contains_forbidden_host_char(const CharT* first, const Cha
 ///
 /// @param[out] output string to store result
 /// @param[in]  input source domain string
-/// @param[in]  be_strict
-/// @param[in]  is_input_ascii
+/// @param[in]  be_strict whether to enforce strict parsing rules
+/// @param[in]  is_input_ascii whether the input is ASCII
 /// @return `true` on success, or `false` on errors
 template <class CharT, class StrT, enable_if_str_arg_t<StrT> = 0>
 inline bool domain_to_unicode(std::basic_string<CharT>& output, const StrT& input,
@@ -238,40 +283,39 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
     // Is ASCII domain?
     const auto ptr = std::find_if_not(first, last, detail::is_ascii_domain_char<CharT>);
     if (ptr == last) {
-        if (!util::has_xn_label(first, last)) {
-            // Fast path for ASCII domain
+        // Fast path for ASCII domain
 
-            // If asciiDomain ends in a number, return the result of IPv4 parsing asciiDomain
-            if (hostname_ends_in_a_number(first, last))
-                return parse_ipv4(first, last, dest);
+        // If asciiDomain ends in a number, return the result of IPv4 parsing asciiDomain
+        if (hostname_ends_in_a_number(first, last))
+            return parse_ipv4(first, last, dest);
 
-            if (dest.need_save()) {
-                // Return asciiDomain lower cased
-                std::string& str_host = dest.hostStart();
-                util::append_ascii_lowercase(str_host, first, last);
-                dest.hostDone(HostType::Domain);
-            }
-            return validation_errc::ok;
+        if (dest.need_save()) {
+            // Return asciiDomain lower cased
+            std::string& str_host = dest.hostStart();
+            util::append_ascii_lowercase(str_host, first, last);
+            dest.hostDone(HostType::Domain);
         }
-    } else if (static_cast<UCharT>(*ptr) < 0x80 && *ptr != '%') {
+        return validation_errc::ok;
+    }
+    if (static_cast<UCharT>(*ptr) < 0x80 && *ptr != '%') {
         // NFC normalizes U+003C (<), U+003D (=), U+003E (>) characters if they precede
         // U+0338. Therefore, no errors are reported here for forbidden < and > characters
         // if there is a possibility to normalize them.
         if (!(*ptr >= 0x3C && *ptr <= 0x3E && ptr + 1 < last && static_cast<UCharT>(ptr[1]) >= 0x80))
             // 7. If asciiDomain contains a forbidden domain code point, domain-invalid-code-point
             // validation error, return failure.
-            return validation_errc::domain_invalid_code_point;
+            return validation_errc::domain_to_ascii;
     }
 
     std::string buff_ascii;
 
     const auto pes = std::find(ptr, last, '%');
     if (pes == last) {
-        // Input is ASCII if ptr == last
-        if (!idna::domain_to_ascii(buff_ascii, first, last, false, ptr == last))
+        // Input (first, last) contains non-ASCII characters
+        if (!idna::domain_to_ascii(buff_ascii, first, last))
             return validation_errc::domain_to_ascii;
     } else {
-        // Input for domain_to_ascii
+        // Buffer for domain_to_ascii's input
         simple_buffer<char32_t> buff_uc;
 
         // copy ASCII chars
@@ -280,8 +324,9 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
             buff_uc.push_back(static_cast<char32_t>(uch));
         }
 
-        // Let buff_uc be the result of running UTF-8 decode (to UTF-16) without BOM
+        // Let buff_uc be the result of running UTF-8 decode (to UTF-32) without BOM
         // on the percent decoding of UTF-8 encode on input
+        bool is_ascii = true;
         for (auto it = ptr; it != last;) {
             const auto uch = static_cast<UCharT>(*it++);
             if (uch < 0x80) {
@@ -292,10 +337,14 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
                 // uch == '%'
                 unsigned char uc8; // NOLINT(cppcoreguidelines-init-variables)
                 if (detail::decode_hex_to_byte(it, last, uc8)) {
+                    // TODO-WARN:
+                    // If input contains a percent-encoded byte, domain-percent-encoded
+                    // validation error 
                     if (uc8 < 0x80) {
                         buff_uc.push_back(static_cast<char32_t>(uc8));
                         continue;
                     }
+                    is_ascii = false;
                     // percent encoded utf-8 sequence
                     // TODO: gal po vieną code_point, tuomet užtektų utf-8 buferio vienam simboliui
                     simple_buffer<char> buff_utf8;
@@ -313,21 +362,25 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
                     //buff_utf8.clear();
                     continue;
                 }
-                // detected an invalid percent-encoding sequence
+                // Detected an invalid percent-encoding sequence
+                // see 2. step in https://url.spec.whatwg.org/#percent-decode
                 buff_uc.push_back('%');
             } else { // uch >= 0x80
+                is_ascii = false;
                 --it;
                 buff_uc.push_back(url_utf::read_utf_char(it, last).value);
             }
         }
-        if (!idna::domain_to_ascii(buff_ascii, buff_uc.begin(), buff_uc.end()))
+        if (is_ascii)
+            util::append_ascii_lowercase(buff_ascii, buff_uc.begin(), buff_uc.end());
+        else if (!idna::domain_to_ascii(buff_ascii, buff_uc.begin(), buff_uc.end()))
             return validation_errc::domain_to_ascii;
     }
 
     if (detail::contains_forbidden_domain_char(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
         // 7. If asciiDomain contains a forbidden domain code point, domain-invalid-code-point
         // validation error, return failure.
-        return validation_errc::domain_invalid_code_point;
+        return validation_errc::domain_to_ascii;
     }
 
     // If asciiDomain ends in a number, return the result of IPv4 parsing asciiDomain

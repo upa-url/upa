@@ -86,6 +86,22 @@
     "base": null,
     "failure": true
   },
+  "Invalid Punycode, percent-encoded",
+  {
+    "input": "https://XN--%30/",
+    "base": null,
+    "href": "https://xn--0/",
+    "origin": "https://xn--0",
+    "protocol": "https:",
+    "username": "",
+    "password": "",
+    "host": "xn--0",
+    "hostname": "xn--0",
+    "port": "",
+    "pathname": "/",
+    "search": "",
+    "hash": ""
+  },
   "Invalid IPv4 address number",
   {
     "input": "https://0100000000000/",

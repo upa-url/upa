@@ -2484,8 +2484,10 @@ template <typename CharT>
 inline void url_parser::do_opaque_path(const CharT* pointer, const CharT* last, std::string& output) {
     using UCharT = std::make_unsigned_t<CharT>;
 
-    // 3. of "opaque path state"
-    // TODO-WARN: 3. [ 1 ... 2 ] validation error.
+    // TODO-WARN in the `opaque path state`:
+    // 3. Otherwise, if c is U+0020 SPACE:
+    //  1. Invalid-URL-unit validation error.
+    // 4. Otherwise, if c is not the EOF code point:
     //  1. If c is not EOF code point, not a URL code point, and not "%", validation error.
     //  2. If c is "%" and remaining does not start with two ASCII hex digits, validation error.
 
