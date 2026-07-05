@@ -153,10 +153,10 @@ constexpr validation_errc ipv4_parse(const CharT* first, const CharT* last, std:
         const auto uc = static_cast<UCharT>(*it);
         if (uc == '.') {
             if (dot_count == 4)
-                // 3. If parts’s size is greater than 4, IPv4-too-many-parts validation error, return failure
+                // 4. If parts’s size is greater than 4, IPv4-too-many-parts validation error, return failure
                 return validation_errc::ipv4_too_many_parts;
             if (part[dot_count] == it)
-                // 5.2 & "IPv4 number parser":
+                // 6.2 & "IPv4 number parser":
                 // 1. If input is the empty string, then return failure.
                 return validation_errc::ipv4_non_numeric_part;
             part[++dot_count] = it + 1; // skip '.'
@@ -176,7 +176,8 @@ constexpr validation_errc ipv4_parse(const CharT* first, const CharT* last, std:
         // the part[part_count] - 1 must point to the end of last part:
         part[part_count] = last + 1;
     }
-    // 3. If parts’s size is greater than 4, IPv4-too-many-parts validation error, return failure
+    // 3. If parts’s size is less than 4, IPv4-too-few-parts validation error. (TODO-WARN)
+    // 4. If parts’s size is greater than 4, IPv4-too-many-parts validation error, return failure
     if (part_count > 4)
         return validation_errc::ipv4_too_many_parts;
 
@@ -184,24 +185,24 @@ constexpr validation_errc ipv4_parse(const CharT* first, const CharT* last, std:
     std::uint32_t number[4] = {};
     for (int ind = 0; ind < part_count; ++ind) {
         const auto res = ipv4_parse_number(part[ind], part[ind + 1] - 1, number[ind]);
-        // 5.2. If result is failure, IPv4-non-numeric-part validation error, return failure.
+        // 6.2. If result is failure, IPv4-non-numeric-part validation error, return failure.
         if (res != validation_errc::ok) return res;
-        // TODO-WARN: 5.3. If result[1] is true, IPv4-non-decimal-part validation error.
+        // TODO-WARN: 6.3. If result[1] is true, IPv4-non-decimal-part validation error.
     }
     // TODO-WARN:
-    // 6. If any item in numbers is greater than 255, IPv4-out-of-range-part validation error.
+    // 7. If any item in numbers is greater than 255, IPv4-out-of-range-part validation error.
 
-    // 7. If any but the last item in numbers is greater than 255, then return failure.
+    // 8. If any but the last item in numbers is greater than 255, then return failure.
     for (int ind = 0; ind < part_count - 1; ++ind) {
         if (number[ind] > 255) return validation_errc::ipv4_out_of_range_part;
     }
-    // 8. If the last item in numbers is greater than or equal to 256(5 − numbers’s size),
+    // 9. If the last item in numbers is greater than or equal to 256^(5 − numbers’s size),
     // then return failure.
     ipv4 = number[part_count - 1];
     if (ipv4 > (std::numeric_limits<std::uint32_t>::max() >> (8 * (part_count - 1))))
         return validation_errc::ipv4_out_of_range_part;
 
-    // 14.1. Increment ipv4 by n * 256**(3 - counter).
+    // 13.1. Increment ipv4 by n * 256^(3 - counter).
     for (int counter = 0; counter < part_count - 1; ++counter) {
         ipv4 += number[counter] << (8 * (3 - counter));
     }
