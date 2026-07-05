@@ -318,6 +318,9 @@ UPA_CONSTEXPR_20 validation_errc ipv6_parse(const CharT* first, const CharT* las
                 // validation error, return failure.
                 return validation_errc::ipv6_invalid_code_point;
             }
+            // TODO-WARN:
+            // 6.8. If length is greater than 1 and value is less than 0x10^(length − 1),
+            // IPv6-piece-leading-zero validation error.
         }
         address[piece_index++] = value;
     }
