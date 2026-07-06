@@ -338,8 +338,8 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
         // U+0338. Therefore, no errors are reported here for forbidden < and > characters
         // if there is a possibility to normalize them.
         if (!(*ptr >= 0x3C && *ptr <= 0x3E && ptr + 1 < last && static_cast<UCharT>(ptr[1]) >= 0x80))
-            // 7. If asciiDomain contains a forbidden domain code point, domain-invalid-code-point
-            // validation error, return failure.
+            // domain parser: 8. If result contains a forbidden domain code point, then
+            // return failure
             return validation_errc::domain_to_ascii;
     }
 
@@ -382,7 +382,8 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
                     }
                     is_ascii = false;
                     // percent encoded utf-8 sequence
-                    // TODO: gal po vieną code_point, tuomet užtektų utf-8 buferio vienam simboliui
+                    // TODO: Perhaps process one code point at a time. Then, a buffer
+                    // for a single character encoded in UTF-8 would suffice.
                     simple_buffer<char> buff_utf8;
                     buff_utf8.push_back(static_cast<char>(uc8));
                     while (it != last && *it == '%') {
@@ -414,12 +415,13 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
     }
 
     if (detail::contains_forbidden_domain_char(buff_ascii.data(), buff_ascii.data() + buff_ascii.size())) {
-        // 7. If asciiDomain contains a forbidden domain code point, domain-invalid-code-point
-        // validation error, return failure.
+        // domain parser: 8. If result contains a forbidden domain code point, then return failure
         return validation_errc::domain_to_ascii;
     }
 
-    // If asciiDomain ends in a number, return the result of IPv4 parsing asciiDomain
+    // If asciiDomain ends in a number:
+    // TODO-WARN: 1. If domain is not an ASCII string, IPv4-non-ASCII-input validation error.  
+    // 2. Return the result of IPv4 parsing asciiDomain.
     if (hostname_ends_in_a_number(buff_ascii.data(), buff_ascii.data() + buff_ascii.size()))
         return parse_ipv4(buff_ascii.data(), buff_ascii.data() + buff_ascii.size(), dest);
 

@@ -8,7 +8,7 @@ It is known to compile with Clang 7, GCC 8, Microsoft Visual Studio 2017 or late
 ## Features and standard conformance
 
 This library is up to date with the URL Standard published on
-[2 July 2026](https://url.spec.whatwg.org/commit-snapshots/6ae84860d12800bcf563668e7cc821360dce6062/),
+[6 July 2026](https://url.spec.whatwg.org/commit-snapshots/9dc3827fc722ac4af3f11061aa3e9adb44a17c8b/),
 the URL Pattern Standard published on
 [15 June 2026](https://urlpattern.spec.whatwg.org/commit-snapshots/aeb2019cf3aa1fb31af134a682c0255302a41297/)
 and supports internationalized domain names as specified in the
