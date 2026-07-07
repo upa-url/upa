@@ -1037,7 +1037,8 @@ INPUT                  = include/upa/url.h \
                          include/upa/regex_engine_srell.h \
                          include/upa/regex_engine_std.h \
                          README.md \
-                         doc/string_input.md
+                         doc/string_input.md \
+                         doc/modules.md
 
 # This tag can be used to specify the character encoding of the source files
 # that Doxygen parses. Internally Doxygen uses the UTF-8 encoding. Doxygen uses

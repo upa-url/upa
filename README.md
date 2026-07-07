@@ -37,6 +37,8 @@ Upa URL contains features not specified in the standard:
 
 For string input, the library supports UTF-8, UTF-16, UTF-32 encodings and several string types, including `std::basic_string`, `std::basic_string_view`, null-terminated strings of any char type: `char`, `char8_t`, `char16_t`, `char32_t`, or `wchar_t`. See ["String input"](doc/string_input.md) for more information.
 
+The library can be compiled and used as a C++20 module. See ["C++20 modules support"](doc/modules.md) for more information.
+
 ## Installation
 
 The simplest way is to use amalgamated files: `url.h` and `url.cpp`. For the Public Suffix List functionality, you will also need `public_suffix_list.h` and `public_suffix_list.cpp`. You can download them from [releases page](https://github.com/upa-url/upa/releases), or if you have installed Python, then generate them by running `tools/amalgamate.sh` script (`tools\amalgamate.bat` on Windows). The files will be created in the `single_include/upa` directory.
@@ -52,7 +54,7 @@ cmake --install build
 
 This installs the Upa URL as a static library, which is recommended. To build and install it as a shared library, add the `-DBUILD_SHARED_LIBS=ON` option to the first command.
 
-To use library add `find_package(upa REQUIRED)` and link to `upa::url` target in your CMake project:
+To use library add `find_package(upa REQUIRED)` and link to `upa::url` target in your `CMakeLists.txt`:
 ```cmake
 find_package(upa REQUIRED)
 ...
