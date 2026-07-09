@@ -272,15 +272,23 @@ TEST_CASE("domain_parser with be_strict == true") {
 
 TEST_CASE_TEMPLATE_DEFINE("domain_to_unicode", CharT, test_domain_to_unicode) {
     SUBCASE("Valid input") {
-        const std::basic_string<CharT> input{ 'a', 'b', 'c' };
+        const std::basic_string<CharT> input1{ 'A', 'B', 'C' };
+        const std::basic_string<CharT> expected1{ 'a', 'b', 'c' };
         std::basic_string<CharT> output;
-        CHECK(upa::domain_to_unicode(output, input));
-        CHECK(output == input);
+        CHECK(upa::domain_to_unicode(output, input1));
+        CHECK(output == expected1);
+
+        // contains forbidden host code points U+003C (<) and U+003E (>)
+        const std::basic_string<CharT> input2{ '<', 'B', '>' };
+        const std::basic_string<CharT> expected2{ '<', 'b', '>' };
+        output.clear();
+        CHECK(upa::domain_to_unicode(output, input2));
+        CHECK(output == expected2);
     }
 
     SUBCASE("Invalid input") {
         std::basic_string<CharT> output;
-		std::basic_string<CharT> expected{ 'X', 'N', '-', '-', 'A', '.', 'O', 'P' };
+		const std::basic_string<CharT> expected{ 'X', 'N', '-', '-', 'A', '.', 'O', 'P' };
 			
 		output.clear();
 		CHECK_FALSE(upa::domain_to_unicode(output, "XN--A.OP"));
@@ -301,3 +309,18 @@ TEST_CASE_TEMPLATE_INVOKE(test_domain_to_unicode, char, wchar_t, char16_t, char3
 #ifdef __cpp_char8_t
 TEST_CASE_TEMPLATE_INVOKE(test_domain_to_unicode, char8_t);
 #endif
+
+TEST_CASE("domain_to_unicode with IDNA disallowed character") {
+    std::u32string output;
+    const std::u32string expected{ U"WWW.\u0080.LT" };
+
+    output.clear();
+    CHECK_FALSE(upa::domain_to_unicode(output, u8"WWW.\u0080.LT"));
+    CHECK(output == expected);
+    output.clear();
+    CHECK_FALSE(upa::domain_to_unicode(output, u"WWW.\u0080.LT"));
+    CHECK(output == expected);
+    output.clear();
+    CHECK_FALSE(upa::domain_to_unicode(output, U"WWW.\u0080.LT"));
+    CHECK(output == expected);
+}
