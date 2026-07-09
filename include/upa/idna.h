@@ -1,4 +1,4 @@
-// Copyright 2017-2025 Rimas Misevičius
+// Copyright 2017-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -186,10 +186,10 @@ UPA_EXPORT_END
 // NOLINTBEGIN(*-macro-*)
 
 #define UPA_IDNA_VERSION_MAJOR 2
-#define UPA_IDNA_VERSION_MINOR 5
+#define UPA_IDNA_VERSION_MINOR 6
 #define UPA_IDNA_VERSION_PATCH 0
 
-#define UPA_IDNA_VERSION "2.5.0"
+#define UPA_IDNA_VERSION "2.6.0"
 
 // NOLINTEND(*-macro-*)
 
@@ -214,22 +214,16 @@ enum class Option {
     CheckJoiners      = 0x0020,
     // ASCII optimization
     InputASCII        = 0x1000,
+    // On error return imediatly, without further processing
+    FailFast          = 0x2000,
 };
 
 template<>
 struct enable_bitmask_operators<Option> : public std::true_type {};
 
-UPA_EXPORT_END
-
-namespace detail {
-
-// Bit flags
-constexpr bool has(Option option, const Option value) noexcept {
-    return (option & value) == value;
-}
-
+// Returns the options for to_ascii and to_unicode functions
 constexpr Option domain_options(bool be_strict, bool is_input_ascii) noexcept {
-    // https://url.spec.whatwg.org/#concept-domain-to-ascii
+    // https://url.spec.whatwg.org/#domain-parser-toascii
     // https://url.spec.whatwg.org/#concept-domain-to-unicode
     // Note. The to_unicode ignores Option::VerifyDnsLength
     auto options = Option::CheckBidi | Option::CheckJoiners;
@@ -240,14 +234,23 @@ constexpr Option domain_options(bool be_strict, bool is_input_ascii) noexcept {
     return options;
 }
 
+UPA_EXPORT_END
+
+namespace detail {
+
+// Bit flags
+constexpr bool has(Option option, const Option value) noexcept {
+    return (option & value) == value;
+}
+
 // IDNA map and normalize to NFC
 
 template <typename CharT>
-bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options, bool is_to_ascii);
+bool map(std::u32string& mapped, const CharT* input, const CharT* input_end, Option options);
 
-extern template UPA_IDNA_API bool map(std::u32string&, const char*, const char*, Option, bool);
-extern template UPA_IDNA_API bool map(std::u32string&, const char16_t*, const char16_t*, Option, bool);
-extern template UPA_IDNA_API bool map(std::u32string&, const char32_t*, const char32_t*, Option, bool);
+extern template UPA_IDNA_API bool map(std::u32string&, const char*, const char*, Option);
+extern template UPA_IDNA_API bool map(std::u32string&, const char16_t*, const char16_t*, Option);
+extern template UPA_IDNA_API bool map(std::u32string&, const char32_t*, const char32_t*, Option);
 
 // Performs ToASCII on IDNA-mapped and normalized to NFC input
 UPA_IDNA_API bool to_ascii_mapped(std::string& domain, const std::u32string& mapped, Option options);
@@ -263,7 +266,8 @@ UPA_EXPORT_BEGIN
 ///
 /// See: https://www.unicode.org/reports/tr46/#ToASCII
 ///
-/// @param[out] domain buffer to store result string
+/// @param[out] domain buffer to store result string. Stored
+///   result is valid if the function returns `true`.
 /// @param[in]  input source domain string
 /// @param[in]  input_end the end of source domain string
 /// @param[in]  options
@@ -273,16 +277,19 @@ inline bool to_ascii(std::string& domain, const CharT* input, const CharT* input
     // P1 - Map and further processing
     std::u32string mapped;
     domain.clear();
+    const auto opt = options | Option::FailFast;
     return
-        detail::map(mapped, input, input_end, options, true) &&
-        detail::to_ascii_mapped(domain, mapped, options);
+        detail::map(mapped, input, input_end, opt) &&
+        detail::to_ascii_mapped(domain, mapped, opt);
 }
 
 /// @brief Implements the Unicode IDNA ToUnicode
 ///
 /// See: https://www.unicode.org/reports/tr46/#ToUnicode
 ///
-/// @param[out] domain buffer to store result string
+/// @param[out] domain buffer to store result string. Result is appended to the buffer. The
+///  stored result is valid regardless of the returned value, unless `Option::FailFast` is
+///  specified; in that case, the stored result is valid only if the returned value is `true`.
 /// @param[in]  input source domain string
 /// @param[in]  input_end the end of source domain string
 /// @param[in]  options
@@ -291,13 +298,15 @@ template <typename CharT>
 inline bool to_unicode(std::u32string& domain, const CharT* input, const CharT* input_end, Option options) {
     // P1 - Map and further processing
     std::u32string mapped;
-    detail::map(mapped, input, input_end, options, false);
+    if (!detail::map(mapped, input, input_end, options) &&
+        detail::has(options, Option::FailFast))
+        return false;
     return detail::to_unicode_mapped(domain, mapped, options);
 }
 
 /// @brief Implements the domain to ASCII algorithm
 ///
-/// See: https://url.spec.whatwg.org/#concept-domain-to-ascii
+/// This function is deprecated. Use `to_ascii` instead.
 ///
 /// @param[out] domain buffer to store result string
 /// @param[in]  input source domain string
@@ -306,10 +315,11 @@ inline bool to_unicode(std::u32string& domain, const CharT* input, const CharT* 
 /// @param[in]  is_input_ascii
 /// @return `true` on success, or `false` on failure
 template <typename CharT>
+[[deprecated]]
 inline bool domain_to_ascii(std::string& domain, const CharT* input, const CharT* input_end,
     bool be_strict = false, bool is_input_ascii = false)
 {
-    const bool res = to_ascii(domain, input, input_end, detail::domain_options(be_strict, is_input_ascii));
+    const bool res = to_ascii(domain, input, input_end, domain_options(be_strict, is_input_ascii));
 
     // 3. If result is the empty string, domain-to-ASCII validation error, return failure.
     //
@@ -320,7 +330,7 @@ inline bool domain_to_ascii(std::string& domain, const CharT* input, const CharT
 
 /// @brief Implements the domain to Unicode algorithm
 ///
-/// See: https://url.spec.whatwg.org/#concept-domain-to-unicode
+/// This function is deprecated. Use `to_unicode` instead.
 ///
 /// @param[out] domain buffer to store result string
 /// @param[in]  input source domain string
@@ -329,10 +339,11 @@ inline bool domain_to_ascii(std::string& domain, const CharT* input, const CharT
 /// @param[in]  is_input_ascii
 /// @return `true` on success, or `false` on errors
 template <typename CharT>
+[[deprecated]]
 inline bool domain_to_unicode(std::u32string& domain, const CharT* input, const CharT* input_end,
     bool be_strict = false, bool is_input_ascii = false)
 {
-    return to_unicode(domain, input, input_end, detail::domain_options(be_strict, is_input_ascii));
+    return to_unicode(domain, input, input_end, domain_options(be_strict, is_input_ascii));
 }
 
 /// @brief Encodes Unicode version

@@ -166,7 +166,7 @@ inline bool domain_parser_to_ascii(std::string& domain, const CharT* input, cons
     bool be_strict, bool is_input_ascii = false)
 {
     return idna::to_ascii(domain, input, input_end,
-        idna::detail::domain_options(be_strict, is_input_ascii));
+        idna::domain_options(be_strict, is_input_ascii));
 }
 
 } // namespace detail
@@ -228,16 +228,23 @@ UPA_EXPORT template <class CharT, class StrT, enable_if_str_arg_t<StrT> = 0>
 inline bool domain_to_unicode(std::basic_string<CharT>& output, const StrT& input,
     bool be_strict = false, bool is_input_ascii = false)
 {
+    static constexpr auto to_unicode =
+        [](std::u32string& domain, const auto* input, const auto* input_end,
+            bool be_strict, bool is_input_ascii) {
+            return idna::to_unicode(domain, input, input_end, idna::domain_options(
+                be_strict, is_input_ascii) | idna::Option::FailFast);
+        };
+
     const auto inp = make_str_arg(input);
 
     if constexpr (std::is_same_v<CharT, char32_t>) {
         const auto len = output.length();
-        if (idna::domain_to_unicode(output, inp.begin(), inp.end(), be_strict, is_input_ascii))
+        if (to_unicode(output, inp.begin(), inp.end(), be_strict, is_input_ascii))
             return true;
         output.resize(len);
     } else {
         std::u32string domain;
-        if (idna::domain_to_unicode(domain, inp.begin(), inp.end(), be_strict, is_input_ascii)) {
+        if (to_unicode(domain, inp.begin(), inp.end(), be_strict, is_input_ascii)) {
             if constexpr (sizeof(CharT) == sizeof(char)) {
                 // CharT is char8_t, or char
                 for (auto cp : domain)
@@ -289,6 +296,12 @@ inline bool domain_to_unicode(std::basic_string<CharT>& output, const StrT& inpu
 template <typename CharT>
 inline validation_errc host_parser::parse_host(const CharT* first, const CharT* last, bool is_opaque, host_output& dest) {
     using UCharT = std::make_unsigned_t<CharT>;
+
+    static constexpr auto to_ascii_non_empty =
+        [](std::string& domain, const auto* input, const auto* input_end) {
+            return idna::to_ascii(domain, input, input_end, idna::domain_options(false, false)) &&
+                !domain.empty();
+        };
 
     // 1. Non-"file" special URL's cannot have an empty host.
     // 2. For "file" URL's empty host is set in the file_host_state 1.2
@@ -348,7 +361,7 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
     const auto pes = std::find(ptr, last, '%');
     if (pes == last) {
         // Input (first, last) contains non-ASCII characters
-        if (!idna::domain_to_ascii(buff_ascii, first, last))
+        if (!to_ascii_non_empty(buff_ascii, first, last))
             return validation_errc::domain_to_ascii;
     } else {
         // Buffer for domain_to_ascii's input
@@ -410,7 +423,7 @@ inline validation_errc host_parser::parse_host(const CharT* first, const CharT* 
         }
         if (is_ascii)
             util::append_ascii_lowercase(buff_ascii, buff_uc.begin(), buff_uc.end());
-        else if (!idna::domain_to_ascii(buff_ascii, buff_uc.begin(), buff_uc.end()))
+        else if (!to_ascii_non_empty(buff_ascii, buff_uc.begin(), buff_uc.end()))
             return validation_errc::domain_to_ascii;
     }
 
