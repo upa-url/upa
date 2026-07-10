@@ -2560,8 +2560,8 @@ inline std::string canonicalize_pathname(std::string_view value) {
     upa::url dummy_url{};
     {
         upa::detail::url_serializer urls(dummy_url);
-        /*** This code is unnecessary ***
         urls.set_scheme("https");
+        /*** This code is unnecessary ***
         // HACK: To improve performance, we use "h" instead of "dummy.invalid".
         urls.hostStart().push_back('h');
         urls.hostDone(upa::HostType::Domain);

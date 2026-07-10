@@ -26,6 +26,16 @@
     "expected_match": null
   },
   {
+    "pattern": [{ "pathname": "/foo/:bar" }],
+    "inputs": [{ "pathname": "\\foo\\index.html" }],
+    "expected_obj": {
+      "pathname": "/foo/:bar"
+    },
+    "expected_match": {
+      "pathname": { "input": "/foo/index.html", "groups": { "bar": "index.html" }}
+    }
+  },
+  {
     "pattern": [{ "pathname": "path/.." }],
     "inputs": [{ "pathname": "" }],
     "exactly_empty_components": [ "pathname" ],
