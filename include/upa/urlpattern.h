@@ -2535,30 +2535,34 @@ inline std::string canonicalize_pathname(std::string_view value) {
     // Let leading slash be true if the first code point
     // in value is U+002F (/) and otherwise false
     const bool leading_slash = value[0] == '/';
-    // Let modified value be "/-" if leading slash is false
-    // and otherwise the empty string.
-    std::string modified_value{ leading_slash ? ""sv : "/-"sv };
-    // Note
-    // The URL parser will automatically prepend a leading slash to the canonicalized pathname.
-    // This does not work here unfortunately. This algorithm is called for pieces of the pathname,
-    // instead of the entire pathname, when used as an encoding callback. Therefore we disable the
-    // prepending of the slash by inserting our own. An additional character is also inserted here
-    // in order to avoid inadvertantly collapsing a leading dot due to the fake leading slash
-    // being interpreted as a "/." sequence. These inserted characters are then removed from the
-    // result below.
-    //
-    // Note, implementations are free to simply disable slash prepending in their URL parsing code
-    // instead of paying the performance penalty of inserting and removing characters in this
-    // algorithm.
 
-    modified_value.append(value);
-
-    // * Let dummyURL be the result of creating a dummy URL.
-    // * Empty dummyURL’s path.
-    // * Run basic URL parser given modified value with dummyURL as url and
-    //   path start state as state override.
     upa::url dummy_url{};
     {
+        std::string modified_value;
+        const auto inp = [&]() {
+            if (leading_slash)
+                return upa::make_str_arg(value);
+            // Let modified value be "/-" if leading slash is false
+            modified_value = "/-"sv;
+            // Append value to the end of modified value
+            modified_value.append(value);
+            // Note
+            // The URL parser will automatically prepend a leading slash to the canonicalized pathname.
+            // This does not work here unfortunately. This algorithm is called for pieces of the pathname,
+            // instead of the entire pathname, when used as an encoding callback. Therefore we disable the
+            // prepending of the slash by inserting our own. An additional character is also inserted here
+            // in order to avoid inadvertantly collapsing a leading dot due to the fake leading slash
+            // being interpreted as a "/." sequence. These inserted characters are then removed from the
+            // result below.
+            //
+            // Note, implementations are free to simply disable slash prepending in their URL parsing code
+            // instead of paying the performance penalty of inserting and removing characters in this
+            // algorithm.
+            return upa::make_str_arg(modified_value);
+        }();
+
+        // * Let dummyURL be the result of creating a dummy URL.
+        // * Empty dummyURL’s path.
         upa::detail::url_serializer urls(dummy_url);
         urls.set_scheme("https");
         /*** This code is unnecessary ***
@@ -2567,7 +2571,8 @@ inline std::string canonicalize_pathname(std::string_view value) {
         urls.hostDone(upa::HostType::Domain);
         ***/
 
-        const auto inp = upa::make_str_arg(modified_value);
+        // * Run basic URL parser given modified value with dummyURL as url and
+        //   path start state as state override.
         upa::detail::url_parser::url_parse(urls, inp.begin(), inp.end(), nullptr,
             upa::detail::url_parser::path_start_state);
     }
