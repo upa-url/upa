@@ -280,7 +280,7 @@ inline bool domain_to_unicode(std::basic_string<CharT>& output, const StrT& inpu
                 // CharT is char16_t, or wchar_t (Windows)
                 url_utf::append_utf16(cp, output);
             } else if constexpr (sizeof(CharT) == sizeof(char32_t)) {
-                // CharT is wchar_t (non Windows)
+                // CharT is char32_t, or wchar_t (non Windows)
                 output.push_back(static_cast<CharT>(cp));
             } else {
                 static_assert(util::false_v<CharT>, "unsupported output character type");
