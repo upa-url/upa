@@ -77,7 +77,7 @@ include(FetchContent)
 FetchContent_Declare(upa
   GIT_REPOSITORY https://github.com/upa-url/upa.git
   GIT_SHALLOW TRUE
-  GIT_TAG v2.4.0
+  GIT_TAG v2.5.0
 )
 FetchContent_MakeAvailable(upa)
 ...
@@ -89,7 +89,7 @@ target_link_libraries(exe-target PRIVATE upa::url)
 If you are using the [CPM.cmake script](https://github.com/cpm-cmake/CPM.cmake) and have included it in your `CMakeLists.txt`, then:
 
 ```cmake
-CPMAddPackage("gh:upa-url/upa@2.4.0")
+CPMAddPackage("gh:upa-url/upa@2.5.0")
 ...
 target_link_libraries(exe-target PRIVATE upa::url)
 ```
