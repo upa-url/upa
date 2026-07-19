@@ -5,7 +5,11 @@
 #ifndef UPA_REGEX_ENGINE_SRELL_H
 #define UPA_REGEX_ENGINE_SRELL_H
 
-#include "srell/srell.hpp"
+#if __has_include("srell/srell.hpp")
+# include "srell/srell.hpp"
+#else
+# include "srell.hpp"
+#endif
 #include <cstddef>
 #include <optional>
 #include <string>
