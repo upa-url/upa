@@ -154,7 +154,7 @@ jobs:
     - name: install
       if: ${{ matrix.install_script }}
       run: ${{ matrix.install_script }}
-    - uses: lukka/get-cmake@v4.3.4
+    - uses: lukka/get-cmake@v4.4.0
       if: ${{ matrix.install_cmake }}
     - uses: actions/checkout@v7
     - name: get dependencies
