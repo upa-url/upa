@@ -7,7 +7,7 @@ REM Commit hash of URL web-platform-tests (wpt)
 REM
 REM Run tools\update-wpt.py to update to the latest commit hash from
 REM https://github.com/web-platform-tests/wpt/tree/master/url
-set HASH=c23755a1449cc9c5a9131378c13ecf073c0885c6
+set HASH=c48d58747e1f211527fb695fd60548a997fae617
 
 for %%f in (setters_tests.json toascii.json urltestdata.json urltestdata-javascript-only.json percent-encoding.json IdnaTestV2.json IdnaTestV2-removed.json) do (
   curl -fsS -o %p%\wpt\%%f https://raw.githubusercontent.com/web-platform-tests/wpt/%HASH%/url/resources/%%f
