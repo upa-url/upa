@@ -186,10 +186,10 @@ UPA_EXPORT_END
 // NOLINTBEGIN(*-macro-*)
 
 #define UPA_IDNA_VERSION_MAJOR 2
-#define UPA_IDNA_VERSION_MINOR 6
+#define UPA_IDNA_VERSION_MINOR 7
 #define UPA_IDNA_VERSION_PATCH 0
 
-#define UPA_IDNA_VERSION "2.6.0"
+#define UPA_IDNA_VERSION "2.7.0"
 
 // NOLINTEND(*-macro-*)
 
@@ -368,7 +368,7 @@ inline bool domain_to_unicode(std::u32string& domain, const CharT* input, const 
 /// @return encoded Unicode version
 /// @see make_unicode_version
 [[nodiscard]] inline unsigned unicode_version() {
-    return make_unicode_version(17);
+    return make_unicode_version(18);
 }
 
 UPA_EXPORT_END
