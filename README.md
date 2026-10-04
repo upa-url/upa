@@ -12,7 +12,7 @@ This library is up to date with the URL Standard published on
 the URL Pattern Standard published on
 [15 June 2026](https://urlpattern.spec.whatwg.org/commit-snapshots/aeb2019cf3aa1fb31af134a682c0255302a41297/)
 and supports internationalized domain names as specified in the
-[UTS46 Unicode IDNA Compatibility Processing version 17.0.0](https://www.unicode.org/reports/tr46/tr46-35.html).
+[UTS46 Unicode IDNA Compatibility Processing version 18.0.0](https://www.unicode.org/reports/tr46/tr46-36.html).
 
 It implements:
 1. [URL class](https://url.spec.whatwg.org/#url-class): `upa::url`
