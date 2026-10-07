@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 // Tests based on "url-setters-stripping.any.js" file from
@@ -92,6 +93,7 @@ static void set_url_property(upa::url& url, const std::string& property, const s
 // https://github.com/web-platform-tests/wpt/blob/master/url/url-setters-stripping.any.js
 //
 TEST_CASE("url-setters-stripping.any.js") {
+    using namespace std::string_view_literals;
 
     for (const std::string scheme : { "https", "wpt++" }) {
         for (int i = 0; i < 0x20; ++i) {
@@ -226,6 +228,33 @@ TEST_CASE("url-setters-stripping.any.js") {
                     set_url_property(url, ps.property, td.input);
                     CHECK(get_url_property(url, ps.property) == ps.separator + expected);
                     CHECK(url.href() == urlString({ {"scheme", scheme }, { ps.property, expected } }));
+                }
+            }
+
+            // searchParams has to reflect the resulting query, also when it was obtained before
+            // setting search
+            for (const auto& [type, input] : {
+                std::pair{"leading"sv, cpString + "test"},
+                std::pair{"middle"sv, "te" + cpString + "st"},
+                std::pair{"trailing"sv, "test" + cpString}
+                })
+            {
+                for (const auto searchParamsFirst : { false, true }) {
+                    INFO("Setting search with ", type, " ", cpReference, " updates ",
+                        searchParamsFirst ? "previously obtained "sv : ""sv,
+                        "searchParams(", scheme, ":)");
+
+                    const auto expected = stripped ? "test" : input;
+                    auto url = urlRecord(scheme);
+                    if (searchParamsFirst)
+                        url.search_params();
+                    url.search(input);
+
+                    // assert_array_equals([...url.searchParams.keys()], [expected], "keys");
+                    // assert_array_equals([...url.searchParams.values()], [""], "values");
+                    REQUIRE(url.search_params().size() == 1);
+                    CHECK(url.search_params().begin()->first == expected);
+                    CHECK(url.search_params().begin()->second == "");
                 }
             }
         }
