@@ -239,8 +239,9 @@ TEST_CASE("url-setters-stripping.any.js") {
                 std::pair{"trailing"sv, "test" + cpString}
                 })
             {
+                const auto type_copy = type; // fix for C++17 range-based for loop with structured bindings
                 for (const auto searchParamsFirst : { false, true }) {
-                    INFO("Setting search with ", type, " ", cpReference, " updates ",
+                    INFO("Setting search with ", type_copy, " ", cpReference, " updates ",
                         searchParamsFirst ? "previously obtained "sv : ""sv,
                         "searchParams(", scheme, ":)");
 
