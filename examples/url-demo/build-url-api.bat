@@ -8,7 +8,7 @@ REM CD to repository root folder
 cd %p%../..
 
 REM Compile
-call emcc examples/url-demo/url-api.cpp ^
+call em++ examples/url-demo/url-api.cpp ^
   src/public_suffix_list.cpp ^
   src/url.cpp ^
   src/url_ip.cpp ^

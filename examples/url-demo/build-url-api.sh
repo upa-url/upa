@@ -8,7 +8,7 @@ p="$(dirname "$0")"
 cd $p/../..
 
 # Compile
-emcc examples/url-demo/url-api.cpp \
+em++ examples/url-demo/url-api.cpp \
   src/public_suffix_list.cpp \
   src/url.cpp \
   src/url_ip.cpp \
