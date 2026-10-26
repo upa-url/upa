@@ -774,7 +774,7 @@ public:
     /// @warning The returned value may contain references to the data of the `urlpattern`
     /// object. Therefore, it can only be accessed as long as the `urlpattern` object itself
     /// is not destroyed.
-    /// 
+    ///
     /// @tparam ResT Result type, must be derived from `upa::urlpattern_result`
     /// @param[in] url URL to test
     /// @return Optional match result; `std::nullopt` if no match
@@ -1238,7 +1238,7 @@ inline component<regex_engine>::component(std::string_view input, encoding_callb
     // The specification uses regular expressions to perform all matching, but this is not mandated.
     // Implementations are free to perform matching directly against the part list when possible;
     // e.g. when there are no custom regexp matching groups. If there are custom regular
-    // expressions, however, its important that they be immediately evaluated in the compile
+    // expressions, however, it's important that they be immediately evaluated in the compile
     // a component algorithm so an error can be thrown if they are invalid.
     if (!regular_expression_.init(regular_expression_string, opt.ignore_case))
         throw urlpattern_error("regular expression is not valid");
@@ -2167,8 +2167,8 @@ UPA_CONSTEXPR_20 std::pair<std::string, string_list> generate_regular_expression
         // legacy reasons to match path-to-regexp. We could attempt to convert this to use regular
         // expression named captured groups, but given the complexity of this algorithm there is a
         // real risk of introducing unintended bugs. In addition, if we ever end up exposing the
-        // generated regular expressions to the web we would like to maintain compability with
-        // path-to-regexp which has indicated its unlikely to switch to using named capture groups.
+        // generated regular expressions to the web we would like to maintain  compatibility with
+        // path-to-regexp which has indicated it's unlikely to switch to using named capture groups.
         std::string_view regexp_value{ pt.value_ };
         std::string regexp_value_buffer;
         if (pt.type_ == part::type::SEGMENT_WILDCARD) {
