@@ -21,7 +21,7 @@ jobs:
           operating_system: freebsd
           version: '15.1'
       - name: install
-        run: sudo pkg install -y cmake git
+        run: sudo pkg install -y cmake-core git
       - name: get dependencies
         run: ./init.sh
       - name: cmake
