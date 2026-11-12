@@ -108,6 +108,15 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         CHECK_EQ(params.to_string(), "a=b");
     }
 
+    SUBCASE("URLSearchParams constructor, remove only one leading \"?\"") {
+        auto params = upa::url_search_params("??a=b");
+        CHECK_EQ(params.to_string(), "%3Fa=b");
+        params = upa::url_search_params("?");
+        CHECK_EQ(params.to_string(), "");
+        params = upa::url_search_params("??");
+        CHECK_EQ(params.to_string(), "%3F=");
+    }
+
     // Skip JavaScript specific tests:
     // 1) new URLSearchParams(DOMException)
     // 2) assert_equals(params.__proto__, URLSearchParams.prototype, ...)
@@ -170,7 +179,7 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         CHECK_FALSE(seed.has("g"));
     }
 
-    // Skip browsers specific test:
+    // Skip browsers-specific test:
     // "URLSearchParams constructor, FormData."
     // See: https://github.com/web-platform-tests/wpt/pull/23382
 
@@ -194,6 +203,20 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
         CHECK_EQ(params.to_string(), "query=%2B15555555555");
         CHECK(param_eq(params.get("query"), testValue));
         CHECK(param_eq(newParams.get("query"), testValue));
+    }
+
+    SUBCASE("Parse %2B") {
+        auto params = upa::url_search_params("a=b%2Bc");
+        CHECK(param_eq(params.get("a"), "b+c"));
+        params = upa::url_search_params("a%2Bb=c");
+        CHECK(param_eq(params.get("a+b"), "c"));
+    }
+
+    SUBCASE("Parse =") {
+        auto params = upa::url_search_params("=");
+        CHECK(params.has(""));
+        CHECK(param_eq(params.get(""), ""));
+        CHECK_EQ(params.to_string(), "=");
     }
 
     SUBCASE("Parse space") {
@@ -302,6 +325,11 @@ TEST_CASE("urlsearchparams-constructor.any.js") {
             //assert_throws(new TypeError(), function(){ new URLSearchParams([[1,2,3]]); });
         }
     }
+
+    // Skip browsers-specific tests:
+    // * Constructor with sequence of sequences of non-strings
+    // * Constructor with record of non-strings, in property order
+    // See: https://github.com/web-platform-tests/wpt/pull/65064
 
     SUBCASE("Construct with ...") {
         struct {
