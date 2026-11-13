@@ -8,7 +8,7 @@ p="$(dirname "$0")"
 #
 # Run tools/update-wpt.py to update to the latest commit hash from
 # https://github.com/web-platform-tests/wpt/tree/master/url
-HASH=a8769aaf150334be165646537256a768dc4e0fd1
+HASH=dca32277cbf3d40b3ec20bba999a987b0ea51ed7
 
 for f in setters_tests.json toascii.json urltestdata.json urltestdata-javascript-only.json percent-encoding.json IdnaTestV2.json IdnaTestV2-removed.json
 do

@@ -1,0 +1,43 @@
+{
+  "comment": "https://github.com/web-platform-tests/wpt/blob/master/url/url-setters-lone-surrogates.any.js",
+  "pathname": [{
+    "href": "http://example.net/",
+    "new_value": "\uDC01\uD802a",
+    "expected": {
+      "href": "http://example.net/%EF%BF%BD%EF%BF%BDa",
+      "pathname": "/%EF%BF%BD%EF%BF%BDa"
+    }
+  }],
+  "search": [{
+    "href": "http://example.net/",
+    "new_value": "\uDC01\uD802a",
+    "expected": {
+      "href": "http://example.net/?%EF%BF%BD%EF%BF%BDa",
+      "search": "?%EF%BF%BD%EF%BF%BDa"
+    }
+  }],
+  "hash": [{
+    "href": "http://example.net/",
+    "new_value": "\uDC01\uD802a",
+    "expected": {
+      "href": "http://example.net/#%EF%BF%BD%EF%BF%BDa",
+      "hash": "#%EF%BF%BD%EF%BF%BDa"
+    }
+  }],
+  "host": [{
+    "href": "http://example.net/",
+    "new_value": "exa\uDC01\uD802mple.com",
+    "expected": {
+      "href": "http://example.net/",
+      "host": "example.net"
+    }
+  }],
+  "hostname": [{
+    "href": "http://example.net/",
+    "new_value": "exa\uDC01\uD802mple.com",
+    "expected": {
+      "href": "http://example.net/",
+      "hostname": "example.net"
+    }
+  }]
+}

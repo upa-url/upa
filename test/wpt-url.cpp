@@ -17,6 +17,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <utility>
 
@@ -41,6 +42,8 @@ int main(int argc, char** argv)
     err |= test_from_file(run_parser_tests, "wpt/urltestdata-javascript-only.json");
     err |= test_from_file(run_host_parser_tests, "wpt/toascii.json");
     err |= test_from_file(run_setter_tests, "wpt/setters_tests.json");
+    // https://github.com/web-platform-tests/wpt/blob/master/url/url-setters-lone-surrogates.any.js
+    err |= test_from_file(run_setter_tests, "data/setters_tests-lone-surrogates.json");
     err |= test_from_file(run_percent_encoding_tests, "wpt/percent-encoding.json");
     err |= test_from_file(run_idna_v2_tests, "wpt/IdnaTestV2.json", nullptr);
     err |= test_from_file(run_idna_v2_tests, "wpt/IdnaTestV2-removed.json", nullptr);
@@ -68,6 +71,34 @@ int test_from_file(RunTests run_tests, Args&&... args)
         std::cout << "[ERROR]: " << ex.what() << std::endl;
         return 1;
     }
+}
+
+// Utility
+
+static std::string get_url_property(const upa::url& url, std::string_view property) {
+    // empty value, if property is invalid
+    std::string value;
+    if (property == "prtocol")
+        value = url.protocol();
+    else if (property == "username")
+        value = url.username();
+    else if (property == "password")
+        value = url.password();
+    else if (property == "host")
+        value = url.host();
+    else if (property == "hostname")
+        value = url.hostname();
+    else if (property == "port")
+        value = url.port();
+    else if (property == "pathname")
+        value = url.pathname();
+    else if (property == "search")
+        value = url.search();
+    else if (property == "hash")
+        value = url.hash();
+    else if (property == "href")
+        value = url.href();
+    return value;
 }
 
 // URL parser test
@@ -193,14 +224,31 @@ void test_parser(DataDrivenTest& ddt, const parsed_obj_with_failure& obj)
             tc.assert_equal(*obj.at("hash"), url.hash(), "hash");
         }
 
-        // https://github.com/web-platform-tests/wpt/pull/10955
         // https://github.com/web-platform-tests/wpt/blob/master/url/failure.html
-        // If a URL fails to parse with any valid base, it must also fail to parse with no base,
-        // i.e. when used as a base URL itself.
         if (obj.failure && base) {
+            // https://github.com/web-platform-tests/wpt/pull/10955
+            // If a URL fails to parse with any valid base, it must also fail to parse with no base,
+            // i.e. when used as a base URL itself.
             parse_success = upa::success(url.parse(*input));
             // check "failure"
             tc.assert_equal(obj.failure, !parse_success, "parse failure WITH NO BASE");
+
+            // https://github.com/web-platform-tests/wpt/pull/65132
+            // URL's href
+            const char* original = "http://user:pass@example.com:8080/path?query#fragment";
+            auto u = upa::url(original);
+            // set_href returns false on failure
+            tc.assert_equal(u.set_href(*input), false, "u.set_href(input)");
+            const auto expected = upa::url(original);
+            for (auto property : {"href", "origin", "protocol", "username", "password",
+                "host", "hostname", "port", "pathname", "search", "hash"}) {
+                tc.assert_equal(
+                    get_url_property(u, property),
+                    get_url_property(expected, property),
+                    property);
+            }
+            u.set_hash("changed");
+            tc.assert_equal(u.href(), "http://user:pass@example.com:8080/path?query#changed", "u.href");
         }
 
         // Test url::can_parse
