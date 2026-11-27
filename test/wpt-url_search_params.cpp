@@ -1,4 +1,4 @@
-// Copyright 2016-2025 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -7,6 +7,7 @@
 #include "doctest-main.h"
 #include "test-utils.h"
 #include <map>
+#include <regex>
 
 // Tests based on "urlsearchparams-*.any.js" files from
 // https://github.com/web-platform-tests/wpt/tree/master/url
@@ -821,6 +822,32 @@ TEST_CASE("urlsearchparams-stringifier.any.js") {
         params.append("e\n\rf", "g\r\nh");
 
         CHECK_EQ(params.to_string(), "a%0Ab=c%0Dd&e%0A%0Df=g%0D%0Ah");
+    }
+
+    SUBCASE("Serialize U+0000 to U+00FF") {
+        std::regex reDoNotEncode("[*\\-._0-9A-Za-z]");
+
+        for (unsigned i = 0; i <= 0xFF; ++i) {
+            std::string c, expected;
+            encode_utf8(c, i);
+            if (c == " ") {
+                expected = "+";
+            } else if (std::regex_search(c, reDoNotEncode)) {
+                expected = c;
+            } else {
+                std::ostringstream strm;
+                for (char b : c) {
+                    strm << '%' << std::hex << std::uppercase << std::setfill('0') << std::setw(2)
+                        << (static_cast<int>(static_cast<unsigned char>(b)));
+                }
+                expected = strm.str();
+            }
+            upa::url_search_params params;
+            params.append(c, c);
+            std::ostringstream msg;
+            msg << "U+" << std::hex << std::uppercase << std::setfill('0') << std::setw(4) << i;
+            CHECK_MESSAGE(params.to_string() == expected + "=" + expected, msg.str());
+        }
     }
 }
 

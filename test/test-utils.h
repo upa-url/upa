@@ -1,4 +1,4 @@
-// Copyright 2016-2024 Rimas Misevičius
+// Copyright 2016-2026 Rimas Misevičius
 // Distributed under the BSD-style license that can be
 // found in the LICENSE file.
 //
@@ -8,6 +8,8 @@
 
 #include "upa/config.h"
 #include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <initializer_list>
 #include <iomanip>
 #include <sstream>
@@ -38,7 +40,7 @@ inline std::string mk_string(T&& val) {
 // Input must be valid UTF-8.
 
 std::string encodeURIComponent(const std::string& str) {
-    std::stringstream strm;
+    std::ostringstream strm;
     for (char c : str) {
         // Not escapes: A-Z a-z 0-9 - _ . ! ~ * ' ( )
         if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
@@ -51,6 +53,37 @@ std::string encodeURIComponent(const std::string& str) {
         }
     }
     return strm.str();
+}
+
+bool encode_utf8(std::string& out, std::uint32_t cp) {
+    if (cp > 0x10FFFF || (cp >= 0xD800 && cp <= 0xDFFF))
+        return false;
+
+    char bytes[4];
+    std::size_t length;
+
+    if (cp <= 0x7F) {
+        bytes[0] = static_cast<char>(cp);
+        length = 1;
+    } else if (cp <= 0x7FF) {
+        bytes[0] = static_cast<char>(0xC0 | (cp >> 6));
+        bytes[1] = static_cast<char>(0x80 | (cp & 0x3F));
+        length = 2;
+    } else if (cp <= 0xFFFF) {
+        bytes[0] = static_cast<char>(0xE0 | (cp >> 12));
+        bytes[1] = static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+        bytes[2] = static_cast<char>(0x80 | (cp & 0x3F));
+        length = 3;
+    } else {
+        bytes[0] = static_cast<char>(0xF0 | (cp >> 18));
+        bytes[1] = static_cast<char>(0x80 | ((cp >> 12) & 0x3F));
+        bytes[2] = static_cast<char>(0x80 | ((cp >> 6) & 0x3F));
+        bytes[3] = static_cast<char>(0x80 | (cp & 0x3F));
+        length = 4;
+    }
+
+    out.append(bytes, length);
+    return true;
 }
 
 // for url_search_params
